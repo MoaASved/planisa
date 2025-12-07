@@ -1,12 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { TabNavigation } from '@/components/navigation/TabNavigation';
+import { HomeView } from '@/components/views/HomeView';
+import { CalendarViewComponent } from '@/components/views/CalendarView';
+import { TasksView } from '@/components/views/TasksView';
+import { NotesView } from '@/components/views/NotesView';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('home');
+
+  const renderView = () => {
+    switch (activeTab) {
+      case 'home':
+        return <HomeView onNavigate={setActiveTab} />;
+      case 'calendar':
+        return <CalendarViewComponent />;
+      case 'tasks':
+        return <TasksView />;
+      case 'notes':
+        return <NotesView />;
+      default:
+        return <HomeView onNavigate={setActiveTab} />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {renderView()}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
