@@ -23,7 +23,7 @@ const priorityColors = {
 };
 
 export function TasksView() {
-  const { tasks, toggleTask, toggleSubtask, searchQuery, categories } = useAppStore();
+  const { tasks, toggleTask, toggleSubtask, searchQuery, taskCategories } = useAppStore();
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<SortType>('all');
 
@@ -52,8 +52,8 @@ export function TasksView() {
       return true;
     });
 
-  const groupedTasks = sortBy === 'category' 
-    ? categories.reduce((acc, cat) => {
+  const groupedTasks: Record<string, Task[]> = sortBy === 'category' 
+    ? taskCategories.reduce((acc, cat) => {
         const catTasks = filteredTasks.filter(t => t.category === cat.name);
         if (catTasks.length > 0) acc[cat.name] = catTasks;
         return acc;
