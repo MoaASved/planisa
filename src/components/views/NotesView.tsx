@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { 
   Folder, 
+  FolderPlus,
   FileText, 
   Pin, 
   MoreHorizontal,
@@ -316,7 +317,7 @@ export function NotesView() {
             className="w-full flow-card-flat flex items-center gap-3 mb-4"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Plus className="w-5 h-5 text-primary" />
+              <FolderPlus className="w-5 h-5 text-primary" />
             </div>
             <span className="font-medium text-foreground">Create Folder</span>
           </button>
