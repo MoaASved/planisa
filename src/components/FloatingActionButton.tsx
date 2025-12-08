@@ -3,18 +3,29 @@ import { Plus, X, CheckSquare, FileText, CalendarPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FloatingActionButtonProps {
+  activeTab: string;
   onCreateTask: () => void;
   onCreateNote: () => void;
   onCreateEvent: () => void;
 }
 
-export function FloatingActionButton({ onCreateTask, onCreateNote, onCreateEvent }: FloatingActionButtonProps) {
+export function FloatingActionButton({ 
+  activeTab, 
+  onCreateTask, 
+  onCreateNote, 
+  onCreateEvent 
+}: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Only show on home tab - other tabs use direct action
+  if (activeTab !== 'home') {
+    return null;
+  }
+
   const actions = [
-    { id: 'task', label: 'New Task', icon: CheckSquare, onClick: onCreateTask, color: 'bg-flow-coral' },
-    { id: 'note', label: 'New Note', icon: FileText, onClick: onCreateNote, color: 'bg-flow-lavender' },
-    { id: 'event', label: 'New Event', icon: CalendarPlus, onClick: onCreateEvent, color: 'bg-flow-mint' },
+    { id: 'task', label: 'New Task', icon: CheckSquare, onClick: onCreateTask },
+    { id: 'event', label: 'New Event', icon: CalendarPlus, onClick: onCreateEvent },
+    { id: 'note', label: 'New Note', icon: FileText, onClick: onCreateNote },
   ];
 
   const handleAction = (onClick: () => void) => {
@@ -32,43 +43,48 @@ export function FloatingActionButton({ onCreateTask, onCreateNote, onCreateEvent
         />
       )}
 
-      {/* Action buttons */}
-      <div className="fixed right-6 bottom-28 z-50 flex flex-col-reverse items-center gap-3">
-        {actions.map((action, index) => {
-          const Icon = action.icon;
-          return (
+      {/* Bottom Sheet Style Actions */}
+      {isOpen && (
+        <div className="fixed inset-x-4 bottom-24 z-50 flow-bottom-sheet animate-slide-up">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Create New</h3>
             <button
-              key={action.id}
-              onClick={() => handleAction(action.onClick)}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-2xl text-white font-medium transition-all duration-300',
-                action.color,
-                isOpen 
-                  ? 'opacity-100 translate-y-0' 
-                  : 'opacity-0 translate-y-4 pointer-events-none'
-              )}
-              style={{ 
-                transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
-                boxShadow: '0 4px 20px -4px hsl(var(--foreground) / 0.2)'
-              }}
+              onClick={() => setIsOpen(false)}
+              className="p-2 rounded-full bg-secondary"
             >
-              <Icon className="w-5 h-5" />
-              <span>{action.label}</span>
+              <X className="w-5 h-5 text-muted-foreground" />
             </button>
-          );
-        })}
-      </div>
+          </div>
+          
+          <div className="space-y-2">
+            {actions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => handleAction(action.onClick)}
+                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-secondary hover:bg-muted transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="font-medium text-foreground">{action.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      {/* Main FAB */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'flow-fab right-6 bottom-28 z-50',
-          isOpen && 'rotate-45'
-        )}
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
-      </button>
+      {/* FAB - only visible when sheet is closed */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flow-fab right-4 bottom-24"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
     </>
   );
 }

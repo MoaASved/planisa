@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Task, CalendarEvent, Note, Folder, Widget } from '@/types';
-import { addDays, startOfToday, addHours } from 'date-fns';
+import { Task, CalendarEvent, Note, Folder, Category, Widget, UserSettings, PastelColor } from '@/types';
+import { addDays, startOfToday } from 'date-fns';
 
 interface AppState {
   // Tasks
@@ -28,11 +28,22 @@ interface AppState {
   // Folders
   folders: Folder[];
   addFolder: (folder: Omit<Folder, 'id'>) => void;
+  updateFolder: (id: string, updates: Partial<Folder>) => void;
   deleteFolder: (id: string) => void;
+
+  // Categories
+  categories: Category[];
+  addCategory: (category: Omit<Category, 'id'>) => void;
+  updateCategory: (id: string, updates: Partial<Category>) => void;
+  deleteCategory: (id: string) => void;
 
   // Widgets
   widgets: Widget[];
-  updateWidgetPosition: (id: string, position: { x: number; y: number }) => void;
+  updateWidgets: (widgets: Widget[]) => void;
+
+  // Settings
+  settings: UserSettings;
+  updateSettings: (settings: Partial<UserSettings>) => void;
 
   // Search
   searchQuery: string;
@@ -43,6 +54,14 @@ const generateId = () => Math.random().toString(36).substring(2, 15);
 
 const today = startOfToday();
 
+const initialCategories: Category[] = [
+  { id: '1', name: 'Work', color: 'sky', type: 'both' },
+  { id: '2', name: 'Personal', color: 'mint', type: 'both' },
+  { id: '3', name: 'Health', color: 'coral', type: 'both' },
+  { id: '4', name: 'Finance', color: 'amber', type: 'both' },
+  { id: '5', name: 'Social', color: 'lavender', type: 'both' },
+];
+
 const initialTasks: Task[] = [
   {
     id: '1',
@@ -51,7 +70,7 @@ const initialTasks: Task[] = [
     date: today,
     time: '10:00',
     category: 'Work',
-    color: 'primary',
+    color: 'sky',
     subtasks: [
       { id: '1a', title: 'Check budget section', completed: true },
       { id: '1b', title: 'Review timeline', completed: false },
@@ -72,7 +91,7 @@ const initialTasks: Task[] = [
   },
   {
     id: '3',
-    title: 'Call dentist for appointment',
+    title: 'Call dentist',
     completed: true,
     date: addDays(today, 1),
     category: 'Health',
@@ -83,7 +102,7 @@ const initialTasks: Task[] = [
   },
   {
     id: '4',
-    title: 'Prepare presentation slides',
+    title: 'Prepare presentation',
     completed: false,
     date: addDays(today, 2),
     time: '14:00',
@@ -92,7 +111,6 @@ const initialTasks: Task[] = [
     subtasks: [
       { id: '4a', title: 'Create outline', completed: false },
       { id: '4b', title: 'Design slides', completed: false },
-      { id: '4c', title: 'Add animations', completed: false },
     ],
     priority: 'high',
     createdAt: today,
@@ -107,7 +125,7 @@ const initialEvents: CalendarEvent[] = [
     startTime: '09:00',
     endTime: '09:30',
     category: 'Work',
-    color: 'primary',
+    color: 'sky',
     isAllDay: false,
   },
   {
@@ -122,7 +140,7 @@ const initialEvents: CalendarEvent[] = [
   },
   {
     id: '3',
-    title: 'Product review meeting',
+    title: 'Product review',
     date: addDays(today, 1),
     startTime: '15:00',
     endTime: '16:00',
@@ -130,43 +148,38 @@ const initialEvents: CalendarEvent[] = [
     color: 'lavender',
     isAllDay: false,
   },
-  {
-    id: '4',
-    title: 'Weekend trip',
-    date: addDays(today, 5),
-    category: 'Personal',
-    color: 'coral',
-    isAllDay: true,
-  },
 ];
 
 const initialNotes: Note[] = [
   {
     id: '1',
     title: 'Project Ideas',
-    content: '## New App Concepts\n\n- AI-powered task management\n- Smart calendar integration\n- Voice notes feature\n\n### Priority\n1. Focus on UX\n2. Keep it minimal\n3. Fast performance',
+    content: '## New App Concepts\n\n- AI-powered task management\n- Smart calendar integration\n- Voice notes feature\n\n### Priority\n1. Focus on UX\n2. Keep it minimal',
     folder: 'Work',
     tags: ['ideas', 'projects'],
+    color: 'sky',
     createdAt: today,
     updatedAt: today,
     isPinned: true,
   },
   {
     id: '2',
-    title: 'Meeting Notes - Q4 Planning',
-    content: '**Attendees:** John, Sarah, Mike\n\n### Key Points\n- Budget approved for new features\n- Launch target: December\n- [ ] Follow up with design team\n- [x] Schedule review meeting',
+    title: 'Meeting Notes',
+    content: '**Attendees:** John, Sarah, Mike\n\n### Key Points\n- Budget approved\n- Launch target: December',
     folder: 'Work',
-    tags: ['meetings', 'planning'],
+    tags: ['meetings'],
+    color: 'lavender',
     createdAt: addDays(today, -2),
     updatedAt: addDays(today, -1),
     isPinned: false,
   },
   {
     id: '3',
-    title: 'Book Recommendations',
-    content: '### Currently Reading\n- Atomic Habits by James Clear\n\n### Up Next\n- Deep Work\n- The Psychology of Money',
+    title: 'Book List',
+    content: '### Currently Reading\n- Atomic Habits\n\n### Up Next\n- Deep Work\n- The Psychology of Money',
     folder: 'Personal',
-    tags: ['books', 'reading'],
+    tags: ['books'],
+    color: 'mint',
     createdAt: addDays(today, -5),
     updatedAt: addDays(today, -3),
     isPinned: false,
@@ -174,17 +187,23 @@ const initialNotes: Note[] = [
 ];
 
 const initialFolders: Folder[] = [
-  { id: '1', name: 'Work', color: 'primary' },
+  { id: '1', name: 'Work', color: 'sky' },
   { id: '2', name: 'Personal', color: 'mint' },
   { id: '3', name: 'Ideas', color: 'lavender' },
 ];
 
 const initialWidgets: Widget[] = [
-  { id: '1', type: 'mini-calendar', position: { x: 0, y: 0 }, size: { width: 1, height: 1 } },
-  { id: '2', type: 'today-tasks', position: { x: 1, y: 0 }, size: { width: 1, height: 1 } },
-  { id: '3', type: 'today-events', position: { x: 0, y: 1 }, size: { width: 1, height: 1 } },
-  { id: '4', type: 'quick-add', position: { x: 1, y: 1 }, size: { width: 1, height: 1 } },
+  { id: '1', type: 'calendar-week', size: 'large', position: 0 },
+  { id: '2', type: 'today-tasks', size: 'small', position: 1 },
+  { id: '3', type: 'highlighted-note', size: 'small', position: 2 },
 ];
+
+const initialSettings: UserSettings = {
+  language: 'en',
+  theme: 'light',
+  avatarColor: 'sky',
+  avatarInitial: 'U',
+};
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -270,16 +289,39 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           folders: [...state.folders, { ...folder, id: generateId() }],
         })),
+      updateFolder: (id, updates) =>
+        set((state) => ({
+          folders: state.folders.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+        })),
       deleteFolder: (id) =>
         set((state) => ({
           folders: state.folders.filter((f) => f.id !== id),
         })),
 
+      // Categories
+      categories: initialCategories,
+      addCategory: (category) =>
+        set((state) => ({
+          categories: [...state.categories, { ...category, id: generateId() }],
+        })),
+      updateCategory: (id, updates) =>
+        set((state) => ({
+          categories: state.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        })),
+      deleteCategory: (id) =>
+        set((state) => ({
+          categories: state.categories.filter((c) => c.id !== id),
+        })),
+
       // Widgets
       widgets: initialWidgets,
-      updateWidgetPosition: (id, position) =>
+      updateWidgets: (widgets) => set({ widgets }),
+
+      // Settings
+      settings: initialSettings,
+      updateSettings: (newSettings) =>
         set((state) => ({
-          widgets: state.widgets.map((w) => (w.id === id ? { ...w, position } : w)),
+          settings: { ...state.settings, ...newSettings },
         })),
 
       // Search
