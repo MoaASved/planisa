@@ -281,13 +281,13 @@ export function NotesView() {
             <div className="flow-segment">
               <button
                 onClick={() => setViewTab('all')}
-                className={cn('flow-segment-item', viewTab === 'all' && 'flow-segment-item-active')}
+                className="flow-segment-item"
               >
                 All Notes
               </button>
               <button
                 onClick={() => setViewTab('folders')}
-                className={cn('flow-segment-item', viewTab === 'folders' && 'flow-segment-item-active')}
+                className="flow-segment-item flow-segment-item-active"
               >
                 Folders
               </button>
@@ -394,7 +394,7 @@ export function NotesView() {
           <div className="flow-segment">
             <button
               onClick={() => { setViewTab('all'); setSelectedFolder(null); }}
-              className={cn('flow-segment-item', viewTab === 'all' && 'flow-segment-item-active')}
+              className={cn('flow-segment-item', viewTab === 'all' as ViewTab && 'flow-segment-item-active')}
             >
               All Notes
             </button>
