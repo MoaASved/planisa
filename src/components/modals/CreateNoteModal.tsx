@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Folder, Tag, Calendar } from 'lucide-react';
+import { X, Plus, Folder, Tag, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor } from '@/types';
@@ -11,7 +11,7 @@ interface CreateNoteModalProps {
 }
 
 export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
-  const { addNote, folders } = useAppStore();
+  const { addNote, folders, addFolder } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [folder, setFolder] = useState(folders[0]?.name || 'Personal');
@@ -20,10 +20,25 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
 
+  // New folder creation state
+  const [showNewFolder, setShowNewFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderColor, setNewFolderColor] = useState<PastelColor>('sky');
+
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
       setTagInput('');
+    }
+  };
+
+  const handleCreateFolder = () => {
+    if (newFolderName.trim()) {
+      addFolder({ name: newFolderName.trim(), color: newFolderColor });
+      setFolder(newFolderName.trim());
+      setColor(newFolderColor);
+      setNewFolderName('');
+      setShowNewFolder(false);
     }
   };
 
@@ -60,7 +75,7 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
       />
       <div className="relative bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
         {/* Header */}
-        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-foreground">New Note</h2>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
             <X className="w-5 h-5 text-muted-foreground" />
@@ -78,42 +93,94 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
             autoFocus
           />
 
-          {/* Folder & Date */}
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                <Folder className="w-4 h-4" /> Folder
-              </label>
-              <select
-                value={folder}
-                onChange={(e) => {
-                  setFolder(e.target.value);
-                  const selectedFolder = folders.find(f => f.name === e.target.value);
-                  if (selectedFolder) setColor(selectedFolder.color);
-                }}
-                className="flow-input appearance-none cursor-pointer"
+          {/* Folder */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+              <Folder className="w-4 h-4" /> Folder
+            </label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {folders.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => { setFolder(f.name); setColor(f.color); }}
+                  className={cn(
+                    'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                    folder === f.name
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${f.color}`)} />
+                  {f.name}
+                </button>
+              ))}
+              <button
+                onClick={() => setShowNewFolder(true)}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-secondary text-primary hover:bg-muted transition-all flex items-center gap-1"
               >
-                {folders.map((f) => (
-                  <option key={f.id} value={f.name}>{f.name}</option>
-                ))}
-              </select>
+                <Plus className="w-4 h-4" /> New
+              </button>
             </div>
-            <div className="flex-1">
-              <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> Date
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="flow-input"
-              />
-            </div>
+
+            {/* New Folder Inline Form */}
+            {showNewFolder && (
+              <div className="mt-3 p-3 bg-secondary rounded-xl space-y-3 animate-fade-in">
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Folder name"
+                  className="flow-input"
+                  autoFocus
+                />
+                <div className="flex flex-wrap gap-2">
+                  {pastelColors.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => setNewFolderColor(c.value)}
+                      className={cn(
+                        'w-7 h-7 rounded-full transition-all',
+                        c.class,
+                        newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                      )}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowNewFolder(false)}
+                    className="flex-1 px-3 py-2 rounded-xl text-sm bg-muted text-muted-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateFolder}
+                    disabled={!newFolderName.trim()}
+                    className="flex-1 px-3 py-2 rounded-xl text-sm bg-primary text-primary-foreground disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Color */}
+          {/* Date */}
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">Color</label>
+            <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
+              <Calendar className="w-4 h-4" /> Date (optional)
+            </label>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="flow-input"
+            />
+          </div>
+
+          {/* Color Override */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Color (override)</label>
             <div className="flex flex-wrap gap-2">
               {pastelColors.map((c) => (
                 <button

@@ -18,21 +18,36 @@ const priorities: { value: Priority; label: string }[] = [
 ];
 
 export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
-  const { addTask, categories } = useAppStore();
+  const { addTask, taskCategories, addTaskCategory } = useAppStore();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [category, setCategory] = useState(categories[0]?.name || 'Work');
-  const [color, setColor] = useState<PastelColor>(categories[0]?.color || 'sky');
+  const [category, setCategory] = useState(taskCategories[0]?.name || 'Work');
+  const [color, setColor] = useState<PastelColor>(taskCategories[0]?.color || 'sky');
   const [priority, setPriority] = useState<Priority>('none');
   const [notes, setNotes] = useState('');
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [newSubtask, setNewSubtask] = useState('');
+  
+  // New category creation state
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
 
   const handleAddSubtask = () => {
     if (newSubtask.trim()) {
       setSubtasks([...subtasks, newSubtask.trim()]);
       setNewSubtask('');
+    }
+  };
+
+  const handleCreateCategory = () => {
+    if (newCategoryName.trim()) {
+      addTaskCategory({ name: newCategoryName.trim(), color: newCategoryColor });
+      setCategory(newCategoryName.trim());
+      setColor(newCategoryColor);
+      setNewCategoryName('');
+      setShowNewCategory(false);
     }
   };
 
@@ -55,8 +70,8 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
     setTitle('');
     setDate('');
     setTime('');
-    setCategory(categories[0]?.name || 'Work');
-    setColor(categories[0]?.color || 'sky');
+    setCategory(taskCategories[0]?.name || 'Work');
+    setColor(taskCategories[0]?.color || 'sky');
     setPriority('none');
     setNotes('');
     setSubtasks([]);
@@ -73,7 +88,7 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
       />
       <div className="relative bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
         {/* Header */}
-        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-foreground">New Task</h2>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
             <X className="w-5 h-5 text-muted-foreground" />
@@ -123,26 +138,75 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
               <Tag className="w-4 h-4" /> Category
             </label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {categories.map((cat) => (
+              {taskCategories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => { setCategory(cat.name); setColor(cat.color); }}
                   className={cn(
-                    'px-4 py-2 rounded-xl text-sm font-medium transition-all',
+                    'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
                     category === cat.name
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary text-muted-foreground hover:bg-muted'
                   )}
                 >
+                  <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${cat.color}`)} />
                   {cat.name}
                 </button>
               ))}
+              <button
+                onClick={() => setShowNewCategory(true)}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-secondary text-primary hover:bg-muted transition-all flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" /> New
+              </button>
             </div>
+
+            {/* New Category Inline Form */}
+            {showNewCategory && (
+              <div className="mt-3 p-3 bg-secondary rounded-xl space-y-3 animate-fade-in">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Category name"
+                  className="flow-input"
+                  autoFocus
+                />
+                <div className="flex flex-wrap gap-2">
+                  {pastelColors.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => setNewCategoryColor(c.value)}
+                      className={cn(
+                        'w-7 h-7 rounded-full transition-all',
+                        c.class,
+                        newCategoryColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                      )}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowNewCategory(false)}
+                    className="flex-1 px-3 py-2 rounded-xl text-sm bg-muted text-muted-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCreateCategory}
+                    disabled={!newCategoryName.trim()}
+                    className="flex-1 px-3 py-2 rounded-xl text-sm bg-primary text-primary-foreground disabled:opacity-50"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Color */}
+          {/* Color Override */}
           <div>
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">Color</label>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Color (override)</label>
             <div className="flex flex-wrap gap-2">
               {pastelColors.map((c) => (
                 <button

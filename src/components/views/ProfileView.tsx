@@ -4,15 +4,17 @@ import {
   Mail, 
   Lock, 
   Globe, 
-  Palette, 
   Moon, 
   Sun,
   ChevronRight,
+  ChevronDown,
   LogOut,
-  Tag,
   Plus,
   X,
-  Folder
+  Folder,
+  Calendar,
+  CheckSquare,
+  Edit3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -20,6 +22,7 @@ import { pastelColors } from '@/lib/colors';
 import { PastelColor } from '@/types';
 
 type Language = 'en' | 'sv';
+type CategorySection = 'calendar' | 'tasks' | 'notes';
 
 const languages: { value: Language; label: string; native: string }[] = [
   { value: 'en', label: 'English', native: 'English' },
@@ -27,14 +30,43 @@ const languages: { value: Language; label: string; native: string }[] = [
 ];
 
 export function ProfileView() {
-  const { settings, updateSettings, categories, addCategory, deleteCategory, folders } = useAppStore();
+  const { 
+    settings, 
+    updateSettings, 
+    taskCategories, 
+    addTaskCategory, 
+    updateTaskCategory,
+    deleteTaskCategory,
+    eventCategories,
+    addEventCategory,
+    updateEventCategory,
+    deleteEventCategory,
+    folders,
+    addFolder,
+    updateFolder,
+    deleteFolder
+  } = useAppStore();
+
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarInitial, setAvatarInitial] = useState(settings.avatarInitial || 'U');
   const [avatarColor, setAvatarColor] = useState<PastelColor>(settings.avatarColor || 'sky');
+
+  // Section-wise category management
+  const [expandedSection, setExpandedSection] = useState<CategorySection | null>('calendar');
+  
+  // Add new category/folder modal
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addModalSection, setAddModalSection] = useState<CategorySection>('calendar');
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemColor, setNewItemColor] = useState<PastelColor>('sky');
+
+  // Edit category/folder modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editItemId, setEditItemId] = useState<string | null>(null);
+  const [editItemSection, setEditItemSection] = useState<CategorySection>('calendar');
+  const [editItemName, setEditItemName] = useState('');
+  const [editItemColor, setEditItemColor] = useState<PastelColor>('sky');
 
   const toggleDarkMode = () => {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
@@ -47,12 +79,75 @@ export function ProfileView() {
     setShowAvatarModal(false);
   };
 
-  const handleAddCategory = () => {
-    if (newCategoryName.trim()) {
-      addCategory({ name: newCategoryName.trim(), color: newCategoryColor, type: 'both' });
-      setNewCategoryName('');
-      setShowCategoryModal(false);
+  const openAddModal = (section: CategorySection) => {
+    setAddModalSection(section);
+    setNewItemName('');
+    setNewItemColor('sky');
+    setShowAddModal(true);
+  };
+
+  const handleAddItem = () => {
+    if (!newItemName.trim()) return;
+    
+    switch (addModalSection) {
+      case 'calendar':
+        addEventCategory({ name: newItemName.trim(), color: newItemColor });
+        break;
+      case 'tasks':
+        addTaskCategory({ name: newItemName.trim(), color: newItemColor });
+        break;
+      case 'notes':
+        addFolder({ name: newItemName.trim(), color: newItemColor });
+        break;
     }
+    
+    setNewItemName('');
+    setShowAddModal(false);
+  };
+
+  const openEditModal = (section: CategorySection, id: string, name: string, color: PastelColor) => {
+    setEditItemSection(section);
+    setEditItemId(id);
+    setEditItemName(name);
+    setEditItemColor(color);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateItem = () => {
+    if (!editItemId || !editItemName.trim()) return;
+    
+    switch (editItemSection) {
+      case 'calendar':
+        updateEventCategory(editItemId, { name: editItemName.trim(), color: editItemColor });
+        break;
+      case 'tasks':
+        updateTaskCategory(editItemId, { name: editItemName.trim(), color: editItemColor });
+        break;
+      case 'notes':
+        updateFolder(editItemId, { name: editItemName.trim(), color: editItemColor });
+        break;
+    }
+    
+    setShowEditModal(false);
+    setEditItemId(null);
+  };
+
+  const handleDeleteItem = (section: CategorySection, id: string) => {
+    switch (section) {
+      case 'calendar':
+        deleteEventCategory(id);
+        break;
+      case 'tasks':
+        deleteTaskCategory(id);
+        break;
+      case 'notes':
+        deleteFolder(id);
+        break;
+    }
+  };
+
+  const toggleSection = (section: CategorySection) => {
+    setExpandedSection(expandedSection === section ? null : section);
   };
 
   return (
@@ -176,24 +271,168 @@ export function ProfileView() {
           </div>
         </div>
 
-        {/* Categories */}
+        {/* Categories & Folders - Section Wise */}
         <div>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h3 className="text-sm font-semibold text-muted-foreground">Categories</h3>
-            <button onClick={() => setShowCategoryModal(true)} className="text-primary text-sm font-medium">+ Add</button>
-          </div>
-          <div className="flow-card-flat p-2">
-            {categories.map((cat) => (
-              <div key={cat.id} className="flex items-center justify-between p-3">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Categories & Folders</h3>
+          <div className="space-y-2">
+            {/* Calendar Categories */}
+            <div className="flow-card-flat p-2">
+              <button
+                onClick={() => toggleSection('calendar')}
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+              >
                 <div className="flex items-center gap-3">
-                  <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${cat.color}`)} />
-                  <span className="font-medium text-foreground">{cat.name}</span>
+                  <div className="w-10 h-10 rounded-xl bg-pastel-sky/20 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-pastel-sky" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-foreground">Calendar Categories</p>
+                    <p className="text-sm text-muted-foreground">{eventCategories.length} categories</p>
+                  </div>
                 </div>
-                <button onClick={() => deleteCategory(cat.id)} className="text-muted-foreground hover:text-destructive">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                {expandedSection === 'calendar' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+              </button>
+
+              {expandedSection === 'calendar' && (
+                <div className="mt-2 space-y-1 animate-fade-in">
+                  {eventCategories.map((cat) => (
+                    <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-secondary">
+                      <div className="flex items-center gap-3">
+                        <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${cat.color}`)} />
+                        <span className="font-medium text-foreground">{cat.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => openEditModal('calendar', cat.id, cat.name, cat.color)}
+                          className="p-1.5 rounded-lg hover:bg-muted"
+                        >
+                          <Edit3 className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteItem('calendar', cat.id)}
+                          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => openAddModal('calendar')}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-primary hover:bg-secondary transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">Add Category</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Tasks Categories */}
+            <div className="flow-card-flat p-2">
+              <button
+                onClick={() => toggleSection('tasks')}
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-pastel-mint/20 flex items-center justify-center">
+                    <CheckSquare className="w-5 h-5 text-pastel-mint" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-foreground">Tasks Categories</p>
+                    <p className="text-sm text-muted-foreground">{taskCategories.length} categories</p>
+                  </div>
+                </div>
+                {expandedSection === 'tasks' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+              </button>
+
+              {expandedSection === 'tasks' && (
+                <div className="mt-2 space-y-1 animate-fade-in">
+                  {taskCategories.map((cat) => (
+                    <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-secondary">
+                      <div className="flex items-center gap-3">
+                        <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${cat.color}`)} />
+                        <span className="font-medium text-foreground">{cat.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => openEditModal('tasks', cat.id, cat.name, cat.color)}
+                          className="p-1.5 rounded-lg hover:bg-muted"
+                        >
+                          <Edit3 className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteItem('tasks', cat.id)}
+                          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => openAddModal('tasks')}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-primary hover:bg-secondary transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">Add Category</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Notes Folders */}
+            <div className="flow-card-flat p-2">
+              <button
+                onClick={() => toggleSection('notes')}
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-pastel-lavender/20 flex items-center justify-center">
+                    <Folder className="w-5 h-5 text-pastel-lavender" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-foreground">Notes Folders</p>
+                    <p className="text-sm text-muted-foreground">{folders.length} folders</p>
+                  </div>
+                </div>
+                {expandedSection === 'notes' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+              </button>
+
+              {expandedSection === 'notes' && (
+                <div className="mt-2 space-y-1 animate-fade-in">
+                  {folders.map((folder) => (
+                    <div key={folder.id} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-secondary">
+                      <div className="flex items-center gap-3">
+                        <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${folder.color}`)} />
+                        <span className="font-medium text-foreground">{folder.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => openEditModal('notes', folder.id, folder.name, folder.color)}
+                          className="p-1.5 rounded-lg hover:bg-muted"
+                        >
+                          <Edit3 className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteItem('notes', folder.id)}
+                          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => openAddModal('notes')}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-primary hover:bg-secondary transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">Add Folder</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -244,34 +483,84 @@ export function ProfileView() {
         </>
       )}
 
-      {/* Category Modal */}
-      {showCategoryModal && (
+      {/* Add Category/Folder Modal */}
+      {showAddModal && (
         <>
-          <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowCategoryModal(false)} />
+          <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowAddModal(false)} />
           <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">New Category</h3>
-              <button onClick={() => setShowCategoryModal(false)} className="p-2 rounded-full bg-secondary">
+              <h3 className="text-lg font-semibold">
+                New {addModalSection === 'notes' ? 'Folder' : 'Category'}
+              </h3>
+              <button onClick={() => setShowAddModal(false)} className="p-2 rounded-full bg-secondary">
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
             <input
               type="text"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="Category name"
+              value={newItemName}
+              onChange={(e) => setNewItemName(e.target.value)}
+              placeholder={addModalSection === 'notes' ? 'Folder name' : 'Category name'}
               className="flow-input mb-4"
+              autoFocus
             />
             <div className="flex flex-wrap gap-2 mb-4">
               {pastelColors.map((c) => (
                 <button
                   key={c.value}
-                  onClick={() => setNewCategoryColor(c.value)}
-                  className={cn('w-8 h-8 rounded-full transition-all', c.class, newCategoryColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
+                  onClick={() => setNewItemColor(c.value)}
+                  className={cn('w-8 h-8 rounded-full transition-all', c.class, newItemColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
                 />
               ))}
             </div>
-            <button onClick={handleAddCategory} className="w-full flow-button-primary">Create Category</button>
+            <button 
+              onClick={handleAddItem} 
+              disabled={!newItemName.trim()}
+              className="w-full flow-button-primary disabled:opacity-50"
+            >
+              Create {addModalSection === 'notes' ? 'Folder' : 'Category'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Edit Category/Folder Modal */}
+      {showEditModal && (
+        <>
+          <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowEditModal(false)} />
+          <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">
+                Edit {editItemSection === 'notes' ? 'Folder' : 'Category'}
+              </h3>
+              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-full bg-secondary">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+            <input
+              type="text"
+              value={editItemName}
+              onChange={(e) => setEditItemName(e.target.value)}
+              placeholder={editItemSection === 'notes' ? 'Folder name' : 'Category name'}
+              className="flow-input mb-4"
+              autoFocus
+            />
+            <div className="flex flex-wrap gap-2 mb-4">
+              {pastelColors.map((c) => (
+                <button
+                  key={c.value}
+                  onClick={() => setEditItemColor(c.value)}
+                  className={cn('w-8 h-8 rounded-full transition-all', c.class, editItemColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
+                />
+              ))}
+            </div>
+            <button 
+              onClick={handleUpdateItem} 
+              disabled={!editItemName.trim()}
+              className="w-full flow-button-primary disabled:opacity-50"
+            >
+              Save Changes
+            </button>
           </div>
         </>
       )}

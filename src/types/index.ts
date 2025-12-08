@@ -57,12 +57,26 @@ export interface Note {
   isPinned: boolean;
 }
 
+// Separate category types for each section
+export interface TaskCategory {
+  id: string;
+  name: string;
+  color: PastelColor;
+}
+
+export interface EventCategory {
+  id: string;
+  name: string;
+  color: PastelColor;
+}
+
 export interface Folder {
   id: string;
   name: string;
   color: PastelColor;
 }
 
+// Legacy Category type for backward compatibility
 export interface Category {
   id: string;
   name: string;
