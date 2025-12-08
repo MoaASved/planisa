@@ -70,7 +70,7 @@ const Index = () => {
         onProfileClick={() => setActiveTab('profile')} 
       />
       
-      <main className="pt-16 pb-24">
+      <main className="pt-14 pb-24">
         {renderView()}
       </main>
       

@@ -62,3 +62,37 @@ export const getColorDotClass = (color: PastelColor): string => {
   };
   return colorMap[color] || 'bg-pastel-sky';
 };
+
+// Static color mapping for avatar backgrounds (30% opacity) - Tailwind JIT compatible
+export const getAvatarBgClass = (color: PastelColor): string => {
+  const colorMap: Record<PastelColor, string> = {
+    coral: 'bg-pastel-coral/30',
+    peach: 'bg-pastel-peach/30',
+    amber: 'bg-pastel-amber/30',
+    yellow: 'bg-pastel-yellow/30',
+    mint: 'bg-pastel-mint/30',
+    teal: 'bg-pastel-teal/30',
+    sky: 'bg-pastel-sky/30',
+    lavender: 'bg-pastel-lavender/30',
+    rose: 'bg-pastel-rose/30',
+    gray: 'bg-pastel-gray/30',
+  };
+  return colorMap[color] || 'bg-secondary';
+};
+
+// Static color mapping for avatar text colors - Tailwind JIT compatible
+export const getAvatarTextClass = (color: PastelColor): string => {
+  const colorMap: Record<PastelColor, string> = {
+    coral: 'text-pastel-coral',
+    peach: 'text-pastel-peach',
+    amber: 'text-pastel-amber',
+    yellow: 'text-pastel-yellow',
+    mint: 'text-pastel-mint',
+    teal: 'text-pastel-teal',
+    sky: 'text-pastel-sky',
+    lavender: 'text-pastel-lavender',
+    rose: 'text-pastel-rose',
+    gray: 'text-pastel-gray',
+  };
+  return colorMap[color] || 'text-muted-foreground';
+};
