@@ -50,6 +50,12 @@ export function CalendarViewComponent() {
     }
   };
 
+  // Check if a color is dark (needs white text) - pastel colors are generally light
+  const isDarkColor = (_color: PastelColor): boolean => {
+    // All pastel colors in this palette are light, so we don't need white text
+    return false;
+  };
+
   const getItemsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayEvents = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === dateStr);
@@ -180,53 +186,56 @@ export function CalendarViewComponent() {
             if (dayEvents.length === 0 && dayTasks.length === 0) return null;
 
             return (
-              <div key={i} className="flow-card-flat">
+              <div key={i} className="mb-4">
                 <h4 className="text-sm font-semibold text-muted-foreground mb-2">
                   {isToday(day) ? 'Today' : format(day, 'EEEE, MMM d')}
                 </h4>
                 <div className="space-y-2">
                   {dayEvents.map((event) => {
                     const color = getItemColor(event, 'event');
+                    const dark = isDarkColor(color);
                     return (
                       <button
                         key={event.id}
                         onClick={() => handleItemClick(event, 'event')}
                         className={cn(
-                          'w-full text-left p-2 rounded-lg border-l-2 transition-colors hover:opacity-80',
-                          `bg-pastel-${color}/20 border-pastel-${color}`
+                          'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98]',
+                          `bg-pastel-${color}/90`
                         )}
                       >
-                        <span className="font-medium text-sm text-foreground">{event.title}</span>
+                        <span className={cn('font-medium text-sm', dark ? 'text-white' : 'text-foreground')}>{event.title}</span>
                         {event.startTime && (
-                          <span className="text-xs text-muted-foreground ml-2">{event.startTime}</span>
+                          <span className={cn('text-xs ml-2', dark ? 'text-white/70' : 'text-foreground/60')}>{event.startTime}</span>
                         )}
                       </button>
                     );
                   })}
                   {dayTasks.map((task) => {
                     const color = getItemColor(task, 'task');
+                    const dark = isDarkColor(color);
                     return (
                       <button
                         key={task.id}
                         onClick={() => handleItemClick(task, 'task')}
                         className={cn(
-                          'w-full text-left p-2 rounded-lg text-sm flex items-center gap-2 transition-colors hover:opacity-80',
-                          task.completed ? 'bg-secondary' : `bg-pastel-${color}/20`
+                          'w-full text-left p-3 rounded-xl text-sm flex items-center gap-3 transition-all active:scale-[0.98]',
+                          task.completed ? 'bg-secondary' : `bg-pastel-${color}/90`
                         )}
                       >
-                        {/* Clickable checkbox */}
                         <div
                           onClick={(e) => handleTaskToggle(e, task.id)}
                           className={cn(
-                            'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                            'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
                             task.completed
                               ? 'bg-primary border-primary'
-                              : `border-pastel-${color} hover:bg-pastel-${color}/30`
+                              : dark ? 'border-white/60 hover:bg-white/20' : 'border-foreground/40 hover:bg-foreground/10'
                           )}
                         >
                           {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
                         </div>
-                        <span className={cn('text-foreground', task.completed && 'line-through text-muted-foreground')}>
+                        <span className={cn(
+                          task.completed ? 'line-through text-muted-foreground' : dark ? 'text-white' : 'text-foreground'
+                        )}>
                           {task.title}
                         </span>
                       </button>
@@ -261,15 +270,19 @@ export function CalendarViewComponent() {
             <>
               {dayEvents.map((event) => {
                 const color = getItemColor(event, 'event');
+                const dark = isDarkColor(color);
                 return (
                   <button
                     key={event.id}
                     onClick={() => handleItemClick(event, 'event')}
-                    className={cn('w-full text-left flow-card-flat border-l-4 transition-colors hover:opacity-80', `border-pastel-${color}`)}
+                    className={cn(
+                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98]',
+                      `bg-pastel-${color}/90`
+                    )}
                   >
-                    <h4 className="font-semibold text-foreground">{event.title}</h4>
+                    <h4 className={cn('font-semibold', dark ? 'text-white' : 'text-foreground')}>{event.title}</h4>
                     {event.startTime && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className={cn('text-sm mt-1', dark ? 'text-white/70' : 'text-foreground/60')}>
                         {event.startTime}{event.endTime && ` - ${event.endTime}`}
                       </p>
                     )}
@@ -278,29 +291,32 @@ export function CalendarViewComponent() {
               })}
               {dayTasks.map((task) => {
                 const color = getItemColor(task, 'task');
+                const dark = isDarkColor(color);
                 return (
                   <button
                     key={task.id}
                     onClick={() => handleItemClick(task, 'task')}
                     className={cn(
-                      'w-full text-left flow-card-flat border-l-4 transition-colors hover:opacity-80',
-                      task.completed ? 'border-muted' : `border-pastel-${color}`
+                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98]',
+                      task.completed ? 'bg-secondary' : `bg-pastel-${color}/90`
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      {/* Clickable checkbox */}
                       <div
                         onClick={(e) => handleTaskToggle(e, task.id)}
                         className={cn(
-                          'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                          'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
                           task.completed
                             ? 'bg-primary border-primary'
-                            : `border-pastel-${color} hover:bg-pastel-${color}/30`
+                            : dark ? 'border-white/60 hover:bg-white/20' : 'border-foreground/40 hover:bg-foreground/10'
                         )}
                       >
                         {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
                       </div>
-                      <span className={cn('font-medium', task.completed && 'line-through text-muted-foreground')}>
+                      <span className={cn(
+                        'font-medium',
+                        task.completed ? 'line-through text-muted-foreground' : dark ? 'text-white' : 'text-foreground'
+                      )}>
                         {task.title}
                       </span>
                     </div>
@@ -407,13 +423,13 @@ export function CalendarViewComponent() {
                           key={event.id}
                           onClick={() => handleItemClick(event, 'event')}
                           className={cn(
-                            'w-full text-left p-3 rounded-xl border-l-4 transition-colors hover:opacity-80',
-                            `bg-pastel-${color}/20 border-pastel-${color}`
+                            'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98]',
+                            `bg-pastel-${color}/90`
                           )}
                         >
                           <p className="font-medium text-foreground">{event.title}</p>
                           {event.startTime && (
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-foreground/60 mt-1">
                               {event.startTime}{event.endTime && ` - ${event.endTime}`}
                             </p>
                           )}
@@ -427,23 +443,25 @@ export function CalendarViewComponent() {
                           key={task.id}
                           onClick={() => handleItemClick(task, 'task')}
                           className={cn(
-                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-colors hover:opacity-80',
-                            task.completed ? 'bg-secondary' : `bg-pastel-${color}/20`
+                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98]',
+                            task.completed ? 'bg-secondary' : `bg-pastel-${color}/90`
                           )}
                         >
-                          {/* Clickable checkbox */}
                           <div
                             onClick={(e) => handleTaskToggle(e, task.id)}
                             className={cn(
-                              'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                              'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
                               task.completed
                                 ? 'bg-primary border-primary'
-                                : `border-pastel-${color} hover:bg-pastel-${color}/30`
+                                : 'border-foreground/40 hover:bg-foreground/10'
                             )}
                           >
                             {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
                           </div>
-                          <span className={cn('font-medium', task.completed && 'line-through text-muted-foreground')}>
+                          <span className={cn(
+                            'font-medium',
+                            task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                          )}>
                             {task.title}
                           </span>
                         </button>
