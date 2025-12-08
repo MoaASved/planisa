@@ -16,10 +16,10 @@ import {
   eachDayOfInterval,
   getWeek
 } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { CalendarView, PastelColor } from '@/types';
+import { CalendarView, PastelColor, Task, CalendarEvent } from '@/types';
 
 const viewButtons: { id: CalendarView; label: string }[] = [
   { id: 'month', label: 'Month' },
@@ -31,7 +31,24 @@ export function CalendarViewComponent() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>('month');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const { events, tasks } = useAppStore();
+  const { events, tasks, toggleTask, taskCategories, eventCategories } = useAppStore();
+
+  // Get effective color: manual color > category color
+  const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
+    // If item has a manually set color, use it
+    if (item.color) return item.color;
+    
+    // Otherwise, find category and use its color
+    if (type === 'task') {
+      const task = item as Task;
+      const category = taskCategories.find(c => c.name === task.category);
+      return category?.color || 'sky';
+    } else {
+      const event = item as CalendarEvent;
+      const category = eventCategories.find(c => c.name === event.category);
+      return category?.color || 'sky';
+    }
+  };
 
   const getItemsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -52,6 +69,16 @@ export function CalendarViewComponent() {
     else setCurrentDate(addDays(currentDate, 1));
   };
 
+  const handleItemClick = (item: Task | CalendarEvent, type: 'task' | 'event') => {
+    // TODO: Open detail modal for the item
+    console.log('Opening', type, item);
+  };
+
+  const handleTaskToggle = (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    toggleTask(taskId);
+  };
+
   const renderMonthView = () => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
@@ -68,7 +95,7 @@ export function CalendarViewComponent() {
     return (
       <div className="animate-fade-in">
         <div className="grid grid-cols-8 mb-2">
-          <div className="text-center text-xs font-medium text-muted-foreground py-2">W</div>
+          <div className="text-center text-[10px] font-normal text-muted-foreground/50 py-2">W</div>
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
             <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
               {day}
@@ -78,8 +105,8 @@ export function CalendarViewComponent() {
         
         {weeks.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-8 gap-0.5">
-            {/* Week number */}
-            <div className="aspect-square flex items-center justify-center text-xs text-muted-foreground">
+            {/* Week number - more subtle */}
+            <div className="aspect-square flex items-center justify-center text-[10px] font-normal text-muted-foreground/40">
               {getWeek(week[0], { weekStartsOn: 1 })}
             </div>
             
@@ -105,10 +132,10 @@ export function CalendarViewComponent() {
                   {hasItems && (
                     <div className="flex gap-0.5 mt-0.5">
                       {dayEvents.slice(0, 2).map((event, j) => (
-                        <div key={j} className={cn('w-1 h-1 rounded-full', `bg-pastel-${event.color}`)} />
+                        <div key={j} className={cn('w-1 h-1 rounded-full', `bg-pastel-${getItemColor(event, 'event')}`)} />
                       ))}
                       {dayTasks.filter(t => !t.completed).slice(0, 2).map((task, j) => (
-                        <div key={`t-${j}`} className={cn('w-1 h-1 rounded-full', `bg-pastel-${task.color}`)} />
+                        <div key={`t-${j}`} className={cn('w-1 h-1 rounded-full', `bg-pastel-${getItemColor(task, 'task')}`)} />
                       ))}
                     </div>
                   )}
@@ -124,20 +151,20 @@ export function CalendarViewComponent() {
   const renderWeekView = () => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
 
     return (
       <div className="animate-fade-in">
-        {/* Horizontal dates */}
+        {/* Horizontal dates - no shadow on tap, only highlight current day */}
         <div className="flex gap-1 mb-4 overflow-x-auto pb-2">
           {weekDays.map((day, i) => (
             <button
               key={i}
               onClick={() => setSelectedDate(day)}
               className={cn(
-                'flex-1 min-w-[48px] p-2 rounded-xl text-center transition-all',
+                'flex-1 min-w-[48px] p-2 rounded-xl text-center transition-colors',
                 isToday(day) && 'bg-primary text-primary-foreground',
-                selectedDate && isSameDay(day, selectedDate) && !isToday(day) && 'bg-primary/20',
-                !isToday(day) && !(selectedDate && isSameDay(day, selectedDate)) && 'bg-secondary'
+                !isToday(day) && 'bg-secondary hover:bg-secondary/80'
               )}
             >
               <span className="text-xs font-medium block">{format(day, 'EEE')}</span>
@@ -158,23 +185,53 @@ export function CalendarViewComponent() {
                   {isToday(day) ? 'Today' : format(day, 'EEEE, MMM d')}
                 </h4>
                 <div className="space-y-2">
-                  {dayEvents.map((event) => (
-                    <div key={event.id} className={cn('p-2 rounded-lg border-l-2', `bg-pastel-${event.color}/20 border-pastel-${event.color}`)}>
-                      <span className="font-medium text-sm text-foreground">{event.title}</span>
-                      {event.startTime && (
-                        <span className="text-xs text-muted-foreground ml-2">{event.startTime}</span>
-                      )}
-                    </div>
-                  ))}
-                  {dayTasks.map((task) => (
-                    <div key={task.id} className={cn(
-                      'p-2 rounded-lg text-sm flex items-center gap-2',
-                      task.completed ? 'bg-secondary line-through text-muted-foreground' : `bg-pastel-${task.color}/20`
-                    )}>
-                      <div className={cn('w-3 h-3 rounded-full border-2', task.completed ? 'bg-muted-foreground border-muted-foreground' : `border-pastel-${task.color}`)} />
-                      <span className="text-foreground">{task.title}</span>
-                    </div>
-                  ))}
+                  {dayEvents.map((event) => {
+                    const color = getItemColor(event, 'event');
+                    return (
+                      <button
+                        key={event.id}
+                        onClick={() => handleItemClick(event, 'event')}
+                        className={cn(
+                          'w-full text-left p-2 rounded-lg border-l-2 transition-colors hover:opacity-80',
+                          `bg-pastel-${color}/20 border-pastel-${color}`
+                        )}
+                      >
+                        <span className="font-medium text-sm text-foreground">{event.title}</span>
+                        {event.startTime && (
+                          <span className="text-xs text-muted-foreground ml-2">{event.startTime}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                  {dayTasks.map((task) => {
+                    const color = getItemColor(task, 'task');
+                    return (
+                      <button
+                        key={task.id}
+                        onClick={() => handleItemClick(task, 'task')}
+                        className={cn(
+                          'w-full text-left p-2 rounded-lg text-sm flex items-center gap-2 transition-colors hover:opacity-80',
+                          task.completed ? 'bg-secondary' : `bg-pastel-${color}/20`
+                        )}
+                      >
+                        {/* Clickable checkbox */}
+                        <div
+                          onClick={(e) => handleTaskToggle(e, task.id)}
+                          className={cn(
+                            'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                            task.completed
+                              ? 'bg-primary border-primary'
+                              : `border-pastel-${color} hover:bg-pastel-${color}/30`
+                          )}
+                        >
+                          {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                        <span className={cn('text-foreground', task.completed && 'line-through text-muted-foreground')}>
+                          {task.title}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -186,6 +243,7 @@ export function CalendarViewComponent() {
 
   const renderDayView = () => {
     const { events: dayEvents, tasks: dayTasks } = getItemsForDate(currentDate);
+    const weekNumber = getWeek(currentDate, { weekStartsOn: 1 });
 
     return (
       <div className="animate-fade-in">
@@ -201,30 +259,74 @@ export function CalendarViewComponent() {
             </div>
           ) : (
             <>
-              {dayEvents.map((event) => (
-                <div key={event.id} className={cn('flow-card-flat border-l-4', `border-pastel-${event.color}`)}>
-                  <h4 className="font-semibold text-foreground">{event.title}</h4>
-                  {event.startTime && (
-                    <p className="text-sm text-muted-foreground">
-                      {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                    </p>
-                  )}
-                </div>
-              ))}
-              {dayTasks.map((task) => (
-                <div key={task.id} className={cn('flow-card-flat border-l-4', task.completed ? 'border-muted' : `border-pastel-${task.color}`)}>
-                  <div className="flex items-center gap-2">
-                    <div className={cn('w-4 h-4 rounded-full border-2', task.completed ? 'bg-muted-foreground border-muted-foreground' : `border-pastel-${task.color}`)} />
-                    <span className={cn('font-medium', task.completed && 'line-through text-muted-foreground')}>{task.title}</span>
-                  </div>
-                </div>
-              ))}
+              {dayEvents.map((event) => {
+                const color = getItemColor(event, 'event');
+                return (
+                  <button
+                    key={event.id}
+                    onClick={() => handleItemClick(event, 'event')}
+                    className={cn('w-full text-left flow-card-flat border-l-4 transition-colors hover:opacity-80', `border-pastel-${color}`)}
+                  >
+                    <h4 className="font-semibold text-foreground">{event.title}</h4>
+                    {event.startTime && (
+                      <p className="text-sm text-muted-foreground">
+                        {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                      </p>
+                    )}
+                  </button>
+                );
+              })}
+              {dayTasks.map((task) => {
+                const color = getItemColor(task, 'task');
+                return (
+                  <button
+                    key={task.id}
+                    onClick={() => handleItemClick(task, 'task')}
+                    className={cn(
+                      'w-full text-left flow-card-flat border-l-4 transition-colors hover:opacity-80',
+                      task.completed ? 'border-muted' : `border-pastel-${color}`
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Clickable checkbox */}
+                      <div
+                        onClick={(e) => handleTaskToggle(e, task.id)}
+                        className={cn(
+                          'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                          task.completed
+                            ? 'bg-primary border-primary'
+                            : `border-pastel-${color} hover:bg-pastel-${color}/30`
+                        )}
+                      >
+                        {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                      <span className={cn('font-medium', task.completed && 'line-through text-muted-foreground')}>
+                        {task.title}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </>
           )}
         </div>
       </div>
     );
   };
+
+  // Get week number based on current view
+  const getHeaderWeekNumber = () => {
+    if (view === 'week') {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      return getWeek(weekStart, { weekStartsOn: 1 });
+    }
+    if (view === 'day') {
+      return getWeek(currentDate, { weekStartsOn: 1 });
+    }
+    return null;
+  };
+
+  const headerWeekNumber = getHeaderWeekNumber();
 
   return (
     <div className="min-h-screen pb-24">
@@ -259,10 +361,17 @@ export function CalendarViewComponent() {
           </div>
         </div>
 
-        {/* Month/Year Header */}
-        <h2 className="text-xl font-semibold text-foreground mb-4">
-          {format(currentDate, 'MMMM yyyy')}
-        </h2>
+        {/* Month/Year Header with Week Number */}
+        <div className="flex items-center gap-2 mb-4">
+          <h2 className="text-xl font-semibold text-foreground">
+            {format(currentDate, 'MMMM yyyy')}
+          </h2>
+          {headerWeekNumber && (
+            <span className="text-sm font-normal text-muted-foreground/60">
+              W{headerWeekNumber}
+            </span>
+          )}
+        </div>
 
         {/* Calendar Content */}
         <div className="flow-card-flat">
@@ -271,7 +380,7 @@ export function CalendarViewComponent() {
           {view === 'day' && renderDayView()}
         </div>
 
-        {/* Selected Date Details */}
+        {/* Selected Date Details - Month View Only */}
         {selectedDate && view === 'month' && (
           <div className="mt-4 animate-fade-up">
             <div className="flow-card">
@@ -291,22 +400,55 @@ export function CalendarViewComponent() {
                 }
                 return (
                   <div className="space-y-2">
-                    {dayEvents.map((event) => (
-                      <div key={event.id} className={cn('p-3 rounded-xl border-l-4', `bg-pastel-${event.color}/20 border-pastel-${event.color}`)}>
-                        <p className="font-medium text-foreground">{event.title}</p>
-                        {event.startTime && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                    {dayTasks.map((task) => (
-                      <div key={task.id} className={cn('p-3 rounded-xl flex items-center gap-3', task.completed ? 'bg-secondary' : `bg-pastel-${task.color}/20`)}>
-                        <div className={cn('w-4 h-4 rounded-full border-2', task.completed ? 'bg-muted-foreground border-muted-foreground' : `border-pastel-${task.color}`)} />
-                        <span className={cn('font-medium', task.completed && 'line-through text-muted-foreground')}>{task.title}</span>
-                      </div>
-                    ))}
+                    {dayEvents.map((event) => {
+                      const color = getItemColor(event, 'event');
+                      return (
+                        <button
+                          key={event.id}
+                          onClick={() => handleItemClick(event, 'event')}
+                          className={cn(
+                            'w-full text-left p-3 rounded-xl border-l-4 transition-colors hover:opacity-80',
+                            `bg-pastel-${color}/20 border-pastel-${color}`
+                          )}
+                        >
+                          <p className="font-medium text-foreground">{event.title}</p>
+                          {event.startTime && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                            </p>
+                          )}
+                        </button>
+                      );
+                    })}
+                    {dayTasks.map((task) => {
+                      const color = getItemColor(task, 'task');
+                      return (
+                        <button
+                          key={task.id}
+                          onClick={() => handleItemClick(task, 'task')}
+                          className={cn(
+                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-colors hover:opacity-80',
+                            task.completed ? 'bg-secondary' : `bg-pastel-${color}/20`
+                          )}
+                        >
+                          {/* Clickable checkbox */}
+                          <div
+                            onClick={(e) => handleTaskToggle(e, task.id)}
+                            className={cn(
+                              'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
+                              task.completed
+                                ? 'bg-primary border-primary'
+                                : `border-pastel-${color} hover:bg-pastel-${color}/30`
+                            )}
+                          >
+                            {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                          </div>
+                          <span className={cn('font-medium', task.completed && 'line-through text-muted-foreground')}>
+                            {task.title}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 );
               })()}
