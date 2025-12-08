@@ -8,7 +8,6 @@ import {
   ChevronRight,
   ChevronDown,
   LogOut,
-  Plus,
   Folder,
   Calendar,
   CheckSquare,
@@ -326,10 +325,9 @@ export function ProfileView() {
                   ))}
                   <button
                     onClick={() => openAddDrawer('calendar')}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-primary hover:bg-secondary transition-colors"
+                    className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span className="text-sm font-medium">Add Category</span>
+                    Add New Category
                   </button>
                 </div>
               )}
@@ -379,10 +377,9 @@ export function ProfileView() {
                   ))}
                   <button
                     onClick={() => openAddDrawer('tasks')}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-primary hover:bg-secondary transition-colors"
+                    className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span className="text-sm font-medium">Add Category</span>
+                    Add New Category
                   </button>
                 </div>
               )}
@@ -432,10 +429,9 @@ export function ProfileView() {
                   ))}
                   <button
                     onClick={() => openAddDrawer('notes')}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-primary hover:bg-secondary transition-colors"
+                    className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span className="text-sm font-medium">Add Folder</span>
+                    Add New Folder
                   </button>
                 </div>
               )}
