@@ -16,10 +16,11 @@ import {
   eachDayOfInterval,
   getWeek
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { CalendarView, PastelColor, Task, CalendarEvent } from '@/types';
+import { getColorCardClass, getColorDotClass } from '@/lib/colors';
 
 const viewButtons: { id: CalendarView; label: string }[] = [
   { id: 'month', label: 'Month' },
@@ -31,14 +32,12 @@ export function CalendarViewComponent() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>('month');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const { events, tasks, toggleTask, taskCategories, eventCategories } = useAppStore();
+  const { events, tasks, toggleTask, taskCategories, eventCategories, deleteTask, deleteEvent } = useAppStore();
 
   // Get effective color: manual color > category color
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
-    // If item has a manually set color, use it
     if (item.color) return item.color;
     
-    // Otherwise, find category and use its color
     if (type === 'task') {
       const task = item as Task;
       const category = taskCategories.find(c => c.name === task.category);
@@ -48,12 +47,6 @@ export function CalendarViewComponent() {
       const category = eventCategories.find(c => c.name === event.category);
       return category?.color || 'sky';
     }
-  };
-
-  // Check if a color is dark (needs white text) - pastel colors are generally light
-  const isDarkColor = (_color: PastelColor): boolean => {
-    // All pastel colors in this palette are light, so we don't need white text
-    return false;
   };
 
   const getItemsForDate = (date: Date) => {
@@ -76,13 +69,22 @@ export function CalendarViewComponent() {
   };
 
   const handleItemClick = (item: Task | CalendarEvent, type: 'task' | 'event') => {
-    // TODO: Open detail modal for the item
     console.log('Opening', type, item);
   };
 
   const handleTaskToggle = (e: React.MouseEvent, taskId: string) => {
     e.stopPropagation();
     toggleTask(taskId);
+  };
+
+  const handleDeleteEvent = (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    deleteEvent(eventId);
+  };
+
+  const handleDeleteTask = (e: React.MouseEvent, taskId: string) => {
+    e.stopPropagation();
+    deleteTask(taskId);
   };
 
   const renderMonthView = () => {
@@ -92,7 +94,6 @@ export function CalendarViewComponent() {
     const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
     const days = eachDayOfInterval({ start: startDate, end: endDate });
 
-    // Group days into weeks for week numbers
     const weeks: Date[][] = [];
     for (let i = 0; i < days.length; i += 7) {
       weeks.push(days.slice(i, i + 7));
@@ -111,7 +112,6 @@ export function CalendarViewComponent() {
         
         {weeks.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-8 gap-0.5">
-            {/* Week number - more subtle */}
             <div className="aspect-square flex items-center justify-center text-[10px] font-normal text-muted-foreground/40">
               {getWeek(week[0], { weekStartsOn: 1 })}
             </div>
@@ -138,10 +138,10 @@ export function CalendarViewComponent() {
                   {hasItems && (
                     <div className="flex gap-0.5 mt-0.5">
                       {dayEvents.slice(0, 2).map((event, j) => (
-                        <div key={j} className={cn('w-1 h-1 rounded-full', `bg-pastel-${getItemColor(event, 'event')}`)} />
+                        <div key={j} className={cn('w-1 h-1 rounded-full', getColorDotClass(getItemColor(event, 'event')))} />
                       ))}
                       {dayTasks.filter(t => !t.completed).slice(0, 2).map((task, j) => (
-                        <div key={`t-${j}`} className={cn('w-1 h-1 rounded-full', `bg-pastel-${getItemColor(task, 'task')}`)} />
+                        <div key={`t-${j}`} className={cn('w-1 h-1 rounded-full', getColorDotClass(getItemColor(task, 'task')))} />
                       ))}
                     </div>
                   )}
@@ -157,11 +157,9 @@ export function CalendarViewComponent() {
   const renderWeekView = () => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-    const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
 
     return (
       <div className="animate-fade-in">
-        {/* Horizontal dates - no shadow on tap, only highlight current day */}
         <div className="flex gap-1 mb-4 overflow-x-auto pb-2">
           {weekDays.map((day, i) => (
             <button
@@ -179,7 +177,6 @@ export function CalendarViewComponent() {
           ))}
         </div>
 
-        {/* Events list */}
         <div className="space-y-2">
           {weekDays.map((day, i) => {
             const { events: dayEvents, tasks: dayTasks } = getItemsForDate(day);
@@ -193,33 +190,41 @@ export function CalendarViewComponent() {
                 <div className="space-y-2">
                   {dayEvents.map((event) => {
                     const color = getItemColor(event, 'event');
-                    const dark = isDarkColor(color);
                     return (
-                      <button
+                      <div
                         key={event.id}
                         onClick={() => handleItemClick(event, 'event')}
                         className={cn(
-                          'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98]',
-                          `bg-pastel-${color}/90`
+                          'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
+                          getColorCardClass(color)
                         )}
                       >
-                        <span className={cn('font-medium text-sm', dark ? 'text-white' : 'text-foreground')}>{event.title}</span>
-                        {event.startTime && (
-                          <span className={cn('text-xs ml-2', dark ? 'text-white/70' : 'text-foreground/60')}>{event.startTime}</span>
-                        )}
-                      </button>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium text-sm text-foreground">{event.title}</span>
+                            {event.startTime && (
+                              <span className="text-xs ml-2 text-foreground/60">{event.startTime}</span>
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => handleDeleteEvent(e, event.id)}
+                            className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
                   {dayTasks.map((task) => {
                     const color = getItemColor(task, 'task');
-                    const dark = isDarkColor(color);
                     return (
-                      <button
+                      <div
                         key={task.id}
                         onClick={() => handleItemClick(task, 'task')}
                         className={cn(
-                          'w-full text-left p-3 rounded-xl text-sm flex items-center gap-3 transition-all active:scale-[0.98]',
-                          task.completed ? 'bg-secondary' : `bg-pastel-${color}/90`
+                          'w-full text-left p-3 rounded-xl text-sm flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
+                          task.completed ? 'bg-secondary' : getColorCardClass(color)
                         )}
                       >
                         <div
@@ -228,17 +233,24 @@ export function CalendarViewComponent() {
                             'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
                             task.completed
                               ? 'bg-primary border-primary'
-                              : dark ? 'border-white/60 hover:bg-white/20' : 'border-foreground/40 hover:bg-foreground/10'
+                              : 'border-foreground/40 hover:bg-foreground/10'
                           )}
                         >
                           {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
                         </div>
                         <span className={cn(
-                          task.completed ? 'line-through text-muted-foreground' : dark ? 'text-white' : 'text-foreground'
+                          'flex-1',
+                          task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                         )}>
                           {task.title}
                         </span>
-                      </button>
+                        <button
+                          onClick={(e) => handleDeleteTask(e, task.id)}
+                          className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -252,7 +264,6 @@ export function CalendarViewComponent() {
 
   const renderDayView = () => {
     const { events: dayEvents, tasks: dayTasks } = getItemsForDate(currentDate);
-    const weekNumber = getWeek(currentDate, { weekStartsOn: 1 });
 
     return (
       <div className="animate-fade-in">
@@ -270,57 +281,73 @@ export function CalendarViewComponent() {
             <>
               {dayEvents.map((event) => {
                 const color = getItemColor(event, 'event');
-                const dark = isDarkColor(color);
                 return (
-                  <button
+                  <div
                     key={event.id}
                     onClick={() => handleItemClick(event, 'event')}
                     className={cn(
-                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98]',
-                      `bg-pastel-${color}/90`
+                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
+                      getColorCardClass(color)
                     )}
                   >
-                    <h4 className={cn('font-semibold', dark ? 'text-white' : 'text-foreground')}>{event.title}</h4>
-                    {event.startTime && (
-                      <p className={cn('text-sm mt-1', dark ? 'text-white/70' : 'text-foreground/60')}>
-                        {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                      </p>
-                    )}
-                  </button>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-foreground">{event.title}</h4>
+                        {event.startTime && (
+                          <p className="text-sm mt-1 text-foreground/60">
+                            {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteEvent(e, event.id)}
+                        className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
               {dayTasks.map((task) => {
                 const color = getItemColor(task, 'task');
-                const dark = isDarkColor(color);
                 return (
-                  <button
+                  <div
                     key={task.id}
                     onClick={() => handleItemClick(task, 'task')}
                     className={cn(
-                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98]',
-                      task.completed ? 'bg-secondary' : `bg-pastel-${color}/90`
+                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
+                      task.completed ? 'bg-secondary' : getColorCardClass(color)
                     )}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        onClick={(e) => handleTaskToggle(e, task.id)}
-                        className={cn(
-                          'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
-                          task.completed
-                            ? 'bg-primary border-primary'
-                            : dark ? 'border-white/60 hover:bg-white/20' : 'border-foreground/40 hover:bg-foreground/10'
-                        )}
-                      >
-                        {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          onClick={(e) => handleTaskToggle(e, task.id)}
+                          className={cn(
+                            'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
+                            task.completed
+                              ? 'bg-primary border-primary'
+                              : 'border-foreground/40 hover:bg-foreground/10'
+                          )}
+                        >
+                          {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                        </div>
+                        <span className={cn(
+                          'font-medium',
+                          task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                        )}>
+                          {task.title}
+                        </span>
                       </div>
-                      <span className={cn(
-                        'font-medium',
-                        task.completed ? 'line-through text-muted-foreground' : dark ? 'text-white' : 'text-foreground'
-                      )}>
-                        {task.title}
-                      </span>
+                      <button
+                        onClick={(e) => handleDeleteTask(e, task.id)}
+                        className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </>
@@ -330,7 +357,6 @@ export function CalendarViewComponent() {
     );
   };
 
-  // Get week number based on current view
   const getHeaderWeekNumber = () => {
     if (view === 'week') {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -419,32 +445,42 @@ export function CalendarViewComponent() {
                     {dayEvents.map((event) => {
                       const color = getItemColor(event, 'event');
                       return (
-                        <button
+                        <div
                           key={event.id}
                           onClick={() => handleItemClick(event, 'event')}
                           className={cn(
-                            'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98]',
-                            `bg-pastel-${color}/90`
+                            'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
+                            getColorCardClass(color)
                           )}
                         >
-                          <p className="font-medium text-foreground">{event.title}</p>
-                          {event.startTime && (
-                            <p className="text-xs text-foreground/60 mt-1">
-                              {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                            </p>
-                          )}
-                        </button>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-foreground">{event.title}</p>
+                              {event.startTime && (
+                                <p className="text-xs text-foreground/60 mt-1">
+                                  {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => handleDeleteEvent(e, event.id)}
+                              className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
                       );
                     })}
                     {dayTasks.map((task) => {
                       const color = getItemColor(task, 'task');
                       return (
-                        <button
+                        <div
                           key={task.id}
                           onClick={() => handleItemClick(task, 'task')}
                           className={cn(
-                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98]',
-                            task.completed ? 'bg-secondary' : `bg-pastel-${color}/90`
+                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
+                            task.completed ? 'bg-secondary' : getColorCardClass(color)
                           )}
                         >
                           <div
@@ -459,12 +495,18 @@ export function CalendarViewComponent() {
                             {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
                           </div>
                           <span className={cn(
-                            'font-medium',
+                            'font-medium flex-1',
                             task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
                           )}>
                             {task.title}
                           </span>
-                        </button>
+                          <button
+                            onClick={(e) => handleDeleteTask(e, task.id)}
+                            className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
