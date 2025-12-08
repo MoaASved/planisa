@@ -66,6 +66,7 @@ export default {
           lavender: "hsl(var(--flow-lavender))",
           amber: "hsl(var(--flow-amber))",
           rose: "hsl(var(--flow-rose))",
+          teal: "hsl(var(--flow-teal))",
         },
       },
       borderRadius: {
