@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Task, CalendarEvent, Note, Folder, Category, Widget, UserSettings, PastelColor } from '@/types';
+import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, PastelColor } from '@/types';
 import { addDays, startOfToday } from 'date-fns';
 
 interface AppState {
@@ -25,17 +25,23 @@ interface AppState {
   deleteNote: (id: string) => void;
   togglePinNote: (id: string) => void;
 
-  // Folders
+  // Folders (for Notes - independent)
   folders: Folder[];
   addFolder: (folder: Omit<Folder, 'id'>) => void;
   updateFolder: (id: string, updates: Partial<Folder>) => void;
   deleteFolder: (id: string) => void;
 
-  // Categories
-  categories: Category[];
-  addCategory: (category: Omit<Category, 'id'>) => void;
-  updateCategory: (id: string, updates: Partial<Category>) => void;
-  deleteCategory: (id: string) => void;
+  // Task Categories (independent)
+  taskCategories: TaskCategory[];
+  addTaskCategory: (category: Omit<TaskCategory, 'id'>) => void;
+  updateTaskCategory: (id: string, updates: Partial<TaskCategory>) => void;
+  deleteTaskCategory: (id: string) => void;
+
+  // Event Categories (independent)
+  eventCategories: EventCategory[];
+  addEventCategory: (category: Omit<EventCategory, 'id'>) => void;
+  updateEventCategory: (id: string, updates: Partial<EventCategory>) => void;
+  deleteEventCategory: (id: string) => void;
 
   // Widgets
   widgets: Widget[];
@@ -54,12 +60,30 @@ const generateId = () => Math.random().toString(36).substring(2, 15);
 
 const today = startOfToday();
 
-const initialCategories: Category[] = [
-  { id: '1', name: 'Work', color: 'sky', type: 'both' },
-  { id: '2', name: 'Personal', color: 'mint', type: 'both' },
-  { id: '3', name: 'Health', color: 'coral', type: 'both' },
-  { id: '4', name: 'Finance', color: 'amber', type: 'both' },
-  { id: '5', name: 'Social', color: 'lavender', type: 'both' },
+// Initial Task Categories
+const initialTaskCategories: TaskCategory[] = [
+  { id: 't1', name: 'Work', color: 'sky' },
+  { id: 't2', name: 'Personal', color: 'mint' },
+  { id: 't3', name: 'Health', color: 'coral' },
+  { id: 't4', name: 'Shopping', color: 'amber' },
+  { id: 't5', name: 'Learning', color: 'lavender' },
+];
+
+// Initial Event Categories
+const initialEventCategories: EventCategory[] = [
+  { id: 'e1', name: 'Meetings', color: 'sky' },
+  { id: 'e2', name: 'Personal', color: 'mint' },
+  { id: 'e3', name: 'Social', color: 'rose' },
+  { id: 'e4', name: 'Travel', color: 'teal' },
+  { id: 'e5', name: 'Deadlines', color: 'coral' },
+];
+
+// Initial Folders for Notes
+const initialFolders: Folder[] = [
+  { id: 'f1', name: 'Work', color: 'sky' },
+  { id: 'f2', name: 'Personal', color: 'mint' },
+  { id: 'f3', name: 'Ideas', color: 'lavender' },
+  { id: 'f4', name: 'Archive', color: 'gray' },
 ];
 
 const initialTasks: Task[] = [
@@ -83,15 +107,15 @@ const initialTasks: Task[] = [
     title: 'Grocery shopping',
     completed: false,
     date: today,
-    category: 'Personal',
-    color: 'mint',
+    category: 'Shopping',
+    color: 'amber',
     subtasks: [],
     priority: 'medium',
     createdAt: today,
   },
   {
     id: '3',
-    title: 'Call dentist',
+    title: 'Morning workout',
     completed: true,
     date: addDays(today, 1),
     category: 'Health',
@@ -107,7 +131,7 @@ const initialTasks: Task[] = [
     date: addDays(today, 2),
     time: '14:00',
     category: 'Work',
-    color: 'lavender',
+    color: 'sky',
     subtasks: [
       { id: '4a', title: 'Create outline', completed: false },
       { id: '4b', title: 'Design slides', completed: false },
@@ -124,7 +148,7 @@ const initialEvents: CalendarEvent[] = [
     date: today,
     startTime: '09:00',
     endTime: '09:30',
-    category: 'Work',
+    category: 'Meetings',
     color: 'sky',
     isAllDay: false,
   },
@@ -134,8 +158,8 @@ const initialEvents: CalendarEvent[] = [
     date: today,
     startTime: '12:30',
     endTime: '13:30',
-    category: 'Personal',
-    color: 'mint',
+    category: 'Social',
+    color: 'rose',
     isAllDay: false,
   },
   {
@@ -144,8 +168,8 @@ const initialEvents: CalendarEvent[] = [
     date: addDays(today, 1),
     startTime: '15:00',
     endTime: '16:00',
-    category: 'Work',
-    color: 'lavender',
+    category: 'Meetings',
+    color: 'sky',
     isAllDay: false,
   },
 ];
@@ -155,9 +179,9 @@ const initialNotes: Note[] = [
     id: '1',
     title: 'Project Ideas',
     content: '## New App Concepts\n\n- AI-powered task management\n- Smart calendar integration\n- Voice notes feature\n\n### Priority\n1. Focus on UX\n2. Keep it minimal',
-    folder: 'Work',
+    folder: 'Ideas',
     tags: ['ideas', 'projects'],
-    color: 'sky',
+    color: 'lavender',
     createdAt: today,
     updatedAt: today,
     isPinned: true,
@@ -168,7 +192,7 @@ const initialNotes: Note[] = [
     content: '**Attendees:** John, Sarah, Mike\n\n### Key Points\n- Budget approved\n- Launch target: December',
     folder: 'Work',
     tags: ['meetings'],
-    color: 'lavender',
+    color: 'sky',
     createdAt: addDays(today, -2),
     updatedAt: addDays(today, -1),
     isPinned: false,
@@ -184,12 +208,6 @@ const initialNotes: Note[] = [
     updatedAt: addDays(today, -3),
     isPinned: false,
   },
-];
-
-const initialFolders: Folder[] = [
-  { id: '1', name: 'Work', color: 'sky' },
-  { id: '2', name: 'Personal', color: 'mint' },
-  { id: '3', name: 'Ideas', color: 'lavender' },
 ];
 
 const initialWidgets: Widget[] = [
@@ -283,7 +301,7 @@ export const useAppStore = create<AppState>()(
           ),
         })),
 
-      // Folders
+      // Folders (for Notes)
       folders: initialFolders,
       addFolder: (folder) =>
         set((state) => ({
@@ -298,19 +316,34 @@ export const useAppStore = create<AppState>()(
           folders: state.folders.filter((f) => f.id !== id),
         })),
 
-      // Categories
-      categories: initialCategories,
-      addCategory: (category) =>
+      // Task Categories
+      taskCategories: initialTaskCategories,
+      addTaskCategory: (category) =>
         set((state) => ({
-          categories: [...state.categories, { ...category, id: generateId() }],
+          taskCategories: [...state.taskCategories, { ...category, id: generateId() }],
         })),
-      updateCategory: (id, updates) =>
+      updateTaskCategory: (id, updates) =>
         set((state) => ({
-          categories: state.categories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+          taskCategories: state.taskCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
         })),
-      deleteCategory: (id) =>
+      deleteTaskCategory: (id) =>
         set((state) => ({
-          categories: state.categories.filter((c) => c.id !== id),
+          taskCategories: state.taskCategories.filter((c) => c.id !== id),
+        })),
+
+      // Event Categories
+      eventCategories: initialEventCategories,
+      addEventCategory: (category) =>
+        set((state) => ({
+          eventCategories: [...state.eventCategories, { ...category, id: generateId() }],
+        })),
+      updateEventCategory: (id, updates) =>
+        set((state) => ({
+          eventCategories: state.eventCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        })),
+      deleteEventCategory: (id) =>
+        set((state) => ({
+          eventCategories: state.eventCategories.filter((c) => c.id !== id),
         })),
 
       // Widgets
