@@ -29,21 +29,21 @@ export const getBadgeClass = (color: PastelColor): string => {
   return `flow-badge-${color}`;
 };
 
-// Static color mapping for card backgrounds (90% opacity) - Tailwind JIT compatible
+// Static color mapping for card backgrounds (40% opacity for sheer, calm appearance) - Tailwind JIT compatible
 export const getColorCardClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral/90',
-    peach: 'bg-pastel-peach/90',
-    amber: 'bg-pastel-amber/90',
-    yellow: 'bg-pastel-yellow/90',
-    mint: 'bg-pastel-mint/90',
-    teal: 'bg-pastel-teal/90',
-    sky: 'bg-pastel-sky/90',
-    lavender: 'bg-pastel-lavender/90',
-    rose: 'bg-pastel-rose/90',
-    gray: 'bg-pastel-gray/90',
+    coral: 'bg-pastel-coral/40',
+    peach: 'bg-pastel-peach/40',
+    amber: 'bg-pastel-amber/40',
+    yellow: 'bg-pastel-yellow/40',
+    mint: 'bg-pastel-mint/40',
+    teal: 'bg-pastel-teal/40',
+    sky: 'bg-pastel-sky/40',
+    lavender: 'bg-pastel-lavender/40',
+    rose: 'bg-pastel-rose/40',
+    gray: 'bg-pastel-gray/40',
   };
-  return colorMap[color] || 'bg-pastel-sky/90';
+  return colorMap[color] || 'bg-pastel-sky/40';
 };
 
 // Static color mapping for dot indicators (full opacity) - Tailwind JIT compatible

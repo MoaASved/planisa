@@ -1,30 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { X, Plus, Folder, Tag, Calendar } from 'lucide-react';
+import { X, Plus, Folder, Tag, Calendar, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { PastelColor } from '@/types';
+import { Note, PastelColor } from '@/types';
 import { pastelColors } from '@/lib/colors';
 
-interface CreateNoteModalProps {
+interface EditNoteModalProps {
+  note: Note | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
-  const { addNote, folders, addFolder } = useAppStore();
+export function EditNoteModal({ note, isOpen, onClose }: EditNoteModalProps) {
+  const { updateNote, deleteNote, folders, addFolder } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [folder, setFolder] = useState(folders[0]?.name || 'Personal');
-  const [color, setColor] = useState<PastelColor>(folders[0]?.color || 'sky');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [folder, setFolder] = useState('');
+  const [color, setColor] = useState<PastelColor>('sky');
+  const [date, setDate] = useState('');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
 
-  // New folder creation state
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState<PastelColor>('sky');
+
+  useEffect(() => {
+    if (note) {
+      setTitle(note.title);
+      setContent(note.content);
+      setFolder(note.folder);
+      setColor(note.color);
+      setDate(note.date ? format(new Date(note.date), 'yyyy-MM-dd') : '');
+      setTags([...note.tags]);
+    }
+  }, [note]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -43,30 +54,28 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
     }
   };
 
-  const handleSubmit = () => {
-    if (!title.trim()) return;
+  const handleSave = () => {
+    if (!note || !title.trim()) return;
 
-    addNote({
+    updateNote(note.id, {
       title: title.trim(),
       content: content.trim(),
       folder,
       color,
       tags,
-      isPinned: false,
       date: date ? new Date(date) : undefined,
     });
 
-    // Reset form
-    setTitle('');
-    setContent('');
-    setFolder(folders[0]?.name || 'Personal');
-    setColor(folders[0]?.color || 'sky');
-    setDate('');
-    setTags([]);
     onClose();
   };
 
-  if (!isOpen) return null;
+  const handleDelete = () => {
+    if (!note) return;
+    deleteNote(note.id);
+    onClose();
+  };
+
+  if (!isOpen || !note) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -75,26 +84,22 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
         onClick={onClose}
       />
       <div className="relative bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
-        {/* Header */}
         <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-lg font-semibold text-foreground">New Note</h2>
+          <h2 className="text-lg font-semibold text-foreground">Edit Note</h2>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
         <div className="px-6 py-4 space-y-4">
-          {/* Title */}
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note title"
             className="w-full text-lg font-medium bg-transparent border-0 outline-none placeholder:text-muted-foreground"
-            autoFocus
           />
 
-          {/* Folder */}
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
               <Folder className="w-4 h-4" /> Folder
@@ -106,9 +111,7 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
                   onClick={() => { setFolder(f.name); setColor(f.color); }}
                   className={cn(
                     'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
-                    folder === f.name
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:bg-muted'
+                    folder === f.name ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:bg-muted'
                   )}
                 >
                   <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${f.color}`)} />
@@ -123,81 +126,38 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
               </button>
             </div>
 
-            {/* New Folder Inline Form */}
             {showNewFolder && (
               <div className="mt-3 p-3 bg-secondary rounded-xl space-y-3 animate-fade-in">
-                <input
-                  type="text"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Folder name"
-                  className="flow-input"
-                  autoFocus
-                />
+                <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Folder name" className="flow-input" />
                 <div className="flex flex-wrap gap-2">
                   {pastelColors.map((c) => (
-                    <button
-                      key={c.value}
-                      onClick={() => setNewFolderColor(c.value)}
-                      className={cn(
-                        'w-7 h-7 rounded-full transition-all',
-                        c.class,
-                        newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
-                      )}
-                    />
+                    <button key={c.value} onClick={() => setNewFolderColor(c.value)} className={cn('w-7 h-7 rounded-full transition-all', c.class, newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowNewFolder(false)}
-                    className="flex-1 px-3 py-2 rounded-xl text-sm bg-muted text-muted-foreground"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateFolder}
-                    disabled={!newFolderName.trim()}
-                    className="flex-1 px-3 py-2 rounded-xl text-sm bg-primary text-primary-foreground disabled:opacity-50"
-                  >
-                    Add
-                  </button>
+                  <button onClick={() => setShowNewFolder(false)} className="flex-1 px-3 py-2 rounded-xl text-sm bg-muted text-muted-foreground">Cancel</button>
+                  <button onClick={handleCreateFolder} disabled={!newFolderName.trim()} className="flex-1 px-3 py-2 rounded-xl text-sm bg-primary text-primary-foreground disabled:opacity-50">Add</button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Date */}
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Date (optional)
+              <Calendar className="w-4 h-4" /> Date
             </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="flow-input"
-            />
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="flow-input" />
           </div>
 
-          {/* Color Override */}
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Color (override)</label>
             <div className="flex flex-wrap gap-2">
               {pastelColors.map((c) => (
-                <button
-                  key={c.value}
-                  onClick={() => setColor(c.value)}
-                  className={cn(
-                    'w-8 h-8 rounded-full transition-all',
-                    c.class,
-                    color === c.value && 'ring-2 ring-offset-2 ring-primary'
-                  )}
-                />
+                <button key={c.value} onClick={() => setColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, color === c.value && 'ring-2 ring-offset-2 ring-primary')} />
               ))}
             </div>
           </div>
 
-          {/* Tags */}
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
               <Tag className="w-4 h-4" /> Tags
@@ -222,7 +182,6 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
             </div>
           </div>
 
-          {/* Content */}
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Content</label>
             <textarea
@@ -235,14 +194,13 @@ export function CreateNoteModal({ isOpen, onClose }: CreateNoteModalProps) {
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4">
-          <button
-            onClick={handleSubmit}
-            disabled={!title.trim()}
-            className="w-full flow-button-primary disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Create Note
+        <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 space-y-2">
+          <button onClick={handleSave} disabled={!title.trim()} className="w-full flow-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
+            Save Changes
+          </button>
+          <button onClick={handleDelete} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors">
+            <Trash2 className="w-4 h-4" />
+            Delete Note
           </button>
         </div>
       </div>

@@ -16,11 +16,14 @@ import {
   eachDayOfInterval,
   getWeek
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Check, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { CalendarView, PastelColor, Task, CalendarEvent } from '@/types';
+import { CalendarView, PastelColor, Task, CalendarEvent, Note } from '@/types';
 import { getColorCardClass, getColorDotClass } from '@/lib/colors';
+import { EditEventModal } from '@/components/modals/EditEventModal';
+import { EditTaskModal } from '@/components/modals/EditTaskModal';
+import { EditNoteModal } from '@/components/modals/EditNoteModal';
 
 const viewButtons: { id: CalendarView; label: string }[] = [
   { id: 'month', label: 'Month' },
@@ -32,7 +35,12 @@ export function CalendarViewComponent() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>('month');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const { events, tasks, toggleTask, taskCategories, eventCategories, deleteTask, deleteEvent } = useAppStore();
+  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders } = useAppStore();
+
+  // Edit modal states
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   // Get effective color: manual color > category color
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
@@ -49,11 +57,18 @@ export function CalendarViewComponent() {
     }
   };
 
+  const getNoteColor = (note: Note): PastelColor => {
+    if (note.color) return note.color;
+    const folder = folders.find(f => f.name === note.folder);
+    return folder?.color || 'sky';
+  };
+
   const getItemsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayEvents = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === dateStr);
     const dayTasks = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === dateStr);
-    return { events: dayEvents, tasks: dayTasks };
+    const dayNotes = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === dateStr);
+    return { events: dayEvents, tasks: dayTasks, notes: dayNotes };
   };
 
   const handlePrev = () => {
@@ -68,23 +83,19 @@ export function CalendarViewComponent() {
     else setCurrentDate(addDays(currentDate, 1));
   };
 
-  const handleItemClick = (item: Task | CalendarEvent, type: 'task' | 'event') => {
-    console.log('Opening', type, item);
+  const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
+    if (type === 'event') {
+      setEditingEvent(item as CalendarEvent);
+    } else if (type === 'task') {
+      setEditingTask(item as Task);
+    } else {
+      setEditingNote(item as Note);
+    }
   };
 
   const handleTaskToggle = (e: React.MouseEvent, taskId: string) => {
     e.stopPropagation();
     toggleTask(taskId);
-  };
-
-  const handleDeleteEvent = (e: React.MouseEvent, eventId: string) => {
-    e.stopPropagation();
-    deleteEvent(eventId);
-  };
-
-  const handleDeleteTask = (e: React.MouseEvent, taskId: string) => {
-    e.stopPropagation();
-    deleteTask(taskId);
   };
 
   const renderMonthView = () => {
@@ -117,8 +128,8 @@ export function CalendarViewComponent() {
             </div>
             
             {week.map((day, dayIndex) => {
-              const { events: dayEvents, tasks: dayTasks } = getItemsForDate(day);
-              const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
+              const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
+              const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayNotes.length > 0;
               const isCurrentMonth = isSameMonth(day, currentDate);
               const isSelected = selectedDate && isSameDay(day, selectedDate);
 
@@ -142,6 +153,9 @@ export function CalendarViewComponent() {
                       ))}
                       {dayTasks.filter(t => !t.completed).slice(0, 2).map((task, j) => (
                         <div key={`t-${j}`} className={cn('w-1 h-1 rounded-full', getColorDotClass(getItemColor(task, 'task')))} />
+                      ))}
+                      {dayNotes.slice(0, 1).map((note, j) => (
+                        <div key={`n-${j}`} className={cn('w-1 h-1 rounded-full', getColorDotClass(getNoteColor(note)))} />
                       ))}
                     </div>
                   )}
@@ -179,8 +193,8 @@ export function CalendarViewComponent() {
 
         <div className="space-y-2">
           {weekDays.map((day, i) => {
-            const { events: dayEvents, tasks: dayTasks } = getItemsForDate(day);
-            if (dayEvents.length === 0 && dayTasks.length === 0) return null;
+            const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
+            if (dayEvents.length === 0 && dayTasks.length === 0 && dayNotes.length === 0) return null;
 
             return (
               <div key={i} className="mb-4">
@@ -199,20 +213,10 @@ export function CalendarViewComponent() {
                           getColorCardClass(color)
                         )}
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-medium text-sm text-foreground">{event.title}</span>
-                            {event.startTime && (
-                              <span className="text-xs ml-2 text-foreground/60">{event.startTime}</span>
-                            )}
-                          </div>
-                          <button
-                            onClick={(e) => handleDeleteEvent(e, event.id)}
-                            className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        <span className="font-medium text-sm text-foreground">{event.title}</span>
+                        {event.startTime && (
+                          <span className="text-xs ml-2 text-foreground/60">{event.startTime}</span>
+                        )}
                       </div>
                     );
                   })}
@@ -244,12 +248,22 @@ export function CalendarViewComponent() {
                         )}>
                           {task.title}
                         </span>
-                        <button
-                          onClick={(e) => handleDeleteTask(e, task.id)}
-                          className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                      </div>
+                    );
+                  })}
+                  {dayNotes.map((note) => {
+                    const color = getNoteColor(note);
+                    return (
+                      <div
+                        key={note.id}
+                        onClick={() => handleItemClick(note, 'note')}
+                        className={cn(
+                          'w-full text-left p-3 rounded-xl text-sm flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
+                          getColorCardClass(color)
+                        )}
+                      >
+                        <FileText className="w-4 h-4 text-foreground/60 flex-shrink-0" />
+                        <span className="text-foreground font-medium">{note.title}</span>
                       </div>
                     );
                   })}
@@ -263,7 +277,7 @@ export function CalendarViewComponent() {
   };
 
   const renderDayView = () => {
-    const { events: dayEvents, tasks: dayTasks } = getItemsForDate(currentDate);
+    const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(currentDate);
 
     return (
       <div className="animate-fade-in">
@@ -273,9 +287,9 @@ export function CalendarViewComponent() {
         </div>
 
         <div className="space-y-2">
-          {dayEvents.length === 0 && dayTasks.length === 0 ? (
+          {dayEvents.length === 0 && dayTasks.length === 0 && dayNotes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No events or tasks for this day
+              No events, tasks, or notes for this day
             </div>
           ) : (
             <>
@@ -290,22 +304,12 @@ export function CalendarViewComponent() {
                       getColorCardClass(color)
                     )}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-foreground">{event.title}</h4>
-                        {event.startTime && (
-                          <p className="text-sm mt-1 text-foreground/60">
-                            {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteEvent(e, event.id)}
-                        className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <h4 className="font-semibold text-foreground">{event.title}</h4>
+                    {event.startTime && (
+                      <p className="text-sm mt-1 text-foreground/60">
+                        {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                      </p>
+                    )}
                   </div>
                 );
               })}
@@ -320,32 +324,47 @@ export function CalendarViewComponent() {
                       task.completed ? 'bg-secondary' : getColorCardClass(color)
                     )}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          onClick={(e) => handleTaskToggle(e, task.id)}
-                          className={cn(
-                            'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
-                            task.completed
-                              ? 'bg-primary border-primary'
-                              : 'border-foreground/40 hover:bg-foreground/10'
-                          )}
-                        >
-                          {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
-                        </div>
-                        <span className={cn(
-                          'font-medium',
-                          task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                        )}>
-                          {task.title}
-                        </span>
-                      </div>
-                      <button
-                        onClick={(e) => handleDeleteTask(e, task.id)}
-                        className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
+                    <div className="flex items-center gap-3">
+                      <div
+                        onClick={(e) => handleTaskToggle(e, task.id)}
+                        className={cn(
+                          'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
+                          task.completed
+                            ? 'bg-primary border-primary'
+                            : 'border-foreground/40 hover:bg-foreground/10'
+                        )}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                      <span className={cn(
+                        'font-medium',
+                        task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                      )}>
+                        {task.title}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              {dayNotes.map((note) => {
+                const color = getNoteColor(note);
+                return (
+                  <div
+                    key={note.id}
+                    onClick={() => handleItemClick(note, 'note')}
+                    className={cn(
+                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
+                      getColorCardClass(color)
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-foreground/60 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-foreground">{note.title}</h4>
+                        {note.content && (
+                          <p className="text-sm mt-1 text-foreground/60 line-clamp-1">{note.content}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -436,9 +455,9 @@ export function CalendarViewComponent() {
               </div>
               
               {(() => {
-                const { events: dayEvents, tasks: dayTasks } = getItemsForDate(selectedDate);
-                if (dayEvents.length === 0 && dayTasks.length === 0) {
-                  return <p className="text-sm text-muted-foreground">No events or tasks</p>;
+                const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(selectedDate);
+                if (dayEvents.length === 0 && dayTasks.length === 0 && dayNotes.length === 0) {
+                  return <p className="text-sm text-muted-foreground">No events, tasks, or notes</p>;
                 }
                 return (
                   <div className="space-y-2">
@@ -453,22 +472,12 @@ export function CalendarViewComponent() {
                             getColorCardClass(color)
                           )}
                         >
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-medium text-foreground">{event.title}</p>
-                              {event.startTime && (
-                                <p className="text-xs text-foreground/60 mt-1">
-                                  {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              onClick={(e) => handleDeleteEvent(e, event.id)}
-                              className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          <p className="font-medium text-foreground">{event.title}</p>
+                          {event.startTime && (
+                            <p className="text-xs text-foreground/60 mt-1">
+                              {event.startTime}{event.endTime && ` - ${event.endTime}`}
+                            </p>
+                          )}
                         </div>
                       );
                     })}
@@ -500,12 +509,22 @@ export function CalendarViewComponent() {
                           )}>
                             {task.title}
                           </span>
-                          <button
-                            onClick={(e) => handleDeleteTask(e, task.id)}
-                            className="p-1.5 rounded-lg bg-black/10 hover:bg-red-500 hover:text-white transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        </div>
+                      );
+                    })}
+                    {dayNotes.map((note) => {
+                      const color = getNoteColor(note);
+                      return (
+                        <div
+                          key={note.id}
+                          onClick={() => handleItemClick(note, 'note')}
+                          className={cn(
+                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
+                            getColorCardClass(color)
+                          )}
+                        >
+                          <FileText className="w-4 h-4 text-foreground/60 flex-shrink-0" />
+                          <span className="font-medium text-foreground">{note.title}</span>
                         </div>
                       );
                     })}
@@ -516,6 +535,23 @@ export function CalendarViewComponent() {
           </div>
         )}
       </div>
+
+      {/* Edit Modals */}
+      <EditEventModal 
+        event={editingEvent} 
+        isOpen={!!editingEvent} 
+        onClose={() => setEditingEvent(null)} 
+      />
+      <EditTaskModal 
+        task={editingTask} 
+        isOpen={!!editingTask} 
+        onClose={() => setEditingTask(null)} 
+      />
+      <EditNoteModal 
+        note={editingNote} 
+        isOpen={!!editingNote} 
+        onClose={() => setEditingNote(null)} 
+      />
     </div>
   );
 }
