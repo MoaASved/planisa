@@ -36,6 +36,7 @@ export interface Note {
   content: string;
   folder: string;
   tags: string[];
+  date?: Date;
   createdAt: Date;
   updatedAt: Date;
   isPinned: boolean;
