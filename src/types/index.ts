@@ -1,3 +1,17 @@
+export type PastelColor = 
+  | 'coral' 
+  | 'peach' 
+  | 'amber' 
+  | 'yellow' 
+  | 'mint' 
+  | 'teal' 
+  | 'sky' 
+  | 'lavender' 
+  | 'rose' 
+  | 'gray';
+
+export type Priority = 'none' | 'low' | 'medium' | 'high';
+
 export interface Task {
   id: string;
   title: string;
@@ -5,10 +19,10 @@ export interface Task {
   date?: Date;
   time?: string;
   category: string;
-  color: TaskColor;
+  color: PastelColor;
   subtasks: Subtask[];
   notes?: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: Priority;
   createdAt: Date;
 }
 
@@ -25,7 +39,7 @@ export interface CalendarEvent {
   startTime?: string;
   endTime?: string;
   category: string;
-  color: EventColor;
+  color: PastelColor;
   description?: string;
   isAllDay: boolean;
 }
@@ -36,6 +50,7 @@ export interface Note {
   content: string;
   folder: string;
   tags: string[];
+  color: PastelColor;
   date?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -45,18 +60,29 @@ export interface Note {
 export interface Folder {
   id: string;
   name: string;
-  color: string;
-  icon?: string;
+  color: PastelColor;
 }
 
-export type TaskColor = 'coral' | 'mint' | 'lavender' | 'amber' | 'primary';
-export type EventColor = 'coral' | 'mint' | 'lavender' | 'amber' | 'primary' | 'rose';
+export interface Category {
+  id: string;
+  name: string;
+  color: PastelColor;
+  type: 'task' | 'event' | 'both';
+}
 
-export type CalendarView = 'year' | 'month' | 'week' | 'day';
+export type CalendarView = 'month' | 'week' | 'day';
 
 export interface Widget {
   id: string;
-  type: 'mini-calendar' | 'today-tasks' | 'today-events' | 'quick-add' | 'favorite-notes';
-  position: { x: number; y: number };
-  size: { width: number; height: number };
+  type: 'calendar-week' | 'today-tasks' | 'highlighted-note' | 'image-widget';
+  size: 'small' | 'large';
+  position: number;
+}
+
+export interface UserSettings {
+  language: 'en' | 'sv';
+  theme: 'light' | 'dark';
+  avatar?: string;
+  avatarColor?: PastelColor;
+  avatarInitial?: string;
 }

@@ -1,44 +1,31 @@
-import { useState } from 'react';
-import { format, isToday, isTomorrow, isPast, addDays } from 'date-fns';
+import { format, isToday, isTomorrow, isPast } from 'date-fns';
 import { 
   Check, 
-  Plus, 
   ChevronDown, 
   ChevronRight, 
   Calendar, 
-  Clock, 
-  Tag,
-  Filter,
-  SortAsc
+  Clock,
+  Flag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Task, TaskColor } from '@/types';
-import { Header } from '@/components/navigation/Header';
+import { Task, PastelColor } from '@/types';
+import { useState } from 'react';
 
-const colorClasses: Record<TaskColor, string> = {
-  coral: 'bg-flow-coral',
-  mint: 'bg-flow-mint',
-  lavender: 'bg-flow-lavender',
-  amber: 'bg-flow-amber',
-  primary: 'bg-primary',
+type FilterType = 'all' | 'active' | 'completed';
+type SortType = 'all' | 'category' | 'active' | 'completed';
+
+const priorityColors = {
+  none: 'text-muted-foreground',
+  low: 'text-pastel-mint',
+  medium: 'text-pastel-amber',
+  high: 'text-pastel-coral',
 };
-
-const colorBadgeClasses: Record<TaskColor, string> = {
-  coral: 'flow-badge-coral',
-  mint: 'flow-badge-mint',
-  lavender: 'flow-badge-lavender',
-  amber: 'flow-badge-amber',
-  primary: 'flow-badge-primary',
-};
-
-type GroupBy = 'date' | 'category' | 'priority';
 
 export function TasksView() {
-  const { tasks, toggleTask, toggleSubtask, searchQuery } = useAppStore();
+  const { tasks, toggleTask, toggleSubtask, searchQuery, categories } = useAppStore();
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-  const [groupBy, setGroupBy] = useState<GroupBy>('date');
+  const [sortBy, setSortBy] = useState<SortType>('all');
 
   const toggleExpanded = (taskId: string) => {
     const newExpanded = new Set(expandedTasks);
@@ -60,96 +47,49 @@ export function TasksView() {
       return true;
     })
     .filter(task => {
-      if (filter === 'active') return !task.completed;
-      if (filter === 'completed') return task.completed;
+      if (sortBy === 'active') return !task.completed;
+      if (sortBy === 'completed') return task.completed;
       return true;
     });
 
-  const groupTasks = (tasks: Task[]): Record<string, Task[]> => {
-    const groups: Record<string, Task[]> = {};
+  const groupedTasks = sortBy === 'category' 
+    ? categories.reduce((acc, cat) => {
+        const catTasks = filteredTasks.filter(t => t.category === cat.name);
+        if (catTasks.length > 0) acc[cat.name] = catTasks;
+        return acc;
+      }, {} as Record<string, Task[]>)
+    : { 'All Tasks': filteredTasks };
 
-    tasks.forEach(task => {
-      let key: string;
-      
-      if (groupBy === 'date') {
-        if (!task.date) key = 'No date';
-        else if (isToday(task.date)) key = 'Today';
-        else if (isTomorrow(task.date)) key = 'Tomorrow';
-        else if (isPast(task.date)) key = 'Overdue';
-        else key = format(task.date, 'EEEE, MMM d');
-      } else if (groupBy === 'category') {
-        key = task.category || 'Uncategorized';
-      } else {
-        key = task.priority.charAt(0).toUpperCase() + task.priority.slice(1) + ' priority';
-      }
-
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(task);
-    });
-
-    return groups;
-  };
-
-  const groupedTasks = groupTasks(filteredTasks);
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.completed).length;
 
-  const formatDateLabel = (dateStr: string) => {
-    if (dateStr === 'Today' || dateStr === 'Tomorrow' || dateStr === 'Overdue' || dateStr === 'No date') {
-      return dateStr;
-    }
-    return dateStr;
-  };
-
   return (
     <div className="min-h-screen pb-24">
-      <Header 
-        title="Tasks" 
-        subtitle={`${completedTasks} of ${totalTasks} completed`} 
-      />
-
-      <main className="px-6 py-4">
-        {/* Filter & Group Controls */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1 p-1 bg-secondary rounded-xl">
-            {(['all', 'active', 'completed'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 capitalize',
-                  filter === f 
-                    ? 'bg-card text-foreground shadow-soft' 
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setGroupBy(groupBy === 'date' ? 'category' : groupBy === 'category' ? 'priority' : 'date')}
-              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary hover:bg-muted transition-colors text-sm"
+      <div className="px-4 py-4">
+        {/* Sort Controls */}
+        <div className="flow-segment mb-4">
+          {(['all', 'category', 'active', 'completed'] as SortType[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSortBy(s)}
+              className={cn('flow-segment-item capitalize', sortBy === s && 'flow-segment-item-active')}
             >
-              <SortAsc className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground capitalize">{groupBy}</span>
+              {s}
             </button>
-          </div>
+          ))}
         </div>
 
         {/* Progress */}
-        <div className="flow-card-flat mb-4 animate-fade-up">
+        <div className="flow-card-flat mb-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Today's progress</span>
+            <span className="text-sm font-medium text-foreground">Progress</span>
             <span className="text-sm font-semibold text-primary">
               {totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
             </span>
           </div>
           <div className="h-2 bg-secondary rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
+              className="h-full bg-primary rounded-full transition-all duration-500"
               style={{ width: `${totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0}%` }}
             />
           </div>
@@ -157,21 +97,16 @@ export function TasksView() {
 
         {/* Task Groups */}
         <div className="space-y-4">
-          {Object.entries(groupedTasks).map(([group, groupTasks], groupIndex) => (
-            <div key={group} className="animate-fade-up" style={{ animationDelay: `${groupIndex * 0.05}s` }}>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className={cn(
-                  'text-sm font-semibold',
-                  group === 'Overdue' ? 'text-destructive' : 
-                  group === 'Today' ? 'text-primary' : 
-                  'text-muted-foreground'
-                )}>
-                  {formatDateLabel(group)}
-                </h3>
-                <span className="text-xs text-muted-foreground">
-                  {groupTasks.filter(t => t.completed).length}/{groupTasks.length}
-                </span>
-              </div>
+          {Object.entries(groupedTasks).map(([group, groupTasks]) => (
+            <div key={group}>
+              {sortBy === 'category' && (
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground">{group}</h3>
+                  <span className="text-xs text-muted-foreground">
+                    {groupTasks.filter(t => t.completed).length}/{groupTasks.length}
+                  </span>
+                </div>
+              )}
 
               <div className="space-y-2">
                 {groupTasks.map((task) => (
@@ -197,38 +132,38 @@ export function TasksView() {
                           )}>
                             {task.title}
                           </p>
-                          {task.subtasks.length > 0 && (
-                            <button
-                              onClick={() => toggleExpanded(task.id)}
-                              className="p-1 rounded-lg hover:bg-secondary transition-colors"
-                            >
-                              {expandedTasks.has(task.id) 
-                                ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> 
-                                : <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                              }
-                            </button>
-                          )}
+                          <div className="flex items-center gap-1">
+                            {task.priority !== 'none' && (
+                              <Flag className={cn('w-4 h-4', priorityColors[task.priority])} />
+                            )}
+                            {task.subtasks.length > 0 && (
+                              <button
+                                onClick={() => toggleExpanded(task.id)}
+                                className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                              >
+                                {expandedTasks.has(task.id) 
+                                  ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> 
+                                  : <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                }
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          <span className={cn('flow-badge', colorBadgeClasses[task.color])}>
+                          <span className={cn('flow-badge', `flow-badge-${task.color}`)}>
                             {task.category}
                           </span>
                           {task.date && (
                             <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Calendar className="w-3 h-3" />
-                              {isToday(task.date) ? 'Today' : format(task.date, 'MMM d')}
+                              {isToday(new Date(task.date)) ? 'Today' : format(new Date(task.date), 'MMM d')}
                             </span>
                           )}
                           {task.time && (
                             <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Clock className="w-3 h-3" />
                               {task.time}
-                            </span>
-                          )}
-                          {task.subtasks.length > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length} subtasks
                             </span>
                           )}
                         </div>
@@ -270,7 +205,7 @@ export function TasksView() {
         </div>
 
         {filteredTasks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-up">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-4">
               <Check className="w-8 h-8 text-primary" />
             </div>
@@ -278,12 +213,7 @@ export function TasksView() {
             <p className="text-sm text-muted-foreground">No tasks to show</p>
           </div>
         )}
-      </main>
-
-      {/* FAB */}
-      <button className="fixed right-6 bottom-24 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-elevated flex items-center justify-center transition-transform hover:scale-110 active:scale-95">
-        <Plus className="w-6 h-6" />
-      </button>
+      </div>
     </div>
   );
 }
