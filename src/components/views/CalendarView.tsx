@@ -1,35 +1,27 @@
 import { useState } from 'react';
 import { 
   format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  addDays, 
   addMonths, 
   subMonths,
-  isSameMonth,
-  isSameDay,
-  isToday,
   addWeeks,
   subWeeks,
-  eachDayOfInterval,
-  getWeek
+  addDays,
+  addYears,
+  subYears,
+  startOfWeek
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Check, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { CalendarView, PastelColor, Task, CalendarEvent, Note } from '@/types';
-import { getColorCardClass, getColorDotClass } from '@/lib/colors';
+import { ViewSelector } from '@/components/calendar/ViewSelector';
+import { YearView } from '@/components/calendar/YearView';
+import { MonthView } from '@/components/calendar/MonthView';
+import { WeekView } from '@/components/calendar/WeekView';
+import { DayView } from '@/components/calendar/DayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { EditTaskModal } from '@/components/modals/EditTaskModal';
 import { EditNoteModal } from '@/components/modals/EditNoteModal';
-
-const viewButtons: { id: CalendarView; label: string }[] = [
-  { id: 'month', label: 'Month' },
-  { id: 'week', label: 'Week' },
-  { id: 'day', label: 'Day' },
-];
 
 export function CalendarViewComponent() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -63,24 +55,39 @@ export function CalendarViewComponent() {
     return folder?.color || 'sky';
   };
 
-  const getItemsForDate = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const dayEvents = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === dateStr);
-    const dayTasks = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === dateStr);
-    const dayNotes = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === dateStr);
-    return { events: dayEvents, tasks: dayTasks, notes: dayNotes };
-  };
-
   const handlePrev = () => {
-    if (view === 'month') setCurrentDate(subMonths(currentDate, 1));
+    if (view === 'year') setCurrentDate(subYears(currentDate, 1));
+    else if (view === 'month') setCurrentDate(subMonths(currentDate, 1));
     else if (view === 'week') setCurrentDate(subWeeks(currentDate, 1));
     else setCurrentDate(addDays(currentDate, -1));
   };
 
   const handleNext = () => {
-    if (view === 'month') setCurrentDate(addMonths(currentDate, 1));
+    if (view === 'year') setCurrentDate(addYears(currentDate, 1));
+    else if (view === 'month') setCurrentDate(addMonths(currentDate, 1));
     else if (view === 'week') setCurrentDate(addWeeks(currentDate, 1));
     else setCurrentDate(addDays(currentDate, 1));
+  };
+
+  const handleViewChange = (newView: CalendarView) => {
+    setView(newView);
+  };
+
+  const handleMonthClick = (date: Date) => {
+    setCurrentDate(date);
+    setView('month');
+  };
+
+  const handleDayClickFromMonth = (date: Date) => {
+    setSelectedDate(date);
+    setCurrentDate(startOfWeek(date, { weekStartsOn: 1 }));
+    setView('week');
+  };
+
+  const handleDayClickFromWeek = (date: Date) => {
+    setSelectedDate(date);
+    setCurrentDate(date);
+    setView('day');
   };
 
   const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
@@ -98,459 +105,128 @@ export function CalendarViewComponent() {
     toggleTask(taskId);
   };
 
-  const renderMonthView = () => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-    const days = eachDayOfInterval({ start: startDate, end: endDate });
-
-    const weeks: Date[][] = [];
-    for (let i = 0; i < days.length; i += 7) {
-      weeks.push(days.slice(i, i + 7));
-    }
-
-    return (
-      <div className="animate-fade-in">
-        <div className="grid grid-cols-8 mb-2">
-          <div className="text-center text-[10px] font-normal text-muted-foreground/50 py-2">W</div>
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-            <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-8 gap-0.5">
-            <div className="aspect-square flex items-center justify-center text-[10px] font-normal text-muted-foreground/40">
-              {getWeek(week[0], { weekStartsOn: 1 })}
-            </div>
-            
-            {week.map((day, dayIndex) => {
-              const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
-              const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayNotes.length > 0;
-              const isCurrentMonth = isSameMonth(day, currentDate);
-              const isSelected = selectedDate && isSameDay(day, selectedDate);
-
-              return (
-                <button
-                  key={dayIndex}
-                  onClick={() => setSelectedDate(day)}
-                  className={cn(
-                    'aspect-square p-0.5 rounded-xl flex flex-col items-center justify-center transition-all duration-200',
-                    !isCurrentMonth && 'opacity-30',
-                    isToday(day) && 'bg-primary text-primary-foreground',
-                    isSelected && !isToday(day) && 'bg-primary/20 ring-2 ring-primary',
-                    !isToday(day) && !isSelected && 'hover:bg-secondary'
-                  )}
-                >
-                  <span className="text-sm font-medium">{format(day, 'd')}</span>
-                  {hasItems && (
-                    <div className="flex gap-0.5 mt-0.5">
-                      {dayEvents.slice(0, 2).map((event, j) => (
-                        <div key={j} className={cn('w-1 h-1 rounded-full', getColorDotClass(getItemColor(event, 'event')))} />
-                      ))}
-                      {dayTasks.filter(t => !t.completed).slice(0, 2).map((task, j) => (
-                        <div key={`t-${j}`} className={cn('w-1 h-1 rounded-full', getColorDotClass(getItemColor(task, 'task')))} />
-                      ))}
-                      {dayNotes.slice(0, 1).map((note, j) => (
-                        <div key={`n-${j}`} className={cn('w-1 h-1 rounded-full', getColorDotClass(getNoteColor(note)))} />
-                      ))}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  const renderWeekView = () => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
-    return (
-      <div className="animate-fade-in">
-        <div className="flex gap-1 mb-4 overflow-x-auto pb-2">
-          {weekDays.map((day, i) => (
-            <button
-              key={i}
-              onClick={() => setSelectedDate(day)}
-              className={cn(
-                'flex-1 min-w-[48px] p-2 rounded-xl text-center transition-colors',
-                isToday(day) && 'bg-primary text-primary-foreground',
-                !isToday(day) && 'bg-secondary hover:bg-secondary/80'
-              )}
-            >
-              <span className="text-xs font-medium block">{format(day, 'EEE')}</span>
-              <span className="text-lg font-semibold">{format(day, 'd')}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-2">
-          {weekDays.map((day, i) => {
-            const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
-            if (dayEvents.length === 0 && dayTasks.length === 0 && dayNotes.length === 0) return null;
-
-            return (
-              <div key={i} className="mb-4">
-                <h4 className="text-sm font-semibold text-muted-foreground mb-2">
-                  {isToday(day) ? 'Today' : format(day, 'EEEE, MMM d')}
-                </h4>
-                <div className="space-y-2">
-                  {dayEvents.map((event) => {
-                    const color = getItemColor(event, 'event');
-                    return (
-                      <div
-                        key={event.id}
-                        onClick={() => handleItemClick(event, 'event')}
-                        className={cn(
-                          'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
-                          getColorCardClass(color)
-                        )}
-                      >
-                        <span className="font-medium text-sm text-foreground">{event.title}</span>
-                        {event.startTime && (
-                          <span className="text-xs ml-2 text-foreground/60">{event.startTime}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {dayTasks.map((task) => {
-                    const color = getItemColor(task, 'task');
-                    return (
-                      <div
-                        key={task.id}
-                        onClick={() => handleItemClick(task, 'task')}
-                        className={cn(
-                          'w-full text-left p-3 rounded-xl text-sm flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
-                          task.completed ? 'bg-secondary' : getColorCardClass(color)
-                        )}
-                      >
-                        <div
-                          onClick={(e) => handleTaskToggle(e, task.id)}
-                          className={cn(
-                            'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
-                            task.completed
-                              ? 'bg-primary border-primary'
-                              : 'border-foreground/40 hover:bg-foreground/10'
-                          )}
-                        >
-                          {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
-                        </div>
-                        <span className={cn(
-                          'flex-1',
-                          task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                        )}>
-                          {task.title}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {dayNotes.map((note) => {
-                    const color = getNoteColor(note);
-                    return (
-                      <div
-                        key={note.id}
-                        onClick={() => handleItemClick(note, 'note')}
-                        className={cn(
-                          'w-full text-left p-3 rounded-xl text-sm flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
-                          getColorCardClass(color)
-                        )}
-                      >
-                        <FileText className="w-4 h-4 text-foreground/60 flex-shrink-0" />
-                        <span className="text-foreground font-medium">{note.title}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const renderDayView = () => {
-    const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(currentDate);
-
-    return (
-      <div className="animate-fade-in">
-        <div className="flow-card-flat mb-4 text-center">
-          <span className="text-4xl font-bold text-foreground">{format(currentDate, 'd')}</span>
-          <p className="text-sm text-muted-foreground mt-1">{format(currentDate, 'EEEE, MMMM yyyy')}</p>
-        </div>
-
-        <div className="space-y-2">
-          {dayEvents.length === 0 && dayTasks.length === 0 && dayNotes.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No events, tasks, or notes for this day
-            </div>
-          ) : (
-            <>
-              {dayEvents.map((event) => {
-                const color = getItemColor(event, 'event');
-                return (
-                  <div
-                    key={event.id}
-                    onClick={() => handleItemClick(event, 'event')}
-                    className={cn(
-                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
-                      getColorCardClass(color)
-                    )}
-                  >
-                    <h4 className="font-semibold text-foreground">{event.title}</h4>
-                    {event.startTime && (
-                      <p className="text-sm mt-1 text-foreground/60">
-                        {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-              {dayTasks.map((task) => {
-                const color = getItemColor(task, 'task');
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() => handleItemClick(task, 'task')}
-                    className={cn(
-                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
-                      task.completed ? 'bg-secondary' : getColorCardClass(color)
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        onClick={(e) => handleTaskToggle(e, task.id)}
-                        className={cn(
-                          'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
-                          task.completed
-                            ? 'bg-primary border-primary'
-                            : 'border-foreground/40 hover:bg-foreground/10'
-                        )}
-                      >
-                        {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
-                      </div>
-                      <span className={cn(
-                        'font-medium',
-                        task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                      )}>
-                        {task.title}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-              {dayNotes.map((note) => {
-                const color = getNoteColor(note);
-                return (
-                  <div
-                    key={note.id}
-                    onClick={() => handleItemClick(note, 'note')}
-                    className={cn(
-                      'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
-                      getColorCardClass(color)
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-foreground/60 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-semibold text-foreground">{note.title}</h4>
-                        {note.content && (
-                          <p className="text-sm mt-1 text-foreground/60 line-clamp-1">{note.content}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const getHeaderWeekNumber = () => {
+  const getHeaderText = () => {
+    if (view === 'year') return format(currentDate, 'yyyy');
+    if (view === 'month') return format(currentDate, 'MMMM yyyy');
     if (view === 'week') {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-      return getWeek(weekStart, { weekStartsOn: 1 });
+      return format(weekStart, 'MMMM yyyy');
     }
-    if (view === 'day') {
-      return getWeek(currentDate, { weekStartsOn: 1 });
-    }
-    return null;
+    return format(currentDate, 'MMMM yyyy');
   };
 
-  const headerWeekNumber = getHeaderWeekNumber();
-
   return (
-    <div className="min-h-screen pb-24">
-      <div className="px-4 py-4">
-        {/* View Toggle */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flow-segment">
-            {viewButtons.map((btn) => (
-              <button
-                key={btn.id}
-                onClick={() => setView(btn.id)}
-                className={cn('flow-segment-item', view === btn.id && 'flow-segment-item-active')}
-              >
-                {btn.label}
-              </button>
-            ))}
-          </div>
-
+    <div className="flex flex-col h-[calc(100vh-140px)]">
+      {/* Header */}
+      <div className="flex-shrink-0 px-4 pt-4 pb-2">
+        {/* View Selector - centered */}
+        <ViewSelector view={view} onViewChange={handleViewChange} />
+        
+        {/* Navigation row */}
+        <div className="flex items-center justify-between mt-4">
+          <h2 className="text-xl font-semibold text-foreground">
+            {getHeaderText()}
+          </h2>
+          
           <div className="flex items-center gap-2">
-            <button onClick={handlePrev} className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors">
+            <button 
+              onClick={handlePrev} 
+              className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+            >
               <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </button>
             <button
               onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-2 rounded-xl bg-primary/10 text-primary text-sm font-medium"
+              className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
             >
               Today
             </button>
-            <button onClick={handleNext} className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors">
+            <button 
+              onClick={handleNext} 
+              className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+            >
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Month/Year Header with Week Number */}
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            {format(currentDate, 'MMMM yyyy')}
-          </h2>
-          {headerWeekNumber && (
-            <span className="text-sm font-normal text-muted-foreground/60">
-              W{headerWeekNumber}
-            </span>
+      {/* Main content area */}
+      <div className="flex-1 overflow-hidden px-4 pb-4">
+        <div className={cn(
+          'h-full',
+          view === 'year' && 'animate-view-zoom-in',
+          view === 'month' && 'animate-view-zoom-in',
+          view === 'week' && 'animate-view-slide-left',
+          view === 'day' && 'animate-view-slide-left'
+        )}>
+          {view === 'year' && (
+            <YearView
+              currentDate={currentDate}
+              onMonthClick={handleMonthClick}
+            />
+          )}
+
+          {view === 'month' && (
+            <MonthView
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              events={events}
+              tasks={tasks}
+              notes={notes}
+              getItemColor={getItemColor}
+              getNoteColor={getNoteColor}
+              onDayClick={handleDayClickFromMonth}
+            />
+          )}
+
+          {view === 'week' && (
+            <WeekView
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              events={events}
+              tasks={tasks}
+              notes={notes}
+              getItemColor={getItemColor}
+              getNoteColor={getNoteColor}
+              onDayClick={handleDayClickFromWeek}
+              onItemClick={handleItemClick}
+              onTaskToggle={handleTaskToggle}
+            />
+          )}
+
+          {view === 'day' && (
+            <DayView
+              currentDate={currentDate}
+              events={events}
+              tasks={tasks}
+              notes={notes}
+              getItemColor={getItemColor}
+              getNoteColor={getNoteColor}
+              onItemClick={handleItemClick}
+              onTaskToggle={handleTaskToggle}
+            />
           )}
         </div>
-
-        {/* Calendar Content */}
-        <div className="flow-card-flat">
-          {view === 'month' && renderMonthView()}
-          {view === 'week' && renderWeekView()}
-          {view === 'day' && renderDayView()}
-        </div>
-
-        {/* Selected Date Details - Month View Only */}
-        {selectedDate && view === 'month' && (
-          <div className="mt-4 animate-fade-up">
-            <div className="flow-card">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-foreground">
-                  {format(selectedDate, 'EEEE, MMMM d')}
-                </h3>
-                <button onClick={() => setSelectedDate(null)} className="text-xs text-muted-foreground">
-                  Close
-                </button>
-              </div>
-              
-              {(() => {
-                const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(selectedDate);
-                if (dayEvents.length === 0 && dayTasks.length === 0 && dayNotes.length === 0) {
-                  return <p className="text-sm text-muted-foreground">No events, tasks, or notes</p>;
-                }
-                return (
-                  <div className="space-y-2">
-                    {dayEvents.map((event) => {
-                      const color = getItemColor(event, 'event');
-                      return (
-                        <div
-                          key={event.id}
-                          onClick={() => handleItemClick(event, 'event')}
-                          className={cn(
-                            'w-full text-left p-3 rounded-xl transition-all active:scale-[0.98] cursor-pointer',
-                            getColorCardClass(color)
-                          )}
-                        >
-                          <p className="font-medium text-foreground">{event.title}</p>
-                          {event.startTime && (
-                            <p className="text-xs text-foreground/60 mt-1">
-                              {event.startTime}{event.endTime && ` - ${event.endTime}`}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {dayTasks.map((task) => {
-                      const color = getItemColor(task, 'task');
-                      return (
-                        <div
-                          key={task.id}
-                          onClick={() => handleItemClick(task, 'task')}
-                          className={cn(
-                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
-                            task.completed ? 'bg-secondary' : getColorCardClass(color)
-                          )}
-                        >
-                          <div
-                            onClick={(e) => handleTaskToggle(e, task.id)}
-                            className={cn(
-                              'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0',
-                              task.completed
-                                ? 'bg-primary border-primary'
-                                : 'border-foreground/40 hover:bg-foreground/10'
-                            )}
-                          >
-                            {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
-                          </div>
-                          <span className={cn(
-                            'font-medium flex-1',
-                            task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                          )}>
-                            {task.title}
-                          </span>
-                        </div>
-                      );
-                    })}
-                    {dayNotes.map((note) => {
-                      const color = getNoteColor(note);
-                      return (
-                        <div
-                          key={note.id}
-                          onClick={() => handleItemClick(note, 'note')}
-                          className={cn(
-                            'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all active:scale-[0.98] cursor-pointer',
-                            getColorCardClass(color)
-                          )}
-                        >
-                          <FileText className="w-4 h-4 text-foreground/60 flex-shrink-0" />
-                          <span className="font-medium text-foreground">{note.title}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Edit Modals */}
-      <EditEventModal 
-        event={editingEvent} 
-        isOpen={!!editingEvent} 
-        onClose={() => setEditingEvent(null)} 
+      <EditEventModal
+        event={editingEvent}
+        isOpen={!!editingEvent}
+        onClose={() => setEditingEvent(null)}
       />
-      <EditTaskModal 
-        task={editingTask} 
-        isOpen={!!editingTask} 
-        onClose={() => setEditingTask(null)} 
+      
+      <EditTaskModal
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
       />
-      <EditNoteModal 
-        note={editingNote} 
-        isOpen={!!editingNote} 
-        onClose={() => setEditingNote(null)} 
+      
+      <EditNoteModal
+        note={editingNote}
+        isOpen={!!editingNote}
+        onClose={() => setEditingNote(null)}
       />
     </div>
   );
