@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   format, 
   startOfWeek, 
@@ -25,6 +25,8 @@ interface WeekViewProps {
   onDayClick: (date: Date) => void;
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
 export function WeekView({
@@ -38,10 +40,13 @@ export function WeekView({
   onDayClick,
   onItemClick,
   onTaskToggle,
+  onSwipeLeft,
+  onSwipeRight,
 }: WeekViewProps) {
   const [scale, setScale] = useState(1);
   const lastDistanceRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -72,6 +77,8 @@ export function WeekView({
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       lastDistanceRef.current = getDistance(e.touches[0], e.touches[1]);
+    } else if (e.touches.length === 1) {
+      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   };
 
@@ -84,6 +91,25 @@ export function WeekView({
       lastDistanceRef.current = distance;
     }
   };
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartRef.current && e.changedTouches.length === 1) {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const deltaX = endX - touchStartRef.current.x;
+      const deltaY = endY - touchStartRef.current.y;
+
+      // Only trigger swipe if horizontal movement is greater than vertical
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        if (deltaX > 0 && onSwipeRight) {
+          onSwipeRight();
+        } else if (deltaX < 0 && onSwipeLeft) {
+          onSwipeLeft();
+        }
+      }
+    }
+    touchStartRef.current = null;
+  }, [onSwipeLeft, onSwipeRight]);
 
   const getItemsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -131,6 +157,7 @@ export function WeekView({
       className="animate-fade-in flex flex-col h-full"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Fixed header with days */}
       <div className="flex-shrink-0 border-b border-border/30">
@@ -333,13 +360,6 @@ export function WeekView({
             })}
           </div>
         </div>
-      </div>
-
-      {/* Zoom indicator */}
-      <div className="flex-shrink-0 py-2 text-center">
-        <span className="text-[10px] text-muted-foreground/40">
-          Pinch to zoom • {Math.round(scale * 100)}%
-        </span>
       </div>
     </div>
   );

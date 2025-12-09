@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { TabNavigation } from '@/components/navigation/TabNavigation';
 import { TopBar } from '@/components/navigation/TopBar';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
@@ -11,6 +12,8 @@ import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
 import { CreateNoteModal } from '@/components/modals/CreateNoteModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { useAppStore } from '@/store/useAppStore';
+import { CalendarView } from '@/types';
+import { cn } from '@/lib/utils';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -18,6 +21,11 @@ const Index = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const { settings } = useAppStore();
+
+  // Calendar state lifted to Index for TopBar integration
+  const [calendarView, setCalendarView] = useState<CalendarView>('month');
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [showYearView, setShowYearView] = useState(false);
 
   // Apply theme on mount and when settings change
   useEffect(() => {
@@ -46,12 +54,33 @@ const Index = () => {
     }
   };
 
+  const handleMonthClick = () => {
+    setShowYearView(true);
+  };
+
+  const handleCalendarViewChange = (view: CalendarView) => {
+    setCalendarView(view);
+    setShowYearView(false);
+  };
+
+  const getCurrentMonth = () => {
+    return format(calendarDate, 'MMMM yyyy');
+  };
+
   const renderView = () => {
     switch (activeTab) {
       case 'home':
         return <HomeView />;
       case 'calendar':
-        return <CalendarViewComponent />;
+        return (
+          <CalendarViewComponent 
+            view={showYearView ? 'year' : calendarView}
+            onViewChange={handleCalendarViewChange}
+            currentDate={calendarDate}
+            onDateChange={setCalendarDate}
+            onExitYearView={() => setShowYearView(false)}
+          />
+        );
       case 'tasks':
         return <TasksView />;
       case 'notes':
@@ -67,10 +96,17 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <TopBar 
         activeTab={activeTab} 
-        onProfileClick={() => setActiveTab('profile')} 
+        onProfileClick={() => setActiveTab('profile')}
+        calendarView={calendarView}
+        onCalendarViewChange={handleCalendarViewChange}
+        currentMonth={getCurrentMonth()}
+        onMonthClick={handleMonthClick}
       />
       
-      <main className="pt-14 pb-24">
+      <main className={cn(
+        "pb-24",
+        activeTab === 'calendar' ? "pt-[88px]" : "pt-14"
+      )}>
         {renderView()}
       </main>
       

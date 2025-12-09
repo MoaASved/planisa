@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { 
   format, 
   startOfMonth, 
@@ -8,7 +9,9 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
-  getWeek
+  getWeek,
+  addMonths,
+  subMonths
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
@@ -23,9 +26,11 @@ interface MonthViewProps {
   getItemColor: (item: Task | CalendarEvent, type: 'task' | 'event') => PastelColor;
   getNoteColor: (note: Note) => PastelColor;
   onDayClick: (date: Date) => void;
+  onDateChange: (date: Date) => void;
 }
 
-export function MonthView({
+function MonthGrid({
+  monthDate,
   currentDate,
   selectedDate,
   events,
@@ -34,8 +39,20 @@ export function MonthView({
   getItemColor,
   getNoteColor,
   onDayClick,
-}: MonthViewProps) {
-  const monthStart = startOfMonth(currentDate);
+  opacity = 1,
+}: {
+  monthDate: Date;
+  currentDate: Date;
+  selectedDate: Date | null;
+  events: CalendarEvent[];
+  tasks: Task[];
+  notes: Note[];
+  getItemColor: (item: Task | CalendarEvent, type: 'task' | 'event') => PastelColor;
+  getNoteColor: (note: Note) => PastelColor;
+  onDayClick: (date: Date) => void;
+  opacity?: number;
+}) {
+  const monthStart = startOfMonth(monthDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
@@ -55,18 +72,28 @@ export function MonthView({
   };
 
   return (
-    <div className="animate-fade-in flex-1 flex flex-col">
+    <div 
+      className="flex flex-col transition-opacity duration-300"
+      style={{ opacity }}
+    >
+      {/* Month header */}
+      <div className="text-center py-3">
+        <span className="text-sm font-semibold text-foreground">
+          {format(monthDate, 'MMMM yyyy')}
+        </span>
+      </div>
+      
       {/* Day headers */}
-      <div className="grid grid-cols-8 mb-2">
-        <div className="text-center text-[10px] font-normal text-muted-foreground/40 py-2">W</div>
+      <div className="grid grid-cols-8 mb-1">
+        <div className="text-center text-[10px] font-normal text-muted-foreground/40 py-1">W</div>
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-          <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+          <div key={day} className="text-center text-[11px] font-medium text-muted-foreground py-1">
             {day}
           </div>
         ))}
       </div>
       
-      {/* Calendar grid - flex-1 to take remaining space */}
+      {/* Calendar grid */}
       <div className="flex-1 flex flex-col">
         {weeks.map((week, weekIndex) => (
           <div key={weekIndex} className="grid grid-cols-8 flex-1">
@@ -78,7 +105,7 @@ export function MonthView({
             {week.map((day, dayIndex) => {
               const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
               const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayNotes.length > 0;
-              const isCurrentMonth = isSameMonth(day, currentDate);
+              const isCurrentMonth = isSameMonth(day, monthDate);
               const isSelected = selectedDate && isSameDay(day, selectedDate);
 
               return (
@@ -86,7 +113,7 @@ export function MonthView({
                   key={dayIndex}
                   onClick={() => onDayClick(day)}
                   className={cn(
-                    'p-1 rounded-xl flex flex-col items-center justify-start pt-2 transition-all duration-200 min-h-[52px]',
+                    'p-0.5 rounded-xl flex flex-col items-center justify-start pt-1.5 transition-all duration-200 min-h-[44px]',
                     !isCurrentMonth && 'opacity-30',
                     isToday(day) && 'bg-primary text-primary-foreground',
                     isSelected && !isToday(day) && 'bg-primary/15 ring-2 ring-primary/50',
@@ -100,7 +127,7 @@ export function MonthView({
                     {format(day, 'd')}
                   </span>
                   {hasItems && (
-                    <div className="flex flex-wrap gap-0.5 mt-1 justify-center max-w-full">
+                    <div className="flex flex-wrap gap-0.5 mt-0.5 justify-center max-w-full">
                       {dayEvents.slice(0, 2).map((event, j) => (
                         <div 
                           key={j} 
@@ -136,6 +163,109 @@ export function MonthView({
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+export function MonthView({
+  currentDate,
+  selectedDate,
+  events,
+  tasks,
+  notes,
+  getItemColor,
+  getNoteColor,
+  onDayClick,
+  onDateChange,
+}: MonthViewProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Generate 3 months: previous, current, next
+  const months = [
+    subMonths(currentDate, 1),
+    currentDate,
+    addMonths(currentDate, 1),
+  ];
+
+  // Scroll to center (current month) on mount and when currentDate changes
+  useEffect(() => {
+    if (scrollRef.current) {
+      const container = scrollRef.current;
+      const monthHeight = container.scrollHeight / 3;
+      container.scrollTop = monthHeight;
+    }
+  }, [currentDate]);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current || isScrolling) return;
+
+    const container = scrollRef.current;
+    const monthHeight = container.scrollHeight / 3;
+    const scrollTop = container.scrollTop;
+
+    // Clear existing timeout
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Debounce the month change
+    scrollTimeoutRef.current = setTimeout(() => {
+      // If scrolled past top threshold, go to previous month
+      if (scrollTop < monthHeight * 0.3) {
+        setIsScrolling(true);
+        onDateChange(subMonths(currentDate, 1));
+        setTimeout(() => setIsScrolling(false), 100);
+      }
+      // If scrolled past bottom threshold, go to next month
+      else if (scrollTop > monthHeight * 1.7) {
+        setIsScrolling(true);
+        onDateChange(addMonths(currentDate, 1));
+        setTimeout(() => setIsScrolling(false), 100);
+      }
+    }, 150);
+  }, [currentDate, onDateChange, isScrolling]);
+
+  return (
+    <div className="animate-fade-in flex-1 flex flex-col h-full relative overflow-hidden">
+      {/* Top fade gradient */}
+      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+      
+      {/* Scrollable months container */}
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth px-4"
+        onScroll={handleScroll}
+        style={{ scrollSnapType: 'y mandatory' }}
+      >
+        {months.map((month, index) => {
+          const isCurrent = index === 1;
+          return (
+            <div 
+              key={format(month, 'yyyy-MM')}
+              className="min-h-full flex flex-col"
+              style={{ scrollSnapAlign: 'start' }}
+            >
+              <MonthGrid
+                monthDate={month}
+                currentDate={currentDate}
+                selectedDate={selectedDate}
+                events={events}
+                tasks={tasks}
+                notes={notes}
+                getItemColor={getItemColor}
+                getNoteColor={getNoteColor}
+                onDayClick={onDayClick}
+                opacity={isCurrent ? 1 : 0.4}
+              />
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Bottom fade gradient */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
     </div>
   );
 }
