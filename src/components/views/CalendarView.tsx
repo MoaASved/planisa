@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   format, 
   addMonths, 
@@ -6,15 +5,12 @@ import {
   addWeeks,
   subWeeks,
   addDays,
-  addYears,
-  subYears,
   startOfWeek
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { CalendarView, PastelColor, Task, CalendarEvent, Note } from '@/types';
-import { ViewSelector } from '@/components/calendar/ViewSelector';
 import { YearView } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { WeekView } from '@/components/calendar/WeekView';
@@ -22,10 +18,23 @@ import { DayView } from '@/components/calendar/DayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { EditTaskModal } from '@/components/modals/EditTaskModal';
 import { EditNoteModal } from '@/components/modals/EditNoteModal';
+import { useState } from 'react';
 
-export function CalendarViewComponent() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<CalendarView>('month');
+interface CalendarViewComponentProps {
+  view: CalendarView;
+  onViewChange: (view: CalendarView) => void;
+  currentDate: Date;
+  onDateChange: (date: Date) => void;
+  onExitYearView: () => void;
+}
+
+export function CalendarViewComponent({
+  view,
+  onViewChange,
+  currentDate,
+  onDateChange,
+  onExitYearView,
+}: CalendarViewComponentProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders } = useAppStore();
 
@@ -56,38 +65,37 @@ export function CalendarViewComponent() {
   };
 
   const handlePrev = () => {
-    if (view === 'year') setCurrentDate(subYears(currentDate, 1));
-    else if (view === 'month') setCurrentDate(subMonths(currentDate, 1));
-    else if (view === 'week') setCurrentDate(subWeeks(currentDate, 1));
-    else setCurrentDate(addDays(currentDate, -1));
+    if (view === 'month') onDateChange(subMonths(currentDate, 1));
+    else if (view === 'week') onDateChange(subWeeks(currentDate, 1));
+    else onDateChange(addDays(currentDate, -1));
   };
 
   const handleNext = () => {
-    if (view === 'year') setCurrentDate(addYears(currentDate, 1));
-    else if (view === 'month') setCurrentDate(addMonths(currentDate, 1));
-    else if (view === 'week') setCurrentDate(addWeeks(currentDate, 1));
-    else setCurrentDate(addDays(currentDate, 1));
-  };
-
-  const handleViewChange = (newView: CalendarView) => {
-    setView(newView);
+    if (view === 'month') onDateChange(addMonths(currentDate, 1));
+    else if (view === 'week') onDateChange(addWeeks(currentDate, 1));
+    else onDateChange(addDays(currentDate, 1));
   };
 
   const handleMonthClick = (date: Date) => {
-    setCurrentDate(date);
-    setView('month');
+    onDateChange(date);
+    onViewChange('month');
+    onExitYearView();
   };
 
   const handleDayClickFromMonth = (date: Date) => {
     setSelectedDate(date);
-    setCurrentDate(startOfWeek(date, { weekStartsOn: 1 }));
-    setView('week');
+    onDateChange(startOfWeek(date, { weekStartsOn: 1 }));
+    onViewChange('week');
   };
 
   const handleDayClickFromWeek = (date: Date) => {
     setSelectedDate(date);
-    setCurrentDate(date);
-    setView('day');
+    onDateChange(date);
+    onViewChange('day');
+  };
+
+  const handleDayClickFromDayHeader = (date: Date) => {
+    onDateChange(date);
   };
 
   const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
@@ -105,9 +113,7 @@ export function CalendarViewComponent() {
     toggleTask(taskId);
   };
 
-  const getHeaderText = () => {
-    if (view === 'year') return format(currentDate, 'yyyy');
-    if (view === 'month') return format(currentDate, 'MMMM yyyy');
+  const getNavigationText = () => {
     if (view === 'week') {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
       return format(weekStart, 'MMMM yyyy');
@@ -115,99 +121,124 @@ export function CalendarViewComponent() {
     return format(currentDate, 'MMMM yyyy');
   };
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-140px)]">
-      {/* Header */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-2">
-        {/* View Selector - centered */}
-        <ViewSelector view={view} onViewChange={handleViewChange} />
+  // Year view - fullscreen without extra navigation
+  if (view === 'year') {
+    return (
+      <div className="flex flex-col h-[calc(100vh-160px)]">
+        <div className="flex-1 overflow-hidden px-4">
+          <YearView
+            currentDate={currentDate}
+            onMonthClick={handleMonthClick}
+          />
+        </div>
+
+        {/* Edit Modals */}
+        <EditEventModal
+          event={editingEvent}
+          isOpen={!!editingEvent}
+          onClose={() => setEditingEvent(null)}
+        />
         
-        {/* Navigation row */}
-        <div className="flex items-center justify-between mt-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            {getHeaderText()}
-          </h2>
-          
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handlePrev} 
-              className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
-            >
-              Today
-            </button>
-            <button 
-              onClick={handleNext} 
-              className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
-            >
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
+        <EditTaskModal
+          task={editingTask}
+          isOpen={!!editingTask}
+          onClose={() => setEditingTask(null)}
+        />
+        
+        <EditNoteModal
+          note={editingNote}
+          isOpen={!!editingNote}
+          onClose={() => setEditingNote(null)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-160px)]">
+      {/* Compact navigation row for Day and Week views */}
+      {(view === 'day' || view === 'week') && (
+        <div className="flex-shrink-0 px-4 py-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">
+              {getNavigationText()}
+            </h2>
+            
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={handlePrev} 
+                className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <button
+                onClick={() => onDateChange(new Date())}
+                className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+              >
+                Today
+              </button>
+              <button 
+                onClick={handleNext} 
+                className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+              >
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Main content area */}
-      <div className="flex-1 overflow-hidden px-4 pb-4">
-        <div className={cn(
-          'h-full',
-          view === 'year' && 'animate-view-zoom-in',
-          view === 'month' && 'animate-view-zoom-in',
-          view === 'week' && 'animate-view-slide-left',
-          view === 'day' && 'animate-view-slide-left'
-        )}>
-          {view === 'year' && (
-            <YearView
-              currentDate={currentDate}
-              onMonthClick={handleMonthClick}
-            />
-          )}
+      {/* Main content area - fullscreen */}
+      <div className={cn(
+        "flex-1 overflow-hidden",
+        view !== 'month' && "px-4"
+      )}>
+        {view === 'month' && (
+          <MonthView
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            events={events}
+            tasks={tasks}
+            notes={notes}
+            getItemColor={getItemColor}
+            getNoteColor={getNoteColor}
+            onDayClick={handleDayClickFromMonth}
+            onDateChange={onDateChange}
+          />
+        )}
 
-          {view === 'month' && (
-            <MonthView
-              currentDate={currentDate}
-              selectedDate={selectedDate}
-              events={events}
-              tasks={tasks}
-              notes={notes}
-              getItemColor={getItemColor}
-              getNoteColor={getNoteColor}
-              onDayClick={handleDayClickFromMonth}
-            />
-          )}
+        {view === 'week' && (
+          <WeekView
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            events={events}
+            tasks={tasks}
+            notes={notes}
+            getItemColor={getItemColor}
+            getNoteColor={getNoteColor}
+            onDayClick={handleDayClickFromWeek}
+            onItemClick={handleItemClick}
+            onTaskToggle={handleTaskToggle}
+            onSwipeLeft={handleNext}
+            onSwipeRight={handlePrev}
+          />
+        )}
 
-          {view === 'week' && (
-            <WeekView
-              currentDate={currentDate}
-              selectedDate={selectedDate}
-              events={events}
-              tasks={tasks}
-              notes={notes}
-              getItemColor={getItemColor}
-              getNoteColor={getNoteColor}
-              onDayClick={handleDayClickFromWeek}
-              onItemClick={handleItemClick}
-              onTaskToggle={handleTaskToggle}
-            />
-          )}
-
-          {view === 'day' && (
-            <DayView
-              currentDate={currentDate}
-              events={events}
-              tasks={tasks}
-              notes={notes}
-              getItemColor={getItemColor}
-              getNoteColor={getNoteColor}
-              onItemClick={handleItemClick}
-              onTaskToggle={handleTaskToggle}
-            />
-          )}
-        </div>
+        {view === 'day' && (
+          <DayView
+            currentDate={currentDate}
+            events={events}
+            tasks={tasks}
+            notes={notes}
+            getItemColor={getItemColor}
+            getNoteColor={getNoteColor}
+            onItemClick={handleItemClick}
+            onTaskToggle={handleTaskToggle}
+            onDayClick={handleDayClickFromDayHeader}
+            onSwipeLeft={handleNext}
+            onSwipeRight={handlePrev}
+          />
+        )}
       </div>
 
       {/* Edit Modals */}

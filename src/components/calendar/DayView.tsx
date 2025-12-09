@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { format, isToday } from 'date-fns';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { format, isToday, startOfWeek, addDays, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass } from '@/lib/colors';
@@ -17,6 +17,9 @@ interface DayViewProps {
   getNoteColor: (note: Note) => PastelColor;
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
+  onDayClick?: (date: Date) => void;
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
 }
 
 export function DayView({
@@ -28,13 +31,21 @@ export function DayView({
   getNoteColor,
   onItemClick,
   onTaskToggle,
+  onDayClick,
+  onSwipeLeft,
+  onSwipeRight,
 }: DayViewProps) {
   const [scale, setScale] = useState(1);
   const lastDistanceRef = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const hourHeight = HOUR_HEIGHT_BASE * scale;
+
+  // Get week days for header
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   // Update current time every minute
   useEffect(() => {
@@ -60,6 +71,8 @@ export function DayView({
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       lastDistanceRef.current = getDistance(e.touches[0], e.touches[1]);
+    } else if (e.touches.length === 1) {
+      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   };
 
@@ -72,6 +85,25 @@ export function DayView({
       lastDistanceRef.current = distance;
     }
   };
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartRef.current && e.changedTouches.length === 1) {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const deltaX = endX - touchStartRef.current.x;
+      const deltaY = endY - touchStartRef.current.y;
+
+      // Only trigger swipe if horizontal movement is greater than vertical
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        if (deltaX > 0 && onSwipeRight) {
+          onSwipeRight();
+        } else if (deltaX < 0 && onSwipeLeft) {
+          onSwipeLeft();
+        }
+      }
+    }
+    touchStartRef.current = null;
+  }, [onSwipeLeft, onSwipeRight]);
 
   const getItemsForDate = () => {
     const dateStr = format(currentDate, 'yyyy-MM-dd');
@@ -106,38 +138,54 @@ export function DayView({
       className="animate-fade-in flex flex-col h-full"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
-      {/* Date header */}
-      <div className="flex-shrink-0 text-center py-4 border-b border-border/30">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {format(currentDate, 'EEEE')}
-        </span>
-        <div className={cn(
-          'text-4xl font-bold mt-1',
-          isToday(currentDate) ? 'text-primary' : 'text-foreground'
-        )}>
-          {format(currentDate, 'd')}
+      {/* Week header - like Week view */}
+      <div className="flex-shrink-0 border-b border-border/30">
+        <div className="grid grid-cols-7 gap-px">
+          {weekDays.map((day, i) => {
+            const isSelected = isSameDay(day, currentDate);
+            return (
+              <button
+                key={i}
+                onClick={() => onDayClick?.(day)}
+                className={cn(
+                  'py-2 text-center transition-colors rounded-lg mx-0.5',
+                  isToday(day) && !isSelected && 'bg-primary/5',
+                  isSelected && 'bg-primary/15'
+                )}
+              >
+                <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                  {format(day, 'EEE')}
+                </span>
+                <span className={cn(
+                  'block text-lg font-semibold mt-0.5',
+                  isToday(day) ? 'text-primary' : 'text-foreground',
+                  isSelected && !isToday(day) && 'text-foreground'
+                )}>
+                  {format(day, 'd')}
+                </span>
+              </button>
+            );
+          })}
         </div>
-        <span className="text-sm text-muted-foreground">
-          {format(currentDate, 'MMMM yyyy')}
-        </span>
       </div>
 
-      {/* All-day items */}
+      {/* All-day items - compact */}
       {hasAllDayItems && (
-        <div className="flex-shrink-0 border-b border-border/30 p-3 bg-secondary/20">
-          <div className="text-[10px] text-muted-foreground/50 mb-2">All day</div>
-          <div className="space-y-2">
+        <div className="flex-shrink-0 border-b border-border/30 p-2 bg-secondary/20">
+          <div className="text-[9px] text-muted-foreground/50 mb-1">All day</div>
+          <div className="space-y-1">
             {allDayEvents.map((event) => (
               <div
                 key={event.id}
                 onClick={() => onItemClick(event, 'event')}
                 className={cn(
-                  'p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98]',
+                  'py-1.5 px-2.5 rounded-lg cursor-pointer transition-all active:scale-[0.98]',
                   getColorCardClass(getItemColor(event, 'event'))
                 )}
               >
-                <span className="font-medium text-sm">{event.title}</span>
+                <span className="font-medium text-xs">{event.title}</span>
               </div>
             ))}
             {allDayTasks.map((task) => (
@@ -145,21 +193,21 @@ export function DayView({
                 key={task.id}
                 onClick={() => onItemClick(task, 'task')}
                 className={cn(
-                  'p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3',
+                  'py-1.5 px-2.5 rounded-lg cursor-pointer transition-all active:scale-[0.98] flex items-center gap-2',
                   task.completed ? 'bg-secondary' : getColorCardClass(getItemColor(task, 'task'))
                 )}
               >
                 <div
                   onClick={(e) => onTaskToggle(e, task.id)}
                   className={cn(
-                    'w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0',
+                    'w-4 h-4 rounded-md border-2 flex items-center justify-center flex-shrink-0',
                     task.completed ? 'bg-primary border-primary' : 'border-foreground/40'
                   )}
                 >
-                  {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+                  {task.completed && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
                 </div>
                 <span className={cn(
-                  'font-medium text-sm',
+                  'font-medium text-xs',
                   task.completed && 'line-through opacity-50'
                 )}>
                   {task.title}
@@ -171,12 +219,12 @@ export function DayView({
                 key={note.id}
                 onClick={() => onItemClick(note, 'note')}
                 className={cn(
-                  'p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3',
+                  'py-1.5 px-2.5 rounded-lg cursor-pointer transition-all active:scale-[0.98] flex items-center gap-2',
                   getColorCardClass(getNoteColor(note))
                 )}
               >
-                <FileText className="w-4 h-4 text-foreground/60 flex-shrink-0" />
-                <span className="font-medium text-sm">{note.title}</span>
+                <FileText className="w-3 h-3 text-foreground/60 flex-shrink-0" />
+                <span className="font-medium text-xs">{note.title}</span>
               </div>
             ))}
           </div>
@@ -196,7 +244,7 @@ export function DayView({
               className="absolute w-full flex"
               style={{ top: hour * hourHeight }}
             >
-              <div className="w-16 flex-shrink-0 text-xs text-muted-foreground/50 text-right pr-3 -mt-2">
+              <div className="w-14 flex-shrink-0 text-[10px] text-muted-foreground/50 text-right pr-2 -mt-2">
                 {format(new Date().setHours(hour, 0), 'HH:mm')}
               </div>
               <div className="flex-1 border-t border-border/20" />
@@ -206,7 +254,7 @@ export function DayView({
           {/* Current time indicator */}
           {isToday(currentDate) && (
             <div
-              className="absolute left-16 right-0 flex items-center z-20 pointer-events-none"
+              className="absolute left-14 right-0 flex items-center z-20 pointer-events-none"
               style={{ top: getCurrentTimePosition() }}
             >
               <div className="w-3 h-3 rounded-full bg-destructive -ml-1.5" />
@@ -215,7 +263,7 @@ export function DayView({
           )}
 
           {/* Events column */}
-          <div className="absolute left-16 right-0 top-0 bottom-0">
+          <div className="absolute left-14 right-0 top-0 bottom-0">
             {/* Timed events */}
             {timedEvents.map((event) => {
               if (!event.startTime) return null;
@@ -283,13 +331,6 @@ export function DayView({
             })}
           </div>
         </div>
-      </div>
-
-      {/* Zoom indicator */}
-      <div className="flex-shrink-0 py-2 text-center">
-        <span className="text-[10px] text-muted-foreground/40">
-          Pinch to zoom • {Math.round(scale * 100)}%
-        </span>
       </div>
     </div>
   );
