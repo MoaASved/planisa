@@ -84,7 +84,7 @@ export interface Category {
   type: 'task' | 'event' | 'both';
 }
 
-export type CalendarView = 'month' | 'week' | 'day';
+export type CalendarView = 'day' | 'week' | 'month' | 'year';
 
 export interface Widget {
   id: string;
