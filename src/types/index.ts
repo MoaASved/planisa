@@ -48,13 +48,15 @@ export interface Note {
   id: string;
   title: string;
   content: string;
-  folder: string;
+  folder?: string;
   tags: string[];
-  color: PastelColor;
+  color?: PastelColor;
   date?: Date;
   createdAt: Date;
   updatedAt: Date;
   isPinned: boolean;
+  showInCalendar?: boolean;
+  hideFromAllNotes?: boolean;
 }
 
 // Separate category types for each section

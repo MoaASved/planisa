@@ -9,7 +9,6 @@ import { TasksView } from '@/components/views/TasksView';
 import { NotesView } from '@/components/views/NotesView';
 import { ProfileView } from '@/components/views/ProfileView';
 import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
-import { CreateNoteModal } from '@/components/modals/CreateNoteModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { useAppStore } from '@/store/useAppStore';
 import { CalendarView } from '@/types';
@@ -18,9 +17,12 @@ import { cn } from '@/lib/utils';
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showTaskModal, setShowTaskModal] = useState(false);
-  const [showNoteModal, setShowNoteModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const { settings } = useAppStore();
+
+  // Note editing state
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
 
   // Calendar state lifted to Index for TopBar integration
   const [calendarView, setCalendarView] = useState<CalendarView>('month');
@@ -43,7 +45,9 @@ const Index = () => {
         setShowTaskModal(true);
         break;
       case 'notes':
-        setShowNoteModal(true);
+        // Open NoteEditor directly for new note
+        setIsCreatingNewNote(true);
+        setIsEditingNote(true);
         break;
       case 'calendar':
         setShowEventModal(true);
@@ -52,6 +56,16 @@ const Index = () => {
         // On home, show action sheet with options (handled by FAB component)
         break;
     }
+  };
+
+  const handleCreateNote = () => {
+    setIsCreatingNewNote(true);
+    setIsEditingNote(true);
+  };
+
+  const handleCloseNoteEditor = () => {
+    setIsCreatingNewNote(false);
+    setIsEditingNote(false);
   };
 
   const handleMonthClick = () => {
@@ -84,7 +98,13 @@ const Index = () => {
       case 'tasks':
         return <TasksView />;
       case 'notes':
-        return <NotesView />;
+        return (
+          <NotesView 
+            onEditingChange={setIsEditingNote}
+            isCreatingNew={isCreatingNewNote}
+            onCloseEditor={handleCloseNoteEditor}
+          />
+        );
       case 'profile':
         return <ProfileView />;
       default:
@@ -92,40 +112,49 @@ const Index = () => {
     }
   };
 
+  // Hide TopBar and navigation when editing notes
+  const showNavigation = !isEditingNote;
+
   return (
     <div className="min-h-screen bg-background">
-      <TopBar 
-        activeTab={activeTab} 
-        onProfileClick={() => setActiveTab('profile')}
-        calendarView={calendarView}
-        onCalendarViewChange={handleCalendarViewChange}
-        currentMonth={getCurrentMonth()}
-        onMonthClick={handleMonthClick}
-      />
+      {showNavigation && (
+        <TopBar 
+          activeTab={activeTab} 
+          onProfileClick={() => setActiveTab('profile')}
+          calendarView={calendarView}
+          onCalendarViewChange={handleCalendarViewChange}
+          currentMonth={getCurrentMonth()}
+          onMonthClick={handleMonthClick}
+        />
+      )}
       
       <main className={cn(
         "pb-24",
-        activeTab === 'calendar' ? "pt-[88px]" : "pt-14"
+        showNavigation && (activeTab === 'calendar' ? "pt-[88px]" : "pt-14"),
+        !showNavigation && "pt-0"
       )}>
         {renderView()}
       </main>
       
-      <FloatingActionButton
-        activeTab={activeTab}
-        onCreateTask={() => setShowTaskModal(true)}
-        onCreateNote={() => setShowNoteModal(true)}
-        onCreateEvent={() => setShowEventModal(true)}
-      />
-      
-      <TabNavigation 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        onPlusClick={handleFabClick}
-      />
+      {showNavigation && (
+        <>
+          <FloatingActionButton
+            activeTab={activeTab}
+            onCreateTask={() => setShowTaskModal(true)}
+            onCreateNote={handleCreateNote}
+            onCreateEvent={() => setShowEventModal(true)}
+          />
+          
+          <TabNavigation 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            onPlusClick={handleFabClick}
+          />
+        </>
+      )}
 
       {/* Modals */}
       <CreateTaskModal isOpen={showTaskModal} onClose={() => setShowTaskModal(false)} />
-      <CreateNoteModal isOpen={showNoteModal} onClose={() => setShowNoteModal(false)} />
       <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} />
     </div>
   );
