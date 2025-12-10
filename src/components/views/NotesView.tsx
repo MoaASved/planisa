@@ -56,6 +56,11 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
   // Filter notes based on search, folder, and hideFromAllNotes
   const filteredNotes = notes
     .filter(note => {
+      // Special case: __no_folder__ shows notes without any folder
+      if (selectedFolder === '__no_folder__') {
+        return !note.folder;
+      }
+      
       // When in "All Notes" (no selected folder), hide notes marked as hidden
       // BUT still show if there's a search query (still searchable)
       if (!selectedFolder && note.hideFromAllNotes && !searchQuery) {
@@ -70,7 +75,10 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
       }
       return true;
     })
-    .filter(note => !selectedFolder || note.folder === selectedFolder)
+    .filter(note => {
+      if (selectedFolder === '__no_folder__') return !note.folder;
+      return !selectedFolder || note.folder === selectedFolder;
+    })
     .sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
@@ -243,6 +251,31 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
               );
             })}
           </div>
+
+          {/* No Folder option - discreet at bottom */}
+          {(() => {
+            const noFolderNotes = notes.filter(n => !n.folder);
+            if (noFolderNotes.length === 0) return null;
+            return (
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <button
+                  onClick={() => { setSelectedFolder('__no_folder__'); setViewTab('all'); }}
+                  className="flow-card-flat text-left group w-full opacity-60 hover:opacity-100 transition-opacity"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-muted/30">
+                      <Folder className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-muted-foreground">No Folder</h4>
+                      <p className="text-sm text-muted-foreground/70">{noFolderNotes.length} notes</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
+                  </div>
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Create Folder Modal */}
@@ -325,10 +358,17 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
         {selectedFolder && (
           <button
             onClick={() => setSelectedFolder(null)}
-            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary text-primary-foreground mb-4"
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-xl mb-4",
+              selectedFolder === '__no_folder__' 
+                ? "bg-muted text-muted-foreground" 
+                : "bg-primary text-primary-foreground"
+            )}
           >
             <Folder className="w-4 h-4" />
-            <span className="text-sm font-medium">{selectedFolder}</span>
+            <span className="text-sm font-medium">
+              {selectedFolder === '__no_folder__' ? 'No Folder' : selectedFolder}
+            </span>
             <X className="w-4 h-4" />
           </button>
         )}

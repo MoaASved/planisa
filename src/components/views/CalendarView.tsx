@@ -17,6 +17,7 @@ import { WeekView } from '@/components/calendar/WeekView';
 import { DayView } from '@/components/calendar/DayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { EditTaskModal } from '@/components/modals/EditTaskModal';
+import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { useState } from 'react';
 
@@ -42,6 +43,7 @@ export function CalendarViewComponent({
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [showNoteEditor, setShowNoteEditor] = useState(false);
 
   // Get effective color: manual color > category color
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
@@ -104,8 +106,19 @@ export function CalendarViewComponent({
     } else if (type === 'task') {
       setEditingTask(item as Task);
     } else {
+      // Open the simplified CalendarNoteModal first
       setEditingNote(item as Note);
     }
+  };
+
+  const handleOpenFullNoteEditor = (note: Note) => {
+    setEditingNote(note);
+    setShowNoteEditor(true);
+  };
+
+  const handleCloseNoteModal = () => {
+    setEditingNote(null);
+    setShowNoteEditor(false);
   };
 
   const handleTaskToggle = (e: React.MouseEvent, taskId: string) => {
@@ -145,10 +158,17 @@ export function CalendarViewComponent({
           onClose={() => setEditingTask(null)}
         />
         
-        {editingNote && (
+        <CalendarNoteModal
+          note={editingNote}
+          isOpen={!!editingNote && !showNoteEditor}
+          onClose={handleCloseNoteModal}
+          onOpenFullEditor={handleOpenFullNoteEditor}
+        />
+        
+        {showNoteEditor && editingNote && (
           <NoteEditor
             note={editingNote}
-            onClose={() => setEditingNote(null)}
+            onClose={handleCloseNoteModal}
           />
         )}
       </div>
@@ -255,10 +275,17 @@ export function CalendarViewComponent({
         onClose={() => setEditingTask(null)}
       />
       
-      {editingNote && (
+      <CalendarNoteModal
+        note={editingNote}
+        isOpen={!!editingNote && !showNoteEditor}
+        onClose={handleCloseNoteModal}
+        onOpenFullEditor={handleOpenFullNoteEditor}
+      />
+      
+      {showNoteEditor && editingNote && (
         <NoteEditor
           note={editingNote}
-          onClose={() => setEditingNote(null)}
+          onClose={handleCloseNoteModal}
         />
       )}
     </div>

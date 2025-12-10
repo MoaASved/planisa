@@ -1,5 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Highlight from '@tiptap/extension-highlight';
+import Placeholder from '@tiptap/extension-placeholder';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import { 
   ArrowLeft, 
   Folder, 
@@ -14,9 +20,7 @@ import {
   Highlighter,
   Calendar,
   EyeOff,
-  ChevronDown,
-  ChevronUp,
-  Type
+  Settings
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -32,13 +36,10 @@ interface NoteEditorProps {
   onClose: () => void;
 }
 
-type TextSize = 'heading' | 'subheading' | 'body';
-
 export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const { addNote, updateNote, deleteNote, togglePinNote, folders } = useAppStore();
   
   const [title, setTitle] = useState(note?.title || '');
-  const [content, setContent] = useState(note?.content || '');
   const [folder, setFolder] = useState<string | undefined>(note?.folder);
   const [color, setColor] = useState<PastelColor | undefined>(note?.color);
   const [date, setDate] = useState<Date>(note?.date ? new Date(note.date) : new Date());
@@ -49,23 +50,62 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
-  const [activeTextSize, setActiveTextSize] = useState<TextSize>('body');
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
-  
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const titleRef = useRef<HTMLInputElement>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
+  // TipTap editor
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [1, 2],
+        },
+      }),
+      Highlight.configure({
+        multicolor: true,
+        HTMLAttributes: {
+          class: 'highlight',
+        },
+      }),
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+      Placeholder.configure({
+        placeholder: 'Start writing...',
+      }),
+    ],
+    content: note?.content || '',
+    editorProps: {
+      attributes: {
+        class: 'tiptap-editor prose prose-sm min-h-[300px] outline-none max-w-none',
+      },
+    },
+  });
+
+  // Keyboard-aware toolbar
   useEffect(() => {
-    // Focus title on new note
-    if (!note && titleRef.current) {
-      titleRef.current.focus();
-    }
-  }, [note]);
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+
+    const handleResize = () => {
+      const heightDiff = window.innerHeight - viewport.height;
+      setKeyboardHeight(heightDiff > 100 ? heightDiff : 0);
+    };
+
+    viewport.addEventListener('resize', handleResize);
+    viewport.addEventListener('scroll', handleResize);
+    
+    return () => {
+      viewport.removeEventListener('resize', handleResize);
+      viewport.removeEventListener('scroll', handleResize);
+    };
+  }, []);
 
   const handleSave = () => {
     const noteData = {
       title: title.trim() || 'Untitled',
-      content,
+      content: editor?.getHTML() || '',
       folder,
       color,
       date,
@@ -99,42 +139,20 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     }
   };
 
-  const insertFormatting = (prefix: string, suffix: string = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const newText = content.substring(0, start) + prefix + selectedText + suffix + content.substring(end);
-    setContent(newText);
-    
-    // Restore cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + prefix.length, end + prefix.length);
-    }, 0);
-  };
-
-  const handleBold = () => insertFormatting('**', '**');
-  const handleItalic = () => insertFormatting('*', '*');
-  const handleBulletList = () => insertFormatting('\n- ');
-  const handleNumberedList = () => insertFormatting('\n1. ');
-  const handleCheckbox = () => insertFormatting('\n- [ ] ');
-
-  const handleTextSize = (size: TextSize) => {
-    setActiveTextSize(size);
-    const prefixMap: Record<TextSize, string> = {
-      heading: '## ',
-      subheading: '### ',
-      body: '',
-    };
-    insertFormatting('\n' + prefixMap[size]);
-  };
-
   const handleHighlight = (highlightColor: PastelColor) => {
-    // We'll use a simple marker format: ==text==
-    insertFormatting('==', '==');
+    const colorMap: Record<PastelColor, string> = {
+      coral: 'hsl(12, 76%, 70%)',
+      peach: 'hsl(25, 70%, 75%)',
+      amber: 'hsl(38, 80%, 70%)',
+      yellow: 'hsl(48, 85%, 75%)',
+      mint: 'hsl(158, 50%, 65%)',
+      teal: 'hsl(175, 50%, 60%)',
+      sky: 'hsl(200, 70%, 70%)',
+      lavender: 'hsl(262, 60%, 75%)',
+      rose: 'hsl(340, 60%, 75%)',
+      gray: 'hsl(220, 10%, 70%)',
+    };
+    editor?.chain().focus().toggleHighlight({ color: colorMap[highlightColor] }).run();
     setShowHighlightPicker(false);
   };
 
@@ -195,9 +213,11 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div 
+        className="flex-1 overflow-y-auto px-4 py-4"
+        style={{ paddingBottom: keyboardHeight > 0 ? '140px' : '100px' }}
+      >
         <input
-          ref={titleRef}
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -215,124 +235,128 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           <span>{format(date, 'MMM d, yyyy')}</span>
         </div>
         
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="w-full min-h-[300px] bg-transparent border-0 outline-none text-foreground resize-none leading-relaxed text-base"
-          placeholder="Start writing..."
-        />
+        {/* TipTap Editor */}
+        <EditorContent editor={editor} className="tiptap-content" />
       </div>
 
-      {/* Metadata Section (collapsible) */}
-      <div className="border-t border-border bg-card/50">
-        <button 
-          onClick={() => setShowMetadata(!showMetadata)}
-          className="w-full px-4 py-3 flex items-center justify-between text-sm text-muted-foreground"
+      {/* Metadata Section (collapsible) - inside toolbar area */}
+      {showMetadata && (
+        <div 
+          className="fixed left-0 right-0 border-t border-border bg-card/95 backdrop-blur-xl px-4 py-4 space-y-3 z-50 transition-all"
+          style={{ bottom: keyboardHeight + 52 }}
         >
-          <span>Settings</span>
-          {showMetadata ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-        </button>
-        
-        {showMetadata && (
-          <div className="px-4 pb-4 space-y-3">
-            {/* Date picker */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-foreground">Date</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
-                    <Calendar className="w-4 h-4" />
-                    {format(date, 'MMM d, yyyy')}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <CalendarComponent
-                    mode="single"
-                    selected={date}
-                    onSelect={(d) => d && setDate(d)}
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            {/* Show in calendar toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">Show in calendar</span>
-              </div>
-              <button
-                onClick={() => setShowInCalendar(!showInCalendar)}
-                className={cn(
-                  'w-11 h-6 rounded-full transition-colors relative',
-                  showInCalendar ? 'bg-primary' : 'bg-secondary'
-                )}
-              >
-                <span 
-                  className={cn(
-                    'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
-                    showInCalendar ? 'translate-x-6' : 'translate-x-1'
-                  )}
+          {/* Date picker */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-foreground">Date</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
+                  <Calendar className="w-4 h-4" />
+                  {format(date, 'MMM d, yyyy')}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={date}
+                  onSelect={(d) => d && setDate(d)}
+                  initialFocus
+                  className="p-3 pointer-events-auto"
                 />
-              </button>
-            </div>
-            
-            {/* Hide from all notes toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <EyeOff className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-foreground">Hide from All Notes</span>
-              </div>
-              <button
-                onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
-                className={cn(
-                  'w-11 h-6 rounded-full transition-colors relative',
-                  hideFromAllNotes ? 'bg-primary' : 'bg-secondary'
-                )}
-              >
-                <span 
-                  className={cn(
-                    'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
-                    hideFromAllNotes ? 'translate-x-6' : 'translate-x-1'
-                  )}
-                />
-              </button>
-            </div>
+              </PopoverContent>
+            </Popover>
           </div>
-        )}
-      </div>
-
-      {/* Formatting Toolbar */}
-      <div className="border-t border-border bg-card px-2 py-2 safe-bottom">
-        <div className="flex items-center gap-1 overflow-x-auto">
-          {/* Text Size */}
-          <div className="flex items-center bg-secondary rounded-lg p-0.5 mr-1">
+          
+          {/* Show in calendar toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Show in calendar</span>
+            </div>
             <button
-              onClick={() => handleTextSize('heading')}
+              onClick={() => setShowInCalendar(!showInCalendar)}
+              className={cn(
+                'w-11 h-6 rounded-full transition-colors relative',
+                showInCalendar ? 'bg-primary' : 'bg-secondary'
+              )}
+            >
+              <span 
+                className={cn(
+                  'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
+                  showInCalendar ? 'translate-x-6' : 'translate-x-1'
+                )}
+              />
+            </button>
+          </div>
+          
+          {/* Hide from all notes toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Hide from All Notes</span>
+            </div>
+            <button
+              onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
+              className={cn(
+                'w-11 h-6 rounded-full transition-colors relative',
+                hideFromAllNotes ? 'bg-primary' : 'bg-secondary'
+              )}
+            >
+              <span 
+                className={cn(
+                  'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
+                  hideFromAllNotes ? 'translate-x-6' : 'translate-x-1'
+                )}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Formatting Toolbar - Keyboard Aware */}
+      <div 
+        className="fixed left-0 right-0 border-t border-border bg-card/95 backdrop-blur-xl px-2 py-2 z-50 transition-all"
+        style={{ bottom: keyboardHeight }}
+      >
+        <div className="flex items-center gap-1 overflow-x-auto safe-bottom">
+          {/* Settings button */}
+          <button 
+            onClick={() => setShowMetadata(!showMetadata)}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              showMetadata ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'
+            )}
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+
+          <div className="w-px h-6 bg-border mx-1" />
+
+          {/* Text Size */}
+          <div className="flex items-center bg-secondary rounded-lg p-0.5">
+            <button
+              onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
               className={cn(
                 'px-2 py-1.5 rounded-md text-xs font-bold transition-colors',
-                activeTextSize === 'heading' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                editor?.isActive('heading', { level: 1 }) ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
               )}
             >
               H1
             </button>
             <button
-              onClick={() => handleTextSize('subheading')}
+              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
               className={cn(
                 'px-2 py-1.5 rounded-md text-xs font-semibold transition-colors',
-                activeTextSize === 'subheading' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                editor?.isActive('heading', { level: 2 }) ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
               )}
             >
               H2
             </button>
             <button
-              onClick={() => handleTextSize('body')}
+              onClick={() => editor?.chain().focus().setParagraph().run()}
               className={cn(
                 'px-2 py-1.5 rounded-md text-xs transition-colors',
-                activeTextSize === 'body' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+                editor?.isActive('paragraph') && !editor?.isActive('heading') ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
               )}
             >
               T
@@ -342,24 +366,54 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           <div className="w-px h-6 bg-border mx-1" />
 
           {/* Formatting */}
-          <button onClick={handleBold} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-            <Bold className="w-4 h-4 text-muted-foreground" />
+          <button 
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              editor?.isActive('bold') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
+            )}
+          >
+            <Bold className="w-4 h-4" />
           </button>
-          <button onClick={handleItalic} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-            <Italic className="w-4 h-4 text-muted-foreground" />
+          <button 
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              editor?.isActive('italic') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
+            )}
+          >
+            <Italic className="w-4 h-4" />
           </button>
 
           <div className="w-px h-6 bg-border mx-1" />
 
           {/* Lists */}
-          <button onClick={handleBulletList} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-            <List className="w-4 h-4 text-muted-foreground" />
+          <button 
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              editor?.isActive('bulletList') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
+            )}
+          >
+            <List className="w-4 h-4" />
           </button>
-          <button onClick={handleNumberedList} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-            <ListOrdered className="w-4 h-4 text-muted-foreground" />
+          <button 
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              editor?.isActive('orderedList') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
+            )}
+          >
+            <ListOrdered className="w-4 h-4" />
           </button>
-          <button onClick={handleCheckbox} className="p-2 rounded-lg hover:bg-secondary transition-colors">
-            <CheckSquare className="w-4 h-4 text-muted-foreground" />
+          <button 
+            onClick={() => editor?.chain().focus().toggleTaskList().run()}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              editor?.isActive('taskList') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
+            )}
+          >
+            <CheckSquare className="w-4 h-4" />
           </button>
 
           <div className="w-px h-6 bg-border mx-1" />
@@ -367,8 +421,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           {/* Highlight */}
           <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
             <PopoverTrigger asChild>
-              <button className="p-2 rounded-lg hover:bg-secondary transition-colors">
-                <Highlighter className="w-4 h-4 text-muted-foreground" />
+              <button 
+                className={cn(
+                  'p-2 rounded-lg transition-colors',
+                  editor?.isActive('highlight') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
+                )}
+              >
+                <Highlighter className="w-4 h-4" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-2" align="end">
