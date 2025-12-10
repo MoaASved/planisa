@@ -89,11 +89,10 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
   const otherNotes = filteredNotes.filter(n => !n.isPinned);
 
   const getPreview = (content: string) => {
-    return content
-      .replace(/#{1,6}\s/g, '')
-      .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
-      .replace(/==/g, '')
-      .slice(0, 100) + (content.length > 100 ? '...' : '');
+    // Strip all HTML tags to get plain text
+    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    // Return first 100 characters
+    return plainText.slice(0, 100) + (plainText.length > 100 ? '...' : '');
   };
 
   const handleCreateFolder = () => {
