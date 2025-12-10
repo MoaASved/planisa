@@ -45,6 +45,9 @@ export function CalendarViewComponent({
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
 
+  // Filter notes to only show those with showInCalendar enabled
+  const calendarNotes = notes.filter(n => n.showInCalendar);
+
   // Get effective color: manual color > category color
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
     if (item.color) return item.color;
@@ -220,7 +223,7 @@ export function CalendarViewComponent({
             selectedDate={selectedDate}
             events={events}
             tasks={tasks}
-            notes={notes}
+            notes={calendarNotes}
             getItemColor={getItemColor}
             getNoteColor={getNoteColor}
             onDayClick={handleDayClickFromMonth}
@@ -234,7 +237,7 @@ export function CalendarViewComponent({
             selectedDate={selectedDate}
             events={events}
             tasks={tasks}
-            notes={notes}
+            notes={calendarNotes}
             getItemColor={getItemColor}
             getNoteColor={getNoteColor}
             onDayClick={handleDayClickFromWeek}
@@ -250,7 +253,7 @@ export function CalendarViewComponent({
             currentDate={currentDate}
             events={events}
             tasks={tasks}
-            notes={notes}
+            notes={calendarNotes}
             getItemColor={getItemColor}
             getNoteColor={getNoteColor}
             onItemClick={handleItemClick}

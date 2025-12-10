@@ -54,42 +54,42 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
 
   return (
     <>
+      {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 animate-fade-in" 
         onClick={onClose} 
       />
-      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-card rounded-3xl p-6 max-w-md mx-auto animate-scale-in shadow-elevated">
+      
+      {/* Compact Bottom Sheet Modal */}
+      <div className="fixed inset-x-3 bottom-3 z-50 bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Note Preview</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-foreground">Note</h3>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full bg-secondary hover:bg-muted transition-colors"
+            className="p-1.5 rounded-full bg-secondary hover:bg-muted transition-colors"
           >
-            <X className="w-5 h-5 text-muted-foreground" />
+            <X className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
 
         {/* Title */}
-        <div className="mb-4">
-          <label className="text-sm text-muted-foreground mb-2 block">Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="flow-input"
-            placeholder="Note title"
-          />
-        </div>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm mb-3 border-0 outline-none text-foreground placeholder:text-muted-foreground"
+          placeholder="Note title"
+        />
 
-        {/* Date */}
-        <div className="mb-4">
-          <label className="text-sm text-muted-foreground mb-2 block">Date</label>
+        {/* Date & Time Row */}
+        <div className="flex items-center gap-2 mb-3">
+          {/* Date picker */}
           <Popover>
             <PopoverTrigger asChild>
-              <button className="flow-input flex items-center gap-2 text-left">
+              <button className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary text-sm text-foreground hover:bg-muted transition-colors">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-                {format(date, 'EEEE, MMMM d, yyyy')}
+                {format(date, 'MMM d')}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -102,65 +102,44 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
               />
             </PopoverContent>
           </Popover>
-        </div>
-
-        {/* Time */}
-        <div className="mb-6">
-          <label className="text-sm text-muted-foreground mb-2 block">Time</label>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsAllDay(true)}
-              className={cn(
-                'flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                isAllDay ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
-              )}
-            >
-              All day
-            </button>
-            <button
-              onClick={() => setIsAllDay(false)}
-              className={cn(
-                'flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors',
-                !isAllDay ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
-              )}
-            >
-              Specific time
-            </button>
-          </div>
           
-          {!isAllDay && (
-            <div className="mt-3 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="flow-input flex-1"
-              />
-            </div>
-          )}
+          {/* Time toggle */}
+          <button
+            onClick={() => setIsAllDay(!isAllDay)}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors",
+              isAllDay ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
+            )}
+          >
+            <Clock className="w-4 h-4" />
+            {isAllDay ? 'All day' : time}
+          </button>
         </div>
 
-        {/* Open Note Button */}
-        <button
-          onClick={handleOpenNote}
-          className="w-full flow-button-secondary flex items-center justify-center gap-2 mb-3"
-        >
-          <FileText className="w-4 h-4" />
-          Open Note
-        </button>
+        {/* Time input when not all day */}
+        {!isAllDay && (
+          <div className="mb-3">
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+            />
+          </div>
+        )}
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <button
-            onClick={onClose}
-            className="flex-1 py-3 rounded-xl bg-secondary text-muted-foreground font-medium"
+            onClick={handleOpenNote}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
           >
-            Cancel
+            <FileText className="w-4 h-4" />
+            Open
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 flow-button-primary"
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             Save
           </button>

@@ -239,11 +239,20 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         <EditorContent editor={editor} className="tiptap-content" />
       </div>
 
+      {/* Click-outside overlay to close metadata */}
+      {showMetadata && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowMetadata(false)} 
+        />
+      )}
+
       {/* Metadata Section (collapsible) - inside toolbar area */}
       {showMetadata && (
         <div 
           className="fixed left-0 right-0 border-t border-border bg-card/95 backdrop-blur-xl px-4 py-4 space-y-3 z-50 transition-all"
           style={{ bottom: keyboardHeight + 52 }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Date picker */}
           <div className="flex items-center justify-between">
