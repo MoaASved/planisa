@@ -3,51 +3,70 @@ import { format } from 'date-fns';
 import { 
   Folder, 
   FolderPlus,
-  FileText, 
   Pin, 
-  MoreHorizontal,
   ChevronRight,
   Star,
-  Tag,
   LayoutGrid,
   LayoutList,
-  Plus,
-  X,
-  Trash2,
-  Edit3,
-  Bold,
-  Italic,
-  List,
-  CheckSquare
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
 import { pastelColors } from '@/lib/colors';
+import { NoteEditor } from '@/components/notes/NoteEditor';
 
 type ViewTab = 'all' | 'folders';
 type LayoutMode = 'list' | 'grid';
 
-export function NotesView() {
-  const { notes, folders, togglePinNote, updateNote, deleteNote, searchQuery, addFolder } = useAppStore();
+// Color mapping for Post-it style cards (30% opacity)
+const getPostItBgClass = (color?: PastelColor): string => {
+  if (!color) return 'bg-card border border-border';
+  const colorMap: Record<PastelColor, string> = {
+    coral: 'bg-pastel-coral/30',
+    peach: 'bg-pastel-peach/30',
+    amber: 'bg-pastel-amber/30',
+    yellow: 'bg-pastel-yellow/30',
+    mint: 'bg-pastel-mint/30',
+    teal: 'bg-pastel-teal/30',
+    sky: 'bg-pastel-sky/30',
+    lavender: 'bg-pastel-lavender/30',
+    rose: 'bg-pastel-rose/30',
+    gray: 'bg-pastel-gray/30',
+  };
+  return colorMap[color] || 'bg-card border border-border';
+};
+
+interface NotesViewProps {
+  onEditingChange?: (isEditing: boolean) => void;
+  isCreatingNew?: boolean;
+  onCloseEditor?: () => void;
+}
+
+export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: NotesViewProps) {
+  const { notes, folders, addFolder, searchQuery } = useAppStore();
   const [viewTab, setViewTab] = useState<ViewTab>('all');
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('list');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState('');
-  const [editTitle, setEditTitle] = useState('');
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState<PastelColor>('sky');
 
+  // Filter notes based on search, folder, and hideFromAllNotes
   const filteredNotes = notes
     .filter(note => {
+      // When in "All Notes" (no selected folder), hide notes marked as hidden
+      // BUT still show if there's a search query (still searchable)
+      if (!selectedFolder && note.hideFromAllNotes && !searchQuery) {
+        return false;
+      }
+      
+      // Apply search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return note.title.toLowerCase().includes(query) || 
-               note.content.toLowerCase().includes(query) ||
-               note.tags.some(t => t.toLowerCase().includes(query));
+               note.content.toLowerCase().includes(query);
       }
       return true;
     })
@@ -65,22 +84,8 @@ export function NotesView() {
     return content
       .replace(/#{1,6}\s/g, '')
       .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')
+      .replace(/==/g, '')
       .slice(0, 100) + (content.length > 100 ? '...' : '');
-  };
-
-  const handleSaveNote = () => {
-    if (selectedNote) {
-      updateNote(selectedNote.id, { title: editTitle, content: editContent });
-      setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
-    }
-    setIsEditing(false);
-  };
-
-  const handleDeleteNote = () => {
-    if (selectedNote) {
-      deleteNote(selectedNote.id);
-      setSelectedNote(null);
-    }
   };
 
   const handleCreateFolder = () => {
@@ -91,185 +96,78 @@ export function NotesView() {
     }
   };
 
-  const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => (
-    <button
-      onClick={() => {
-        setSelectedNote(note);
-        setEditTitle(note.title);
-        setEditContent(note.content);
-      }}
-      className={cn(
-        'text-left group transition-all duration-200 w-full',
-        isGrid ? 'flow-note-card' : 'flow-card-flat'
-      )}
-    >
-      <div className={cn('flex', isGrid ? 'flex-col' : 'items-start justify-between')}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <h4 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-              {note.title}
-            </h4>
-            {note.isPinned && (
-              <Star className="w-4 h-4 text-pastel-amber flex-shrink-0" fill="currentColor" />
-            )}
+  const handleOpenNote = (note: Note) => {
+    setSelectedNote(note);
+    onEditingChange?.(true);
+  };
+
+  const handleCloseEditor = () => {
+    setSelectedNote(null);
+    onEditingChange?.(false);
+    onCloseEditor?.();
+  };
+
+  // Post-it style note card
+  const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => {
+    const folderData = folders.find(f => f.name === note.folder);
+    
+    return (
+      <button
+        onClick={() => handleOpenNote(note)}
+        className={cn(
+          'text-left group transition-all duration-200 w-full rounded-2xl p-4',
+          getPostItBgClass(note.color),
+          isGrid && 'min-h-[140px]',
+          'shadow-soft hover:shadow-card'
+        )}
+      >
+        <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <h4 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                {note.title || 'Untitled'}
+              </h4>
+              {note.isPinned && (
+                <Star className="w-4 h-4 text-pastel-amber flex-shrink-0" fill="currentColor" />
+              )}
+            </div>
+            <p className={cn(
+              'text-sm text-muted-foreground mt-1',
+              isGrid ? 'line-clamp-4' : 'line-clamp-2'
+            )}>
+              {getPreview(note.content)}
+            </p>
           </div>
-          <p className={cn(
-            'text-sm text-muted-foreground mt-1',
-            isGrid ? 'line-clamp-4' : 'line-clamp-2'
+          
+          <div className={cn(
+            'flex items-center gap-2 flex-wrap',
+            isGrid ? 'mt-auto pt-3' : 'mt-2'
           )}>
-            {getPreview(note.content)}
-          </p>
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className={cn('flow-badge', `flow-badge-${note.color}`)}>{note.folder}</span>
+            {note.folder && (
+              <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
+                {note.folder}
+              </span>
+            )}
             <span className="text-xs text-muted-foreground">
               {format(new Date(note.updatedAt), 'MMM d')}
             </span>
           </div>
-        </div>
-        {!isGrid && (
-          <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-        )}
-      </div>
-    </button>
-  );
-
-  // Note Editor View
-  if (selectedNote) {
-    return (
-      <div className="min-h-screen pb-24 animate-fade-in">
-        <div className="sticky top-14 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <button 
-              onClick={() => {
-                if (isEditing) handleSaveNote();
-                setSelectedNote(null);
-                setIsEditing(false);
-              }}
-              className="text-primary font-medium text-sm"
-            >
-              ← Back
-            </button>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => togglePinNote(selectedNote.id)}
-                className={cn(
-                  'p-2 rounded-xl transition-colors',
-                  selectedNote.isPinned ? 'bg-pastel-amber/20 text-pastel-amber' : 'bg-secondary text-muted-foreground'
-                )}
-              >
-                <Pin className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => setIsEditing(!isEditing)}
-                className={cn(
-                  'p-2 rounded-xl transition-colors',
-                  isEditing ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
-                )}
-              >
-                <Edit3 className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={handleDeleteNote}
-                className="p-2 rounded-xl bg-destructive/10 text-destructive"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="px-4 py-4">
-          {isEditing ? (
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full text-2xl font-bold bg-transparent border-0 outline-none text-foreground"
-                placeholder="Note title"
-              />
-              
-              {/* Formatting toolbar */}
-              <div className="flex items-center gap-2 py-2 border-b border-border">
-                <button className="p-2 rounded-lg hover:bg-secondary">
-                  <Bold className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <button className="p-2 rounded-lg hover:bg-secondary">
-                  <Italic className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <button className="p-2 rounded-lg hover:bg-secondary">
-                  <List className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <button className="p-2 rounded-lg hover:bg-secondary">
-                  <CheckSquare className="w-4 h-4 text-muted-foreground" />
-                </button>
-              </div>
-              
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="w-full min-h-[400px] bg-transparent border-0 outline-none text-foreground resize-none leading-relaxed"
-                placeholder="Start writing..."
-              />
-              
-              <button
-                onClick={handleSaveNote}
-                className="w-full flow-button-primary"
-              >
-                Save Changes
-              </button>
-            </div>
-          ) : (
-            <>
-              <h1 className="text-2xl font-bold text-foreground mb-2">{selectedNote.title}</h1>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
-                <span className={cn('flow-badge', `flow-badge-${selectedNote.color}`)}>{selectedNote.folder}</span>
-                <span>{format(new Date(selectedNote.updatedAt), 'MMM d, yyyy')}</span>
-              </div>
-              
-              {selectedNote.tags.length > 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  {selectedNote.tags.map((tag) => (
-                    <span key={tag} className="flow-badge flow-badge-gray">#{tag}</span>
-                  ))}
-                </div>
-              )}
-              
-              <div className="flow-card-flat">
-                <div className="prose prose-sm max-w-none">
-                  {selectedNote.content.split('\n').map((line, i) => {
-                    if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-semibold mt-4 mb-2 text-foreground">{line.slice(3)}</h2>;
-                    if (line.startsWith('### ')) return <h3 key={i} className="text-base font-semibold mt-3 mb-1 text-foreground">{line.slice(4)}</h3>;
-                    if (line.startsWith('- [ ] ')) return (
-                      <div key={i} className="flex items-center gap-2 my-1">
-                        <div className="w-4 h-4 rounded border-2 border-muted-foreground" />
-                        <span className="text-foreground">{line.slice(6)}</span>
-                      </div>
-                    );
-                    if (line.startsWith('- [x] ')) return (
-                      <div key={i} className="flex items-center gap-2 my-1 text-muted-foreground">
-                        <div className="w-4 h-4 rounded border-2 border-primary bg-primary flex items-center justify-center">
-                          <span className="text-primary-foreground text-xs">✓</span>
-                        </div>
-                        <span className="line-through">{line.slice(6)}</span>
-                      </div>
-                    );
-                    if (line.startsWith('- ')) return (
-                      <div key={i} className="flex items-start gap-2 my-1">
-                        <span className="text-muted-foreground">•</span>
-                        <span className="text-foreground">{line.slice(2)}</span>
-                      </div>
-                    );
-                    if (line.startsWith('**') && line.endsWith('**')) return <p key={i} className="font-semibold my-1 text-foreground">{line.slice(2, -2)}</p>;
-                    if (line.trim() === '') return <div key={i} className="h-2" />;
-                    return <p key={i} className="my-1 text-foreground">{line}</p>;
-                  })}
-                </div>
-              </div>
-            </>
+          
+          {!isGrid && (
+            <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
           )}
         </div>
-      </div>
+      </button>
+    );
+  };
+
+  // Show Note Editor (fullscreen) when editing or creating
+  if (selectedNote || isCreatingNew) {
+    return (
+      <NoteEditor 
+        note={selectedNote || undefined} 
+        onClose={handleCloseEditor}
+      />
     );
   }
 
@@ -388,6 +286,7 @@ export function NotesView() {
     );
   }
 
+  // All Notes / Folder view
   return (
     <div className="min-h-screen pb-24">
       <div className="px-4 py-4">
@@ -395,7 +294,7 @@ export function NotesView() {
           <div className="flow-segment">
             <button
               onClick={() => { setViewTab('all'); setSelectedFolder(null); }}
-              className={cn('flow-segment-item', viewTab === 'all' as ViewTab && 'flow-segment-item-active')}
+              className={cn('flow-segment-item', viewTab === 'all' && 'flow-segment-item-active')}
             >
               All Notes
             </button>
@@ -439,8 +338,8 @@ export function NotesView() {
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
               <Pin className="w-4 h-4" /> Pinned
             </h3>
-            <div className={cn(layoutMode === 'grid' ? 'flow-note-grid' : 'space-y-3')}>
-              {pinnedNotes.map((note) => (
+            <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+              {pinnedNotes.map(note => (
                 <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
               ))}
             </div>
@@ -450,10 +349,10 @@ export function NotesView() {
         {otherNotes.length > 0 && (
           <div>
             {pinnedNotes.length > 0 && (
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">All Notes</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Notes</h3>
             )}
-            <div className={cn(layoutMode === 'grid' ? 'flow-note-grid' : 'space-y-3')}>
-              {otherNotes.map((note) => (
+            <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+              {otherNotes.map(note => (
                 <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
               ))}
             </div>
@@ -461,12 +360,8 @@ export function NotesView() {
         )}
 
         {filteredNotes.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-4">
-              <FileText className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="font-semibold text-foreground mb-1">No notes yet</h3>
-            <p className="text-sm text-muted-foreground">Create your first note</p>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No notes yet</p>
           </div>
         )}
       </div>

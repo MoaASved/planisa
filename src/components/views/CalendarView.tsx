@@ -17,7 +17,7 @@ import { WeekView } from '@/components/calendar/WeekView';
 import { DayView } from '@/components/calendar/DayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { EditTaskModal } from '@/components/modals/EditTaskModal';
-import { EditNoteModal } from '@/components/modals/EditNoteModal';
+import { NoteEditor } from '@/components/notes/NoteEditor';
 import { useState } from 'react';
 
 interface CalendarViewComponentProps {
@@ -145,11 +145,12 @@ export function CalendarViewComponent({
           onClose={() => setEditingTask(null)}
         />
         
-        <EditNoteModal
-          note={editingNote}
-          isOpen={!!editingNote}
-          onClose={() => setEditingNote(null)}
-        />
+        {editingNote && (
+          <NoteEditor
+            note={editingNote}
+            onClose={() => setEditingNote(null)}
+          />
+        )}
       </div>
     );
   }
@@ -254,11 +255,12 @@ export function CalendarViewComponent({
         onClose={() => setEditingTask(null)}
       />
       
-      <EditNoteModal
-        note={editingNote}
-        isOpen={!!editingNote}
-        onClose={() => setEditingNote(null)}
-      />
+      {editingNote && (
+        <NoteEditor
+          note={editingNote}
+          onClose={() => setEditingNote(null)}
+        />
+      )}
     </div>
   );
 }
