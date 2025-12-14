@@ -7,9 +7,9 @@ interface ViewSelectorProps {
 }
 
 const views: { id: CalendarView; label: string }[] = [
-  { id: 'day', label: 'Day' },
-  { id: 'week', label: 'Week' },
   { id: 'month', label: 'Month' },
+  { id: 'week', label: 'Week' },
+  { id: 'day', label: 'Day' },
 ];
 
 export function ViewSelector({ view, onViewChange }: ViewSelectorProps) {

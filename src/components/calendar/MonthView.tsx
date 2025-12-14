@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   format, 
   startOfMonth, 
@@ -16,6 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorDotClass } from '@/lib/colors';
+import { CalendarItemList } from './CalendarItemList';
 
 interface MonthViewProps {
   currentDate: Date;
@@ -27,9 +28,11 @@ interface MonthViewProps {
   getNoteColor: (note: Note) => PastelColor;
   onDayClick: (date: Date) => void;
   onDateChange: (date: Date) => void;
+  onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
+  onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
 }
 
-function MonthGrid({
+function CompactMonthGrid({
   monthDate,
   currentDate,
   selectedDate,
@@ -73,11 +76,11 @@ function MonthGrid({
 
   return (
     <div 
-      className="flex flex-col transition-opacity duration-300"
+      className="transition-opacity duration-300"
       style={{ opacity }}
     >
       {/* Month header */}
-      <div className="text-center py-3">
+      <div className="text-center py-2">
         <span className="text-sm font-semibold text-foreground">
           {format(monthDate, 'MMMM yyyy')}
         </span>
@@ -86,19 +89,19 @@ function MonthGrid({
       {/* Day headers */}
       <div className="grid grid-cols-8 mb-1">
         <div className="text-center text-[10px] font-normal text-muted-foreground/40 py-1">W</div>
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-          <div key={day} className="text-center text-[11px] font-medium text-muted-foreground py-1">
+        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+          <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">
             {day}
           </div>
         ))}
       </div>
       
-      {/* Calendar grid */}
-      <div className="flex-1 flex flex-col">
+      {/* Calendar grid - compact */}
+      <div className="flex flex-col">
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-8 flex-1">
+          <div key={weekIndex} className="grid grid-cols-8">
             {/* Week number */}
-            <div className="flex items-center justify-center text-[10px] font-normal text-muted-foreground/30">
+            <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/30 h-8">
               {getWeek(week[0], { weekStartsOn: 1 })}
             </div>
             
@@ -113,35 +116,35 @@ function MonthGrid({
                   key={dayIndex}
                   onClick={() => onDayClick(day)}
                   className={cn(
-                    'p-0.5 rounded-xl flex flex-col items-center justify-start pt-1.5 transition-all duration-200 min-h-[44px]',
+                    'h-8 flex flex-col items-center justify-center rounded-lg transition-all duration-200 relative',
                     !isCurrentMonth && 'opacity-30',
                     isToday(day) && 'bg-primary text-primary-foreground',
-                    isSelected && !isToday(day) && 'bg-primary/15 ring-2 ring-primary/50',
+                    isSelected && !isToday(day) && 'bg-primary/15 ring-1 ring-primary/50',
                     !isToday(day) && !isSelected && 'hover:bg-secondary/60'
                   )}
                 >
                   <span className={cn(
-                    'text-sm font-medium',
+                    'text-xs font-medium',
                     isToday(day) ? 'text-primary-foreground' : 'text-foreground'
                   )}>
                     {format(day, 'd')}
                   </span>
                   {hasItems && (
-                    <div className="flex flex-wrap gap-0.5 mt-0.5 justify-center max-w-full">
-                      {dayEvents.slice(0, 2).map((event, j) => (
+                    <div className="absolute bottom-0.5 flex gap-0.5">
+                      {dayEvents.slice(0, 1).map((event, j) => (
                         <div 
                           key={j} 
                           className={cn(
-                            'w-1.5 h-1.5 rounded-full',
+                            'w-1 h-1 rounded-full',
                             isToday(day) ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(event, 'event'))
                           )} 
                         />
                       ))}
-                      {dayTasks.filter(t => !t.completed).slice(0, 2).map((task, j) => (
+                      {dayTasks.filter(t => !t.completed).slice(0, 1).map((task, j) => (
                         <div 
                           key={`t-${j}`} 
                           className={cn(
-                            'w-1.5 h-1.5 rounded-full',
+                            'w-1 h-1 rounded-full',
                             isToday(day) ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(task, 'task'))
                           )} 
                         />
@@ -150,7 +153,7 @@ function MonthGrid({
                         <div 
                           key={`n-${j}`} 
                           className={cn(
-                            'w-1.5 h-1.5 rounded-full',
+                            'w-1 h-1 rounded-full',
                             isToday(day) ? 'bg-primary-foreground/70' : getColorDotClass(getNoteColor(note))
                           )} 
                         />
@@ -177,7 +180,10 @@ export function MonthView({
   getNoteColor,
   onDayClick,
   onDateChange,
+  onItemClick,
+  onTaskToggle,
 }: MonthViewProps) {
+  const [localSelectedDate, setLocalSelectedDate] = useState<Date>(selectedDate || new Date());
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
@@ -227,45 +233,67 @@ export function MonthView({
     }, 150);
   }, [currentDate, onDateChange, isScrolling]);
 
+  const handleDayClick = (date: Date) => {
+    setLocalSelectedDate(date);
+    onDayClick(date);
+  };
+
   return (
-    <div className="animate-fade-in flex-1 flex flex-col h-full relative overflow-hidden">
-      {/* Top fade gradient */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-      
-      {/* Scrollable months container */}
-      <div 
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth px-4"
-        onScroll={handleScroll}
-        style={{ scrollSnapType: 'y mandatory' }}
-      >
-        {months.map((month, index) => {
-          const isCurrent = index === 1;
-          return (
-            <div 
-              key={format(month, 'yyyy-MM')}
-              className="min-h-full flex flex-col"
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              <MonthGrid
-                monthDate={month}
-                currentDate={currentDate}
-                selectedDate={selectedDate}
-                events={events}
-                tasks={tasks}
-                notes={notes}
-                getItemColor={getItemColor}
-                getNoteColor={getNoteColor}
-                onDayClick={onDayClick}
-                opacity={isCurrent ? 1 : 0.4}
-              />
-            </div>
-          );
-        })}
+    <div className="animate-fade-in flex flex-col h-full">
+      {/* Compact calendar grid section */}
+      <div className="flex-shrink-0 relative overflow-hidden" style={{ height: '280px' }}>
+        {/* Top fade gradient */}
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+        
+        {/* Scrollable months container */}
+        <div 
+          ref={scrollRef}
+          className="h-full overflow-y-auto overflow-x-hidden scroll-smooth px-4"
+          onScroll={handleScroll}
+          style={{ scrollSnapType: 'y mandatory' }}
+        >
+          {months.map((month, index) => {
+            const isCurrent = index === 1;
+            return (
+              <div 
+                key={format(month, 'yyyy-MM')}
+                className="min-h-full"
+                style={{ scrollSnapAlign: 'start' }}
+              >
+                <CompactMonthGrid
+                  monthDate={month}
+                  currentDate={currentDate}
+                  selectedDate={localSelectedDate}
+                  events={events}
+                  tasks={tasks}
+                  notes={notes}
+                  getItemColor={getItemColor}
+                  getNoteColor={getNoteColor}
+                  onDayClick={handleDayClick}
+                  opacity={isCurrent ? 1 : 0.4}
+                />
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Bottom fade gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
       </div>
-      
-      {/* Bottom fade gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+
+      {/* Items list section */}
+      <div className="flex-1 border-t border-border/30 overflow-hidden">
+        <CalendarItemList
+          date={localSelectedDate}
+          events={events}
+          tasks={tasks}
+          notes={notes}
+          getItemColor={getItemColor}
+          getNoteColor={getNoteColor}
+          onItemClick={onItemClick}
+          onTaskToggle={onTaskToggle}
+        />
+      </div>
     </div>
   );
 }
