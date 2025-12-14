@@ -152,6 +152,11 @@ export function WeekView({
     return items.events.length > 0 || items.tasks.length > 0 || items.notes.length > 0;
   });
 
+  // Click on day switches to DayView
+  const handleDayClick = (day: Date) => {
+    onDayClick(day);
+  };
+
   return (
     <div 
       className="animate-fade-in flex flex-col h-full"
@@ -166,7 +171,7 @@ export function WeekView({
           {weekDays.map((day, i) => (
             <button
               key={i}
-              onClick={() => onDayClick(day)}
+              onClick={() => handleDayClick(day)}
               className={cn(
                 'py-2 text-center transition-colors',
                 isToday(day) && 'bg-primary/5',

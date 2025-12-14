@@ -87,18 +87,20 @@ export function CalendarViewComponent({
     onExitYearView();
   };
 
+  // MonthView: click on day shows items below (no view change)
   const handleDayClickFromMonth = (date: Date) => {
     setSelectedDate(date);
-    onDateChange(startOfWeek(date, { weekStartsOn: 1 }));
-    onViewChange('week');
+    // No view change - items shown in CalendarItemList below the grid
   };
 
+  // WeekView: click on day switches to DayView
   const handleDayClickFromWeek = (date: Date) => {
     setSelectedDate(date);
     onDateChange(date);
     onViewChange('day');
   };
 
+  // DayView: click on day in header changes selected day
   const handleDayClickFromDayHeader = (date: Date) => {
     onDateChange(date);
   };
@@ -228,6 +230,8 @@ export function CalendarViewComponent({
             getNoteColor={getNoteColor}
             onDayClick={handleDayClickFromMonth}
             onDateChange={onDateChange}
+            onItemClick={handleItemClick}
+            onTaskToggle={handleTaskToggle}
           />
         )}
 
