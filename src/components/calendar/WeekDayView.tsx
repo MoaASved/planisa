@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
+import { format, startOfWeek, addDays, isToday, isSameDay, getWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { CalendarItemList } from './CalendarItemList';
 
 interface WeekDayViewProps {
   currentDate: Date;
+  selectedDate: Date;
   events: CalendarEvent[];
   tasks: Task[];
   notes: Note[];
@@ -14,10 +15,12 @@ interface WeekDayViewProps {
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onWeekChange: (direction: 'prev' | 'next') => void;
+  onDateSelect: (date: Date) => void;
 }
 
 export function WeekDayView({
   currentDate,
+  selectedDate,
   events,
   tasks,
   notes,
@@ -26,23 +29,14 @@ export function WeekDayView({
   onItemClick,
   onTaskToggle,
   onWeekChange,
+  onDateSelect,
 }: WeekDayViewProps) {
-  const [selectedDate, setSelectedDate] = useState(currentDate);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Get week days for header
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
-  // Update selected date when currentDate changes (week navigation)
-  useEffect(() => {
-    // Find the same day of week in new week, or default to first day
-    const currentDayOfWeek = selectedDate.getDay();
-    const newSelectedDay = weekDays.find(d => d.getDay() === currentDayOfWeek) || weekDays[0];
-    if (!weekDays.some(d => isSameDay(d, selectedDate))) {
-      setSelectedDate(newSelectedDay);
-    }
-  }, [currentDate]);
+  const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
@@ -75,9 +69,14 @@ export function WeekDayView({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Week header */}
+      {/* Week header with week number */}
       <div className="flex-shrink-0 px-2 pb-2">
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-[24px_repeat(7,1fr)] gap-1">
+          {/* Week number */}
+          <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/40 py-2">
+            v{weekNumber}
+          </div>
+          
           {weekDays.map((day, i) => {
             const isSelected = isSameDay(day, selectedDate);
             const isTodayDate = isToday(day);
@@ -85,7 +84,7 @@ export function WeekDayView({
             return (
               <button
                 key={i}
-                onClick={() => setSelectedDate(day)}
+                onClick={() => onDateSelect(day)}
                 className={cn(
                   'py-2 text-center transition-all rounded-xl',
                   isSelected && 'bg-primary/15',

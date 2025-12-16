@@ -18,6 +18,7 @@ import { CalendarItemList } from './CalendarItemList';
 
 interface MonthViewProps {
   currentDate: Date;
+  selectedDate: Date;
   events: CalendarEvent[];
   tasks: Task[];
   notes: Note[];
@@ -26,10 +27,12 @@ interface MonthViewProps {
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onMonthChange: (direction: 'prev' | 'next') => void;
+  onDateSelect: (date: Date) => void;
 }
 
 export function MonthView({
   currentDate,
+  selectedDate,
   events,
   tasks,
   notes,
@@ -38,8 +41,8 @@ export function MonthView({
   onItemClick,
   onTaskToggle,
   onMonthChange,
+  onDateSelect,
 }: MonthViewProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Generate calendar grid
@@ -96,9 +99,9 @@ export function MonthView({
       {/* Calendar grid */}
       <div className="flex-shrink-0 px-2">
         {/* Day headers */}
-        <div className="grid grid-cols-8 mb-1">
-          <div className="text-center text-[10px] font-normal text-muted-foreground/40 py-1">W</div>
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+        <div className="grid grid-cols-[24px_repeat(7,1fr)] mb-1">
+          <div className="text-center text-[9px] font-normal text-muted-foreground/40 py-1">v</div>
+          {['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'].map((day, i) => (
             <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">
               {day}
             </div>
@@ -108,8 +111,8 @@ export function MonthView({
         {/* Calendar grid */}
         <div className="flex flex-col gap-0.5">
           {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="grid grid-cols-8 gap-0.5">
-              {/* Week number */}
+            <div key={weekIndex} className="grid grid-cols-[24px_repeat(7,1fr)] gap-0.5">
+              {/* Week number - narrower column */}
               <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/30 h-10">
                 {getWeek(week[0], { weekStartsOn: 1 })}
               </div>
@@ -124,7 +127,7 @@ export function MonthView({
                 return (
                   <button
                     key={dayIndex}
-                    onClick={() => setSelectedDate(day)}
+                    onClick={() => onDateSelect(day)}
                     className={cn(
                       'h-10 flex flex-col items-center justify-center rounded-xl transition-all duration-200 relative',
                       !isCurrentMonth && 'opacity-30',

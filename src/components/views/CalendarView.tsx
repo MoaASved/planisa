@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addMonths, subMonths, addWeeks, subWeeks } from 'date-fns';
+import { addMonths, subMonths, addWeeks, subWeeks, startOfWeek, isSameWeek } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor, Task, CalendarEvent, Note } from '@/types';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
@@ -15,6 +15,7 @@ type SimpleView = 'month' | 'weekday';
 
 export function CalendarViewComponent() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
   
@@ -72,7 +73,18 @@ export function CalendarViewComponent() {
 
   const handleYearMonthSelect = (date: Date) => {
     setCurrentDate(date);
+    setSelectedDate(date);
     setShowYearView(false);
+  };
+
+  const handleTodayClick = () => {
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDate(today);
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
   };
 
   const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
@@ -109,11 +121,17 @@ export function CalendarViewComponent() {
   };
 
   const handleWeekChange = (direction: 'prev' | 'next') => {
-    if (direction === 'prev') {
-      setCurrentDate(subWeeks(currentDate, 1));
-    } else {
-      setCurrentDate(addWeeks(currentDate, 1));
-    }
+    const newDate = direction === 'prev' 
+      ? subWeeks(currentDate, 1) 
+      : addWeeks(currentDate, 1);
+    setCurrentDate(newDate);
+    
+    // Update selected date to same day of week in new week
+    const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 });
+    const currentDayOffset = selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1;
+    const newSelectedDate = new Date(newWeekStart);
+    newSelectedDate.setDate(newWeekStart.getDate() + currentDayOffset);
+    setSelectedDate(newSelectedDate);
   };
 
   return (
@@ -127,6 +145,7 @@ export function CalendarViewComponent() {
         onNext={handleNext}
         onMonthClick={handleMonthClick}
         onViewChange={setView}
+        onTodayClick={handleTodayClick}
       />
 
       {/* Main content */}
@@ -141,6 +160,7 @@ export function CalendarViewComponent() {
         ) : view === 'month' ? (
           <MonthView
             currentDate={currentDate}
+            selectedDate={selectedDate}
             events={events}
             tasks={tasks}
             notes={calendarNotes}
@@ -149,10 +169,12 @@ export function CalendarViewComponent() {
             onItemClick={handleItemClick}
             onTaskToggle={handleTaskToggle}
             onMonthChange={handleMonthChange}
+            onDateSelect={handleDateSelect}
           />
         ) : (
           <WeekDayView
             currentDate={currentDate}
+            selectedDate={selectedDate}
             events={events}
             tasks={tasks}
             notes={calendarNotes}
@@ -161,6 +183,7 @@ export function CalendarViewComponent() {
             onItemClick={handleItemClick}
             onTaskToggle={handleTaskToggle}
             onWeekChange={handleWeekChange}
+            onDateSelect={handleDateSelect}
           />
         )}
       </div>
