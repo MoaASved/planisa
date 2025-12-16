@@ -96,3 +96,20 @@ export const getAvatarTextClass = (color: PastelColor): string => {
   };
   return colorMap[color] || 'text-muted-foreground';
 };
+
+// Static color mapping for stripe indicators (full opacity) - Tailwind JIT compatible
+export const getColorStripeClass = (color: PastelColor): string => {
+  const colorMap: Record<PastelColor, string> = {
+    coral: 'bg-pastel-coral',
+    peach: 'bg-pastel-peach',
+    amber: 'bg-pastel-amber',
+    yellow: 'bg-pastel-yellow',
+    mint: 'bg-pastel-mint',
+    teal: 'bg-pastel-teal',
+    sky: 'bg-pastel-sky',
+    lavender: 'bg-pastel-lavender',
+    rose: 'bg-pastel-rose',
+    gray: 'bg-pastel-gray',
+  };
+  return colorMap[color] || 'bg-pastel-sky';
+};

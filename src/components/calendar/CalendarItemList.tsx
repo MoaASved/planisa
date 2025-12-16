@@ -2,8 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass } from '@/lib/colors';
-import { Check, FileText, Clock, Filter } from 'lucide-react';
+import { getColorCardClass, getColorStripeClass } from '@/lib/colors';
+import { Check, FileText, Clock, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +37,7 @@ export function CalendarItemList({
   onItemClick,
   onTaskToggle,
 }: CalendarItemListProps) {
-  const [showTimeline, setShowTimeline] = useState(true);
+  const [showTimeline, setShowTimeline] = useState(false);
   const [activeFilters, setActiveFilters] = useState<ItemType[]>(['events', 'tasks', 'notes']);
 
   const dateStr = format(date, 'yyyy-MM-dd');
@@ -59,17 +59,43 @@ export function CalendarItemList({
   );
 
   // Separate timed and untimed items
-  const untimedEvents = dayEvents.filter(e => e.isAllDay || !e.startTime);
+  const allDayEvents = dayEvents.filter(e => e.isAllDay || !e.startTime);
   const timedEvents = dayEvents.filter(e => !e.isAllDay && e.startTime);
   const untimedTasks = dayTasks.filter(t => !t.time);
   const timedTasks = dayTasks.filter(t => t.time);
 
-  // All untimed items (notes are always untimed in this context)
-  const allUntimedItems = useMemo(() => {
+  // All items for non-timeline view (shows everything)
+  const allItems = useMemo(() => {
+    const items: { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time?: string; endTime?: string }[] = [];
+    
+    if (activeFilters.includes('events')) {
+      dayEvents.forEach(e => {
+        const time = e.isAllDay ? undefined : e.startTime;
+        items.push({ type: 'event', item: e, time, endTime: e.endTime });
+      });
+    }
+    if (activeFilters.includes('tasks')) {
+      dayTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time }));
+    }
+    if (activeFilters.includes('notes')) {
+      dayNotes.forEach(n => items.push({ type: 'note', item: n }));
+    }
+    
+    // Sort: untimed first, then by time
+    return items.sort((a, b) => {
+      if (!a.time && !b.time) return 0;
+      if (!a.time) return -1;
+      if (!b.time) return 1;
+      return a.time.localeCompare(b.time);
+    });
+  }, [dayEvents, dayTasks, dayNotes, activeFilters]);
+
+  // All-day items for timeline view (2-column at top)
+  const allDayItems = useMemo(() => {
     const items: { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note }[] = [];
     
     if (activeFilters.includes('events')) {
-      untimedEvents.forEach(e => items.push({ type: 'event', item: e }));
+      allDayEvents.forEach(e => items.push({ type: 'event', item: e }));
     }
     if (activeFilters.includes('tasks')) {
       untimedTasks.forEach(t => items.push({ type: 'task', item: t }));
@@ -79,14 +105,14 @@ export function CalendarItemList({
     }
     
     return items;
-  }, [untimedEvents, untimedTasks, dayNotes, activeFilters]);
+  }, [allDayEvents, untimedTasks, dayNotes, activeFilters]);
 
-  // All timed items sorted chronologically
-  const allTimedItems = useMemo(() => {
-    const items: { type: 'event' | 'task'; item: CalendarEvent | Task; time: string }[] = [];
+  // Timed items for timeline view
+  const timedItems = useMemo(() => {
+    const items: { type: 'event' | 'task'; item: CalendarEvent | Task; time: string; endTime?: string }[] = [];
     
     if (activeFilters.includes('events')) {
-      timedEvents.forEach(e => items.push({ type: 'event', item: e, time: e.startTime! }));
+      timedEvents.forEach(e => items.push({ type: 'event', item: e, time: e.startTime!, endTime: e.endTime }));
     }
     if (activeFilters.includes('tasks')) {
       timedTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time! }));
@@ -108,48 +134,60 @@ export function CalendarItemList({
     return (hours * 60 + minutes) * (HOUR_HEIGHT / 60);
   };
 
+  const getFilterLabel = () => {
+    if (activeFilters.length === 3) return 'All';
+    if (activeFilters.length === 0) return 'None';
+    return activeFilters.map(f => f.charAt(0).toUpperCase() + f.slice(1, -1)).join(', ');
+  };
+
   const renderItemCard = useCallback((
     item: CalendarEvent | Task | Note, 
     type: 'event' | 'task' | 'note',
-    showTimeStripe?: string
+    time?: string,
+    endTime?: string,
+    compact?: boolean
   ) => {
     const color = type === 'note' 
       ? getNoteColor(item as Note)
       : getItemColor(item as Task | CalendarEvent, type);
 
+    const showTime = time && !showTimeline;
+
     if (type === 'task') {
       const task = item as Task;
       return (
         <div
-          key={task.id}
           onClick={() => onItemClick(task, 'task')}
           className={cn(
-            'p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3',
+            'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3 relative overflow-hidden',
             task.completed ? 'bg-secondary' : getColorCardClass(color),
-            showTimeStripe && 'relative pl-5'
+            compact ? 'p-2' : 'p-3',
+            showTime && 'pl-4'
           )}
         >
-          {showTimeStripe && (
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl bg-foreground/20" />
+          {showTime && (
+            <div className={cn('absolute left-0 top-0 bottom-0 w-1.5', getColorStripeClass(color))} />
           )}
           <div
             onClick={(e) => onTaskToggle(e, task.id)}
             className={cn(
-              'w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0',
+              'rounded-full border-2 flex items-center justify-center flex-shrink-0',
+              compact ? 'w-4 h-4' : 'w-5 h-5',
               task.completed ? 'bg-primary border-primary' : 'border-foreground/40'
             )}
           >
-            {task.completed && <Check className="w-3 h-3 text-primary-foreground" />}
+            {task.completed && <Check className={cn(compact ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-primary-foreground')} />}
           </div>
           <div className="flex-1 min-w-0">
             <span className={cn(
-              'font-medium text-sm block truncate',
+              'font-medium block truncate',
+              compact ? 'text-xs' : 'text-sm',
               task.completed && 'line-through opacity-50'
             )}>
               {task.title}
             </span>
-            {showTimeStripe && (
-              <span className="text-xs text-foreground/60">{showTimeStripe}</span>
+            {showTime && (
+              <span className="text-xs text-foreground/60">{time}</span>
             )}
           </div>
         </div>
@@ -160,21 +198,23 @@ export function CalendarItemList({
       const event = item as CalendarEvent;
       return (
         <div
-          key={event.id}
           onClick={() => onItemClick(event, 'event')}
           className={cn(
-            'p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98]',
+            'rounded-xl cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
-            showTimeStripe && 'relative pl-5'
+            compact ? 'p-2' : 'p-3',
+            showTime && 'pl-4'
           )}
         >
-          {showTimeStripe && (
-            <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl bg-foreground/20" />
+          {showTime && (
+            <div className={cn('absolute left-0 top-0 bottom-0 w-1.5', getColorStripeClass(color))} />
           )}
-          <span className="font-medium text-sm block truncate">{event.title}</span>
-          {showTimeStripe && (
+          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
+            {event.title}
+          </span>
+          {showTime && (
             <span className="text-xs text-foreground/60">
-              {event.startTime}{event.endTime && ` - ${event.endTime}`}
+              {time}{endTime && ` - ${endTime}`}
             </span>
           )}
         </div>
@@ -185,42 +225,35 @@ export function CalendarItemList({
     const note = item as Note;
     return (
       <div
-        key={note.id}
         onClick={() => onItemClick(note, 'note')}
         className={cn(
-          'p-3 rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-2',
-          getColorCardClass(color)
+          'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-2',
+          getColorCardClass(color),
+          compact ? 'p-2' : 'p-3'
         )}
       >
-        <FileText className="w-4 h-4 text-foreground/60 flex-shrink-0" />
-        <span className="font-medium text-sm truncate">{note.title}</span>
+        <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-foreground/60 flex-shrink-0')} />
+        <span className={cn('font-medium truncate', compact ? 'text-xs' : 'text-sm')}>{note.title}</span>
       </div>
     );
-  }, [getItemColor, getNoteColor, onItemClick, onTaskToggle]);
+  }, [getItemColor, getNoteColor, onItemClick, onTaskToggle, showTimeline]);
 
-  const hasItems = allUntimedItems.length > 0 || allTimedItems.length > 0;
+  const hasItems = showTimeline 
+    ? (allDayItems.length > 0 || timedItems.length > 0)
+    : allItems.length > 0;
 
   return (
     <div className="flex flex-col h-full">
       {/* Filter toolbar */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30">
-        <button
-          onClick={() => setShowTimeline(!showTimeline)}
-          className={cn(
-            'p-2 rounded-lg transition-colors',
-            showTimeline ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary'
-          )}
-        >
-          <Clock className="w-5 h-5" />
-        </button>
-        
+      <div className="flex items-center justify-between px-4 py-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="p-2 rounded-lg text-muted-foreground hover:bg-secondary transition-colors">
-              <Filter className="w-5 h-5" />
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary/60 hover:bg-secondary transition-colors text-sm font-medium">
+              {getFilterLabel()}
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="bg-popover">
+          <DropdownMenuContent align="start" className="bg-popover min-w-[140px]">
             <DropdownMenuCheckboxItem
               checked={activeFilters.includes('events')}
               onCheckedChange={() => toggleFilter('events')}
@@ -242,86 +275,85 @@ export function CalendarItemList({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <span className="text-sm text-muted-foreground ml-2">
-          {format(date, 'EEEE, MMMM d')}
-        </span>
+        <button
+          onClick={() => setShowTimeline(!showTimeline)}
+          className={cn(
+            'p-2 rounded-lg transition-colors',
+            showTimeline ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary'
+          )}
+        >
+          <Clock className="w-5 h-5" />
+        </button>
       </div>
 
       {!hasItems ? (
         <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
           No items for this day
         </div>
-      ) : (
+      ) : showTimeline ? (
+        // Timeline view - only timed items + all-day at top
         <div className="flex-1 overflow-y-auto">
-          {/* Untimed items - 2 columns */}
-          {allUntimedItems.length > 0 && (
-            <div className="p-4">
-              <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">No time set</div>
+          {/* All-day items - 2 columns */}
+          {allDayItems.length > 0 && (
+            <div className="px-4 pb-3">
               <div className="grid grid-cols-2 gap-2">
-                {allUntimedItems.map(({ type, item }) => (
+                {allDayItems.map(({ type, item }) => (
                   <div key={item.id}>
-                    {renderItemCard(item, type)}
+                    {renderItemCard(item, type, undefined, undefined, true)}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Timeline or sorted list for timed items */}
-          {allTimedItems.length > 0 && (
-            <>
-              {showTimeline ? (
-                // Timeline view
-                <div className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
-                  {/* Hour lines */}
-                  {HOURS.map((hour) => (
-                    <div
-                      key={hour}
-                      className="absolute w-full flex"
-                      style={{ top: hour * HOUR_HEIGHT }}
-                    >
-                      <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/50 text-right pr-2 -mt-2">
-                        {format(new Date().setHours(hour, 0), 'HH:mm')}
-                      </div>
-                      <div className="flex-1 border-t border-border/20" />
-                    </div>
-                  ))}
-
-                  {/* Timed items */}
-                  <div className="absolute left-16 right-4 top-0 bottom-0">
-                    {allTimedItems.map(({ type, item, time }) => {
-                      const top = getTimePosition(time);
-                      const event = type === 'event' ? item as CalendarEvent : null;
-                      const endTime = event?.endTime || time;
-                      const height = type === 'event' 
-                        ? Math.max(getTimePosition(endTime) - top, HOUR_HEIGHT * 0.5)
-                        : HOUR_HEIGHT * 0.5;
-
-                      return (
-                        <div
-                          key={item.id}
-                          className="absolute left-0 right-0"
-                          style={{ top, height }}
-                        >
-                          {renderItemCard(item, type, time)}
-                        </div>
-                      );
-                    })}
+          {/* Timeline */}
+          {timedItems.length > 0 && (
+            <div className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
+              {/* Hour lines */}
+              {HOURS.map((hour) => (
+                <div
+                  key={hour}
+                  className="absolute w-full flex"
+                  style={{ top: hour * HOUR_HEIGHT }}
+                >
+                  <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/50 text-right pr-2 -mt-2">
+                    {format(new Date().setHours(hour, 0), 'HH:mm')}
                   </div>
+                  <div className="flex-1 border-t border-border/20" />
                 </div>
-              ) : (
-                // List view - chronological
-                <div className="p-4 space-y-2">
-                  <div className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Scheduled</div>
-                  {allTimedItems.map(({ type, item, time }) => (
-                    <div key={item.id}>
-                      {renderItemCard(item, type, time)}
+              ))}
+
+              {/* Timed items */}
+              <div className="absolute left-16 right-4 top-0 bottom-0">
+                {timedItems.map(({ type, item, time, endTime }) => {
+                  const top = getTimePosition(time);
+                  const calculatedEndTime = endTime || time;
+                  const height = type === 'event' 
+                    ? Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5)
+                    : HOUR_HEIGHT * 0.5;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="absolute left-0 right-0"
+                      style={{ top, height }}
+                    >
+                      {renderItemCard(item, type, undefined, undefined, true)}
                     </div>
-                  ))}
-                </div>
-              )}
-            </>
+                  );
+                })}
+              </div>
+            </div>
           )}
+        </div>
+      ) : (
+        // List view - all items with time shown on cards
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+          {allItems.map(({ type, item, time, endTime }) => (
+            <div key={item.id}>
+              {renderItemCard(item, type, time, endTime)}
+            </div>
+          ))}
         </div>
       )}
     </div>
