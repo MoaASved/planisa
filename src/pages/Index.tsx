@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
 import { TabNavigation } from '@/components/navigation/TabNavigation';
 import { TopBar } from '@/components/navigation/TopBar';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
@@ -11,7 +10,6 @@ import { ProfileView } from '@/components/views/ProfileView';
 import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { useAppStore } from '@/store/useAppStore';
-import { CalendarView } from '@/types';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
@@ -23,11 +21,6 @@ const Index = () => {
   // Note editing state
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
-
-  // Calendar state lifted to Index for TopBar integration
-  const [calendarView, setCalendarView] = useState<CalendarView>('month');
-  const [calendarDate, setCalendarDate] = useState(new Date());
-  const [showYearView, setShowYearView] = useState(false);
 
   // Apply theme on mount and when settings change
   useEffect(() => {
@@ -68,33 +61,12 @@ const Index = () => {
     setIsEditingNote(false);
   };
 
-  const handleMonthClick = () => {
-    setShowYearView(true);
-  };
-
-  const handleCalendarViewChange = (view: CalendarView) => {
-    setCalendarView(view);
-    setShowYearView(false);
-  };
-
-  const getCurrentMonth = () => {
-    return format(calendarDate, 'MMMM yyyy');
-  };
-
   const renderView = () => {
     switch (activeTab) {
       case 'home':
         return <HomeView />;
       case 'calendar':
-        return (
-          <CalendarViewComponent 
-            view={showYearView ? 'year' : calendarView}
-            onViewChange={handleCalendarViewChange}
-            currentDate={calendarDate}
-            onDateChange={setCalendarDate}
-            onExitYearView={() => setShowYearView(false)}
-          />
-        );
+        return <CalendarViewComponent />;
       case 'tasks':
         return <TasksView />;
       case 'notes':
@@ -112,26 +84,24 @@ const Index = () => {
     }
   };
 
-  // Hide TopBar and navigation when editing notes
+  // Hide TopBar and navigation when editing notes or on calendar (calendar has its own header)
+  const showTopBar = !isEditingNote && activeTab !== 'calendar';
   const showNavigation = !isEditingNote;
 
   return (
     <div className="min-h-screen bg-background">
-      {showNavigation && (
+      {showTopBar && (
         <TopBar 
           activeTab={activeTab} 
           onProfileClick={() => setActiveTab('profile')}
-          calendarView={calendarView}
-          onCalendarViewChange={handleCalendarViewChange}
-          currentMonth={getCurrentMonth()}
-          onMonthClick={handleMonthClick}
         />
       )}
       
       <main className={cn(
         "pb-24",
-        showNavigation && (activeTab === 'calendar' ? "pt-[88px]" : "pt-14"),
-        !showNavigation && "pt-0"
+        showTopBar && "pt-14",
+        !showTopBar && activeTab === 'calendar' && "pt-0",
+        !showTopBar && activeTab !== 'calendar' && "pt-0"
       )}>
         {renderView()}
       </main>

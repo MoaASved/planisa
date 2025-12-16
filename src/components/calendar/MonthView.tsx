@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { 
   format, 
   startOfMonth, 
@@ -9,9 +9,7 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
-  getWeek,
-  addMonths,
-  subMonths
+  getWeek
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
@@ -20,42 +18,32 @@ import { CalendarItemList } from './CalendarItemList';
 
 interface MonthViewProps {
   currentDate: Date;
-  selectedDate: Date | null;
   events: CalendarEvent[];
   tasks: Task[];
   notes: Note[];
   getItemColor: (item: Task | CalendarEvent, type: 'task' | 'event') => PastelColor;
   getNoteColor: (note: Note) => PastelColor;
-  onDayClick: (date: Date) => void;
-  onDateChange: (date: Date) => void;
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
+  onMonthChange: (direction: 'prev' | 'next') => void;
 }
 
-function CompactMonthGrid({
-  monthDate,
+export function MonthView({
   currentDate,
-  selectedDate,
   events,
   tasks,
   notes,
   getItemColor,
   getNoteColor,
-  onDayClick,
-  opacity = 1,
-}: {
-  monthDate: Date;
-  currentDate: Date;
-  selectedDate: Date | null;
-  events: CalendarEvent[];
-  tasks: Task[];
-  notes: Note[];
-  getItemColor: (item: Task | CalendarEvent, type: 'task' | 'event') => PastelColor;
-  getNoteColor: (note: Note) => PastelColor;
-  onDayClick: (date: Date) => void;
-  opacity?: number;
-}) {
-  const monthStart = startOfMonth(monthDate);
+  onItemClick,
+  onTaskToggle,
+  onMonthChange,
+}: MonthViewProps) {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Generate calendar grid
+  const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
@@ -74,217 +62,126 @@ function CompactMonthGrid({
     return { events: dayEvents, tasks: dayTasks, notes: dayNotes };
   };
 
-  return (
-    <div 
-      className="transition-opacity duration-300"
-      style={{ opacity }}
-    >
-      {/* Month header */}
-      <div className="text-center py-2">
-        <span className="text-sm font-semibold text-foreground">
-          {format(monthDate, 'MMMM yyyy')}
-        </span>
-      </div>
-      
-      {/* Day headers */}
-      <div className="grid grid-cols-8 mb-1">
-        <div className="text-center text-[10px] font-normal text-muted-foreground/40 py-1">W</div>
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-          <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">
-            {day}
-          </div>
-        ))}
-      </div>
-      
-      {/* Calendar grid - compact */}
-      <div className="flex flex-col">
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-8">
-            {/* Week number */}
-            <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/30 h-8">
-              {getWeek(week[0], { weekStartsOn: 1 })}
-            </div>
-            
-            {week.map((day, dayIndex) => {
-              const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
-              const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayNotes.length > 0;
-              const isCurrentMonth = isSameMonth(day, monthDate);
-              const isSelected = selectedDate && isSameDay(day, selectedDate);
-
-              return (
-                <button
-                  key={dayIndex}
-                  onClick={() => onDayClick(day)}
-                  className={cn(
-                    'h-8 flex flex-col items-center justify-center rounded-lg transition-all duration-200 relative',
-                    !isCurrentMonth && 'opacity-30',
-                    isToday(day) && 'bg-primary text-primary-foreground',
-                    isSelected && !isToday(day) && 'bg-primary/15 ring-1 ring-primary/50',
-                    !isToday(day) && !isSelected && 'hover:bg-secondary/60'
-                  )}
-                >
-                  <span className={cn(
-                    'text-xs font-medium',
-                    isToday(day) ? 'text-primary-foreground' : 'text-foreground'
-                  )}>
-                    {format(day, 'd')}
-                  </span>
-                  {hasItems && (
-                    <div className="absolute bottom-0.5 flex gap-0.5">
-                      {dayEvents.slice(0, 1).map((event, j) => (
-                        <div 
-                          key={j} 
-                          className={cn(
-                            'w-1 h-1 rounded-full',
-                            isToday(day) ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(event, 'event'))
-                          )} 
-                        />
-                      ))}
-                      {dayTasks.filter(t => !t.completed).slice(0, 1).map((task, j) => (
-                        <div 
-                          key={`t-${j}`} 
-                          className={cn(
-                            'w-1 h-1 rounded-full',
-                            isToday(day) ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(task, 'task'))
-                          )} 
-                        />
-                      ))}
-                      {dayNotes.slice(0, 1).map((note, j) => (
-                        <div 
-                          key={`n-${j}`} 
-                          className={cn(
-                            'w-1 h-1 rounded-full',
-                            isToday(day) ? 'bg-primary-foreground/70' : getColorDotClass(getNoteColor(note))
-                          )} 
-                        />
-                      ))}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-export function MonthView({
-  currentDate,
-  selectedDate,
-  events,
-  tasks,
-  notes,
-  getItemColor,
-  getNoteColor,
-  onDayClick,
-  onDateChange,
-  onItemClick,
-  onTaskToggle,
-}: MonthViewProps) {
-  const [localSelectedDate, setLocalSelectedDate] = useState<Date>(selectedDate || new Date());
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // Generate 3 months: previous, current, next
-  const months = [
-    subMonths(currentDate, 1),
-    currentDate,
-    addMonths(currentDate, 1),
-  ];
-
-  // Scroll to center (current month) on mount and when currentDate changes
-  useEffect(() => {
-    if (scrollRef.current) {
-      const container = scrollRef.current;
-      const monthHeight = container.scrollHeight / 3;
-      container.scrollTop = monthHeight;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
-  }, [currentDate]);
-
-  const handleScroll = useCallback(() => {
-    if (!scrollRef.current || isScrolling) return;
-
-    const container = scrollRef.current;
-    const monthHeight = container.scrollHeight / 3;
-    const scrollTop = container.scrollTop;
-
-    // Clear existing timeout
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-
-    // Debounce the month change
-    scrollTimeoutRef.current = setTimeout(() => {
-      // If scrolled past top threshold, go to previous month
-      if (scrollTop < monthHeight * 0.3) {
-        setIsScrolling(true);
-        onDateChange(subMonths(currentDate, 1));
-        setTimeout(() => setIsScrolling(false), 100);
-      }
-      // If scrolled past bottom threshold, go to next month
-      else if (scrollTop > monthHeight * 1.7) {
-        setIsScrolling(true);
-        onDateChange(addMonths(currentDate, 1));
-        setTimeout(() => setIsScrolling(false), 100);
-      }
-    }, 150);
-  }, [currentDate, onDateChange, isScrolling]);
-
-  const handleDayClick = (date: Date) => {
-    setLocalSelectedDate(date);
-    onDayClick(date);
   };
 
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartRef.current && e.changedTouches.length === 1) {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const deltaX = endX - touchStartRef.current.x;
+      const deltaY = endY - touchStartRef.current.y;
+
+      // Only trigger swipe if horizontal movement is greater than vertical
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        if (deltaX > 0) {
+          onMonthChange('prev');
+        } else {
+          onMonthChange('next');
+        }
+      }
+    }
+    touchStartRef.current = null;
+  }, [onMonthChange]);
+
   return (
-    <div className="animate-fade-in flex flex-col h-full">
-      {/* Compact calendar grid section */}
-      <div className="flex-shrink-0 relative overflow-hidden" style={{ height: '280px' }}>
-        {/* Top fade gradient */}
-        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-        
-        {/* Scrollable months container */}
-        <div 
-          ref={scrollRef}
-          className="h-full overflow-y-auto overflow-x-hidden scroll-smooth px-4"
-          onScroll={handleScroll}
-          style={{ scrollSnapType: 'y mandatory' }}
-        >
-          {months.map((month, index) => {
-            const isCurrent = index === 1;
-            return (
-              <div 
-                key={format(month, 'yyyy-MM')}
-                className="min-h-full"
-                style={{ scrollSnapAlign: 'start' }}
-              >
-                <CompactMonthGrid
-                  monthDate={month}
-                  currentDate={currentDate}
-                  selectedDate={localSelectedDate}
-                  events={events}
-                  tasks={tasks}
-                  notes={notes}
-                  getItemColor={getItemColor}
-                  getNoteColor={getNoteColor}
-                  onDayClick={handleDayClick}
-                  opacity={isCurrent ? 1 : 0.4}
-                />
-              </div>
-            );
-          })}
+    <div 
+      className="animate-fade-in flex flex-col h-full overflow-x-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Calendar grid */}
+      <div className="flex-shrink-0 px-2">
+        {/* Day headers */}
+        <div className="grid grid-cols-8 mb-1">
+          <div className="text-center text-[10px] font-normal text-muted-foreground/40 py-1">W</div>
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+            <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">
+              {day}
+            </div>
+          ))}
         </div>
         
-        {/* Bottom fade gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
+        {/* Calendar grid */}
+        <div className="flex flex-col gap-0.5">
+          {weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="grid grid-cols-8 gap-0.5">
+              {/* Week number */}
+              <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/30 h-10">
+                {getWeek(week[0], { weekStartsOn: 1 })}
+              </div>
+              
+              {week.map((day, dayIndex) => {
+                const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
+                const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayNotes.length > 0;
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isSelected = isSameDay(day, selectedDate);
+                const isTodayDate = isToday(day);
+
+                return (
+                  <button
+                    key={dayIndex}
+                    onClick={() => setSelectedDate(day)}
+                    className={cn(
+                      'h-10 flex flex-col items-center justify-center rounded-xl transition-all duration-200 relative',
+                      !isCurrentMonth && 'opacity-30',
+                      isTodayDate && 'bg-primary text-primary-foreground',
+                      isSelected && !isTodayDate && 'bg-primary/15 ring-1 ring-primary/50',
+                      !isTodayDate && !isSelected && 'hover:bg-secondary/60'
+                    )}
+                  >
+                    <span className={cn(
+                      'text-sm font-medium',
+                      isTodayDate ? 'text-primary-foreground' : 'text-foreground'
+                    )}>
+                      {format(day, 'd')}
+                    </span>
+                    {hasItems && (
+                      <div className="absolute bottom-1 flex gap-0.5">
+                        {dayEvents.slice(0, 1).map((event, j) => (
+                          <div 
+                            key={j} 
+                            className={cn(
+                              'w-1 h-1 rounded-full',
+                              isTodayDate ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(event, 'event'))
+                            )} 
+                          />
+                        ))}
+                        {dayTasks.filter(t => !t.completed).slice(0, 1).map((task, j) => (
+                          <div 
+                            key={`t-${j}`} 
+                            className={cn(
+                              'w-1 h-1 rounded-full',
+                              isTodayDate ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(task, 'task'))
+                            )} 
+                          />
+                        ))}
+                        {dayNotes.slice(0, 1).map((note, j) => (
+                          <div 
+                            key={`n-${j}`} 
+                            className={cn(
+                              'w-1 h-1 rounded-full',
+                              isTodayDate ? 'bg-primary-foreground/70' : getColorDotClass(getNoteColor(note))
+                            )} 
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Items list section */}
-      <div className="flex-1 border-t border-border/30 overflow-hidden">
+      {/* Items list */}
+      <div className="flex-1 overflow-hidden border-t border-border/30 mt-2">
         <CalendarItemList
-          date={localSelectedDate}
+          date={selectedDate}
           events={events}
           tasks={tasks}
           notes={notes}

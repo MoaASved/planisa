@@ -1,42 +1,23 @@
-import { 
-  format, 
-  addMonths, 
-  subMonths,
-  addWeeks,
-  subWeeks,
-  addDays,
-  startOfWeek
-} from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState } from 'react';
+import { addMonths, subMonths, addWeeks, subWeeks } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
-import { CalendarView, PastelColor, Task, CalendarEvent, Note } from '@/types';
+import { PastelColor, Task, CalendarEvent, Note } from '@/types';
+import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { YearView } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
-import { WeekView } from '@/components/calendar/WeekView';
-import { DayView } from '@/components/calendar/DayView';
+import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { EditTaskModal } from '@/components/modals/EditTaskModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
-import { useState } from 'react';
 
-interface CalendarViewComponentProps {
-  view: CalendarView;
-  onViewChange: (view: CalendarView) => void;
-  currentDate: Date;
-  onDateChange: (date: Date) => void;
-  onExitYearView: () => void;
-}
+type SimpleView = 'month' | 'weekday';
 
-export function CalendarViewComponent({
-  view,
-  onViewChange,
-  currentDate,
-  onDateChange,
-  onExitYearView,
-}: CalendarViewComponentProps) {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+export function CalendarViewComponent() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<SimpleView>('month');
+  const [showYearView, setShowYearView] = useState(false);
+  
   const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders } = useAppStore();
 
   // Edit modal states
@@ -70,39 +51,28 @@ export function CalendarViewComponent({
   };
 
   const handlePrev = () => {
-    if (view === 'month') onDateChange(subMonths(currentDate, 1));
-    else if (view === 'week') onDateChange(subWeeks(currentDate, 1));
-    else onDateChange(addDays(currentDate, -1));
+    if (view === 'month') {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else {
+      setCurrentDate(subWeeks(currentDate, 1));
+    }
   };
 
   const handleNext = () => {
-    if (view === 'month') onDateChange(addMonths(currentDate, 1));
-    else if (view === 'week') onDateChange(addWeeks(currentDate, 1));
-    else onDateChange(addDays(currentDate, 1));
+    if (view === 'month') {
+      setCurrentDate(addMonths(currentDate, 1));
+    } else {
+      setCurrentDate(addWeeks(currentDate, 1));
+    }
   };
 
-  const handleMonthClick = (date: Date) => {
-    onDateChange(date);
-    onViewChange('month');
-    onExitYearView();
+  const handleMonthClick = () => {
+    setShowYearView(!showYearView);
   };
 
-  // MonthView: click on day shows items below (no view change)
-  const handleDayClickFromMonth = (date: Date) => {
-    setSelectedDate(date);
-    // No view change - items shown in CalendarItemList below the grid
-  };
-
-  // WeekView: click on day switches to DayView
-  const handleDayClickFromWeek = (date: Date) => {
-    setSelectedDate(date);
-    onDateChange(date);
-    onViewChange('day');
-  };
-
-  // DayView: click on day in header changes selected day
-  const handleDayClickFromDayHeader = (date: Date) => {
-    onDateChange(date);
+  const handleYearMonthSelect = (date: Date) => {
+    setCurrentDate(date);
+    setShowYearView(false);
   };
 
   const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
@@ -111,7 +81,6 @@ export function CalendarViewComponent({
     } else if (type === 'task') {
       setEditingTask(item as Task);
     } else {
-      // Open the simplified CalendarNoteModal first
       setEditingNote(item as Note);
     }
   };
@@ -131,129 +100,58 @@ export function CalendarViewComponent({
     toggleTask(taskId);
   };
 
-  const getNavigationText = () => {
-    if (view === 'week') {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
-      return format(weekStart, 'MMMM yyyy');
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setCurrentDate(subMonths(currentDate, 1));
+    } else {
+      setCurrentDate(addMonths(currentDate, 1));
     }
-    return format(currentDate, 'MMMM yyyy');
   };
 
-  // Year view - fullscreen without extra navigation
-  if (view === 'year') {
-    return (
-      <div className="flex flex-col h-[calc(100vh-160px)]">
-        <div className="flex-1 overflow-hidden px-4">
-          <YearView
-            currentDate={currentDate}
-            onMonthClick={handleMonthClick}
-          />
-        </div>
-
-        {/* Edit Modals */}
-        <EditEventModal
-          event={editingEvent}
-          isOpen={!!editingEvent}
-          onClose={() => setEditingEvent(null)}
-        />
-        
-        <EditTaskModal
-          task={editingTask}
-          isOpen={!!editingTask}
-          onClose={() => setEditingTask(null)}
-        />
-        
-        <CalendarNoteModal
-          note={editingNote}
-          isOpen={!!editingNote && !showNoteEditor}
-          onClose={handleCloseNoteModal}
-          onOpenFullEditor={handleOpenFullNoteEditor}
-        />
-        
-        {showNoteEditor && editingNote && (
-          <NoteEditor
-            note={editingNote}
-            onClose={handleCloseNoteModal}
-          />
-        )}
-      </div>
-    );
-  }
+  const handleWeekChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setCurrentDate(subWeeks(currentDate, 1));
+    } else {
+      setCurrentDate(addWeeks(currentDate, 1));
+    }
+  };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-160px)]">
-      {/* Compact navigation row for Day and Week views */}
-      {(view === 'day' || view === 'week') && (
-        <div className="flex-shrink-0 px-4 py-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">
-              {getNavigationText()}
-            </h2>
-            
-            <div className="flex items-center gap-1">
-              <button 
-                onClick={handlePrev} 
-                className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-              </button>
-              <button
-                onClick={() => onDateChange(new Date())}
-                className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
-              >
-                Today
-              </button>
-              <button 
-                onClick={handleNext} 
-                className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
-              >
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden">
+      {/* Header */}
+      <CalendarHeader
+        currentDate={currentDate}
+        view={view}
+        showYearView={showYearView}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onMonthClick={handleMonthClick}
+        onViewChange={setView}
+      />
 
-      {/* Main content area - fullscreen */}
-      <div className={cn(
-        "flex-1 overflow-hidden",
-        view !== 'month' && "px-4"
-      )}>
-        {view === 'month' && (
+      {/* Main content */}
+      <div className="flex-1 overflow-hidden">
+        {showYearView ? (
+          <div className="h-full overflow-y-auto px-2">
+            <YearView
+              currentDate={currentDate}
+              onMonthClick={handleYearMonthSelect}
+            />
+          </div>
+        ) : view === 'month' ? (
           <MonthView
             currentDate={currentDate}
-            selectedDate={selectedDate}
             events={events}
             tasks={tasks}
             notes={calendarNotes}
             getItemColor={getItemColor}
             getNoteColor={getNoteColor}
-            onDayClick={handleDayClickFromMonth}
-            onDateChange={onDateChange}
             onItemClick={handleItemClick}
             onTaskToggle={handleTaskToggle}
+            onMonthChange={handleMonthChange}
           />
-        )}
-
-        {view === 'week' && (
-          <WeekView
-            currentDate={currentDate}
-            selectedDate={selectedDate}
-            events={events}
-            tasks={tasks}
-            notes={calendarNotes}
-            getItemColor={getItemColor}
-            getNoteColor={getNoteColor}
-            onDayClick={handleDayClickFromWeek}
-            onItemClick={handleItemClick}
-            onTaskToggle={handleTaskToggle}
-            onSwipeLeft={handleNext}
-            onSwipeRight={handlePrev}
-          />
-        )}
-
-        {view === 'day' && (
-          <DayView
+        ) : (
+          <WeekDayView
             currentDate={currentDate}
             events={events}
             tasks={tasks}
@@ -262,9 +160,7 @@ export function CalendarViewComponent({
             getNoteColor={getNoteColor}
             onItemClick={handleItemClick}
             onTaskToggle={handleTaskToggle}
-            onDayClick={handleDayClickFromDayHeader}
-            onSwipeLeft={handleNext}
-            onSwipeRight={handlePrev}
+            onWeekChange={handleWeekChange}
           />
         )}
       </div>

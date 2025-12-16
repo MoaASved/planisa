@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
-import { format, isToday, startOfWeek, addDays, isSameDay } from 'date-fns';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { CalendarItemList } from './CalendarItemList';
 
-interface DayViewProps {
+interface WeekDayViewProps {
   currentDate: Date;
   events: CalendarEvent[];
   tasks: Task[];
@@ -13,12 +13,10 @@ interface DayViewProps {
   getNoteColor: (note: Note) => PastelColor;
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
-  onDayClick?: (date: Date) => void;
-  onSwipeLeft?: () => void;
-  onSwipeRight?: () => void;
+  onWeekChange: (direction: 'prev' | 'next') => void;
 }
 
-export function DayView({
+export function WeekDayView({
   currentDate,
   events,
   tasks,
@@ -27,16 +25,24 @@ export function DayView({
   getNoteColor,
   onItemClick,
   onTaskToggle,
-  onDayClick,
-  onSwipeLeft,
-  onSwipeRight,
-}: DayViewProps) {
+  onWeekChange,
+}: WeekDayViewProps) {
   const [selectedDate, setSelectedDate] = useState(currentDate);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Get week days for header
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  // Update selected date when currentDate changes (week navigation)
+  useEffect(() => {
+    // Find the same day of week in new week, or default to first day
+    const currentDayOfWeek = selectedDate.getDay();
+    const newSelectedDay = weekDays.find(d => d.getDay() === currentDayOfWeek) || weekDays[0];
+    if (!weekDays.some(d => isSameDay(d, selectedDate))) {
+      setSelectedDate(newSelectedDay);
+    }
+  }, [currentDate]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
@@ -53,49 +59,46 @@ export function DayView({
 
       // Only trigger swipe if horizontal movement is greater than vertical
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        if (deltaX > 0 && onSwipeRight) {
-          onSwipeRight();
-        } else if (deltaX < 0 && onSwipeLeft) {
-          onSwipeLeft();
+        if (deltaX > 0) {
+          onWeekChange('prev');
+        } else {
+          onWeekChange('next');
         }
       }
     }
     touchStartRef.current = null;
-  }, [onSwipeLeft, onSwipeRight]);
-
-  const handleDaySelect = (day: Date) => {
-    setSelectedDate(day);
-    onDayClick?.(day);
-  };
+  }, [onWeekChange]);
 
   return (
     <div 
-      className="animate-fade-in flex flex-col h-full"
+      className="animate-fade-in flex flex-col h-full overflow-x-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Week header */}
-      <div className="flex-shrink-0 border-b border-border/30">
-        <div className="grid grid-cols-7 gap-px">
+      <div className="flex-shrink-0 px-2 pb-2">
+        <div className="grid grid-cols-7 gap-1">
           {weekDays.map((day, i) => {
             const isSelected = isSameDay(day, selectedDate);
+            const isTodayDate = isToday(day);
+            
             return (
               <button
                 key={i}
-                onClick={() => handleDaySelect(day)}
+                onClick={() => setSelectedDate(day)}
                 className={cn(
-                  'py-2 text-center transition-colors rounded-lg mx-0.5',
-                  isToday(day) && !isSelected && 'bg-primary/5',
-                  isSelected && 'bg-primary/15'
+                  'py-2 text-center transition-all rounded-xl',
+                  isSelected && 'bg-primary/15',
+                  !isSelected && 'hover:bg-secondary/60'
                 )}
               >
-                <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase block">
                   {format(day, 'EEE')}
                 </span>
                 <span className={cn(
-                  'block text-lg font-semibold mt-0.5',
-                  isToday(day) ? 'text-primary' : 'text-foreground',
-                  isSelected && !isToday(day) && 'text-foreground'
+                  'text-lg font-semibold mt-0.5 w-8 h-8 rounded-full flex items-center justify-center mx-auto',
+                  isTodayDate && 'bg-primary text-primary-foreground',
+                  !isTodayDate && 'text-foreground'
                 )}>
                   {format(day, 'd')}
                 </span>
@@ -106,7 +109,7 @@ export function DayView({
       </div>
 
       {/* Items list */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden border-t border-border/30">
         <CalendarItemList
           date={selectedDate}
           events={events}
