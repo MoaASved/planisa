@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Grid3X3, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Grid3X3, List, CalendarDays } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type SimpleView = 'month' | 'weekday';
@@ -12,6 +12,7 @@ interface CalendarHeaderProps {
   onNext: () => void;
   onMonthClick: () => void;
   onViewChange: (view: SimpleView) => void;
+  onTodayClick: () => void;
 }
 
 export function CalendarHeader({
@@ -22,6 +23,7 @@ export function CalendarHeader({
   onNext,
   onMonthClick,
   onViewChange,
+  onTodayClick,
 }: CalendarHeaderProps) {
   return (
     <div className="flex items-center justify-between px-4 py-3">
@@ -49,7 +51,7 @@ export function CalendarHeader({
         </button>
       </div>
 
-      {/* View icons */}
+      {/* View icons + Today button */}
       {!showYearView && (
         <div className="flex items-center gap-1">
           <button
@@ -74,6 +76,13 @@ export function CalendarHeader({
             )}
           >
             <List className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={onTodayClick}
+            className="ml-1 px-3 py-1.5 rounded-xl text-xs font-medium bg-secondary/60 hover:bg-secondary transition-colors text-foreground"
+          >
+            Idag
           </button>
         </div>
       )}
