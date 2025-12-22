@@ -26,8 +26,8 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  ChevronLeft,
-  ChevronRight
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -72,7 +72,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
 
@@ -108,25 +107,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       },
     },
   });
-
-  // Keyboard-aware toolbar
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-
-    const handleResize = () => {
-      const heightDiff = window.innerHeight - viewport.height;
-      setKeyboardHeight(heightDiff > 100 ? heightDiff : 0);
-    };
-
-    viewport.addEventListener('resize', handleResize);
-    viewport.addEventListener('scroll', handleResize);
-    
-    return () => {
-      viewport.removeEventListener('resize', handleResize);
-      viewport.removeEventListener('scroll', handleResize);
-    };
-  }, []);
 
   const handleSave = () => {
     const noteData = {
@@ -188,13 +168,191 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const selectedFolder = folders.find(f => f.name === folder);
   const noteColorStyle = color ? colorHslMap[color] : undefined;
 
+  // Toolbar button component for compactness
+  const ToolbarBtn = ({ 
+    onClick, 
+    active, 
+    children, 
+    className,
+    destructive
+  }: { 
+    onClick: () => void; 
+    active?: boolean; 
+    children: React.ReactNode;
+    className?: string;
+    destructive?: boolean;
+  }) => (
+    <button
+      onClick={onClick}
+      className={cn(
+        'p-1.5 rounded-lg transition-colors',
+        active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/50',
+        destructive && 'hover:bg-destructive/10 text-destructive',
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+
   return (
     <div 
       className="fixed inset-0 z-50 bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
       style={{ '--note-color': noteColorStyle } as React.CSSProperties}
     >
-      {/* Header - Only back arrow */}
-      <div className="flex items-center px-4 py-3">
+      {/* Top Horizontal Toolbar - Collapsible */}
+      <div className="flex-shrink-0">
+        {/* Collapsed state - just a small bar */}
+        {toolbarCollapsed ? (
+          <div className="flex justify-center py-1.5 border-b border-border/30">
+            <button
+              onClick={() => setToolbarCollapsed(false)}
+              className="flex items-center gap-1 px-3 py-1 rounded-full bg-secondary/50 text-muted-foreground text-xs"
+            >
+              <ChevronDown className="w-3 h-3" />
+              <span>Toolbar</span>
+            </button>
+          </div>
+        ) : (
+          <div className="border-b border-border/30">
+            {/* Toolbar content */}
+            <div className="flex items-center justify-between px-2 py-1.5 gap-1 overflow-x-auto">
+              {/* Left group: Note actions */}
+              <div className="flex items-center gap-0.5">
+                <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
+                  <Pin className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn onClick={() => setShowFolderPicker(true)} active={!!folder}>
+                  <Folder className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn onClick={() => setShowColorPicker(true)}>
+                  <Palette className="w-4 h-4" />
+                </ToolbarBtn>
+                {note && (
+                  <ToolbarBtn onClick={handleDelete} destructive>
+                    <Trash2 className="w-4 h-4" />
+                  </ToolbarBtn>
+                )}
+                
+                <div className="w-px h-5 bg-border/50 mx-1" />
+                
+                <ToolbarBtn onClick={() => setShowMetadata(!showMetadata)} active={showMetadata}>
+                  <Settings className="w-4 h-4" />
+                </ToolbarBtn>
+              </div>
+
+              {/* Center group: Text formatting */}
+              <div className="flex items-center gap-0.5">
+                <ToolbarBtn
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                  active={editor?.isActive('heading', { level: 1 })}
+                  className="text-xs font-bold px-1.5"
+                >
+                  H1
+                </ToolbarBtn>
+                <ToolbarBtn
+                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                  active={editor?.isActive('heading', { level: 2 })}
+                  className="text-xs font-semibold px-1.5"
+                >
+                  H2
+                </ToolbarBtn>
+                <ToolbarBtn
+                  onClick={() => editor?.chain().focus().setParagraph().run()}
+                  active={editor?.isActive('paragraph') && !editor?.isActive('heading')}
+                  className="text-xs px-1.5"
+                >
+                  T
+                </ToolbarBtn>
+                
+                <div className="w-px h-5 bg-border/50 mx-1" />
+                
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  active={editor?.isActive('bold')}
+                >
+                  <Bold className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  active={editor?.isActive('italic')}
+                >
+                  <Italic className="w-4 h-4" />
+                </ToolbarBtn>
+              </div>
+
+              {/* Right group: Lists, alignment, highlight */}
+              <div className="flex items-center gap-0.5">
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                  active={editor?.isActive('bulletList')}
+                >
+                  <List className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                  active={editor?.isActive('orderedList')}
+                >
+                  <ListOrdered className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().toggleTaskList().run()}
+                  active={editor?.isActive('taskList')}
+                >
+                  <CheckSquare className="w-4 h-4" />
+                </ToolbarBtn>
+                
+                <div className="w-px h-5 bg-border/50 mx-1" />
+                
+                <ToolbarBtn onClick={cycleAlignment}>
+                  <AlignIcon className="w-4 h-4" />
+                </ToolbarBtn>
+                
+                <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
+                  <PopoverTrigger asChild>
+                    <button 
+                      className={cn(
+                        'p-1.5 rounded-lg transition-colors',
+                        editor?.isActive('highlight') ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/50'
+                      )}
+                    >
+                      <Highlighter className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2" align="end">
+                    <div className="flex flex-wrap gap-2 max-w-[200px]">
+                      {pastelColors.map((c) => (
+                        <button
+                          key={c.value}
+                          onClick={() => handleHighlight(c.value)}
+                          className={cn(
+                            'w-6 h-6 rounded-full transition-all',
+                            c.class,
+                            'hover:scale-110'
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                
+                <div className="w-px h-5 bg-border/50 mx-1" />
+                
+                {/* Collapse button */}
+                <button
+                  onClick={() => setToolbarCollapsed(true)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-colors"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Header - Back arrow */}
+      <div className="flex-shrink-0 flex items-center px-4 py-3">
         <button 
           onClick={handleSave}
           className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors"
@@ -204,7 +362,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       </div>
 
       {/* Date and Folder centered */}
-      <div className="flex flex-col items-center px-4 pb-4">
+      <div className="flex-shrink-0 flex flex-col items-center px-4 pb-4">
         <span 
           className="text-sm font-medium"
           style={{ color: noteColorStyle || 'hsl(var(--muted-foreground))' }}
@@ -218,11 +376,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         )}
       </div>
 
-      {/* Content */}
-      <div 
-        className="flex-1 overflow-y-auto px-4"
-        style={{ paddingBottom: keyboardHeight > 0 ? '60px' : '40px' }}
-      >
+      {/* Content - scrollable independently */}
+      <div className="flex-1 overflow-y-auto px-4 pb-10">
         {/* Title input */}
         <input
           type="text"
@@ -236,206 +391,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         <EditorContent editor={editor} className="tiptap-content" />
       </div>
 
-      {/* Collapsible Vertical Toolbar */}
-      <div 
-        className={cn(
-          "fixed right-3 flex flex-col items-center transition-all duration-300 z-50",
-          toolbarCollapsed ? "translate-x-12" : "translate-x-0"
-        )}
-        style={{ 
-          bottom: keyboardHeight + 80,
-          maxHeight: 'calc(100vh - 200px)'
-        }}
-      >
-        {/* Collapse/Expand tab */}
-        <button
-          onClick={() => setToolbarCollapsed(!toolbarCollapsed)}
-          className={cn(
-            "absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-12 flex items-center justify-center",
-            "bg-card/90 backdrop-blur-xl rounded-l-xl border border-r-0 border-border/50",
-            "text-muted-foreground hover:text-foreground transition-colors"
-          )}
-        >
-          {toolbarCollapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </button>
-
-        {/* Toolbar content */}
-        <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 p-1.5 flex flex-col gap-1 overflow-y-auto">
-          {/* Note actions */}
-          <button 
-            onClick={handleTogglePin}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              isPinned ? 'bg-pastel-amber/20 text-pastel-amber' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <Pin className="w-4 h-4" />
-          </button>
-          
-          <button 
-            onClick={() => setShowFolderPicker(true)}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              folder ? 'bg-primary/10 text-primary' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <Folder className="w-4 h-4" />
-          </button>
-          
-          <button 
-            onClick={() => setShowColorPicker(true)}
-            className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground transition-colors"
-          >
-            <Palette className="w-4 h-4" />
-          </button>
-
-          {note && (
-            <button 
-              onClick={handleDelete}
-              className="p-2.5 rounded-xl hover:bg-destructive/10 text-destructive transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-
-          <div className="w-full h-px bg-border my-1" />
-
-          {/* Settings */}
-          <button 
-            onClick={() => setShowMetadata(!showMetadata)}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              showMetadata ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-
-          <div className="w-full h-px bg-border my-1" />
-
-          {/* Text formatting */}
-          <button
-            onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={cn(
-              'p-2.5 rounded-xl text-xs font-bold transition-colors',
-              editor?.isActive('heading', { level: 1 }) ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            H1
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={cn(
-              'p-2.5 rounded-xl text-xs font-semibold transition-colors',
-              editor?.isActive('heading', { level: 2 }) ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            H2
-          </button>
-          <button
-            onClick={() => editor?.chain().focus().setParagraph().run()}
-            className={cn(
-              'p-2.5 rounded-xl text-xs transition-colors',
-              editor?.isActive('paragraph') && !editor?.isActive('heading') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            T
-          </button>
-
-          <div className="w-full h-px bg-border my-1" />
-
-          <button 
-            onClick={() => editor?.chain().focus().toggleBold().run()}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              editor?.isActive('bold') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <Bold className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={() => editor?.chain().focus().toggleItalic().run()}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              editor?.isActive('italic') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <Italic className="w-4 h-4" />
-          </button>
-
-          <div className="w-full h-px bg-border my-1" />
-
-          <button 
-            onClick={() => editor?.chain().focus().toggleBulletList().run()}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              editor?.isActive('bulletList') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <List className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              editor?.isActive('orderedList') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <ListOrdered className="w-4 h-4" />
-          </button>
-          <button 
-            onClick={() => editor?.chain().focus().toggleTaskList().run()}
-            className={cn(
-              'p-2.5 rounded-xl transition-colors',
-              editor?.isActive('taskList') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-            )}
-          >
-            <CheckSquare className="w-4 h-4" />
-          </button>
-
-          <div className="w-full h-px bg-border my-1" />
-
-          {/* Text alignment - cycling button */}
-          <button 
-            onClick={cycleAlignment}
-            className="p-2.5 rounded-xl hover:bg-secondary text-muted-foreground transition-colors"
-          >
-            <AlignIcon className="w-4 h-4" />
-          </button>
-
-          <div className="w-full h-px bg-border my-1" />
-
-          {/* Highlight */}
-          <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
-            <PopoverTrigger asChild>
-              <button 
-                className={cn(
-                  'p-2.5 rounded-xl transition-colors',
-                  editor?.isActive('highlight') ? 'bg-secondary text-foreground' : 'hover:bg-secondary text-muted-foreground'
-                )}
-              >
-                <Highlighter className="w-4 h-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2" align="end" side="left">
-              <div className="flex flex-wrap gap-2 max-w-[200px]">
-                {pastelColors.map((c) => (
-                  <button
-                    key={c.value}
-                    onClick={() => handleHighlight(c.value)}
-                    className={cn(
-                      'w-7 h-7 rounded-full transition-all',
-                      c.class,
-                      'hover:scale-110'
-                    )}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
       {/* Click-outside overlay to close metadata */}
       {showMetadata && (
         <div 
@@ -444,11 +399,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         />
       )}
 
-      {/* Metadata Section (popup from toolbar) */}
+      {/* Metadata Section (popup from settings button) */}
       {showMetadata && (
         <div 
-          className="fixed right-16 border border-border bg-card/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-50 shadow-lg min-w-[280px] transition-all"
-          style={{ bottom: keyboardHeight + 120 }}
+          className="fixed left-4 right-4 top-16 border border-border bg-card/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-50 shadow-lg transition-all"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Date picker */}
