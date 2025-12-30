@@ -12,6 +12,8 @@ export type PastelColor =
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 
+export type NoteType = 'note' | 'sticky';
+
 export interface Task {
   id: string;
   title: string;
@@ -48,6 +50,7 @@ export interface Note {
   id: string;
   title: string;
   content: string;
+  type: NoteType;
   folder?: string;
   tags: string[];
   color?: PastelColor;
@@ -76,6 +79,26 @@ export interface Folder {
   id: string;
   name: string;
   color: PastelColor;
+}
+
+// Notebook types
+export interface Notebook {
+  id: string;
+  name: string;
+  color: PastelColor;
+  createdAt: Date;
+}
+
+export interface NotebookPage {
+  id: string;
+  notebookId: string;
+  title: string;
+  content: string;
+  type: NoteType;
+  color?: PastelColor;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Legacy Category type for backward compatibility

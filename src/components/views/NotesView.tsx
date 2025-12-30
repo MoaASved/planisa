@@ -8,18 +8,25 @@ import {
   Star,
   LayoutGrid,
   LayoutList,
-  X
+  X,
+  Search,
+  BookOpen,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Note, PastelColor } from '@/types';
+import { Note, PastelColor, Notebook } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { NoteEditor } from '@/components/notes/NoteEditor';
+import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
+import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
+import { NotebookCard } from '@/components/notes/NotebookCard';
+import { NotebookView } from '@/components/notes/NotebookView';
+import { NotesFAB } from '@/components/notes/NotesFAB';
 
-type ViewTab = 'all' | 'folders';
+type ViewTab = 'all' | 'folders' | 'sticky' | 'notebooks';
 type LayoutMode = 'list' | 'grid';
 
-// Color mapping for Post-it style cards (30% opacity)
 const getPostItBgClass = (color?: PastelColor): string => {
   if (!color) return 'bg-card border border-border';
   const colorMap: Record<PastelColor, string> = {
@@ -44,34 +51,33 @@ interface NotesViewProps {
 }
 
 export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: NotesViewProps) {
-  const { notes, folders, addFolder, searchQuery } = useAppStore();
+  const { notes, folders, notebooks, addFolder, addNotebook, searchQuery, setSearchQuery } = useAppStore();
   const [viewTab, setViewTab] = useState<ViewTab>('all');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [selectedStickyNote, setSelectedStickyNote] = useState<Note | null>(null);
+  const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
+  const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
   const [showFolderModal, setShowFolderModal] = useState(false);
+  const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState<PastelColor>('sky');
+  const [newNotebookName, setNewNotebookName] = useState('');
+  const [newNotebookColor, setNewNotebookColor] = useState<PastelColor>('lavender');
+  const [showSearch, setShowSearch] = useState(false);
 
-  // Filter notes based on search, folder, and hideFromAllNotes
-  const filteredNotes = notes
+  // Filter notes based on type and search
+  const regularNotes = notes.filter(n => n.type !== 'sticky');
+  const stickyNotes = notes.filter(n => n.type === 'sticky');
+
+  const filteredNotes = regularNotes
     .filter(note => {
-      // Special case: __no_folder__ shows notes without any folder
-      if (selectedFolder === '__no_folder__') {
-        return !note.folder;
-      }
-      
-      // When in "All Notes" (no selected folder), hide notes marked as hidden
-      // BUT still show if there's a search query (still searchable)
-      if (!selectedFolder && note.hideFromAllNotes && !searchQuery) {
-        return false;
-      }
-      
-      // Apply search filter
+      if (selectedFolder === '__no_folder__') return !note.folder;
+      if (!selectedFolder && note.hideFromAllNotes && !searchQuery) return false;
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        return note.title.toLowerCase().includes(query) || 
-               note.content.toLowerCase().includes(query);
+        return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
       }
       return true;
     })
@@ -85,13 +91,21 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
+  const filteredStickyNotes = stickyNotes
+    .filter(note => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
+      }
+      return true;
+    })
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+
   const pinnedNotes = filteredNotes.filter(n => n.isPinned);
   const otherNotes = filteredNotes.filter(n => !n.isPinned);
 
   const getPreview = (content: string) => {
-    // Strip all HTML tags to get plain text
     const plainText = content.replace(/<[^>]*>/g, '').trim();
-    // Return first 100 characters
     return plainText.slice(0, 100) + (plainText.length > 100 ? '...' : '');
   };
 
@@ -103,18 +117,41 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     }
   };
 
+  const handleCreateNotebook = () => {
+    if (newNotebookName.trim()) {
+      addNotebook({ name: newNotebookName.trim(), color: newNotebookColor });
+      setNewNotebookName('');
+      setShowNotebookModal(false);
+    }
+  };
+
   const handleOpenNote = (note: Note) => {
-    setSelectedNote(note);
-    onEditingChange?.(true);
+    if (note.type === 'sticky') {
+      setSelectedStickyNote(note);
+    } else {
+      setSelectedNote(note);
+      onEditingChange?.(true);
+    }
   };
 
   const handleCloseEditor = () => {
     setSelectedNote(null);
+    setSelectedStickyNote(null);
+    setIsCreatingStickyNote(false);
     onEditingChange?.(false);
     onCloseEditor?.();
   };
 
-  // Post-it style note card
+  const handleCreateNote = () => {
+    setSelectedNote({ id: '', title: '', content: '', type: 'note', tags: [], createdAt: new Date(), updatedAt: new Date(), isPinned: false } as Note);
+    onEditingChange?.(true);
+  };
+
+  const handleCreateStickyNote = () => {
+    setIsCreatingStickyNote(true);
+  };
+
+  // Note card component
   const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => {
     const folderData = folders.find(f => f.name === note.folder);
     
@@ -138,18 +175,12 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
                 <Star className="w-4 h-4 text-pastel-amber flex-shrink-0" fill="currentColor" />
               )}
             </div>
-            <p className={cn(
-              'text-sm text-muted-foreground mt-1',
-              isGrid ? 'line-clamp-4' : 'line-clamp-2'
-            )}>
+            <p className={cn('text-sm text-muted-foreground mt-1', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
               {getPreview(note.content)}
             </p>
           </div>
           
-          <div className={cn(
-            'flex items-center gap-2 flex-wrap',
-            isGrid ? 'mt-auto pt-3' : 'mt-2'
-          )}>
+          <div className={cn('flex items-center gap-2 flex-wrap', isGrid ? 'mt-auto pt-3' : 'mt-2')}>
             {note.folder && (
               <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
                 {note.folder}
@@ -168,13 +199,128 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     );
   };
 
-  // Show Note Editor (fullscreen) when editing or creating
+  // Show editors
   if (selectedNote || isCreatingNew) {
+    return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} />;
+  }
+
+  if (selectedStickyNote || isCreatingStickyNote) {
+    return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} />;
+  }
+
+  if (selectedNotebook) {
+    return <NotebookView notebook={selectedNotebook} onClose={() => setSelectedNotebook(null)} />;
+  }
+
+  // Tabs header
+  const TabsHeader = () => (
+    <div className="flex items-center justify-between mb-4 gap-2">
+      <div className="flex-1 overflow-x-auto">
+        <div className="flow-segment inline-flex">
+          {(['all', 'folders', 'sticky', 'notebooks'] as ViewTab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => { setViewTab(tab); setSelectedFolder(null); }}
+              className={cn('flow-segment-item whitespace-nowrap', viewTab === tab && 'flow-segment-item-active')}
+            >
+              {tab === 'all' ? 'All' : tab === 'folders' ? 'Folders' : tab === 'sticky' ? 'Sticky' : 'Notebooks'}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-1">
+        <div className="flex bg-secondary rounded-xl p-1">
+          <button onClick={() => setLayoutMode('list')} className={cn('p-2 rounded-lg transition-colors', layoutMode === 'list' && 'bg-card shadow-soft')}>
+            <LayoutList className="w-4 h-4" />
+          </button>
+          <button onClick={() => setLayoutMode('grid')} className={cn('p-2 rounded-lg transition-colors', layoutMode === 'grid' && 'bg-card shadow-soft')}>
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+        </div>
+        <button onClick={() => setShowSearch(!showSearch)} className="p-2 rounded-xl hover:bg-secondary transition-colors">
+          <Search className="w-5 h-5 text-muted-foreground" />
+        </button>
+      </div>
+    </div>
+  );
+
+  // Notebooks view
+  if (viewTab === 'notebooks') {
     return (
-      <NoteEditor 
-        note={selectedNote || undefined} 
-        onClose={handleCloseEditor}
-      />
+      <div className="min-h-screen pb-24">
+        <div className="px-4 py-4">
+          <TabsHeader />
+          
+          <button onClick={() => setShowNotebookModal(true)} className="w-full flow-card-flat flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-primary" />
+            </div>
+            <span className="font-medium text-foreground">Create Notebook</span>
+          </button>
+
+          <div className="space-y-3">
+            {notebooks.map((notebook) => (
+              <NotebookCard key={notebook.id} notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
+            ))}
+          </div>
+
+          {notebooks.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-muted-foreground">No notebooks yet</p>
+            </div>
+          )}
+        </div>
+
+        {showNotebookModal && (
+          <>
+            <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowNotebookModal(false)} />
+            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">New Notebook</h3>
+                <button onClick={() => setShowNotebookModal(false)} className="p-2 rounded-full bg-secondary">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+              <input type="text" value={newNotebookName} onChange={(e) => setNewNotebookName(e.target.value)} placeholder="Notebook name" className="flow-input mb-4" />
+              <div className="flex flex-wrap gap-2 mb-4">
+                {pastelColors.map((c) => (
+                  <button key={c.value} onClick={() => setNewNotebookColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newNotebookColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
+                ))}
+              </div>
+              <button onClick={handleCreateNotebook} className="w-full flow-button-primary">Create Notebook</button>
+            </div>
+          </>
+        )}
+
+        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
+      </div>
+    );
+  }
+
+  // Sticky notes view
+  if (viewTab === 'sticky') {
+    return (
+      <div className="min-h-screen pb-24">
+        <div className="px-4 py-4">
+          <TabsHeader />
+          
+          <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+            {filteredStickyNotes.map(note => (
+              <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+            ))}
+          </div>
+
+          {filteredStickyNotes.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No sticky notes yet</p>
+            </div>
+          )}
+        </div>
+
+        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
+      </div>
     );
   }
 
@@ -183,44 +329,9 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     return (
       <div className="min-h-screen pb-24">
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flow-segment">
-              <button
-                onClick={() => setViewTab('all')}
-                className="flow-segment-item"
-              >
-                All Notes
-              </button>
-              <button
-                onClick={() => setViewTab('folders')}
-                className="flow-segment-item flow-segment-item-active"
-              >
-                Folders
-              </button>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="flex bg-secondary rounded-xl p-1">
-                <button
-                  onClick={() => setLayoutMode('list')}
-                  className={cn('p-2 rounded-lg transition-colors', layoutMode === 'list' && 'bg-card shadow-soft')}
-                >
-                  <LayoutList className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setLayoutMode('grid')}
-                  className={cn('p-2 rounded-lg transition-colors', layoutMode === 'grid' && 'bg-card shadow-soft')}
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
+          <TabsHeader />
 
-          <button
-            onClick={() => setShowFolderModal(true)}
-            className="w-full flow-card-flat flex items-center gap-3 mb-4"
-          >
+          <button onClick={() => setShowFolderModal(true)} className="w-full flow-card-flat flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <FolderPlus className="w-5 h-5 text-primary" />
             </div>
@@ -229,13 +340,9 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
 
           <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
             {folders.map((folder) => {
-              const folderNotes = notes.filter(n => n.folder === folder.name);
+              const folderNotes = regularNotes.filter(n => n.folder === folder.name);
               return (
-                <button
-                  key={folder.id}
-                  onClick={() => { setSelectedFolder(folder.name); setViewTab('all'); }}
-                  className="flow-card text-left group w-full"
-                >
+                <button key={folder.id} onClick={() => { setSelectedFolder(folder.name); setViewTab('all'); }} className="flow-card text-left group w-full">
                   <div className="flex items-center gap-3">
                     <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center', `bg-pastel-${folder.color}/20`)}>
                       <Folder className={cn('w-6 h-6', `text-pastel-${folder.color}`)} />
@@ -251,16 +358,12 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
             })}
           </div>
 
-          {/* No Folder option - discreet at bottom */}
           {(() => {
-            const noFolderNotes = notes.filter(n => !n.folder);
+            const noFolderNotes = regularNotes.filter(n => !n.folder);
             if (noFolderNotes.length === 0) return null;
             return (
               <div className="mt-4 pt-4 border-t border-border/50">
-                <button
-                  onClick={() => { setSelectedFolder('__no_folder__'); setViewTab('all'); }}
-                  className="flow-card-flat text-left group w-full opacity-60 hover:opacity-100 transition-opacity"
-                >
+                <button onClick={() => { setSelectedFolder('__no_folder__'); setViewTab('all'); }} className="flow-card-flat text-left group w-full opacity-60 hover:opacity-100 transition-opacity">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-muted/30">
                       <Folder className="w-6 h-6 text-muted-foreground" />
@@ -277,133 +380,66 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
           })()}
         </div>
 
-        {/* Create Folder Modal */}
         {showFolderModal && (
           <>
             <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowFolderModal(false)} />
             <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">New Folder</h3>
-                <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
+                <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary"><X className="w-5 h-5 text-muted-foreground" /></button>
               </div>
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Folder name"
-                className="flow-input mb-4"
-              />
+              <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Folder name" className="flow-input mb-4" />
               <div className="flex flex-wrap gap-2 mb-4">
                 {pastelColors.map((c) => (
-                  <button
-                    key={c.value}
-                    onClick={() => setNewFolderColor(c.value)}
-                    className={cn(
-                      'w-8 h-8 rounded-full transition-all',
-                      c.class,
-                      newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
-                    )}
-                  />
+                  <button key={c.value} onClick={() => setNewFolderColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
                 ))}
               </div>
-              <button onClick={handleCreateFolder} className="w-full flow-button-primary">
-                Create Folder
-              </button>
+              <button onClick={handleCreateFolder} className="w-full flow-button-primary">Create Folder</button>
             </div>
           </>
         )}
+
+        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
       </div>
     );
   }
 
-  // All Notes / Folder view
+  // All Notes view
   return (
     <div className="min-h-screen pb-24">
       <div className="px-4 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flow-segment">
-            <button
-              onClick={() => { setViewTab('all'); setSelectedFolder(null); }}
-              className={cn('flow-segment-item', viewTab === 'all' && 'flow-segment-item-active')}
-            >
-              All Notes
-            </button>
-            <button
-              onClick={() => setViewTab('folders')}
-              className={cn('flow-segment-item', viewTab === 'folders' && 'flow-segment-item-active')}
-            >
-              Folders
-            </button>
-          </div>
-          
-          <div className="flex bg-secondary rounded-xl p-1">
-            <button
-              onClick={() => setLayoutMode('list')}
-              className={cn('p-2 rounded-lg transition-colors', layoutMode === 'list' && 'bg-card shadow-soft')}
-            >
-              <LayoutList className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setLayoutMode('grid')}
-              className={cn('p-2 rounded-lg transition-colors', layoutMode === 'grid' && 'bg-card shadow-soft')}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        <TabsHeader />
 
         {selectedFolder && (
-          <button
-            onClick={() => setSelectedFolder(null)}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-xl mb-4",
-              selectedFolder === '__no_folder__' 
-                ? "bg-muted text-muted-foreground" 
-                : "bg-primary text-primary-foreground"
-            )}
-          >
+          <button onClick={() => setSelectedFolder(null)} className={cn("flex items-center gap-2 px-3 py-2 rounded-xl mb-4", selectedFolder === '__no_folder__' ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground")}>
             <Folder className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {selectedFolder === '__no_folder__' ? 'No Folder' : selectedFolder}
-            </span>
+            <span className="text-sm font-medium">{selectedFolder === '__no_folder__' ? 'No Folder' : selectedFolder}</span>
             <X className="w-4 h-4" />
           </button>
         )}
 
         {pinnedNotes.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-              <Pin className="w-4 h-4" /> Pinned
-            </h3>
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2"><Pin className="w-4 h-4" /> Pinned</h3>
             <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-              {pinnedNotes.map(note => (
-                <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
-              ))}
+              {pinnedNotes.map(note => <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />)}
             </div>
           </div>
         )}
 
         {otherNotes.length > 0 && (
           <div>
-            {pinnedNotes.length > 0 && (
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3">Notes</h3>
-            )}
+            {pinnedNotes.length > 0 && <h3 className="text-sm font-semibold text-muted-foreground mb-3">Notes</h3>}
             <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-              {otherNotes.map(note => (
-                <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
-              ))}
+              {otherNotes.map(note => <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />)}
             </div>
           </div>
         )}
 
-        {filteredNotes.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No notes yet</p>
-          </div>
-        )}
+        {filteredNotes.length === 0 && <div className="text-center py-12"><p className="text-muted-foreground">No notes yet</p></div>}
       </div>
+
+      <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
     </div>
   );
 }
