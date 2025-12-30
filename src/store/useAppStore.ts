@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, PastelColor } from '@/types';
+import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, PastelColor, Notebook, NotebookPage } from '@/types';
 import { addDays, startOfToday } from 'date-fns';
 
 interface AppState {
@@ -24,6 +24,18 @@ interface AppState {
   updateNote: (id: string, updates: Partial<Note>) => void;
   deleteNote: (id: string) => void;
   togglePinNote: (id: string) => void;
+
+  // Notebooks
+  notebooks: Notebook[];
+  addNotebook: (notebook: Omit<Notebook, 'id' | 'createdAt'>) => void;
+  updateNotebook: (id: string, updates: Partial<Notebook>) => void;
+  deleteNotebook: (id: string) => void;
+
+  // Notebook Pages
+  notebookPages: NotebookPage[];
+  addNotebookPage: (page: Omit<NotebookPage, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateNotebookPage: (id: string, updates: Partial<NotebookPage>) => void;
+  deleteNotebookPage: (id: string) => void;
 
   // Folders (for Notes - independent)
   folders: Folder[];
@@ -179,6 +191,7 @@ const initialNotes: Note[] = [
     id: '1',
     title: 'Project Ideas',
     content: '## New App Concepts\n\n- AI-powered task management\n- Smart calendar integration\n- Voice notes feature\n\n### Priority\n1. Focus on UX\n2. Keep it minimal',
+    type: 'note',
     folder: 'Ideas',
     tags: [],
     color: 'lavender',
@@ -192,6 +205,7 @@ const initialNotes: Note[] = [
     id: '2',
     title: 'Meeting Notes',
     content: '**Attendees:** John, Sarah, Mike\n\n### Key Points\n- Budget approved\n- Launch target: December',
+    type: 'note',
     folder: 'Work',
     tags: [],
     color: undefined,
@@ -206,11 +220,26 @@ const initialNotes: Note[] = [
     id: '3',
     title: 'Book List',
     content: '### Currently Reading\n- Atomic Habits\n\n### Up Next\n- Deep Work\n- The Psychology of Money',
+    type: 'note',
     folder: 'Personal',
     tags: [],
     color: 'mint',
     createdAt: addDays(today, -5),
     updatedAt: addDays(today, -3),
+    isPinned: false,
+    showInCalendar: false,
+    hideFromAllNotes: false,
+  },
+  {
+    id: '4',
+    title: 'Quick reminder',
+    content: 'Remember to call mom!',
+    type: 'sticky',
+    folder: undefined,
+    tags: [],
+    color: 'yellow',
+    createdAt: today,
+    updatedAt: today,
     isPinned: false,
     showInCalendar: false,
     hideFromAllNotes: false,
@@ -351,6 +380,40 @@ export const useAppStore = create<AppState>()(
       deleteEventCategory: (id) =>
         set((state) => ({
           eventCategories: state.eventCategories.filter((c) => c.id !== id),
+        })),
+
+      // Notebooks
+      notebooks: [] as Notebook[],
+      addNotebook: (notebook) =>
+        set((state) => ({
+          notebooks: [...state.notebooks, { ...notebook, id: generateId(), createdAt: new Date() }],
+        })),
+      updateNotebook: (id, updates) =>
+        set((state) => ({
+          notebooks: state.notebooks.map((n) => (n.id === id ? { ...n, ...updates } : n)),
+        })),
+      deleteNotebook: (id) =>
+        set((state) => ({
+          notebooks: state.notebooks.filter((n) => n.id !== id),
+          // Also delete all pages in this notebook
+          notebookPages: state.notebookPages.filter((p) => p.notebookId !== id),
+        })),
+
+      // Notebook Pages
+      notebookPages: [] as NotebookPage[],
+      addNotebookPage: (page) =>
+        set((state) => ({
+          notebookPages: [...state.notebookPages, { ...page, id: generateId(), createdAt: new Date(), updatedAt: new Date() }],
+        })),
+      updateNotebookPage: (id, updates) =>
+        set((state) => ({
+          notebookPages: state.notebookPages.map((p) =>
+            p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p
+          ),
+        })),
+      deleteNotebookPage: (id) =>
+        set((state) => ({
+          notebookPages: state.notebookPages.filter((p) => p.id !== id),
         })),
 
       // Widgets

@@ -112,6 +112,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     const noteData = {
       title: title.trim() || 'Untitled',
       content: editor?.getHTML() || '',
+      type: note?.type || 'note' as const,
       folder,
       color,
       date,
