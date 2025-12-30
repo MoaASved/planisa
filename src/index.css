@@ -361,7 +361,7 @@
 }
 
 .tiptap-editor p {
-  @apply mb-2;
+  @apply mb-1 leading-snug;
 }
 
 .tiptap-editor h1 {
@@ -410,7 +410,7 @@
 }
 
 .tiptap-editor ul[data-type="taskList"] li > div {
-  @apply flex-1 leading-normal;
+  @apply flex-1 leading-snug;
 }
 
 /* No strikethrough on checked items */

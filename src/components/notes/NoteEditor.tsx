@@ -168,7 +168,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const selectedFolder = folders.find(f => f.name === folder);
   const noteColorStyle = color ? colorHslMap[color] : undefined;
 
-  // Toolbar button component for compactness
+  // Toolbar button component - Apple-inspired with subtle animations
   const ToolbarBtn = ({ 
     onClick, 
     active, 
@@ -185,8 +185,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     <button
       onClick={onClick}
       className={cn(
-        'p-1.5 rounded-lg transition-colors',
-        active ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/50',
+        'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+        active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-black/5',
         destructive && 'hover:bg-destructive/10 text-destructive',
         className
       )}
@@ -202,19 +202,18 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     >
       {/* Top Horizontal Toolbar - Collapsible */}
       <div className="flex-shrink-0">
-        {/* Collapsed state - just a small bar */}
+        {/* Collapsed state - discrete tab */}
         {toolbarCollapsed ? (
-          <div className="flex justify-center py-1.5 border-b border-border/30">
+          <div className="flex justify-center py-2">
             <button
               onClick={() => setToolbarCollapsed(false)}
-              className="flex items-center gap-1 px-3 py-1 rounded-full bg-secondary/50 text-muted-foreground text-xs"
+              className="flex items-center justify-center w-10 h-6 rounded-full bg-white/80 backdrop-blur-sm shadow-sm text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
             >
-              <ChevronDown className="w-3 h-3" />
-              <span>Toolbar</span>
+              <ChevronDown className="w-4 h-4" />
             </button>
           </div>
         ) : (
-          <div className="border-b border-border/30">
+          <div className="bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
             {/* Toolbar content */}
             <div className="flex items-center justify-between px-2 py-1.5 gap-1 overflow-x-auto">
               {/* Left group: Note actions */}
@@ -351,18 +350,18 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         )}
       </div>
 
-      {/* Header - Back arrow */}
-      <div className="flex-shrink-0 flex items-center px-4 py-3">
+      {/* Header - Back arrow with white circular background */}
+      <div className="flex-shrink-0 flex items-center px-4 py-2">
         <button 
           onClick={handleSave}
-          className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors"
+          className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
 
       {/* Date and Folder centered */}
-      <div className="flex-shrink-0 flex flex-col items-center px-4 pb-4">
+      <div className="flex-shrink-0 flex flex-col items-center px-4 pb-2">
         <span 
           className="text-sm font-medium"
           style={{ color: noteColorStyle || 'hsl(var(--muted-foreground))' }}
@@ -370,7 +369,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           {format(date, 'd MMMM yyyy', { locale: sv })}
         </span>
         {folder && (
-          <span className={cn('flow-badge mt-1', selectedFolder ? `flow-badge-${selectedFolder.color}` : 'flow-badge-gray')}>
+          <span className="mt-1.5 px-3 py-1 rounded-full bg-white shadow-sm text-xs font-medium text-muted-foreground">
             {folder}
           </span>
         )}
@@ -402,7 +401,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {/* Metadata Section (popup from settings button) */}
       {showMetadata && (
         <div 
-          className="fixed left-4 right-4 top-16 border border-border bg-card/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-50 shadow-lg transition-all"
+          className="fixed left-4 right-4 top-16 border border-white/20 bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-50 shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Date picker */}
