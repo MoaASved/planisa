@@ -11,7 +11,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import { 
   ArrowLeft, 
   Folder, 
-  Palette, 
   Pin, 
   Trash2,
   Bold,
@@ -33,7 +32,6 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
 import { FolderPickerSheet } from './FolderPickerSheet';
-import { ColorPickerSheet } from './ColorPickerSheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors } from '@/lib/colors';
@@ -62,14 +60,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   
   const [title, setTitle] = useState(note?.title || '');
   const [folder, setFolder] = useState<string | undefined>(note?.folder);
-  const [color, setColor] = useState<PastelColor | undefined>(note?.color);
   const [date, setDate] = useState<Date>(note?.date ? new Date(note.date) : new Date());
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar || false);
   const [hideFromAllNotes, setHideFromAllNotes] = useState(note?.hideFromAllNotes || false);
+  const [hideDate, setHideDate] = useState(note?.hideDate || false);
   
   const [showFolderPicker, setShowFolderPicker] = useState(false);
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
@@ -114,12 +111,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       content: editor?.getHTML() || '',
       type: note?.type || 'note' as const,
       folder,
-      color,
+      color: undefined, // Regular notes don't have color
       date,
       tags: [],
       isPinned,
       showInCalendar,
       hideFromAllNotes,
+      hideDate,
     };
 
     if (note) {
@@ -167,7 +165,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
   const AlignIcon = getAlignmentIcon();
   const selectedFolder = folders.find(f => f.name === folder);
-  const noteColorStyle = color ? colorHslMap[color] : undefined;
 
   // Toolbar button component - Apple-inspired with subtle animations
   const ToolbarBtn = ({ 
@@ -199,7 +196,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   return (
     <div 
       className="fixed inset-0 z-50 bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
-      style={{ '--note-color': noteColorStyle } as React.CSSProperties}
     >
       {/* Top Horizontal Toolbar - Collapsible */}
       <div className="flex-shrink-0">
@@ -224,9 +220,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 </ToolbarBtn>
                 <ToolbarBtn onClick={() => setShowFolderPicker(true)} active={!!folder}>
                   <Folder className="w-4 h-4" />
-                </ToolbarBtn>
-                <ToolbarBtn onClick={() => setShowColorPicker(true)}>
-                  <Palette className="w-4 h-4" />
                 </ToolbarBtn>
                 {note && (
                   <ToolbarBtn onClick={handleDelete} destructive>
@@ -363,14 +356,15 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
       {/* Date and Folder centered */}
       <div className="flex-shrink-0 flex flex-col items-center px-4 pb-2">
-        <span 
-          className="text-sm font-medium"
-          style={{ color: noteColorStyle || 'hsl(var(--muted-foreground))' }}
-        >
-          {format(date, 'd MMMM yyyy', { locale: sv })}
-        </span>
+        {!hideDate && (
+          <span 
+            className="text-sm font-medium text-muted-foreground"
+          >
+            {format(date, 'd MMMM yyyy', { locale: sv })}
+          </span>
+        )}
         {folder && (
-          <span className="mt-1.5 px-3 py-1 rounded-full bg-white shadow-sm text-xs font-medium text-muted-foreground">
+          <span className={cn("px-3 py-1 rounded-full bg-white shadow-sm text-xs font-medium text-muted-foreground", !hideDate && "mt-1.5")}>
             {folder}
           </span>
         )}
@@ -470,6 +464,28 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               />
             </button>
           </div>
+          
+          {/* Hide date toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Hide Date</span>
+            </div>
+            <button
+              onClick={() => setHideDate(!hideDate)}
+              className={cn(
+                'w-11 h-6 rounded-full transition-colors relative',
+                hideDate ? 'bg-primary' : 'bg-secondary'
+              )}
+            >
+              <span 
+                className={cn(
+                  'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
+                  hideDate ? 'translate-x-6' : 'translate-x-1'
+                )}
+              />
+            </button>
+          </div>
         </div>
       )}
 
@@ -484,16 +500,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         }}
       />
 
-      {/* Color Picker Sheet */}
-      <ColorPickerSheet
-        isOpen={showColorPicker}
-        onClose={() => setShowColorPicker(false)}
-        selectedColor={color}
-        onSelectColor={(c) => {
-          setColor(c);
-          setShowColorPicker(false);
-        }}
-      />
     </div>
   );
 }

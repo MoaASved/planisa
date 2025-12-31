@@ -299,9 +299,9 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                     onClick={() => setSelectedColor(colorObj.value)}
                     className={cn(
                       'w-8 h-8 rounded-full border-2 transition-all',
-                      selectedColor === color ? 'border-foreground scale-110' : 'border-transparent'
+                      selectedColor === colorObj.value ? 'border-foreground scale-110' : 'border-transparent'
                     )}
-                    style={{ background: `hsl(var(--pastel-${color}))` }}
+                    style={{ background: `hsl(var(--pastel-${colorObj.value}))` }}
                   />
                 ))}
               </div>
