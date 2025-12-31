@@ -1,6 +1,6 @@
-import { ChevronRight, BookOpen } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Notebook, PastelColor } from '@/types';
+import { Notebook } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 
 interface NotebookCardProps {
@@ -15,25 +15,38 @@ export function NotebookCard({ notebook, onClick }: NotebookCardProps) {
   return (
     <button
       onClick={onClick}
-      className="flow-card text-left group w-full"
+      className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30"
     >
-      <div className="flex items-center gap-3">
-        <div className={cn(
-          'w-14 h-16 rounded-xl flex items-center justify-center relative overflow-hidden',
-          `bg-pastel-${notebook.color}/30`
-        )}>
-          {/* Notebook spine effect */}
-          <div className="absolute left-0 top-0 bottom-0 w-2 bg-black/10 rounded-l-xl" />
-          <BookOpen className={cn('w-6 h-6 ml-1', `text-pastel-${notebook.color}`)} />
+      {/* macOS style notebook icon */}
+      <div className="w-14 h-[72px] mb-2 relative">
+        {/* Notebook body */}
+        <div 
+          className={cn(
+            'absolute inset-0 rounded-lg',
+            `bg-[hsl(var(--pastel-${notebook.color}))]`
+          )}
+        >
+          {/* Spine effect */}
+          <div className="absolute left-0 top-0 bottom-0 w-3 bg-black/10 rounded-l-lg" />
+          {/* Lines decoration */}
+          <div className="absolute right-2 top-4 bottom-4 left-5 space-y-2">
+            <div className="h-[1px] bg-black/5" />
+            <div className="h-[1px] bg-black/5" />
+            <div className="h-[1px] bg-black/5" />
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-foreground truncate">{notebook.name}</h4>
-          <p className="text-sm text-muted-foreground">
-            {pageCount} {pageCount === 1 ? 'page' : 'pages'}
-          </p>
+        {/* Icon overlay */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <BookOpen className="w-6 h-6 text-white/80" />
         </div>
-        <ChevronRight className="w-5 h-5 text-muted-foreground" />
       </div>
+      
+      <span className="text-sm font-medium text-center truncate max-w-[80px]">
+        {notebook.name}
+      </span>
+      <span className="text-xs text-muted-foreground">
+        {pageCount} {pageCount === 1 ? 'page' : 'pages'}
+      </span>
     </button>
   );
 }

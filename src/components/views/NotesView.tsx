@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { 
-  Folder, 
+  FolderOpen, 
   FolderPlus,
-  Pin, 
   ChevronRight,
   Star,
   LayoutGrid,
@@ -11,11 +10,12 @@ import {
   X,
   Search,
   BookOpen,
-  Plus
+  Plus,
+  ArrowLeft
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Note, PastelColor, Notebook } from '@/types';
+import { Note, PastelColor, Notebook, Folder } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
@@ -24,25 +24,8 @@ import { NotebookCard } from '@/components/notes/NotebookCard';
 import { NotebookView } from '@/components/notes/NotebookView';
 import { NotesFAB } from '@/components/notes/NotesFAB';
 
-type ViewTab = 'all' | 'folders' | 'sticky' | 'notebooks';
+type ViewTab = 'notes' | 'folders' | 'sticky' | 'notebooks';
 type LayoutMode = 'list' | 'grid';
-
-const getPostItBgClass = (color?: PastelColor): string => {
-  if (!color) return 'bg-card border border-border';
-  const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral/30',
-    peach: 'bg-pastel-peach/30',
-    amber: 'bg-pastel-amber/30',
-    yellow: 'bg-pastel-yellow/30',
-    mint: 'bg-pastel-mint/30',
-    teal: 'bg-pastel-teal/30',
-    sky: 'bg-pastel-sky/30',
-    lavender: 'bg-pastel-lavender/30',
-    rose: 'bg-pastel-rose/30',
-    gray: 'bg-pastel-gray/30',
-  };
-  return colorMap[color] || 'bg-card border border-border';
-};
 
 interface NotesViewProps {
   onEditingChange?: (isEditing: boolean) => void;
@@ -52,9 +35,9 @@ interface NotesViewProps {
 
 export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, searchQuery, setSearchQuery } = useAppStore();
-  const [viewTab, setViewTab] = useState<ViewTab>('all');
+  const [viewTab, setViewTab] = useState<ViewTab>('notes');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectedStickyNote, setSelectedStickyNote] = useState<Note | null>(null);
   const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
@@ -66,43 +49,33 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
   const [newNotebookName, setNewNotebookName] = useState('');
   const [newNotebookColor, setNewNotebookColor] = useState<PastelColor>('lavender');
   const [showSearch, setShowSearch] = useState(false);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
 
-  // Filter notes based on type and search
-  const regularNotes = notes.filter(n => n.type !== 'sticky');
+  // Get all notes and sticky notes
+  const allNotes = notes.filter(n => !n.hideFromAllNotes);
   const stickyNotes = notes.filter(n => n.type === 'sticky');
 
-  const filteredNotes = regularNotes
-    .filter(note => {
-      if (selectedFolder === '__no_folder__') return !note.folder;
-      if (!selectedFolder && note.hideFromAllNotes && !searchQuery) return false;
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
-      }
-      return true;
-    })
-    .filter(note => {
-      if (selectedFolder === '__no_folder__') return !note.folder;
-      return !selectedFolder || note.folder === selectedFolder;
-    })
-    .sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
+  // Filter notes based on search
+  const filteredAllNotes = allNotes.filter(note => {
+    if (!localSearchQuery) return true;
+    const query = localSearchQuery.toLowerCase();
+    return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
+  }).sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  });
 
-  const filteredStickyNotes = stickyNotes
-    .filter(note => {
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
-      }
-      return true;
-    })
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  const filteredStickyNotes = stickyNotes.filter(note => {
+    if (!localSearchQuery) return true;
+    const query = localSearchQuery.toLowerCase();
+    return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
+  });
 
-  const pinnedNotes = filteredNotes.filter(n => n.isPinned);
-  const otherNotes = filteredNotes.filter(n => !n.isPinned);
+  // Notes in selected folder (both regular and sticky)
+  const folderNotes = selectedFolder 
+    ? notes.filter(n => n.folder === selectedFolder.name)
+    : [];
 
   const getPreview = (content: string) => {
     const plainText = content.replace(/<[^>]*>/g, '').trim();
@@ -151,28 +124,34 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     setIsCreatingStickyNote(true);
   };
 
-  // Note card component
+  // Note card component - NO color for regular notes
   const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => {
     const folderData = folders.find(f => f.name === note.folder);
+    const isSticky = note.type === 'sticky';
+    
+    // Only sticky notes get color
+    const cardBgClass = isSticky && note.color
+      ? `bg-[hsl(var(--pastel-${note.color})/0.3)]`
+      : 'bg-card border border-border';
     
     return (
       <button
         onClick={() => handleOpenNote(note)}
         className={cn(
           'text-left group transition-all duration-200 w-full rounded-2xl p-4',
-          getPostItBgClass(note.color),
+          cardBgClass,
           isGrid && 'min-h-[140px]',
-          'shadow-soft hover:shadow-card'
+          'shadow-sm hover:shadow-md active:scale-[0.98]'
         )}
       >
         <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+              <h4 className="font-semibold text-foreground truncate">
                 {note.title || 'Untitled'}
               </h4>
               {note.isPinned && (
-                <Star className="w-4 h-4 text-pastel-amber flex-shrink-0" fill="currentColor" />
+                <Star className="w-4 h-4 text-[hsl(var(--pastel-amber))] flex-shrink-0" fill="currentColor" />
               )}
             </div>
             <p className={cn('text-sm text-muted-foreground mt-1', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
@@ -212,57 +191,121 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     return <NotebookView notebook={selectedNotebook} onClose={() => setSelectedNotebook(null)} />;
   }
 
-  // Tabs header
-  const TabsHeader = () => (
-    <div className="flex items-center justify-between mb-4 gap-2">
-      <div className="flex-1 overflow-x-auto">
-        <div className="flow-segment inline-flex">
-          {(['all', 'folders', 'sticky', 'notebooks'] as ViewTab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => { setViewTab(tab); setSelectedFolder(null); }}
-              className={cn('flow-segment-item whitespace-nowrap', viewTab === tab && 'flow-segment-item-active')}
-            >
-              {tab === 'all' ? 'All' : tab === 'folders' ? 'Folders' : tab === 'sticky' ? 'Sticky' : 'Notebooks'}
-            </button>
-          ))}
+  // Inside folder view - separate from tabs
+  if (selectedFolder) {
+    return (
+      <div className="min-h-screen pb-24">
+        {/* Header with back button */}
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button 
+            onClick={() => setSelectedFolder(null)}
+            className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <FolderOpen className={`w-5 h-5 text-[hsl(var(--pastel-${selectedFolder.color}))]`} />
+          <h1 className="font-semibold text-lg">{selectedFolder.name}</h1>
         </div>
+
+        {/* Notes in folder */}
+        <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-2')}>
+          {folderNotes.length === 0 ? (
+            <div className="col-span-2 text-center py-12 text-muted-foreground">
+              <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>No notes in this folder</p>
+            </div>
+          ) : (
+            folderNotes.map(note => (
+              note.type === 'sticky' 
+                ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+                : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
+            ))
+          )}
+        </div>
+
+        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
       </div>
+    );
+  }
+
+  // Navigation tabs - centered with smooth button styling
+  const TabsHeader = () => (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex-1" />
       
-      <div className="flex items-center gap-1">
-        <div className="flex bg-secondary rounded-xl p-1">
-          <button onClick={() => setLayoutMode('list')} className={cn('p-2 rounded-lg transition-colors', layoutMode === 'list' && 'bg-card shadow-soft')}>
-            <LayoutList className="w-4 h-4" />
+      {/* Centered navigation tabs */}
+      <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5">
+        {(['notes', 'folders', 'sticky', 'notebooks'] as ViewTab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setViewTab(tab)}
+            className={cn(
+              'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
+              viewTab === tab 
+                ? 'bg-card shadow-sm text-foreground' 
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {tab === 'notes' ? 'Notes' : tab === 'folders' ? 'Folders' : tab === 'sticky' ? 'Sticky' : 'Notebooks'}
           </button>
-          <button onClick={() => setLayoutMode('grid')} className={cn('p-2 rounded-lg transition-colors', layoutMode === 'grid' && 'bg-card shadow-soft')}>
-            <LayoutGrid className="w-4 h-4" />
-          </button>
-        </div>
-        <button onClick={() => setShowSearch(!showSearch)} className="p-2 rounded-xl hover:bg-secondary transition-colors">
-          <Search className="w-5 h-5 text-muted-foreground" />
+        ))}
+      </div>
+
+      {/* Right controls */}
+      <div className="flex-1 flex justify-end gap-2">
+        <button
+          onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
+        </button>
+        <button
+          onClick={() => setShowSearch(!showSearch)}
+          className={cn(
+            'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
+            showSearch ? 'text-foreground bg-secondary' : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Search className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
 
-  // Notebooks view
+  // Notebooks view - macOS style icons
   if (viewTab === 'notebooks') {
     return (
       <div className="min-h-screen pb-24">
         <div className="px-4 py-4">
           <TabsHeader />
           
-          <button onClick={() => setShowNotebookModal(true)} className="w-full flow-card-flat flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Plus className="w-5 h-5 text-primary" />
+          {showSearch && (
+            <div className="mb-4 animate-fade-in">
+              <input
+                type="text"
+                placeholder="Search notebooks..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                className="w-full flow-input"
+              />
             </div>
-            <span className="font-medium text-foreground">Create Notebook</span>
-          </button>
+          )}
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-4">
             {notebooks.map((notebook) => (
               <NotebookCard key={notebook.id} notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
             ))}
+
+            {/* Add notebook button */}
+            <button
+              onClick={() => setShowNotebookModal(true)}
+              className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
+            >
+              <div className="w-14 h-[72px] mb-2 flex items-center justify-center">
+                <Plus className="w-8 h-8 text-muted-foreground/50" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">New</span>
+            </button>
           </div>
 
           {notebooks.length === 0 && (
@@ -306,6 +349,18 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
         <div className="px-4 py-4">
           <TabsHeader />
           
+          {showSearch && (
+            <div className="mb-4 animate-fade-in">
+              <input
+                type="text"
+                placeholder="Search sticky notes..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                className="w-full flow-input"
+              />
+            </div>
+          )}
+
           <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
             {filteredStickyNotes.map(note => (
               <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
@@ -324,56 +379,87 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     );
   }
 
-  // Folders view
-  if (viewTab === 'folders' && !selectedFolder) {
+  // Folders view - macOS style icons
+  if (viewTab === 'folders') {
     return (
       <div className="min-h-screen pb-24">
         <div className="px-4 py-4">
           <TabsHeader />
 
-          <button onClick={() => setShowFolderModal(true)} className="w-full flow-card-flat flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <FolderPlus className="w-5 h-5 text-primary" />
+          {showSearch && (
+            <div className="mb-4 animate-fade-in">
+              <input
+                type="text"
+                placeholder="Search folders..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                className="w-full flow-input"
+              />
             </div>
-            <span className="font-medium text-foreground">Create Folder</span>
-          </button>
+          )}
 
-          <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+          <div className="grid grid-cols-3 gap-4">
             {folders.map((folder) => {
-              const folderNotes = regularNotes.filter(n => n.folder === folder.name);
+              const count = notes.filter(n => n.folder === folder.name).length;
               return (
-                <button key={folder.id} onClick={() => { setSelectedFolder(folder.name); setViewTab('all'); }} className="flow-card text-left group w-full">
-                  <div className="flex items-center gap-3">
-                    <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center', `bg-pastel-${folder.color}/20`)}>
-                      <Folder className={cn('w-6 h-6', `text-pastel-${folder.color}`)} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">{folder.name}</h4>
-                      <p className="text-sm text-muted-foreground">{folderNotes.length} notes</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
+                <button
+                  key={folder.id}
+                  onClick={() => setSelectedFolder(folder)}
+                  className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30"
+                >
+                  {/* macOS style folder icon */}
+                  <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2">
+                    <path 
+                      d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
+                      fill={`hsl(var(--pastel-${folder.color}))`}
+                      opacity="0.9"
+                    />
+                    <path 
+                      d="M4 16 L76 16 L76 60 C76 62 74 64 72 64 L8 64 C6 64 4 62 4 60 L4 16 Z" 
+                      fill={`hsl(var(--pastel-${folder.color}))`}
+                    />
+                  </svg>
+                  <span className="text-sm font-medium text-center truncate max-w-[80px]">
+                    {folder.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {count} {count === 1 ? 'item' : 'items'}
+                  </span>
                 </button>
               );
             })}
+
+            {/* Add folder button */}
+            <button
+              onClick={() => setShowFolderModal(true)}
+              className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
+            >
+              <div className="w-16 h-14 mb-2 flex items-center justify-center">
+                <Plus className="w-8 h-8 text-muted-foreground/50" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">New Folder</span>
+            </button>
           </div>
 
+          {/* No folder section */}
           {(() => {
-            const noFolderNotes = regularNotes.filter(n => !n.folder);
+            const noFolderNotes = notes.filter(n => !n.folder);
             if (noFolderNotes.length === 0) return null;
             return (
-              <div className="mt-4 pt-4 border-t border-border/50">
-                <button onClick={() => { setSelectedFolder('__no_folder__'); setViewTab('all'); }} className="flow-card-flat text-left group w-full opacity-60 hover:opacity-100 transition-opacity">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-muted/30">
-                      <Folder className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-muted-foreground">No Folder</h4>
-                      <p className="text-sm text-muted-foreground/70">{noFolderNotes.length} notes</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-                  </div>
+              <div className="mt-6 pt-4 border-t border-border/50">
+                <button
+                  onClick={() => setSelectedFolder({ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder)}
+                  className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 opacity-60"
+                >
+                  <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2 opacity-50">
+                    <path 
+                      d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
+                      fill="hsl(var(--muted-foreground))"
+                      opacity="0.3"
+                    />
+                  </svg>
+                  <span className="text-sm font-medium text-muted-foreground">No Folder</span>
+                  <span className="text-xs text-muted-foreground/70">{noFolderNotes.length} items</span>
                 </button>
               </div>
             );
@@ -386,7 +472,9 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
             <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">New Folder</h3>
-                <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary"><X className="w-5 h-5 text-muted-foreground" /></button>
+                <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
               </div>
               <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Folder name" className="flow-input mb-4" />
               <div className="flex flex-wrap gap-2 mb-4">
@@ -404,39 +492,37 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
     );
   }
 
-  // All Notes view
+  // Notes view (default) - all notes and sticky notes, regular notes without color
   return (
     <div className="min-h-screen pb-24">
       <div className="px-4 py-4">
         <TabsHeader />
 
-        {selectedFolder && (
-          <button onClick={() => setSelectedFolder(null)} className={cn("flex items-center gap-2 px-3 py-2 rounded-xl mb-4", selectedFolder === '__no_folder__' ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground")}>
-            <Folder className="w-4 h-4" />
-            <span className="text-sm font-medium">{selectedFolder === '__no_folder__' ? 'No Folder' : selectedFolder}</span>
-            <X className="w-4 h-4" />
-          </button>
-        )}
-
-        {pinnedNotes.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2"><Pin className="w-4 h-4" /> Pinned</h3>
-            <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-              {pinnedNotes.map(note => <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />)}
-            </div>
+        {showSearch && (
+          <div className="mb-4 animate-fade-in">
+            <input
+              type="text"
+              placeholder="Search notes..."
+              value={localSearchQuery}
+              onChange={(e) => setLocalSearchQuery(e.target.value)}
+              className="w-full flow-input"
+            />
           </div>
         )}
 
-        {otherNotes.length > 0 && (
-          <div>
-            {pinnedNotes.length > 0 && <h3 className="text-sm font-semibold text-muted-foreground mb-3">Notes</h3>}
-            <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-              {otherNotes.map(note => <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />)}
-            </div>
+        <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+          {filteredAllNotes.map(note => (
+            note.type === 'sticky' 
+              ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+              : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
+          ))}
+        </div>
+
+        {filteredAllNotes.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No notes yet</p>
           </div>
         )}
-
-        {filteredNotes.length === 0 && <div className="text-center py-12"><p className="text-muted-foreground">No notes yet</p></div>}
       </div>
 
       <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
