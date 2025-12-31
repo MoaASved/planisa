@@ -3,8 +3,8 @@ import { ArrowLeft, Plus, BookOpen, FileText, StickyNote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Notebook, NotebookPage } from '@/types';
-import { NoteEditor } from './NoteEditor';
-import { StickyNoteEditor } from './StickyNoteEditor';
+import { NotebookPageEditor } from './NotebookPageEditor';
+import { StickyNoteCard } from './StickyNoteCard';
 
 interface NotebookViewProps {
   notebook: Notebook;
@@ -22,34 +22,33 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
     .sort((a, b) => a.order - b.order);
 
   const handleAddPage = (type: 'note' | 'sticky') => {
-    addNotebookPage({
-      notebookId: notebook.id,
-      title: type === 'note' ? 'Untitled Page' : 'Quick Note',
-      content: '',
-      type,
-      order: pages.length,
-    });
+    if (type === 'note') {
+      setIsCreatingPage(true);
+    } else {
+      // For sticky notes, create directly
+      addNotebookPage({
+        notebookId: notebook.id,
+        title: 'Quick Note',
+        content: '',
+        type: 'sticky',
+        order: pages.length,
+        color: 'yellow',
+      });
+    }
     setShowAddMenu(false);
   };
 
   // Show page editor
   if (selectedPage || isCreatingPage) {
-    // For now, we'll use a simplified editor approach
-    // In a full implementation, you'd adapt NoteEditor for notebook pages
     return (
-      <div className="fixed inset-0 bg-background z-50">
-        <div className="flex items-center px-4 py-3">
-          <button 
-            onClick={() => { setSelectedPage(null); setIsCreatingPage(false); }}
-            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="px-4 py-8 text-center text-muted-foreground">
-          <p>Page editor coming soon...</p>
-        </div>
-      </div>
+      <NotebookPageEditor
+        notebook={notebook}
+        page={selectedPage || undefined}
+        onClose={() => {
+          setSelectedPage(null);
+          setIsCreatingPage(false);
+        }}
+      />
     );
   }
 
@@ -59,17 +58,17 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
         <button 
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center active:scale-95 transition-all"
+          className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
           <div className={cn(
             'w-8 h-10 rounded-lg flex items-center justify-center relative',
-            `bg-pastel-${notebook.color}/30`
+            `bg-[hsl(var(--pastel-${notebook.color})/0.3)]`
           )}>
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-black/10 rounded-l-lg" />
-            <BookOpen className={cn('w-4 h-4', `text-pastel-${notebook.color}`)} />
+            <BookOpen className={cn('w-4 h-4', `text-[hsl(var(--pastel-${notebook.color}))]`)} />
           </div>
           <h1 className="font-semibold text-lg">{notebook.name}</h1>
         </div>
@@ -91,7 +90,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
               className={cn(
                 'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98]',
                 page.type === 'sticky' 
-                  ? `bg-pastel-${page.color || 'yellow'}/40` 
+                  ? `bg-[hsl(var(--pastel-${page.color || 'yellow'})/0.4)]` 
                   : 'bg-card border border-border'
               )}
             >
@@ -124,7 +123,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
               className="fixed inset-0" 
               onClick={() => setShowAddMenu(false)} 
             />
-            <div className="absolute bottom-16 right-0 bg-card rounded-2xl shadow-lg border border-border p-2 min-w-[160px] animate-in fade-in-0 slide-in-from-bottom-2">
+            <div className="absolute bottom-16 right-0 bg-card rounded-2xl shadow-lg border border-border p-2 min-w-[160px] animate-fade-in">
               <button
                 onClick={() => handleAddPage('note')}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors"
@@ -136,7 +135,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                 onClick={() => handleAddPage('sticky')}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors"
               >
-                <StickyNote className="w-5 h-5 text-pastel-yellow" />
+                <StickyNote className="w-5 h-5 text-[hsl(var(--pastel-yellow))]" />
                 <span className="font-medium">Add Sticky</span>
               </button>
             </div>
@@ -146,7 +145,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
           onClick={() => setShowAddMenu(!showAddMenu)}
           className={cn(
             'w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95',
-            `bg-pastel-${notebook.color}`
+            `bg-[hsl(var(--pastel-${notebook.color}))]`
           )}
         >
           <Plus className={cn('w-6 h-6 transition-transform', showAddMenu && 'rotate-45')} />

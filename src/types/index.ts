@@ -60,6 +60,7 @@ export interface Note {
   isPinned: boolean;
   showInCalendar?: boolean;
   hideFromAllNotes?: boolean;
+  hideDate?: boolean;
 }
 
 // Separate category types for each section
@@ -99,6 +100,8 @@ export interface NotebookPage {
   order: number;
   createdAt: Date;
   updatedAt: Date;
+  showInCalendar?: boolean;
+  hideDate?: boolean;
 }
 
 // Legacy Category type for backward compatibility
