@@ -9,15 +9,13 @@ interface CategoryDetailViewProps {
   tasks: Task[];
   onBack: () => void;
   onToggleTask: (id: string) => void;
-  onHideTask: (id: string) => void;
 }
 
 export function CategoryDetailView({ 
   category, 
   tasks, 
   onBack, 
-  onToggleTask, 
-  onHideTask
+  onToggleTask
 }: CategoryDetailViewProps) {
   return (
     <div className="min-h-screen pb-24">
@@ -47,7 +45,6 @@ export function CategoryDetailView({
             key={task.id}
             task={task}
             onToggle={() => onToggleTask(task.id)}
-            onHide={() => onHideTask(task.id)}
           />
         ))}
 

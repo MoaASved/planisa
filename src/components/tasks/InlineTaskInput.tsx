@@ -8,27 +8,25 @@ interface InlineTaskInputProps {
 }
 
 export function InlineTaskInput({ onTaskCreated }: InlineTaskInputProps) {
-  const { addTask, taskCategories } = useAppStore();
+  const { addTask } = useAppStore();
   const [title, setTitle] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = () => {
-    if (!title.trim()) return;
-
-    const defaultCategory = taskCategories[0];
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
     
     addTask({
-      title: title.trim(),
+      title: trimmedTitle,
       completed: false,
-      category: defaultCategory?.name || 'Personal',
-      color: defaultCategory?.color || 'gray',
+      category: '',
+      color: 'gray',
       subtasks: [],
       priority: 'none',
     });
-
+    
     setTitle('');
-    // Keep focus for quick successive entries
     inputRef.current?.focus();
   };
 
