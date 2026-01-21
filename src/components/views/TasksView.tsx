@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskCategory } from '@/types';
 import { SwipeableTaskCard } from '../tasks/SwipeableTaskCard';
-import { SwipeableCompletedCard } from '../tasks/SwipeableCompletedCard';
+import { CompletedTaskCard } from '../tasks/CompletedTaskCard';
 import { CategoryCard } from '../tasks/CategoryCard';
 import { CategoryDetailView } from '../tasks/CategoryDetailView';
 import { InlineTaskInput } from '../tasks/InlineTaskInput';
@@ -24,10 +24,9 @@ export function TasksView() {
   const [activeTab, setActiveTab] = useState<TabType>('tasks');
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
 
-  // Filter tasks based on search, hidden status, and completion
+  // Filter tasks based on search and hidden status (completed tasks stay visible)
   const activeTasks = tasks.filter(task => {
     if (task.hidden) return false;
-    if (task.completed) return false; // Completed tasks go to Completed tab
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return task.title.toLowerCase().includes(query) || 
@@ -124,13 +123,10 @@ export function TasksView() {
         {activeTab === 'completed' && (
           <div className="space-y-2">
             {completedTasks.map((task) => (
-              <SwipeableCompletedCard
+              <CompletedTaskCard
                 key={task.id}
                 task={task}
-                onRestore={() => {
-                  toggleTask(task.id); // Uncheck the task
-                  unhideTask(task.id); // Make sure it's not hidden
-                }}
+                onUnhide={() => unhideTask(task.id)}
                 onDelete={() => deleteTask(task.id)}
               />
             ))}
