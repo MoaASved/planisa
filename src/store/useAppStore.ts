@@ -13,6 +13,8 @@ interface AppState {
   toggleSubtask: (taskId: string, subtaskId: string) => void;
   hideTask: (id: string) => void;
   unhideTask: (id: string) => void;
+  addSubtask: (taskId: string, title: string) => void;
+  removeSubtask: (taskId: string, subtaskId: string) => void;
 
   // Events
   events: CalendarEvent[];
@@ -304,6 +306,28 @@ export const useAppStore = create<AppState>()(
       unhideTask: (id) =>
         set((state) => ({
           tasks: state.tasks.map((t) => (t.id === id ? { ...t, hidden: false } : t)),
+        })),
+      addSubtask: (taskId, title) =>
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === taskId
+              ? {
+                  ...t,
+                  subtasks: [
+                    ...t.subtasks,
+                    { id: `sub-${Date.now()}`, title, completed: false },
+                  ],
+                }
+              : t
+          ),
+        })),
+      removeSubtask: (taskId, subtaskId) =>
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === taskId
+              ? { ...t, subtasks: t.subtasks.filter((s) => s.id !== subtaskId) }
+              : t
+          ),
         })),
 
       // Events

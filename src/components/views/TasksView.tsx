@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Check, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Task, TaskCategory } from '@/types';
+import { TaskCategory } from '@/types';
 import { SwipeableTaskCard } from '../tasks/SwipeableTaskCard';
 import { CategoryCard } from '../tasks/CategoryCard';
 import { CategoryDetailView } from '../tasks/CategoryDetailView';
-import { EditTaskModal } from '../modals/EditTaskModal';
+import { InlineTaskInput } from '../tasks/InlineTaskInput';
 
 type TabType = 'tasks' | 'categories' | 'completed';
 
@@ -22,8 +22,6 @@ export function TasksView() {
   
   const [activeTab, setActiveTab] = useState<TabType>('tasks');
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
 
   // Filter tasks based on search and hidden status
   const activeTasks = tasks.filter(task => {
@@ -38,35 +36,17 @@ export function TasksView() {
 
   const hiddenTasks = tasks.filter(task => task.hidden);
 
-  const handleEditTask = (task: Task) => {
-    setSelectedTask(task);
-    setShowEditModal(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setSelectedTask(null);
-  };
-
   // Show category detail view
   if (selectedCategory) {
     const categoryTasks = activeTasks.filter(t => t.category === selectedCategory.name);
     return (
-      <>
-        <CategoryDetailView
-          category={selectedCategory}
-          tasks={categoryTasks}
-          onBack={() => setSelectedCategory(null)}
-          onToggleTask={toggleTask}
-          onHideTask={hideTask}
-          onEditTask={handleEditTask}
-        />
-        <EditTaskModal
-          task={selectedTask}
-          isOpen={showEditModal}
-          onClose={handleCloseEditModal}
-        />
-      </>
+      <CategoryDetailView
+        category={selectedCategory}
+        tasks={categoryTasks}
+        onBack={() => setSelectedCategory(null)}
+        onToggleTask={toggleTask}
+        onHideTask={hideTask}
+      />
     );
   }
 
@@ -98,17 +78,19 @@ export function TasksView() {
                 task={task}
                 onToggle={() => toggleTask(task.id)}
                 onHide={() => hideTask(task.id)}
-                onClick={() => handleEditTask(task)}
               />
             ))}
 
+            {/* Inline Task Input - Always visible at the bottom */}
+            <InlineTaskInput />
+
             {activeTasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-4">
                   <Check className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">All caught up!</h3>
-                <p className="text-sm text-muted-foreground">No tasks to show</p>
+                <p className="text-sm text-muted-foreground">Add a task above to get started</p>
               </div>
             )}
           </div>
@@ -183,13 +165,6 @@ export function TasksView() {
           </div>
         )}
       </div>
-
-      {/* Edit Task Modal */}
-      <EditTaskModal
-        task={selectedTask}
-        isOpen={showEditModal}
-        onClose={handleCloseEditModal}
-      />
     </div>
   );
 }

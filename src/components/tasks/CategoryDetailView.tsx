@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task, TaskCategory } from '@/types';
 import { SwipeableTaskCard } from './SwipeableTaskCard';
+import { InlineTaskInput } from './InlineTaskInput';
 
 interface CategoryDetailViewProps {
   category: TaskCategory;
@@ -9,7 +10,6 @@ interface CategoryDetailViewProps {
   onBack: () => void;
   onToggleTask: (id: string) => void;
   onHideTask: (id: string) => void;
-  onEditTask: (task: Task) => void;
 }
 
 export function CategoryDetailView({ 
@@ -17,8 +17,7 @@ export function CategoryDetailView({
   tasks, 
   onBack, 
   onToggleTask, 
-  onHideTask,
-  onEditTask 
+  onHideTask
 }: CategoryDetailViewProps) {
   return (
     <div className="min-h-screen pb-24">
@@ -49,12 +48,14 @@ export function CategoryDetailView({
             task={task}
             onToggle={() => onToggleTask(task.id)}
             onHide={() => onHideTask(task.id)}
-            onClick={() => onEditTask(task)}
           />
         ))}
 
+        {/* Inline Task Input */}
+        <InlineTaskInput />
+
         {tasks.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex flex-col items-center justify-center py-12 text-center">
             <p className="text-muted-foreground">No tasks in this category</p>
           </div>
         )}
