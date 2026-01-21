@@ -13,7 +13,7 @@ interface TaskEditPanelProps {
 }
 
 export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
-  const { updateTask, deleteTask, hideTask, taskCategories } = useAppStore();
+  const { updateTask, deleteTask, hideTask, toggleTask, taskCategories } = useAppStore();
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempTime, setTempTime] = useState(task.time || '');
@@ -133,7 +133,13 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
 
         {/* Hide Button */}
         <button 
-          onClick={() => { hideTask(task.id); onClose(); }}
+          onClick={() => { 
+            if (!task.completed) {
+              toggleTask(task.id); // Mark as completed if not already
+            }
+            hideTask(task.id); 
+            onClose(); 
+          }}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
         >
           <EyeOff className="w-3.5 h-3.5" />
