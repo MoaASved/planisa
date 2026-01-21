@@ -16,6 +16,7 @@ export function TasksView() {
     tasks, 
     toggleTask, 
     deleteTask,
+    hideTask,
     unhideTask,
     searchQuery, 
     taskCategories 
@@ -126,6 +127,7 @@ export function TasksView() {
               <CompletedTaskCard
                 key={task.id}
                 task={task}
+                onHide={() => hideTask(task.id)}
                 onUnhide={() => unhideTask(task.id)}
                 onDelete={() => deleteTask(task.id)}
               />
