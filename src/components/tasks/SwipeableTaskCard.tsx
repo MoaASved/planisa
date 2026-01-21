@@ -41,17 +41,17 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
     const currentX = e.touches[0].clientX;
     const diff = startXRef.current - currentX;
     
-    // Only swipe right (negative diff) → Edit action
-    if (diff < 0) {
-      setSwipeOffset(Math.max(diff, -100));
+    // Swipe left (positive diff) → Edit action on right side
+    if (diff > 0) {
+      setSwipeOffset(Math.min(diff, 100));
     }
   };
 
   const handleTouchEnd = () => {
     setIsSwiping(false);
     
-    if (swipeOffset <= -SWIPE_THRESHOLD) {
-      // Swipe right → Show edit panel
+    if (swipeOffset >= SWIPE_THRESHOLD) {
+      // Swipe left → Show edit panel
       setShowEditPanel(true);
     }
     setSwipeOffset(0);
@@ -92,8 +92,8 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
         ref={cardRef}
         className="relative overflow-hidden rounded-2xl"
       >
-        {/* Hidden action behind - RIGHT (edit indicator) */}
-        <div className="absolute left-0 inset-y-0 flex items-center justify-center w-20 bg-primary rounded-l-2xl">
+        {/* Hidden action behind - RIGHT side (edit indicator) */}
+        <div className="absolute right-0 inset-y-0 flex items-center justify-center w-20 bg-primary rounded-r-2xl">
           <span className="text-xs font-medium text-primary-foreground">Edit</span>
         </div>
 
@@ -101,7 +101,7 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
         <div
           className={cn(
             "flow-card-flat relative bg-card cursor-pointer transition-transform",
-            !isSwiping && "duration-200"
+            !isSwiping && "duration-[400ms]"
           )}
           style={{ transform: `translateX(${-swipeOffset}px)` }}
           onTouchStart={handleTouchStart}
@@ -143,9 +143,11 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
               </div>
 
               <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className={cn('flow-badge', `flow-badge-${task.color}`)}>
-                  {task.category}
-                </span>
+                {task.category && (
+                  <span className={cn('flow-badge', `flow-badge-${task.color}`)}>
+                    {task.category}
+                  </span>
+                )}
                 {task.date && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Calendar className="w-3 h-3" />
