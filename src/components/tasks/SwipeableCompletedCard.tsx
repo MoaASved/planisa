@@ -1,15 +1,15 @@
 import { useState, useRef } from 'react';
-import { Check, Eye, Trash2 } from 'lucide-react';
+import { Check, RotateCcw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task } from '@/types';
 
 interface SwipeableCompletedCardProps {
   task: Task;
-  onUnhide: () => void;
+  onRestore: () => void;
   onDelete: () => void;
 }
 
-export function SwipeableCompletedCard({ task, onUnhide, onDelete }: SwipeableCompletedCardProps) {
+export function SwipeableCompletedCard({ task, onRestore, onDelete }: SwipeableCompletedCardProps) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -27,17 +27,17 @@ export function SwipeableCompletedCard({ task, onUnhide, onDelete }: SwipeableCo
     const currentX = e.touches[0].clientX;
     const diff = startXRef.current - currentX;
     
-    // Only swipe right (negative diff) → Delete action
-    if (diff < 0) {
-      setSwipeOffset(Math.max(diff, -100));
+    // Swipe left (positive diff) → Delete action on right side
+    if (diff > 0) {
+      setSwipeOffset(Math.min(diff, 100));
     }
   };
 
   const handleTouchEnd = () => {
     setIsSwiping(false);
     
-    if (swipeOffset <= -SWIPE_THRESHOLD) {
-      // Swipe right → Delete
+    if (swipeOffset >= SWIPE_THRESHOLD) {
+      // Swipe left → Delete
       setIsDeleting(true);
       setTimeout(() => {
         onDelete();
@@ -53,8 +53,8 @@ export function SwipeableCompletedCard({ task, onUnhide, onDelete }: SwipeableCo
         isDeleting && "opacity-0 scale-95"
       )}
     >
-      {/* Hidden action behind - RIGHT (delete) */}
-      <div className="absolute left-0 inset-y-0 flex items-center justify-center w-20 bg-red-500 rounded-l-2xl">
+      {/* Hidden action behind - RIGHT side (delete) */}
+      <div className="absolute right-0 inset-y-0 flex items-center justify-center w-20 bg-red-500 rounded-r-2xl">
         <Trash2 className="w-5 h-5 text-white" />
       </div>
 
@@ -62,7 +62,7 @@ export function SwipeableCompletedCard({ task, onUnhide, onDelete }: SwipeableCo
       <div
         className={cn(
           "flow-card-flat relative bg-card opacity-60 transition-transform",
-          !isSwiping && "duration-200"
+          !isSwiping && "duration-[400ms] ease-out"
         )}
         style={{ transform: `translateX(${-swipeOffset}px)` }}
         onTouchStart={handleTouchStart}
@@ -87,11 +87,11 @@ export function SwipeableCompletedCard({ task, onUnhide, onDelete }: SwipeableCo
             </div>
           </div>
           <button
-            onClick={onUnhide}
+            onClick={onRestore}
             className="p-2 rounded-xl hover:bg-secondary transition-colors"
-            title="Unhide task"
+            title="Restore task"
           >
-            <Eye className="w-4 h-4 text-muted-foreground" />
+            <RotateCcw className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
       </div>
