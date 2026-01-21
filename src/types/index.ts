@@ -18,6 +18,7 @@ export interface Task {
   id: string;
   title: string;
   completed: boolean;
+  hidden?: boolean;
   date?: Date;
   time?: string;
   category: string;
