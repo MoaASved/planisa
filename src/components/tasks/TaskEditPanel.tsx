@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Folder, Calendar, Clock, Trash2, X } from 'lucide-react';
+import { Folder, Calendar, Clock, Trash2, X, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task, TaskCategory } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -13,7 +13,7 @@ interface TaskEditPanelProps {
 }
 
 export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
-  const { updateTask, deleteTask, taskCategories } = useAppStore();
+  const { updateTask, deleteTask, hideTask, taskCategories } = useAppStore();
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempTime, setTempTime] = useState(task.time || '');
@@ -130,6 +130,15 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
             />
           </PopoverContent>
         </Popover>
+
+        {/* Hide Button */}
+        <button 
+          onClick={() => { hideTask(task.id); onClose(); }}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+        >
+          <EyeOff className="w-3.5 h-3.5" />
+          <span>Hide</span>
+        </button>
 
         {/* Delete Button */}
         <button 

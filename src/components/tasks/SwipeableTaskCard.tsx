@@ -9,7 +9,6 @@ import { TaskEditPanel } from './TaskEditPanel';
 interface SwipeableTaskCardProps {
   task: Task;
   onToggle: () => void;
-  onHide: () => void;
 }
 
 const priorityColors = {
@@ -19,11 +18,10 @@ const priorityColors = {
   high: 'text-pastel-coral',
 };
 
-export function SwipeableTaskCard({ task, onToggle, onHide }: SwipeableTaskCardProps) {
+export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
   const { toggleSubtask, addSubtask, removeSubtask } = useAppStore();
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
-  const [isHiding, setIsHiding] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
   const [newSubtask, setNewSubtask] = useState('');
@@ -43,11 +41,8 @@ export function SwipeableTaskCard({ task, onToggle, onHide }: SwipeableTaskCardP
     const currentX = e.touches[0].clientX;
     const diff = startXRef.current - currentX;
     
-    // Swipe left (positive diff) → Hide action
-    // Swipe right (negative diff) → Edit action
-    if (diff > 0) {
-      setSwipeOffset(Math.min(diff, 100));
-    } else if (diff < 0) {
+    // Only swipe right (negative diff) → Edit action
+    if (diff < 0) {
       setSwipeOffset(Math.max(diff, -100));
     }
   };
@@ -55,20 +50,11 @@ export function SwipeableTaskCard({ task, onToggle, onHide }: SwipeableTaskCardP
   const handleTouchEnd = () => {
     setIsSwiping(false);
     
-    if (swipeOffset >= SWIPE_THRESHOLD) {
-      // Swipe left → Hide
-      setIsHiding(true);
-      setTimeout(() => {
-        onHide();
-      }, 300);
-    } else if (swipeOffset <= -SWIPE_THRESHOLD) {
+    if (swipeOffset <= -SWIPE_THRESHOLD) {
       // Swipe right → Show edit panel
       setShowEditPanel(true);
-      setSwipeOffset(0);
-    } else {
-      // Snap back
-      setSwipeOffset(0);
     }
+    setSwipeOffset(0);
   };
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
@@ -104,16 +90,8 @@ export function SwipeableTaskCard({ task, onToggle, onHide }: SwipeableTaskCardP
     <div className="space-y-2">
       <div 
         ref={cardRef}
-        className={cn(
-          "relative overflow-hidden rounded-2xl transition-all duration-300",
-          isHiding && "animate-slide-out-right opacity-0"
-        )}
+        className="relative overflow-hidden rounded-2xl"
       >
-        {/* Hidden action behind - LEFT (hide) */}
-        <div className="absolute right-0 inset-y-0 flex items-center justify-center w-20 bg-red-500 rounded-r-2xl">
-          <EyeOff className="w-5 h-5 text-white" />
-        </div>
-
         {/* Hidden action behind - RIGHT (edit indicator) */}
         <div className="absolute left-0 inset-y-0 flex items-center justify-center w-20 bg-primary rounded-l-2xl">
           <span className="text-xs font-medium text-primary-foreground">Edit</span>

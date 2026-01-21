@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskCategory } from '@/types';
 import { SwipeableTaskCard } from '../tasks/SwipeableTaskCard';
+import { SwipeableCompletedCard } from '../tasks/SwipeableCompletedCard';
 import { CategoryCard } from '../tasks/CategoryCard';
 import { CategoryDetailView } from '../tasks/CategoryDetailView';
 import { InlineTaskInput } from '../tasks/InlineTaskInput';
@@ -14,7 +15,7 @@ export function TasksView() {
   const { 
     tasks, 
     toggleTask, 
-    hideTask, 
+    deleteTask,
     unhideTask,
     searchQuery, 
     taskCategories 
@@ -45,7 +46,6 @@ export function TasksView() {
         tasks={categoryTasks}
         onBack={() => setSelectedCategory(null)}
         onToggleTask={toggleTask}
-        onHideTask={hideTask}
       />
     );
   }
@@ -77,7 +77,6 @@ export function TasksView() {
                 key={task.id}
                 task={task}
                 onToggle={() => toggleTask(task.id)}
-                onHide={() => hideTask(task.id)}
               />
             ))}
 
@@ -123,34 +122,12 @@ export function TasksView() {
         {activeTab === 'completed' && (
           <div className="space-y-2">
             {hiddenTasks.map((task) => (
-              <div 
+              <SwipeableCompletedCard
                 key={task.id}
-                className="flow-card-flat opacity-60"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      'w-6 h-6 rounded-lg border-2 flex items-center justify-center',
-                      task.completed ? 'bg-primary border-primary' : 'border-muted-foreground'
-                    )}>
-                      {task.completed && <Check className="w-4 h-4 text-primary-foreground" />}
-                    </div>
-                    <div>
-                      <p className="font-medium text-muted-foreground line-through">{task.title}</p>
-                      <span className={cn('flow-badge mt-1', `flow-badge-${task.color}`)}>
-                        {task.category}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => unhideTask(task.id)}
-                    className="p-2 rounded-xl hover:bg-secondary transition-colors"
-                    title="Unhide task"
-                  >
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-              </div>
+                task={task}
+                onUnhide={() => unhideTask(task.id)}
+                onDelete={() => deleteTask(task.id)}
+              />
             ))}
 
             {hiddenTasks.length === 0 && (
@@ -159,7 +136,7 @@ export function TasksView() {
                   <Eye className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">No hidden tasks</h3>
-                <p className="text-sm text-muted-foreground">Swipe left on a task to hide it</p>
+                <p className="text-sm text-muted-foreground">Swipe right on a task to hide it</p>
               </div>
             )}
           </div>
