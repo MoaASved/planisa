@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Eye } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskCategory } from '@/types';
@@ -24,9 +24,10 @@ export function TasksView() {
   const [activeTab, setActiveTab] = useState<TabType>('tasks');
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
 
-  // Filter tasks based on search and hidden status
+  // Filter tasks based on search, hidden status, and completion
   const activeTasks = tasks.filter(task => {
     if (task.hidden) return false;
+    if (task.completed) return false; // Completed tasks go to Completed tab
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return task.title.toLowerCase().includes(query) || 
@@ -35,7 +36,8 @@ export function TasksView() {
     return true;
   });
 
-  const hiddenTasks = tasks.filter(task => task.hidden);
+  // Completed tasks (regardless of hidden status)
+  const completedTasks = tasks.filter(task => task.completed);
 
   // Show category detail view
   if (selectedCategory) {
@@ -118,25 +120,28 @@ export function TasksView() {
           </div>
         )}
 
-        {/* Completed/Hidden Tab */}
+        {/* Completed Tab */}
         {activeTab === 'completed' && (
           <div className="space-y-2">
-            {hiddenTasks.map((task) => (
+            {completedTasks.map((task) => (
               <SwipeableCompletedCard
                 key={task.id}
                 task={task}
-                onUnhide={() => unhideTask(task.id)}
+                onRestore={() => {
+                  toggleTask(task.id); // Uncheck the task
+                  unhideTask(task.id); // Make sure it's not hidden
+                }}
                 onDelete={() => deleteTask(task.id)}
               />
             ))}
 
-            {hiddenTasks.length === 0 && (
+            {completedTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="w-16 h-16 rounded-3xl bg-secondary flex items-center justify-center mb-4">
-                  <Eye className="w-8 h-8 text-muted-foreground" />
+                  <Check className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold text-foreground mb-1">No hidden tasks</h3>
-                <p className="text-sm text-muted-foreground">Swipe right on a task to hide it</p>
+                <h3 className="font-semibold text-foreground mb-1">No completed tasks</h3>
+                <p className="text-sm text-muted-foreground">Check off a task to see it here</p>
               </div>
             )}
           </div>
