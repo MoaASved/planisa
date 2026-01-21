@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addMonths, subMonths, addWeeks, subWeeks, startOfWeek, isSameWeek } from 'date-fns';
+import { addMonths, subMonths, addWeeks, subWeeks, startOfWeek } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor, Task, CalendarEvent, Note } from '@/types';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
@@ -7,9 +7,9 @@ import { YearView } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
-import { EditTaskModal } from '@/components/modals/EditTaskModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
+import { TaskEditPanel } from '@/components/tasks/TaskEditPanel';
 
 type SimpleView = 'month' | 'weekday';
 
@@ -188,17 +188,27 @@ export function CalendarViewComponent() {
         )}
       </div>
 
+      {/* Task Edit Panel (inline instead of modal) */}
+      {editingTask && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div 
+            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+            onClick={() => setEditingTask(null)}
+          />
+          <div className="relative w-full max-w-lg p-4 pb-8 safe-bottom animate-slide-up">
+            <TaskEditPanel 
+              task={editingTask} 
+              onClose={() => setEditingTask(null)} 
+            />
+          </div>
+        </div>
+      )}
+
       {/* Edit Modals */}
       <EditEventModal
         event={editingEvent}
         isOpen={!!editingEvent}
         onClose={() => setEditingEvent(null)}
-      />
-      
-      <EditTaskModal
-        task={editingTask}
-        isOpen={!!editingTask}
-        onClose={() => setEditingTask(null)}
       />
       
       <CalendarNoteModal

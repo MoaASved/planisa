@@ -7,14 +7,12 @@ import { CalendarViewComponent } from '@/components/views/CalendarView';
 import { TasksView } from '@/components/views/TasksView';
 import { NotesView } from '@/components/views/NotesView';
 import { ProfileView } from '@/components/views/ProfileView';
-import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
-  const [showTaskModal, setShowTaskModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const { settings } = useAppStore();
 
@@ -35,7 +33,8 @@ const Index = () => {
     // Context-aware: open appropriate modal based on current tab
     switch (activeTab) {
       case 'tasks':
-        setShowTaskModal(true);
+        // Tasks now use inline creation, so just navigate to tasks tab
+        setActiveTab('tasks');
         break;
       case 'notes':
         // Open NoteEditor directly for new note
@@ -49,6 +48,11 @@ const Index = () => {
         // On home, show action sheet with options (handled by FAB component)
         break;
     }
+  };
+
+  const handleCreateTask = () => {
+    // Navigate to tasks view where inline creation is available
+    setActiveTab('tasks');
   };
 
   const handleCreateNote = () => {
@@ -110,7 +114,7 @@ const Index = () => {
         <>
           <FloatingActionButton
             activeTab={activeTab}
-            onCreateTask={() => setShowTaskModal(true)}
+            onCreateTask={handleCreateTask}
             onCreateNote={handleCreateNote}
             onCreateEvent={() => setShowEventModal(true)}
           />
@@ -124,7 +128,6 @@ const Index = () => {
       )}
 
       {/* Modals */}
-      <CreateTaskModal isOpen={showTaskModal} onClose={() => setShowTaskModal(false)} />
       <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} />
     </div>
   );
