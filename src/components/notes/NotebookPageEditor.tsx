@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Mic } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -7,6 +7,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Highlight from '@tiptap/extension-highlight';
 import TextAlign from '@tiptap/extension-text-align';
+import Image from '@tiptap/extension-image';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { NotebookPage, NoteType, PastelColor, Notebook } from '@/types';
@@ -15,6 +16,9 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { pastelColors } from '@/lib/colors';
+import { compressImage } from '@/lib/mediaUtils';
+import { VoiceRecordingModal } from './VoiceRecordingModal';
+import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
 
 interface NotebookPageEditorProps {
   notebook: Notebook;
@@ -32,6 +36,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   const [showSettings, setShowSettings] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedColor, setSelectedColor] = useState<PastelColor | undefined>(page?.color);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -53,6 +58,12 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-xl max-w-full h-auto my-4 shadow-sm',
+        },
+      }),
+      VoiceNoteExtension,
     ],
     content: page?.content || '',
     editorProps: {
@@ -117,6 +128,35 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   };
 
   const AlignIcon = getAlignIcon();
+
+  // Handle image upload
+  const handleAddImage = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          const compressedBase64 = await compressImage(file, 1200, 0.8);
+          editor?.chain().focus().setImage({ src: compressedBase64 }).run();
+        } catch (error) {
+          console.error('Failed to process image:', error);
+        }
+      }
+    };
+    
+    input.click();
+  };
+
+  // Handle voice recording complete
+  const handleVoiceRecordingComplete = (audioData: string, duration: number) => {
+    if (editor) {
+      insertVoiceNote(editor, audioData, duration);
+    }
+  };
 
   // Set CSS variable for note color
   useEffect(() => {
@@ -208,6 +248,22 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                   className={cn('p-2 rounded-lg transition-colors', editor?.isActive('highlight') ? 'bg-secondary' : 'hover:bg-secondary/50')}
                 >
                   <Highlighter className="w-4 h-4" />
+                </button>
+                
+                <div className="w-px h-6 bg-border mx-1" />
+                
+                {/* Media buttons */}
+                <button
+                  onClick={handleAddImage}
+                  className="p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setShowVoiceRecorder(true)}
+                  className="p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                >
+                  <Mic className="w-4 h-4" />
                 </button>
               </div>
 
@@ -342,6 +398,13 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
           </div>
         </div>
       </div>
+
+      {/* Voice Recording Modal */}
+      <VoiceRecordingModal
+        isOpen={showVoiceRecorder}
+        onClose={() => setShowVoiceRecorder(false)}
+        onRecordingComplete={handleVoiceRecordingComplete}
+      />
     </div>
   );
 }

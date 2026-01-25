@@ -8,6 +8,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import TextAlign from '@tiptap/extension-text-align';
+import Image from '@tiptap/extension-image';
 import { 
   ArrowLeft, 
   Folder, 
@@ -26,7 +27,9 @@ import {
   AlignCenter,
   AlignRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Image as ImageIcon,
+  Mic
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -35,6 +38,9 @@ import { FolderPickerSheet } from './FolderPickerSheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors } from '@/lib/colors';
+import { compressImage } from '@/lib/mediaUtils';
+import { VoiceRecordingModal } from './VoiceRecordingModal';
+import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
 
 interface NoteEditorProps {
   note?: Note;
@@ -71,6 +77,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
   // TipTap editor
   const editor = useEditor({
@@ -96,6 +103,12 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      Image.configure({
+        HTMLAttributes: {
+          class: 'rounded-xl max-w-full h-auto my-4 shadow-sm',
+        },
+      }),
+      VoiceNoteExtension,
     ],
     content: note?.content || '',
     editorProps: {
@@ -166,8 +179,37 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const AlignIcon = getAlignmentIcon();
   const selectedFolder = folders.find(f => f.name === folder);
 
+  // Handle image upload
+  const handleAddImage = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          const compressedBase64 = await compressImage(file, 1200, 0.8);
+          editor?.chain().focus().setImage({ src: compressedBase64 }).run();
+        } catch (error) {
+          console.error('Failed to process image:', error);
+        }
+      }
+    };
+    
+    input.click();
+  };
+
+  // Handle voice recording complete
+  const handleVoiceRecordingComplete = (audioData: string, duration: number) => {
+    if (editor) {
+      insertVoiceNote(editor, audioData, duration);
+    }
+  };
+
   // Toolbar button component - Apple-inspired with subtle animations
-  const ToolbarBtn = ({ 
+  const ToolbarBtn = ({
     onClick, 
     active, 
     children, 
@@ -328,6 +370,16 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                     </div>
                   </PopoverContent>
                 </Popover>
+                
+                <div className="w-px h-5 bg-border/50 mx-1" />
+                
+                {/* Media buttons */}
+                <ToolbarBtn onClick={handleAddImage}>
+                  <ImageIcon className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn onClick={() => setShowVoiceRecorder(true)}>
+                  <Mic className="w-4 h-4" />
+                </ToolbarBtn>
                 
                 <div className="w-px h-5 bg-border/50 mx-1" />
                 
@@ -498,6 +550,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           setFolder(f);
           setShowFolderPicker(false);
         }}
+      />
+
+      {/* Voice Recording Modal */}
+      <VoiceRecordingModal
+        isOpen={showVoiceRecorder}
+        onClose={() => setShowVoiceRecorder(false)}
+        onRecordingComplete={handleVoiceRecordingComplete}
       />
 
     </div>
