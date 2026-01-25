@@ -476,3 +476,17 @@
 .tiptap-content .ProseMirror:focus {
   @apply outline-none;
 }
+
+/* Images in tiptap editor */
+.tiptap-editor img {
+  @apply rounded-xl max-w-full h-auto my-4 shadow-sm;
+}
+
+/* Voice note wrapper in tiptap */
+.tiptap-editor .voice-note-wrapper {
+  @apply my-4;
+}
+
+.voice-note-wrapper {
+  @apply my-4;
+}
