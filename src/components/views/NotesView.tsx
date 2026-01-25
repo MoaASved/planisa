@@ -22,7 +22,7 @@ import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 import { NotebookCard } from '@/components/notes/NotebookCard';
 import { NotebookView } from '@/components/notes/NotebookView';
-import { NotesFAB } from '@/components/notes/NotesFAB';
+
 
 type ViewTab = 'notes' | 'folders' | 'sticky' | 'notebooks';
 type LayoutMode = 'list' | 'grid';
@@ -224,7 +224,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           )}
         </div>
 
-        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
       </div>
     );
   }
@@ -338,7 +337,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </>
         )}
 
-        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
       </div>
     );
   }
@@ -375,7 +373,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           )}
         </div>
 
-        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
       </div>
     );
   }
@@ -488,7 +485,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </>
         )}
 
-        <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
       </div>
     );
   }
@@ -526,7 +522,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         )}
       </div>
 
-      <NotesFAB onCreateNote={handleCreateNote} onCreateStickyNote={handleCreateStickyNote} />
+      
     </div>
   );
 }
