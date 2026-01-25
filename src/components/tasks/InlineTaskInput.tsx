@@ -5,13 +5,23 @@ import { useAppStore } from '@/store/useAppStore';
 
 interface InlineTaskInputProps {
   onTaskCreated?: (taskId: string) => void;
+  autoFocus?: boolean;
 }
 
-export function InlineTaskInput({ onTaskCreated }: InlineTaskInputProps) {
+export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputProps) {
   const { addTask } = useAppStore();
   const [title, setTitle] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
 
   const handleSubmit = () => {
     const trimmedTitle = title.trim();

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -11,7 +11,12 @@ import { InlineTaskInput } from '../tasks/InlineTaskInput';
 
 type TabType = 'tasks' | 'categories' | 'completed';
 
-export function TasksView() {
+interface TasksViewProps {
+  isCreatingNewTask?: boolean;
+  onCreatingTaskComplete?: () => void;
+}
+
+export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksViewProps) {
   const { 
     tasks, 
     toggleTask, 
@@ -24,6 +29,13 @@ export function TasksView() {
   
   const [activeTab, setActiveTab] = useState<TabType>('tasks');
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
+
+  // Auto-switch to tasks tab when creating new task
+  useEffect(() => {
+    if (isCreatingNewTask) {
+      setActiveTab('tasks');
+    }
+  }, [isCreatingNewTask]);
 
   // Filter tasks based on search and hidden status (completed tasks stay visible)
   const activeTasks = tasks.filter(task => {
@@ -83,7 +95,9 @@ export function TasksView() {
             ))}
 
             {/* Inline Task Input - Always visible at the bottom */}
-            <InlineTaskInput />
+            <InlineTaskInput 
+              autoFocus={isCreatingNewTask} 
+            />
 
             {activeTasks.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
