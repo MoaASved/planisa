@@ -88,9 +88,17 @@ const Index = () => {
     }
   };
 
-  // Hide TopBar and navigation when editing notes or on calendar (calendar has its own header)
-  const showTopBar = !isEditingNote && activeTab !== 'calendar';
+  // Hide TopBar when editing notes, on calendar, or on notes/tasks (they don't have search/profile anymore)
+  const showTopBar = !isEditingNote && activeTab === 'home';
   const showNavigation = !isEditingNote;
+
+  // Determine top padding based on active tab
+  const getMainPadding = () => {
+    if (!showNavigation) return 'pt-0'; // Editing note
+    if (activeTab === 'calendar') return 'pt-0'; // Calendar has its own header
+    if (activeTab === 'home') return 'pt-14'; // Home has TopBar
+    return 'pt-safe'; // Notes and Tasks - just safe area, content starts higher
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -101,12 +109,7 @@ const Index = () => {
         />
       )}
       
-      <main className={cn(
-        "pb-24",
-        showTopBar && "pt-14",
-        !showTopBar && activeTab === 'calendar' && "pt-0",
-        !showTopBar && activeTab !== 'calendar' && "pt-0"
-      )}>
+      <main className={cn("pb-24", getMainPadding())}>
         {renderView()}
       </main>
       
