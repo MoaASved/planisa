@@ -68,7 +68,7 @@ const Index = () => {
   const renderView = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeView />;
+        return <HomeView onNavigate={setActiveTab} />;
       case 'calendar':
         return <CalendarViewComponent />;
       case 'tasks':
@@ -84,7 +84,7 @@ const Index = () => {
       case 'profile':
         return <ProfileView />;
       default:
-        return <HomeView />;
+        return <HomeView onNavigate={setActiveTab} />;
     }
   };
 

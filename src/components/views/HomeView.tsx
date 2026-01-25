@@ -1,47 +1,52 @@
 import { format, startOfWeek, addDays, isToday, isSameDay } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
-import { Check, FileText, Image } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 
-export function HomeView() {
-  const { tasks, events, notes, widgets, settings } = useAppStore();
+interface HomeViewProps {
+  onNavigate: (tab: string) => void;
+}
+
+export function HomeView({ onNavigate }: HomeViewProps) {
+  const { tasks, events, settings } = useAppStore();
   const today = new Date();
-  const todayTasks = tasks.filter(t => t.date && isToday(new Date(t.date)));
+  const todayTasks = tasks.filter(t => t.date && isToday(new Date(t.date)) && !t.hidden);
   const todayEvents = events.filter(e => isToday(new Date(e.date)));
-  const pendingTasks = tasks.filter(t => !t.completed).length;
   const completedToday = todayTasks.filter(t => t.completed).length;
-  const pinnedNote = notes.find(n => n.isPinned);
 
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  const getGreeting = () => {
-    const hour = today.getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
+  const userName = settings.name?.trim();
 
   return (
     <div className="min-h-screen pb-24">
       <div className="px-4 py-4">
         {/* Greeting */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">{getGreeting()}</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            {userName ? `Hej, ${userName}` : 'Hej'}
+          </h1>
           <p className="text-muted-foreground">
-            {format(today, 'EEEE, MMMM d')} • {pendingTasks} tasks pending
+            {format(today, 'EEEE, MMMM d')}
           </p>
         </div>
 
         {/* Widgets Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Calendar Week Widget - Large */}
-          <div className="col-span-2 flow-widget">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">This Week</h3>
+        <div className="grid grid-cols-1 gap-3">
+          {/* Calendar Week Widget - Clickable */}
+          <button 
+            onClick={() => onNavigate('calendar')}
+            className="flow-widget text-left w-full"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-muted-foreground">This Week</h3>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </div>
             <div className="flex gap-1">
               {weekDays.map((day, i) => {
                 const dayEvents = events.filter(e => isSameDay(new Date(e.date), day));
-                const dayTasks = tasks.filter(t => t.date && isSameDay(new Date(t.date), day));
+                const dayTasks = tasks.filter(t => t.date && isSameDay(new Date(t.date), day) && !t.hidden);
                 const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
 
                 return (
@@ -60,23 +65,32 @@ export function HomeView() {
                         {dayEvents.slice(0, 2).map((e, j) => (
                           <div key={j} className={cn('w-1.5 h-1.5 rounded-full', isToday(day) ? 'bg-primary-foreground/60' : `bg-pastel-${e.color}`)} />
                         ))}
+                        {dayTasks.slice(0, 2 - dayEvents.slice(0, 2).length).map((t, j) => (
+                          <div key={`t-${j}`} className={cn('w-1.5 h-1.5 rounded-full', isToday(day) ? 'bg-primary-foreground/60' : `bg-pastel-${t.color}`)} />
+                        ))}
                       </div>
                     )}
                   </div>
                 );
               })}
             </div>
-          </div>
+          </button>
 
-          {/* Today's Tasks Widget - Small */}
-          <div className="flow-widget">
+          {/* Today's Tasks Widget - Clickable */}
+          <button 
+            onClick={() => onNavigate('tasks')}
+            className="flow-widget text-left w-full"
+          >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-muted-foreground">Today's Tasks</h3>
-              <span className="text-xs text-primary font-medium">{completedToday}/{todayTasks.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-primary font-medium">{completedToday}/{todayTasks.length}</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </div>
             </div>
             {todayTasks.length > 0 ? (
               <div className="space-y-2">
-                {todayTasks.slice(0, 3).map((task) => (
+                {todayTasks.slice(0, 4).map((task) => (
                   <div key={task.id} className="flex items-center gap-2">
                     <div className={cn(
                       'w-4 h-4 rounded-md border-2 flex items-center justify-center flex-shrink-0',
@@ -89,36 +103,24 @@ export function HomeView() {
                     </span>
                   </div>
                 ))}
-                {todayTasks.length > 3 && (
-                  <p className="text-xs text-muted-foreground">+{todayTasks.length - 3} more</p>
+                {todayTasks.length > 4 && (
+                  <p className="text-xs text-muted-foreground">+{todayTasks.length - 4} more</p>
                 )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">No tasks for today</p>
             )}
-          </div>
+          </button>
 
-          {/* Highlighted Note Widget - Small */}
-          <div className="flow-widget">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold text-muted-foreground">Pinned Note</h3>
+          {/* Today's Events Widget - Clickable */}
+          <button 
+            onClick={() => onNavigate('calendar')}
+            className="flow-widget text-left w-full"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-muted-foreground">Today's Events</h3>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
-            {pinnedNote ? (
-              <div>
-                <h4 className="font-semibold text-foreground text-sm mb-1 truncate">{pinnedNote.title}</h4>
-                <p className="text-xs text-muted-foreground line-clamp-3">
-                  {pinnedNote.content.replace(/[#*\[\]]/g, '').slice(0, 80)}
-                </p>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">No pinned notes</p>
-            )}
-          </div>
-
-          {/* Today's Events Widget - Full Width */}
-          <div className="col-span-2 flow-widget">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Today's Events</h3>
             {todayEvents.length > 0 ? (
               <div className="space-y-2">
                 {todayEvents.map((event) => (
@@ -135,32 +137,7 @@ export function HomeView() {
             ) : (
               <p className="text-sm text-muted-foreground">No events today</p>
             )}
-          </div>
-
-          {/* Progress Summary */}
-          <div className="col-span-2 flow-widget">
-            <h3 className="text-sm font-semibold text-muted-foreground mb-3">Weekly Progress</h3>
-            <div className="grid grid-cols-3 gap-4 text-center mb-4">
-              <div>
-                <p className="text-2xl font-bold text-primary">{tasks.filter(t => t.completed).length}</p>
-                <p className="text-xs text-muted-foreground">Completed</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-pastel-amber">{pendingTasks}</p>
-                <p className="text-xs text-muted-foreground">Pending</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-pastel-mint">{events.length}</p>
-                <p className="text-xs text-muted-foreground">Events</p>
-              </div>
-            </div>
-            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-primary rounded-full transition-all duration-500"
-                style={{ width: `${tasks.length > 0 ? (tasks.filter(t => t.completed).length / tasks.length) * 100 : 0}%` }}
-              />
-            </div>
-          </div>
+          </button>
         </div>
       </div>
     </div>
