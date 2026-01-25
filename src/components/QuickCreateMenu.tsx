@@ -11,8 +11,8 @@ interface QuickCreateMenuProps {
 }
 
 const actions = [
-  { id: 'task', label: 'Task', icon: CheckSquare },
   { id: 'event', label: 'Event', icon: CalendarPlus },
+  { id: 'task', label: 'Task', icon: CheckSquare },
   { id: 'note', label: 'Note', icon: FileText },
   { id: 'sticky', label: 'Sticky', icon: StickyNote },
 ] as const;

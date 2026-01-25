@@ -21,6 +21,9 @@ const Index = () => {
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
   const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
+  
+  // Task creation state
+  const [isCreatingNewTask, setIsCreatingNewTask] = useState(false);
 
   // Apply theme on mount and when settings change
   useEffect(() => {
@@ -36,6 +39,7 @@ const Index = () => {
   };
 
   const handleCreateTask = () => {
+    setIsCreatingNewTask(true);
     setActiveTab('tasks');
   };
 
@@ -70,7 +74,12 @@ const Index = () => {
       case 'calendar':
         return <CalendarViewComponent />;
       case 'tasks':
-        return <TasksView />;
+        return (
+          <TasksView 
+            isCreatingNewTask={isCreatingNewTask}
+            onCreatingTaskComplete={() => setIsCreatingNewTask(false)}
+          />
+        );
       case 'notes':
         return (
           <NotesView 
