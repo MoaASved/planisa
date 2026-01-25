@@ -317,6 +317,21 @@
   to { opacity: 1; }
 }
 
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: popIn 0.2s ease-out forwards;
+}
+
 @keyframes scaleIn {
   from {
     opacity: 0;

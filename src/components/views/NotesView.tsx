@@ -30,10 +30,11 @@ type LayoutMode = 'list' | 'grid';
 interface NotesViewProps {
   onEditingChange?: (isEditing: boolean) => void;
   isCreatingNew?: boolean;
+  isCreatingStickyNote?: boolean;
   onCloseEditor?: () => void;
 }
 
-export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: NotesViewProps) {
+export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, searchQuery, setSearchQuery } = useAppStore();
   const [viewTab, setViewTab] = useState<ViewTab>('notes');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
@@ -179,11 +180,11 @@ export function NotesView({ onEditingChange, isCreatingNew, onCloseEditor }: Not
   };
 
   // Show editors
-  if (selectedNote || isCreatingNew) {
+  if (selectedNote || (isCreatingNew && !externalIsCreatingStickyNote)) {
     return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} />;
   }
 
-  if (selectedStickyNote || isCreatingStickyNote) {
+  if (selectedStickyNote || isCreatingStickyNote || (isCreatingNew && externalIsCreatingStickyNote)) {
     return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} />;
   }
 

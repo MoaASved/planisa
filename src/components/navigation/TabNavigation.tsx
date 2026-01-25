@@ -5,6 +5,7 @@ interface TabNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onPlusClick: () => void;
+  isPlusActive?: boolean;
 }
 
 const tabs = [
@@ -15,7 +16,7 @@ const tabs = [
   { id: 'notes', label: 'Notes', icon: FileText },
 ];
 
-export function TabNavigation({ activeTab, onTabChange, onPlusClick }: TabNavigationProps) {
+export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
   return (
     <nav className="flow-nav-pill safe-bottom">
       {tabs.map((tab) => {
@@ -29,7 +30,10 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick }: TabNaviga
               onClick={onPlusClick}
               className="flow-nav-center"
             >
-              <Icon className="w-6 h-6" />
+              <Icon className={cn(
+                "w-6 h-6 transition-transform duration-200",
+                isPlusActive && "rotate-45"
+              )} />
             </button>
           );
         }
