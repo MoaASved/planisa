@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TabNavigation } from '@/components/navigation/TabNavigation';
 import { TopBar } from '@/components/navigation/TopBar';
-import { FloatingActionButton } from '@/components/FloatingActionButton';
+import { QuickCreateMenu } from '@/components/QuickCreateMenu';
 import { HomeView } from '@/components/views/HomeView';
 import { CalendarViewComponent } from '@/components/views/CalendarView';
 import { TasksView } from '@/components/views/TasksView';
@@ -14,11 +14,13 @@ import { cn } from '@/lib/utils';
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
   const { settings } = useAppStore();
 
   // Note editing state
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
+  const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
 
   // Apply theme on mount and when settings change
   useEffect(() => {
@@ -29,39 +31,35 @@ const Index = () => {
     }
   }, [settings.theme]);
 
-  const handleFabClick = () => {
-    // Context-aware: open appropriate modal based on current tab
-    switch (activeTab) {
-      case 'tasks':
-        // Tasks now use inline creation, so just navigate to tasks tab
-        setActiveTab('tasks');
-        break;
-      case 'notes':
-        // Open NoteEditor directly for new note
-        setIsCreatingNewNote(true);
-        setIsEditingNote(true);
-        break;
-      case 'calendar':
-        setShowEventModal(true);
-        break;
-      default:
-        // On home, show action sheet with options (handled by FAB component)
-        break;
-    }
+  const handlePlusClick = () => {
+    setShowQuickCreate(!showQuickCreate);
   };
 
   const handleCreateTask = () => {
-    // Navigate to tasks view where inline creation is available
     setActiveTab('tasks');
+  };
+
+  const handleCreateEvent = () => {
+    setShowEventModal(true);
   };
 
   const handleCreateNote = () => {
     setIsCreatingNewNote(true);
+    setIsCreatingStickyNote(false);
     setIsEditingNote(true);
+    setActiveTab('notes');
+  };
+
+  const handleCreateStickyNote = () => {
+    setIsCreatingStickyNote(true);
+    setIsCreatingNewNote(true);
+    setIsEditingNote(true);
+    setActiveTab('notes');
   };
 
   const handleCloseNoteEditor = () => {
     setIsCreatingNewNote(false);
+    setIsCreatingStickyNote(false);
     setIsEditingNote(false);
   };
 
@@ -78,6 +76,7 @@ const Index = () => {
           <NotesView 
             onEditingChange={setIsEditingNote}
             isCreatingNew={isCreatingNewNote}
+            isCreatingStickyNote={isCreatingStickyNote}
             onCloseEditor={handleCloseNoteEditor}
           />
         );
@@ -115,17 +114,20 @@ const Index = () => {
       
       {showNavigation && (
         <>
-          <FloatingActionButton
-            activeTab={activeTab}
+          <QuickCreateMenu
+            isOpen={showQuickCreate}
+            onClose={() => setShowQuickCreate(false)}
             onCreateTask={handleCreateTask}
+            onCreateEvent={handleCreateEvent}
             onCreateNote={handleCreateNote}
-            onCreateEvent={() => setShowEventModal(true)}
+            onCreateStickyNote={handleCreateStickyNote}
           />
           
           <TabNavigation 
             activeTab={activeTab} 
             onTabChange={setActiveTab}
-            onPlusClick={handleFabClick}
+            onPlusClick={handlePlusClick}
+            isPlusActive={showQuickCreate}
           />
         </>
       )}
