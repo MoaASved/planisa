@@ -261,6 +261,7 @@ const initialSettings: UserSettings = {
   theme: 'light',
   avatarColor: 'sky',
   avatarInitial: 'U',
+  name: '',
 };
 
 export const useAppStore = create<AppState>()(

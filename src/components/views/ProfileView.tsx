@@ -57,6 +57,7 @@ export function ProfileView() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarInitial, setAvatarInitial] = useState(settings.avatarInitial || 'U');
   const [avatarColor, setAvatarColor] = useState<PastelColor>(settings.avatarColor || 'sky');
+  const [userName, setUserName] = useState(settings.name || '');
 
   // Section-wise category management
   const [expandedSection, setExpandedSection] = useState<CategorySection | null>('calendar');
@@ -81,7 +82,7 @@ export function ProfileView() {
   };
 
   const handleSaveAvatar = () => {
-    updateSettings({ avatarInitial: avatarInitial, avatarColor: avatarColor });
+    updateSettings({ avatarInitial: avatarInitial, avatarColor: avatarColor, name: userName.trim() });
     setShowAvatarModal(false);
   };
 
@@ -473,6 +474,18 @@ export function ProfileView() {
                 )}>
                   {avatarInitial}
                 </div>
+              </div>
+
+              {/* Name Input */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block text-center">Name</label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Your name"
+                  className="flow-input text-center"
+                />
               </div>
 
               {/* Initial Input */}

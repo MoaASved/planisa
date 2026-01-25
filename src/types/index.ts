@@ -128,4 +128,5 @@ export interface UserSettings {
   avatar?: string;
   avatarColor?: PastelColor;
   avatarInitial?: string;
+  name?: string;
 }
