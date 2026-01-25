@@ -10,13 +10,7 @@ interface TopBarProps {
   onProfileClick: () => void;
 }
 
-const tabTitles: Record<string, string> = {
-  home: 'home',
-  calendar: 'calendar',
-  tasks: 'tasks',
-  notes: 'notes',
-  profile: 'profile',
-};
+const tabsWithSearch = ['home'];
 
 export function TopBar({ 
   activeTab, 
@@ -24,6 +18,13 @@ export function TopBar({
 }: TopBarProps) {
   const { searchQuery, setSearchQuery, settings } = useAppStore();
   const [showSearch, setShowSearch] = useState(false);
+
+  const showSearchAndProfile = tabsWithSearch.includes(activeTab);
+
+  // Don't render anything if not on a tab that shows search/profile
+  if (!showSearchAndProfile) {
+    return null;
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 pt-safe">
@@ -34,7 +35,7 @@ export function TopBar({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${tabTitles[activeTab]}...`}
+              placeholder="Search..."
               className="flex-1 bg-secondary/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm outline-none"
               autoFocus
             />
