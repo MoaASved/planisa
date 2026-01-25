@@ -19,15 +19,18 @@ const priorityColors = {
 };
 
 export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
-  const { toggleSubtask, addSubtask, removeSubtask } = useAppStore();
+  const { toggleSubtask, addSubtask, removeSubtask, updateTask } = useAppStore();
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
   const [newSubtask, setNewSubtask] = useState('');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(task.title);
   const startXRef = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const SWIPE_THRESHOLD = 80;
 
@@ -63,8 +66,36 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
   };
 
   const handleCardClick = () => {
-    if (swipeOffset === 0 && !showEditPanel) {
+    if (swipeOffset === 0 && !showEditPanel && !isEditingTitle) {
       setIsExpanded(!isExpanded);
+    }
+  };
+
+  const handleTitleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!task.completed) {
+      setIsEditingTitle(true);
+      setEditedTitle(task.title);
+      setTimeout(() => titleInputRef.current?.focus(), 0);
+    }
+  };
+
+  const handleTitleSave = () => {
+    const trimmed = editedTitle.trim();
+    if (trimmed && trimmed !== task.title) {
+      updateTask(task.id, { title: trimmed });
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTitleSave();
+    }
+    if (e.key === 'Escape') {
+      setEditedTitle(task.title);
+      setIsEditingTitle(false);
     }
   };
 
@@ -124,12 +155,28 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <p className={cn(
-                  'font-medium transition-all duration-200',
-                  task.completed && 'text-muted-foreground line-through'
-                )}>
-                  {task.title}
-                </p>
+                {isEditingTitle ? (
+                  <input
+                    ref={titleInputRef}
+                    type="text"
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    onKeyDown={handleTitleKeyDown}
+                    onBlur={handleTitleSave}
+                    className="font-medium bg-transparent border-0 outline-none w-full focus:ring-2 focus:ring-primary/20 rounded px-1 -mx-1"
+                  />
+                ) : (
+                  <p 
+                    onClick={handleTitleClick}
+                    className={cn(
+                      'font-medium transition-all duration-200',
+                      !task.completed && 'cursor-text hover:text-primary/80',
+                      task.completed && 'text-muted-foreground line-through'
+                    )}
+                  >
+                    {task.title}
+                  </p>
+                )}
                 <div className="flex items-center gap-1 flex-shrink-0">
                   {task.priority !== 'none' && (
                     <Flag className={cn('w-4 h-4', priorityColors[task.priority])} />
