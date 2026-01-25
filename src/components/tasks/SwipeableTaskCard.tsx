@@ -163,7 +163,7 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
                     onChange={(e) => setEditedTitle(e.target.value)}
                     onKeyDown={handleTitleKeyDown}
                     onBlur={handleTitleSave}
-                    className="font-medium bg-transparent border-0 outline-none w-full focus:ring-2 focus:ring-primary/20 rounded px-1 -mx-1"
+                    className="font-medium bg-transparent border-0 outline-none w-full"
                   />
                 ) : (
                   <p 
