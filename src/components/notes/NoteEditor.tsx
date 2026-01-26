@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
@@ -31,7 +30,9 @@ import {
   ChevronUp,
   Image as ImageIcon,
   Mic,
-  Plus
+  Plus,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -199,7 +200,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           // Warn if image is large (> 500KB)
           const MAX_IMAGE_SIZE = 500 * 1024;
           if (compressedBase64.length > MAX_IMAGE_SIZE) {
-            toast.warning('Bilden är stor och kan påverka prestanda');
+            toast.warning('Image is large and may affect performance');
           }
           
           editor?.chain().focus().insertContent({
@@ -208,7 +209,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           }).run();
         } catch (error) {
           console.error('Failed to process image:', error);
-          toast.error('Kunde inte lägga till bilden');
+          toast.error('Could not add image');
         }
       }
     };
@@ -227,20 +228,24 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const ToolbarBtn = ({
     onClick, 
     active, 
+    disabled,
     children, 
     className,
     destructive
   }: { 
     onClick: () => void; 
-    active?: boolean; 
+    active?: boolean;
+    disabled?: boolean;
     children: React.ReactNode;
     className?: string;
     destructive?: boolean;
   }) => (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={cn(
         'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+        disabled && 'opacity-30 cursor-not-allowed active:scale-100',
         active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-black/5',
         destructive && 'hover:bg-destructive/10 text-destructive',
         className
@@ -270,8 +275,23 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           <div className="bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
             {/* Toolbar content */}
             <div className="flex items-center justify-between px-2 py-1.5 gap-2">
-              {/* Left group: Note actions */}
+              {/* Left group: Undo/Redo + Note actions */}
               <div className="flex items-center gap-0.5">
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().undo()}
+                >
+                  <Undo2 className="w-4 h-4" />
+                </ToolbarBtn>
+                <ToolbarBtn 
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().redo()}
+                >
+                  <Redo2 className="w-4 h-4" />
+                </ToolbarBtn>
+                
+                <div className="w-px h-4 bg-border mx-1" />
+                
                 <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
                   <Pin className="w-4 h-4" />
                 </ToolbarBtn>
@@ -418,7 +438,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           <span 
             className="text-sm font-medium text-muted-foreground"
           >
-            {format(date, 'd MMMM yyyy', { locale: sv })}
+            {format(date, 'MMMM d, yyyy')}
           </span>
         )}
         {folder && (
@@ -464,7 +484,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
                   <Calendar className="w-4 h-4" />
-                  {format(date, 'd MMM yyyy', { locale: sv })}
+                  {format(date, 'MMM d, yyyy')}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -488,14 +508,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             <button
               onClick={() => setShowInCalendar(!showInCalendar)}
               className={cn(
-                'w-11 h-6 rounded-full transition-colors relative',
-                showInCalendar ? 'bg-primary' : 'bg-secondary'
+                'w-11 h-6 rounded-full transition-all duration-200 relative',
+                showInCalendar ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
               )}
             >
               <span 
                 className={cn(
-                  'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
-                  showInCalendar ? 'translate-x-6' : 'translate-x-1'
+                  'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  showInCalendar ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
                 )}
               />
             </button>
@@ -510,14 +530,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             <button
               onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
               className={cn(
-                'w-11 h-6 rounded-full transition-colors relative',
-                hideFromAllNotes ? 'bg-primary' : 'bg-secondary'
+                'w-11 h-6 rounded-full transition-all duration-200 relative',
+                hideFromAllNotes ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
               )}
             >
               <span 
                 className={cn(
-                  'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
-                  hideFromAllNotes ? 'translate-x-6' : 'translate-x-1'
+                  'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  hideFromAllNotes ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
                 )}
               />
             </button>
@@ -532,14 +552,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             <button
               onClick={() => setHideDate(!hideDate)}
               className={cn(
-                'w-11 h-6 rounded-full transition-colors relative',
-                hideDate ? 'bg-primary' : 'bg-secondary'
+                'w-11 h-6 rounded-full transition-all duration-200 relative',
+                hideDate ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
               )}
             >
               <span 
                 className={cn(
-                  'absolute top-1 w-4 h-4 rounded-full bg-card transition-transform',
-                  hideDate ? 'translate-x-6' : 'translate-x-1'
+                  'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  hideDate ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
                 )}
               />
             </button>
