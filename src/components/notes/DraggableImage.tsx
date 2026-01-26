@@ -1,9 +1,9 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 
 // Component to render the draggable image in the editor
-function ImageComponent({ node, deleteNode }: { node: any; deleteNode: () => void }) {
+function ImageComponent({ node }: { node: any }) {
   return (
     <NodeViewWrapper className="relative group my-4" data-drag-handle>
       {/* Drag handle - visible on hover */}
@@ -21,15 +21,6 @@ function ImageComponent({ node, deleteNode }: { node: any; deleteNode: () => voi
         className="rounded-xl max-w-full h-auto shadow-sm"
         draggable={false}
       />
-      
-      {/* Delete button on hover */}
-      <button
-        onClick={deleteNode}
-        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70 active:scale-95"
-        contentEditable={false}
-      >
-        <X className="w-4 h-4" />
-      </button>
     </NodeViewWrapper>
   );
 }
