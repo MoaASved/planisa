@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Mic, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Mic, Plus, Undo2, Redo2 } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -148,7 +148,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
           // Warn if image is large (> 500KB)
           const MAX_IMAGE_SIZE = 500 * 1024;
           if (compressedBase64.length > MAX_IMAGE_SIZE) {
-            toast.warning('Bilden är stor och kan påverka prestanda');
+            toast.warning('Image is large and may affect performance');
           }
           
           editor?.chain().focus().insertContent({
@@ -157,7 +157,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
           }).run();
         } catch (error) {
           console.error('Failed to process image:', error);
-          toast.error('Kunde inte lägga till bilden');
+          toast.error('Could not add image');
         }
       }
     };
@@ -191,8 +191,33 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         {showToolbar && (
           <div className="bg-card/80 backdrop-blur-xl border-b border-border/30 px-4 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">
-              {/* Center group: Format dropdown + Bold + Italic */}
+              {/* Left group: Undo/Redo */}
               <div className="flex items-center gap-0.5">
+                <button
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().undo()}
+                  className={cn(
+                    'p-2 rounded-lg transition-all active:scale-90',
+                    !editor?.can().undo() && 'opacity-30 cursor-not-allowed active:scale-100',
+                    'hover:bg-secondary/50'
+                  )}
+                >
+                  <Undo2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().redo()}
+                  className={cn(
+                    'p-2 rounded-lg transition-all active:scale-90',
+                    !editor?.can().redo() && 'opacity-30 cursor-not-allowed active:scale-100',
+                    'hover:bg-secondary/50'
+                  )}
+                >
+                  <Redo2 className="w-4 h-4" />
+                </button>
+                
+                <div className="w-px h-4 bg-border mx-1" />
+                
                 {/* Format dropdown (Aa) */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -391,7 +416,20 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm">Show in Calendar</span>
               </div>
-              <Switch checked={showInCalendar} onCheckedChange={setShowInCalendar} />
+              <button
+                onClick={() => setShowInCalendar(!showInCalendar)}
+                className={cn(
+                  'w-11 h-6 rounded-full transition-all duration-200 relative',
+                  showInCalendar ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
+                )}
+              >
+                <span 
+                  className={cn(
+                    'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                    showInCalendar ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
+                  )}
+                />
+              </button>
             </div>
 
             <div className="flex items-center justify-between">
@@ -399,7 +437,20 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 {hideDate ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
                 <span className="text-sm">Hide Date</span>
               </div>
-              <Switch checked={hideDate} onCheckedChange={setHideDate} />
+              <button
+                onClick={() => setHideDate(!hideDate)}
+                className={cn(
+                  'w-11 h-6 rounded-full transition-all duration-200 relative',
+                  hideDate ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
+                )}
+              >
+                <span 
+                  className={cn(
+                    'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                    hideDate ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
+                  )}
+                />
+              </button>
             </div>
           </div>
         </div>
