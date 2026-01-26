@@ -5,8 +5,8 @@
  */
 export const compressImage = (
   file: File,
-  maxWidth: number = 1200,
-  quality: number = 0.8
+  maxWidth: number = 800,
+  quality: number = 0.6
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
