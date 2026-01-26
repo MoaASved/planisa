@@ -29,8 +29,16 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  Mic
+  Mic,
+  Plus
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
@@ -184,7 +192,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.capture = 'environment';
+    // Removed input.capture to allow choosing from photo library or camera
     
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
@@ -254,7 +262,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         ) : (
           <div className="bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
             {/* Toolbar content */}
-            <div className="flex items-center justify-between px-2 py-1.5 gap-1 overflow-x-auto">
+            <div className="flex items-center justify-between px-2 py-1.5 gap-2">
               {/* Left group: Note actions */}
               <div className="flex items-center gap-0.5">
                 <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
@@ -263,44 +271,44 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 <ToolbarBtn onClick={() => setShowFolderPicker(true)} active={!!folder}>
                   <Folder className="w-4 h-4" />
                 </ToolbarBtn>
-                {note && (
-                  <ToolbarBtn onClick={handleDelete} destructive>
-                    <Trash2 className="w-4 h-4" />
-                  </ToolbarBtn>
-                )}
-                
-                <div className="w-px h-5 bg-border/50 mx-1" />
-                
-                <ToolbarBtn onClick={() => setShowMetadata(!showMetadata)} active={showMetadata}>
-                  <Settings className="w-4 h-4" />
-                </ToolbarBtn>
               </div>
 
-              {/* Center group: Text formatting */}
+              {/* Center group: Format dropdown + Bold + Italic */}
               <div className="flex items-center gap-0.5">
-                <ToolbarBtn
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                  active={editor?.isActive('heading', { level: 1 })}
-                  className="text-xs font-bold px-1.5"
-                >
-                  H1
-                </ToolbarBtn>
-                <ToolbarBtn
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                  active={editor?.isActive('heading', { level: 2 })}
-                  className="text-xs font-semibold px-1.5"
-                >
-                  H2
-                </ToolbarBtn>
-                <ToolbarBtn
-                  onClick={() => editor?.chain().focus().setParagraph().run()}
-                  active={editor?.isActive('paragraph') && !editor?.isActive('heading')}
-                  className="text-xs px-1.5"
-                >
-                  T
-                </ToolbarBtn>
-                
-                <div className="w-px h-5 bg-border/50 mx-1" />
+                {/* Format dropdown (Aa) */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                      <span className="text-sm font-medium">Aa</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="min-w-[140px]">
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                      className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
+                    >
+                      <span className="text-lg font-bold">Heading 1</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                      className={cn(editor?.isActive('heading', { level: 2 }) && 'bg-secondary')}
+                    >
+                      <span className="text-base font-semibold">Heading 2</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().setParagraph().run()}
+                      className={cn(editor?.isActive('paragraph') && !editor?.isActive('heading') && 'bg-secondary')}
+                    >
+                      <span className="text-sm">Body text</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={cycleAlignment}>
+                      <AlignIcon className="w-4 h-4 mr-2" />
+                      <span>Alignment</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <ToolbarBtn 
                   onClick={() => editor?.chain().focus().toggleBold().run()}
@@ -316,74 +324,65 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 </ToolbarBtn>
               </div>
 
-              {/* Right group: Lists, alignment, highlight */}
+              {/* Right group: Insert dropdown + Settings + Delete + Collapse */}
               <div className="flex items-center gap-0.5">
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  active={editor?.isActive('bulletList')}
-                >
-                  <List className="w-4 h-4" />
-                </ToolbarBtn>
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                  active={editor?.isActive('orderedList')}
-                >
-                  <ListOrdered className="w-4 h-4" />
-                </ToolbarBtn>
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleTaskList().run()}
-                  active={editor?.isActive('taskList')}
-                >
-                  <CheckSquare className="w-4 h-4" />
-                </ToolbarBtn>
-                
-                <div className="w-px h-5 bg-border/50 mx-1" />
-                
-                <ToolbarBtn onClick={cycleAlignment}>
-                  <AlignIcon className="w-4 h-4" />
-                </ToolbarBtn>
-                
-                <Popover open={showHighlightPicker} onOpenChange={setShowHighlightPicker}>
-                  <PopoverTrigger asChild>
-                    <button 
-                      className={cn(
-                        'p-1.5 rounded-lg transition-colors',
-                        editor?.isActive('highlight') ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/50'
-                      )}
-                    >
-                      <Highlighter className="w-4 h-4" />
+                {/* Insert dropdown (+) */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                      <Plus className="w-4 h-4" />
+                      <ChevronDown className="w-3 h-3" />
                     </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-2" align="end">
-                    <div className="flex flex-wrap gap-2 max-w-[200px]">
-                      {pastelColors.map((c) => (
-                        <button
-                          key={c.value}
-                          onClick={() => handleHighlight(c.value)}
-                          className={cn(
-                            'w-6 h-6 rounded-full transition-all',
-                            c.class,
-                            'hover:scale-110'
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[160px]">
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                      className={cn(editor?.isActive('bulletList') && 'bg-secondary')}
+                    >
+                      <List className="w-4 h-4 mr-2" />
+                      <span>Bullet list</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                      className={cn(editor?.isActive('orderedList') && 'bg-secondary')}
+                    >
+                      <ListOrdered className="w-4 h-4 mr-2" />
+                      <span>Numbered list</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleTaskList().run()}
+                      className={cn(editor?.isActive('taskList') && 'bg-secondary')}
+                    >
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      <span>Checklist</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleAddImage}>
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      <span>Image</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowVoiceRecorder(true)}>
+                      <Mic className="w-4 h-4 mr-2" />
+                      <span>Voice note</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
+                      <Highlighter className="w-4 h-4 mr-2" />
+                      <span>Highlight</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
-                <div className="w-px h-5 bg-border/50 mx-1" />
-                
-                {/* Media buttons */}
-                <ToolbarBtn onClick={handleAddImage}>
-                  <ImageIcon className="w-4 h-4" />
+                <ToolbarBtn onClick={() => setShowMetadata(!showMetadata)} active={showMetadata}>
+                  <Settings className="w-4 h-4" />
                 </ToolbarBtn>
-                <ToolbarBtn onClick={() => setShowVoiceRecorder(true)}>
-                  <Mic className="w-4 h-4" />
-                </ToolbarBtn>
                 
-                <div className="w-px h-5 bg-border/50 mx-1" />
+                {note && (
+                  <ToolbarBtn onClick={handleDelete} destructive>
+                    <Trash2 className="w-4 h-4" />
+                  </ToolbarBtn>
+                )}
                 
-                {/* Collapse button */}
                 <button
                   onClick={() => setToolbarCollapsed(true)}
                   className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-colors"

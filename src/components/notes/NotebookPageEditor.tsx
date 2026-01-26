@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Mic } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Mic, Plus } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -19,6 +19,13 @@ import { pastelColors } from '@/lib/colors';
 import { compressImage } from '@/lib/mediaUtils';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
 import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface NotebookPageEditorProps {
   notebook: Notebook;
@@ -134,7 +141,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.capture = 'environment';
+    // Removed input.capture to allow choosing from photo library or camera
     
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
@@ -176,29 +183,43 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       <div className="sticky top-0 z-10">
         {showToolbar && (
           <div className="bg-card/80 backdrop-blur-xl border-b border-border/30 px-4 py-2 animate-fade-in">
-            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
-              {/* Text formatting */}
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                  className={cn('p-2 rounded-lg transition-colors text-xs font-bold', editor?.isActive('heading', { level: 1 }) ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  H1
-                </button>
-                <button
-                  onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                  className={cn('p-2 rounded-lg transition-colors text-xs font-semibold', editor?.isActive('heading', { level: 2 }) ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  H2
-                </button>
-                <button
-                  onClick={() => editor?.chain().focus().setParagraph().run()}
-                  className={cn('p-2 rounded-lg transition-colors text-xs', editor?.isActive('paragraph') && !editor?.isActive('heading') ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  T
-                </button>
-                
-                <div className="w-px h-6 bg-border mx-1" />
+            <div className="flex items-center justify-between gap-2">
+              {/* Center group: Format dropdown + Bold + Italic */}
+              <div className="flex items-center gap-0.5">
+                {/* Format dropdown (Aa) */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                      <span className="text-sm font-medium">Aa</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[140px]">
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                      className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
+                    >
+                      <span className="text-lg font-bold">Heading 1</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                      className={cn(editor?.isActive('heading', { level: 2 }) && 'bg-secondary')}
+                    >
+                      <span className="text-base font-semibold">Heading 2</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().setParagraph().run()}
+                      className={cn(editor?.isActive('paragraph') && !editor?.isActive('heading') && 'bg-secondary')}
+                    >
+                      <span className="text-sm">Body text</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={cycleAlignment}>
+                      <AlignIcon className="w-4 h-4 mr-2" />
+                      <span>Alignment</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <button
                   onClick={() => editor?.chain().focus().toggleBold().run()}
@@ -212,63 +233,57 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 >
                   <Italic className="w-4 h-4" />
                 </button>
-                
-                <div className="w-px h-6 bg-border mx-1" />
-                
-                <button
-                  onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                  className={cn('p-2 rounded-lg transition-colors', editor?.isActive('bulletList') ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  <List className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                  className={cn('p-2 rounded-lg transition-colors', editor?.isActive('orderedList') ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  <ListOrdered className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => editor?.chain().focus().toggleTaskList().run()}
-                  className={cn('p-2 rounded-lg transition-colors', editor?.isActive('taskList') ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  <CheckSquare className="w-4 h-4" />
-                </button>
-                
-                <div className="w-px h-6 bg-border mx-1" />
-                
-                <button
-                  onClick={cycleAlignment}
-                  className="p-2 rounded-lg hover:bg-secondary/50 transition-colors"
-                >
-                  <AlignIcon className="w-4 h-4" />
-                </button>
-                
-                <button
-                  onClick={() => editor?.chain().focus().toggleHighlight().run()}
-                  className={cn('p-2 rounded-lg transition-colors', editor?.isActive('highlight') ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
-                  <Highlighter className="w-4 h-4" />
-                </button>
-                
-                <div className="w-px h-6 bg-border mx-1" />
-                
-                {/* Media buttons */}
-                <button
-                  onClick={handleAddImage}
-                  className="p-2 rounded-lg hover:bg-secondary/50 transition-colors"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setShowVoiceRecorder(true)}
-                  className="p-2 rounded-lg hover:bg-secondary/50 transition-colors"
-                >
-                  <Mic className="w-4 h-4" />
-                </button>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-1">
+              {/* Right group: Insert dropdown + Settings + Delete */}
+              <div className="flex items-center gap-0.5">
+                {/* Insert dropdown (+) */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                      <Plus className="w-4 h-4" />
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-[160px]">
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                      className={cn(editor?.isActive('bulletList') && 'bg-secondary')}
+                    >
+                      <List className="w-4 h-4 mr-2" />
+                      <span>Bullet list</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                      className={cn(editor?.isActive('orderedList') && 'bg-secondary')}
+                    >
+                      <ListOrdered className="w-4 h-4 mr-2" />
+                      <span>Numbered list</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => editor?.chain().focus().toggleTaskList().run()}
+                      className={cn(editor?.isActive('taskList') && 'bg-secondary')}
+                    >
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      <span>Checklist</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleAddImage}>
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                      <span>Image</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowVoiceRecorder(true)}>
+                      <Mic className="w-4 h-4 mr-2" />
+                      <span>Voice note</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleHighlight().run()}>
+                      <Highlighter className="w-4 h-4 mr-2" />
+                      <span>Highlight</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 <button
                   onClick={() => setShowSettings(!showSettings)}
                   className={cn('p-2 rounded-lg transition-colors', showSettings ? 'bg-secondary' : 'hover:bg-secondary/50')}
