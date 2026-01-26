@@ -490,3 +490,25 @@
 .voice-note-wrapper {
   @apply my-4;
 }
+
+/* Drag and drop visual feedback */
+.ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+[data-drag-handle] {
+  cursor: grab;
+}
+
+[data-drag-handle]:active {
+  cursor: grabbing;
+}
+
+/* Ensure drag handles are visible on touch devices */
+@media (hover: none) {
+  [data-drag-handle] .group-hover\:opacity-100 {
+    opacity: 0.7;
+  }
+}

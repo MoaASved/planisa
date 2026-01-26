@@ -8,7 +8,8 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import TextAlign from '@tiptap/extension-text-align';
-import Image from '@tiptap/extension-image';
+import { DraggableImage } from './DraggableImage';
+import { toast } from 'sonner';
 import { 
   ArrowLeft, 
   Folder, 
@@ -111,11 +112,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'rounded-xl max-w-full h-auto my-4 shadow-sm',
-        },
-      }),
+      DraggableImage,
       VoiceNoteExtension,
     ],
     content: note?.content || '',
@@ -187,21 +184,31 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const AlignIcon = getAlignmentIcon();
   const selectedFolder = folders.find(f => f.name === folder);
 
-  // Handle image upload
+  // Handle image upload with size warning
   const handleAddImage = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    // Removed input.capture to allow choosing from photo library or camera
     
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
-          const compressedBase64 = await compressImage(file, 1200, 0.8);
-          editor?.chain().focus().setImage({ src: compressedBase64 }).run();
+          const compressedBase64 = await compressImage(file);
+          
+          // Warn if image is large (> 500KB)
+          const MAX_IMAGE_SIZE = 500 * 1024;
+          if (compressedBase64.length > MAX_IMAGE_SIZE) {
+            toast.warning('Bilden är stor och kan påverka prestanda');
+          }
+          
+          editor?.chain().focus().insertContent({
+            type: 'image',
+            attrs: { src: compressedBase64 },
+          }).run();
         } catch (error) {
           console.error('Failed to process image:', error);
+          toast.error('Kunde inte lägga till bilden');
         }
       }
     };
