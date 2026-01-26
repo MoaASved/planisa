@@ -1,164 +1,229 @@
 
 
-## Plan: Bildalbum + Optimerad Toolbar
+## Plan: Fixa bildpersistens + Lägg till drag-and-drop
 
-### Problem
-1. `input.capture = 'environment'` tvingar kameran istället för att visa val mellan kamera/album
-2. Toolbaren har för många knappar (~15 st) som kräver sidoscrollning
+### Problem att lösa
+1. **Bilder sparas inte** - Base64-data kan överstiga localStorage-gränsen
+2. **Flytta bilder/röstinspelningar** - Behöver tydlig drag-funktionalitet
 
 ---
 
-### DEL 1: Tillåt bildval från album
+### DEL 1: Fixa bildpersistens
 
-**Ändring i båda editorerna:**
+#### Orsak
+Base64-kodade bilder kan bli flera MB stora. localStorage har en gräns på 5-10MB per domän, och när all data (alla notes, tasks, events) överstiger detta, misslyckas sparningen tyst.
+
+#### Lösning A: Aggressivare bildkomprimering
+Minska bildkvaliteten och storleken för att hålla nere base64-storleken:
+
+```text
+NUVARANDE:     maxWidth: 1200px, quality: 0.8
+NYTT:          maxWidth: 800px,  quality: 0.6
+```
+
+Detta minskar filstorleken med ca 60-70%.
+
+#### Lösning B: Verifiera att sparningen fungerar
+Lägg till en kontroll efter sparning för att fånga eventuella fel:
 
 ```tsx
-// Ta bort denna rad:
-input.capture = 'environment';
-
-// Behåll endast:
-input.type = 'file';
-input.accept = 'image/*';
+// I handleSave:
+try {
+  if (note) {
+    updateNote(note.id, noteData);
+  } else {
+    addNote(noteData);
+  }
+} catch (error) {
+  console.error('Failed to save note:', error);
+  // Visa felmeddelande till användaren
+}
 ```
 
-Detta ger användaren valet att antingen ta ett nytt foto eller välja från albumet.
-
----
-
-### DEL 2: Optimerad Toolbar - Förslag
-
-**Nuvarande layout (15+ knappar):**
-```
-[Pin][Folder][Delete] | [Settings] | [H1][H2][T] | [B][I] | [List][NumList][Check] | [Align][Highlight] | [Image][Mic] | [Collapse]
-```
-
-**Ny optimerad layout (8 synliga + 1 dropdown):**
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  [←]  [Pin]  [Folder]  │  [Aa▼]  [B]  [I]  │  [+▼]  [⚙]  [×]  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-#### Gruppering:
-
-| Knapp | Innehåll |
-|-------|----------|
-| **[Aa▼]** | Dropdown: H1, H2, Body text |
-| **[B]** | Bold (ofta använd, behåll synlig) |
-| **[I]** | Italic (ofta använd, behåll synlig) |
-| **[+▼]** | Insert-meny: Bullet list, Numbered list, Checklist, Image, Voice, Highlight |
-| **[⚙]** | Settings (datum, visa i kalender, etc.) |
-| **[×]** | Delete (endast för befintliga notes) |
-
-#### Visuellt förslag:
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                                                                        │
-│   (←)    📌   📁   │   [Aa ▼]   B   I   │   [+ ▼]   ⚙   🗑            │
-│                                                                        │
-│          ┌──────────┐         ┌─────────────────┐                     │
-│          │ Heading 1│         │ • Bullet list   │                     │
-│          │ Heading 2│         │ 1. Numbered list│                     │
-│          │ Body     │         │ ☑ Checklist     │                     │
-│          │ ─────────│         │ ─────────────── │                     │
-│          │ ≡ Align  │         │ 🖼 Image        │                     │
-│          └──────────┘         │ 🎤 Voice        │                     │
-│                               │ ─────────────── │                     │
-│                               │ 🖍 Highlight    │                     │
-│                               └─────────────────┘                     │
-│                                                                        │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### DEL 3: Implementation
-
-#### 3.1 Skapa FormatDropdown-komponent
+#### Lösning C: Lägg till en storleksvarning
+Om en bild är för stor, varna användaren:
 
 ```tsx
-// Aa-dropdown för textformatering
-<DropdownMenu>
-  <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-secondary/50">
-    <span className="text-sm font-medium">Aa</span>
-    <ChevronDown className="w-3 h-3" />
-  </DropdownMenuTrigger>
-  <DropdownMenuContent>
-    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}>
-      <span className="text-lg font-bold">Heading 1</span>
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}>
-      <span className="text-base font-semibold">Heading 2</span>
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => editor?.chain().focus().setParagraph().run()}>
-      <span className="text-sm">Body text</span>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem onClick={cycleAlignment}>
-      <AlignIcon className="w-4 h-4 mr-2" />
-      <span>Alignment</span>
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
-```
+const MAX_IMAGE_SIZE = 500 * 1024; // 500KB efter komprimering
 
-#### 3.2 Skapa InsertDropdown-komponent
-
-```tsx
-// +-dropdown för att infoga element
-<DropdownMenu>
-  <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-secondary/50">
-    <Plus className="w-4 h-4" />
-    <ChevronDown className="w-3 h-3" />
-  </DropdownMenuTrigger>
-  <DropdownMenuContent>
-    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleBulletList().run()}>
-      <List className="w-4 h-4 mr-2" />
-      <span>Bullet list</span>
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleOrderedList().run()}>
-      <ListOrdered className="w-4 h-4 mr-2" />
-      <span>Numbered list</span>
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleTaskList().run()}>
-      <CheckSquare className="w-4 h-4 mr-2" />
-      <span>Checklist</span>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem onClick={handleAddImage}>
-      <ImageIcon className="w-4 h-4 mr-2" />
-      <span>Image</span>
-    </DropdownMenuItem>
-    <DropdownMenuItem onClick={() => setShowVoiceRecorder(true)}>
-      <Mic className="w-4 h-4 mr-2" />
-      <span>Voice note</span>
-    </DropdownMenuItem>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
-      <Highlighter className="w-4 h-4 mr-2" />
-      <span>Highlight</span>
-    </DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
+const handleAddImage = async () => {
+  // ... komprimera bilden ...
+  
+  if (compressedBase64.length > MAX_IMAGE_SIZE) {
+    toast.warning('Bilden är stor och kan påverka prestanda');
+  }
+  
+  editor?.chain().focus().setImage({ src: compressedBase64 }).run();
+};
 ```
 
 ---
 
-### DEL 4: Filer att ändra
+### DEL 2: Drag-and-drop för bilder och röstinspelningar
 
-| Fil | Ändring |
-|-----|---------|
-| `src/components/notes/NoteEditor.tsx` | Ta bort `capture`, implementera dropdown-menyer |
+#### Nuläge
+- `VoiceNoteExtension` har redan `draggable: true`
+- TipTap's Image-extension stödjer drag som standard
+- Men det saknas visuella indikationer för användaren
+
+#### Lösning: Drag handle med visuell indikation
+
+Skapa en wrapper-komponent för bilder som visar ett drag-handtag:
+
+```text
+┌─────────────────────────────────────┐
+│  ⋮⋮  [Drag handle visas vid hover]  │
+│  ┌─────────────────────────────┐    │
+│  │                             │    │
+│  │        [BILD]               │    │
+│  │                             │    │
+│  └─────────────────────────────┘    │
+└─────────────────────────────────────┘
+```
+
+#### Implementation
+
+##### 1. Skapa en custom Image extension med drag-handle
+
+```tsx
+// ImageWithDragHandle.tsx
+import { Node, mergeAttributes } from '@tiptap/core';
+import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
+import { GripVertical } from 'lucide-react';
+
+function ImageComponent({ node, deleteNode }: { node: any; deleteNode: () => void }) {
+  return (
+    <NodeViewWrapper className="relative group my-4" data-drag-handle>
+      {/* Drag handle - visas vid hover */}
+      <div className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-5 h-5 text-muted-foreground" />
+      </div>
+      
+      {/* Bilden */}
+      <img 
+        src={node.attrs.src} 
+        alt={node.attrs.alt || ''} 
+        className="rounded-xl max-w-full h-auto shadow-sm"
+        draggable={false}
+      />
+      
+      {/* Delete-knapp vid hover */}
+      <button
+        onClick={deleteNode}
+        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </NodeViewWrapper>
+  );
+}
+
+export const DraggableImage = Node.create({
+  name: 'image',
+  group: 'block',
+  atom: true,
+  draggable: true,  // Aktivera drag
+  
+  addAttributes() {
+    return {
+      src: { default: null },
+      alt: { default: null },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'img[src]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['img', mergeAttributes(HTMLAttributes)];
+  },
+  
+  addNodeView() {
+    return ReactNodeViewRenderer(ImageComponent);
+  },
+});
+```
+
+##### 2. Uppdatera VoiceNotePlayer med drag-handle
+
+```tsx
+// Uppdatera VoiceNotePlayer.tsx
+function VoiceNoteComponent({ node, deleteNode }: { node: any; deleteNode: () => void }) {
+  return (
+    <NodeViewWrapper className="relative group my-4" data-drag-handle>
+      {/* Drag handle */}
+      <div className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-5 h-5 text-muted-foreground" />
+      </div>
+      
+      <VoiceNotePlayer
+        audioSrc={node.attrs.src}
+        duration={node.attrs.duration}
+        onDelete={deleteNode}
+      />
+    </NodeViewWrapper>
+  );
+}
+```
+
+##### 3. CSS för drag-interaktion
+
+```css
+/* Visuell feedback under drag */
+.ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Drag handle stil */
+[data-drag-handle] {
+  cursor: grab;
+}
+
+[data-drag-handle]:active {
+  cursor: grabbing;
+}
+```
+
+---
+
+### Användarinteraktion
+
+**För att flytta en bild eller röstinspelning:**
+1. Hovra över bilden/röstinspelningen
+2. Ett drag-handtag (⋮⋮) visas till vänster
+3. Klicka och håll på handtaget
+4. Dra till önskad position i texten
+5. Släpp för att placera
+
+---
+
+### Filer att skapa/ändra
+
+| Fil | Åtgärd |
+|-----|--------|
+| `src/lib/mediaUtils.ts` | Minska bildkomprimering (800px, 0.6 kvalitet) |
+| `src/components/notes/DraggableImage.tsx` | NY - Custom image extension med drag-handle |
+| `src/components/notes/VoiceNoteExtension.tsx` | Lägg till visuell drag-handle |
+| `src/components/notes/NoteEditor.tsx` | Byt ut Image mot DraggableImage |
 | `src/components/notes/NotebookPageEditor.tsx` | Samma ändringar |
+| `src/index.css` | CSS för drag-feedback |
 
 ---
 
-### Resultat
+### Teknisk sammanfattning
 
-- **Bilduppladdning**: Användaren kan nu välja mellan kamera och album
-- **Toolbar**: Renare med 8 synliga element istället för 15+
-- **Dropdowns**: Logiskt grupperade funktioner som är lätta att hitta
-- **Modern design**: Följer iOS/Apple-mönster med dropdown-menyer
+**Bildpersistens:**
+- Aggressivare komprimering minskar base64-storleken med 60-70%
+- Detta bör lösa localStorage-gränsproblem för de flesta användningsfall
+
+**Drag-and-drop:**
+- Använder TipTaps inbyggda drag-funktionalitet
+- Lägger till visuella drag-handles som visas vid hover
+- Ger tydlig feedback under drag-operationen
+
+**Framtida förbättring:**
+Om localStorage-gränsen fortfarande blir ett problem, kan bilder och ljud lagras i Supabase Storage istället, med endast URL:er sparade i notes.
 
