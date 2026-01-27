@@ -57,6 +57,8 @@ export interface Note {
   tags: string[];
   color?: PastelColor;
   date?: Date;
+  time?: string;
+  endTime?: string;
   createdAt: Date;
   updatedAt: Date;
   isPinned: boolean;

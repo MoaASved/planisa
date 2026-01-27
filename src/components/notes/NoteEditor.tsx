@@ -77,6 +77,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [title, setTitle] = useState(note?.title || '');
   const [folder, setFolder] = useState<string | undefined>(note?.folder);
   const [date, setDate] = useState<Date>(note?.date ? new Date(note.date) : new Date());
+  const [time, setTime] = useState<string | undefined>(note?.time);
+  const [endTime, setEndTime] = useState<string | undefined>(note?.endTime);
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar || false);
   const [hideFromAllNotes, setHideFromAllNotes] = useState(note?.hideFromAllNotes || false);
@@ -132,6 +134,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       folder,
       color: undefined, // Regular notes don't have color
       date,
+      time: showInCalendar ? time : undefined,
+      endTime: showInCalendar && time ? endTime : undefined,
       tags: [],
       isPinned,
       showInCalendar,
@@ -506,7 +510,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               <span className="text-sm text-foreground">Show in calendar</span>
             </div>
             <button
-              onClick={() => setShowInCalendar(!showInCalendar)}
+              onClick={() => {
+                const newValue = !showInCalendar;
+                setShowInCalendar(newValue);
+                if (!newValue) {
+                  setTime(undefined);
+                  setEndTime(undefined);
+                }
+              }}
               className={cn(
                 'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
                 showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
@@ -520,6 +531,56 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               />
             </button>
           </div>
+          
+          {/* Start time picker - only shown when showInCalendar is enabled */}
+          {showInCalendar && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-foreground">Time</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={time || ''}
+                  onChange={(e) => setTime(e.target.value || undefined)}
+                  className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                />
+                {time && (
+                  <button 
+                    onClick={() => {
+                      setTime(undefined);
+                      setEndTime(undefined);
+                    }}
+                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* End time picker - only shown when start time exists */}
+          {showInCalendar && time && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-foreground">End time</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={endTime || ''}
+                  onChange={(e) => setEndTime(e.target.value || undefined)}
+                  min={time}
+                  className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                />
+                {endTime && (
+                  <button 
+                    onClick={() => setEndTime(undefined)}
+                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Hide from all notes toggle */}
           <div className="flex items-center justify-between">

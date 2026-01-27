@@ -20,29 +20,27 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const [title, setTitle] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [isAllDay, setIsAllDay] = useState(true);
-  const [time, setTime] = useState('09:00');
+  const [time, setTime] = useState<string | undefined>(undefined);
+  const [endTime, setEndTime] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (note) {
       setTitle(note.title);
       setDate(note.date ? new Date(note.date) : new Date());
-      setIsAllDay(true);
-      setTime('09:00');
+      setTime(note.time);
+      setEndTime(note.endTime);
+      setIsAllDay(!note.time);
     }
   }, [note]);
 
   if (!isOpen || !note) return null;
 
   const handleSave = () => {
-    const updatedDate = new Date(date);
-    if (!isAllDay) {
-      const [hours, minutes] = time.split(':').map(Number);
-      updatedDate.setHours(hours, minutes);
-    }
-    
     updateNote(note.id, {
       title: title.trim() || 'Untitled',
-      date: updatedDate,
+      date,
+      time: isAllDay ? undefined : time,
+      endTime: isAllDay ? undefined : endTime,
     });
     onClose();
   };
@@ -105,25 +103,43 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
           
           {/* Time toggle */}
           <button
-            onClick={() => setIsAllDay(!isAllDay)}
+            onClick={() => {
+              if (isAllDay) {
+                setIsAllDay(false);
+                setTime('09:00');
+              } else {
+                setIsAllDay(true);
+                setTime(undefined);
+                setEndTime(undefined);
+              }
+            }}
             className={cn(
               "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors",
               isAllDay ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
             )}
           >
             <Clock className="w-4 h-4" />
-            {isAllDay ? 'All day' : time}
+            {isAllDay ? 'All day' : (time || '09:00')}
           </button>
         </div>
 
-        {/* Time input when not all day */}
+        {/* Time inputs when not all day */}
         {!isAllDay && (
-          <div className="mb-3">
+          <div className="flex items-center gap-2 mb-3">
             <input
               type="time"
-              value={time}
+              value={time || '09:00'}
               onChange={(e) => setTime(e.target.value)}
-              className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+              className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+            />
+            <span className="text-muted-foreground">-</span>
+            <input
+              type="time"
+              value={endTime || ''}
+              onChange={(e) => setEndTime(e.target.value || undefined)}
+              min={time}
+              placeholder="End"
+              className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
             />
           </div>
         )}
