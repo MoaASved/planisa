@@ -1,125 +1,175 @@
 
 
-## Plan: Fixa tre problem med Task/Note-tidshantering och tidslinje
+## Plan: Titel högst upp + hantering av överlappande objekt i tidslinjen
 
 ### Översikt
-Tre problem att lösa:
-1. Task tid-input är svår att interagera med (Notes har bättre design)
-2. Saknas "All day"-knapp för att återställa tid på både Tasks och Notes
-3. Tidslinje-objekt fyller inte upp sin tilldelade höjd (10:00-12:00 visas litet)
+Två förbättringar:
+1. Flytta titel + cirkel till toppen av containern (istället för centrerat)
+2. Intelligent hantering av överlappande objekt i tidslinjevyn
 
 ---
 
-### Problem 1: Förbättra Task tid-input (matcha Notes-designen)
-
-**Nuvarande design (TaskEditPanel):**
-- Tid-input sitter i en popover med bara ett `<input type="time">` 
-- Svårt att interagera med på mobil
-- Separata knappar för starttid och sluttid
-
-**Notes-designen (CalendarNoteModal):**
-- En toggle-knapp som visar "All day" eller tiden
-- När tidsläge är aktivt: två inline tid-inputs (start och slut) synliga direkt
-- Enklare och tydligare UX
-
-**Lösning:** Ändra TaskEditPanel till samma design som CalendarNoteModal:
-- Ersätt popover-baserade tid-inputs med inline tid-inputs
-- En knapp för att toggla mellan "All day" och tidsläge
-- När tidsläge är aktivt: visa två tid-inputs direkt (start - slut)
-
-**Fil**: `src/components/tasks/TaskEditPanel.tsx`
-
-```tsx
-// Ny state för isAllDay
-const [isAllDay, setIsAllDay] = useState(!task.time);
-
-// Ny toggle-funktion
-const handleTimeToggle = () => {
-  if (isAllDay) {
-    setIsAllDay(false);
-    handleTimeChange('09:00');
-  } else {
-    setIsAllDay(true);
-    handleTimeChange('');
-  }
-};
-
-// UI: Ersätt tid-popover med toggle-knapp + inline inputs
-<button onClick={handleTimeToggle} className={cn(...)}>
-  <Clock className="w-3.5 h-3.5" />
-  {isAllDay ? 'Time' : (task.time || '09:00')}
-</button>
-
-{/* Visa tid-inputs när inte all day */}
-{!isAllDay && (
-  <div className="flex items-center gap-2">
-    <input type="time" value={tempTime} onChange={...} className="..." />
-    <span>-</span>
-    <input type="time" value={tempEndTime} onChange={...} className="..." />
-  </div>
-)}
-```
-
----
-
-### Problem 2: "All day"-knapp för att återställa tid
-
-**Nuvarande beteende:**
-- TaskEditPanel: Ingen knapp för att ta bort tid och återgå till "all day"
-- CalendarNoteModal: Har toggle men kunde vara tydligare
-
-**Lösning:**
-- **TaskEditPanel**: Lägg till explicit möjlighet att återställa till "all day" (löses automatiskt med problem 1-lösningen - toggle-knappen)
-- **CalendarNoteModal**: Redan implementerat med toggle, men förtydliga att det fungerar som "återställ"
-
-Funktionaliteten löses genom att toggle-knappen i problem 1 fungerar som "All day"-knapp när man klickar på den igen.
-
----
-
-### Problem 3: Tidslinje-objekt fyller inte höjden
+### Del 1: Titel och cirkel högst upp
 
 **Nuvarande problem:**
-Containern har rätt höjd (t.ex. 120px för 2 timmar), men kortet inuti har fast padding (`p-2`) och expanderar inte för att fylla containern.
+Korten använder `flex items-center` vilket centrerar innehållet vertikalt. När ett kort har stor höjd (t.ex. 2 timmar) hamnar titeln i mitten.
 
 **Lösning:**
-Lägg till `h-full` på kort-elementen när de renderas i timeline-läge, så de fyller sin container.
+Ändra från `items-center` till `items-start` för att placera innehållet högst upp.
 
 **Fil**: `src/components/calendar/CalendarItemList.tsx`
 
 ```tsx
-// Lägg till parameter för att indikera timeline-rendering
-const renderItemCard = useCallback((
-  item: CalendarEvent | Task | Note, 
-  type: 'event' | 'task' | 'note',
-  time?: string,
-  endTime?: string,
-  compact?: boolean,
-  fillHeight?: boolean  // NY parameter
-) => {
+// Task-kort (rad 213-214) - ändra items-center till items-start
+className={cn(
+  'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative',
   // ...
+)}
 
-  // Task-kortet:
-  <div className={cn(
-    'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3 relative',
-    task.completed ? 'bg-secondary' : getColorCardClass(color),
-    compact ? 'p-2' : 'p-3',
-    fillHeight && 'h-full',  // NY: fyller höjden
-    isDragging && 'opacity-50 scale-95'
-  )}>
+// Note-kort (rad 291-292) - samma ändring
+className={cn(
+  'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
+  // ...
+)}
 
-  // Samma för event och note...
-});
+// Event-kort behåller som det är (redan korrekt struktur)
+```
 
-// Uppdatera anropet i timeline-renderingen:
+---
+
+### Del 2: Hantering av överlappande objekt
+
+**Nuvarande problem:**
+Alla tidsobjekt placeras med `left-0 right-0`, så överlappande objekt ligger helt ovanpå varandra.
+
+**Designförslag - Kolumnbaserad layout (Apple Calendar-stil):**
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ 09:00 │ ┌─────────────┐ ┌─────────────┐                 │
+│       │ │  Meeting    │ │  Call       │                 │
+│       │ │  9-10       │ │  9-9:30     │                 │
+│ 10:00 │ └─────────────┘ └─────────────┘                 │
+│       │ ┌───────────────────────────────┐               │
+│       │ │  Focus work 10-12             │               │ ← Full bredd när ensam
+│       │ │                               │               │
+│ 12:00 │ └───────────────────────────────┘               │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Algoritm:**
+1. Gruppera objekt som överlappar i tid
+2. Tilldela varje objekt en "kolumn" (0, 1, 2...)
+3. Beräkna bredd och horisontell position baserat på antal kolumner i gruppen
+
+**Implementation:**
+
+```tsx
+// Beräkna överlappande grupper och kolumner
+const getOverlapColumns = (items: TimedItem[]) => {
+  const columns: Map<string, { column: number; totalColumns: number }> = new Map();
+  
+  // Sortera efter starttid
+  const sorted = [...items].sort((a, b) => a.time.localeCompare(b.time));
+  
+  // Hitta överlappande grupper
+  const groups: TimedItem[][] = [];
+  let currentGroup: TimedItem[] = [];
+  
+  sorted.forEach((item) => {
+    const itemEnd = item.endTime || addMinutes(item.time, 30);
+    
+    // Kolla om detta item överlappar med något i current group
+    const overlaps = currentGroup.some(existing => {
+      const existingEnd = existing.endTime || addMinutes(existing.time, 30);
+      return item.time < existingEnd && itemEnd > existing.time;
+    });
+    
+    if (overlaps || currentGroup.length === 0) {
+      currentGroup.push(item);
+    } else {
+      if (currentGroup.length > 0) groups.push(currentGroup);
+      currentGroup = [item];
+    }
+  });
+  if (currentGroup.length > 0) groups.push(currentGroup);
+  
+  // Tilldela kolumner inom varje grupp
+  groups.forEach(group => {
+    group.forEach((item, index) => {
+      columns.set(item.item.id, { 
+        column: index, 
+        totalColumns: group.length 
+      });
+    });
+  });
+  
+  return columns;
+};
+```
+
+**Rendering med kolumner:**
+
+```tsx
 {timedItems.map(({ type, item, time, endTime }) => {
-  // ...
+  const top = getTimePosition(time);
+  const calculatedEndTime = endTime || addMinutes(time, 30);
+  const height = Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5);
+  
+  // Hämta kolumninformation
+  const colInfo = overlapColumns.get(item.id) || { column: 0, totalColumns: 1 };
+  const width = 100 / colInfo.totalColumns;
+  const left = colInfo.column * width;
+  
   return (
-    <div key={item.id} className="absolute left-0 right-0" style={{ top, height }}>
-      {renderItemCard(item, type, undefined, undefined, true, true)}  
-      {/* NY: fillHeight=true */}
+    <div
+      key={item.id}
+      className="absolute"
+      style={{ 
+        top, 
+        height,
+        left: `${left}%`,
+        width: `calc(${width}% - 4px)`,  // 4px gap mellan kolumner
+      }}
+    >
+      {renderItemCard(item, type, undefined, undefined, true, true)}
     </div>
   );
 })}
+```
+
+---
+
+### Visuellt resultat
+
+**Titel högst upp (i höga kort):**
+```text
+┌──────────────────────────────┐
+│ ○ Meeting with client        │  ← Titel och cirkel längst upp
+│                              │
+│                              │
+│                              │
+│                              │
+└──────────────────────────────┘
+```
+
+**Överlappande objekt (2 items samma tid):**
+```text
+09:00  ┌────────────┐ ┌────────────┐
+       │ Meeting    │ │ Call       │
+       │            │ └────────────┘
+10:00  └────────────┘
+       ┌───────────────────────────┐
+       │ Focus work                │  ← Full bredd
+11:00  └───────────────────────────┘
+```
+
+**Överlappande objekt (3 items):**
+```text
+09:00  ┌────────┐ ┌────────┐ ┌────────┐
+       │ Task 1 │ │ Task 2 │ │ Task 3 │
+       │        │ │        │ └────────┘
+10:00  └────────┘ └────────┘
 ```
 
 ---
@@ -128,35 +178,17 @@ const renderItemCard = useCallback((
 
 | Fil | Ändring |
 |-----|---------|
-| `src/components/tasks/TaskEditPanel.tsx` | Ersätt popover-tid-inputs med toggle-knapp + inline inputs (som Notes) |
-| `src/components/calendar/CalendarItemList.tsx` | Lägg till `h-full` på kort i tidslinje-vy |
+| `src/components/calendar/CalendarItemList.tsx` | 1. Ändra `items-center` till `items-start` på task/note-kort |
+| `src/components/calendar/CalendarItemList.tsx` | 2. Lägg till `getOverlapColumns` funktion |
+| `src/components/calendar/CalendarItemList.tsx` | 3. Uppdatera timeline-rendering med dynamisk bredd/position |
 
 ---
 
-### Visuellt resultat
+### Designfördelar
 
-**TaskEditPanel (efter):**
-```text
-┌────────────────────────────────────────────────────────────┐
-│ Edit Task                                              [X] │
-├────────────────────────────────────────────────────────────┤
-│ [Work] [Jan 27] [⏰ Time]  [Hide] [Delete]                 │
-│                                                            │
-│ Klick på "Time" → ändras till:                            │
-│                                                            │
-│ [Work] [Jan 27] [⏰ 09:00] [Hide] [Delete]                 │
-│                 [09:00] - [10:00]  ← Inline inputs        │
-│                                                            │
-│ Klick på tiden igen → återställer till "All day"          │
-└────────────────────────────────────────────────────────────┘
-```
-
-**Tidslinje (efter):**
-```text
-10:00 ┃ ┌──────────────────────────────────────┐
-      ┃ │                                      │
-      ┃ │     Task 10:00 - 12:00               │  ← Fyller hela höjden
-      ┃ │                                      │
-12:00 ┃ └──────────────────────────────────────┘
-```
+- **Tydlighet**: Alla överlappande objekt syns samtidigt
+- **Modern**: Samma approach som Apple Calendar och Google Calendar
+- **Responsivt**: Anpassar sig automatiskt till antal överlappande objekt
+- **Liten gap**: 4px mellanrum mellan kolumner för tydlig separation
+- **Stilren**: Behåller avrundade hörn och mjuka färger
 
