@@ -1,216 +1,70 @@
 
 
-## Plan: Modern Toggle Design + English Text + Undo/Redo
+## Plan: Fixa Toggle-knapparna
 
-### Overview
-1. Redesign toggle buttons in the Notes settings panel for a cleaner, more modern iOS-style look
-2. Change all dates from Swedish to English
-3. Add undo/redo buttons to the toolbar
+### Problemet
+Toggle-cirkeln går utanför ramen eftersom:
+- Container: 44px bred × 24px hög
+- Cirkel: 20px × 20px  
+- `translate-x-5` (20px) + startposition (2px) = 22px, men utrymmet är bara 44px - 20px = 24px
 
----
+### Lösning
+Justera toggle-designen så cirkeln alltid stannar innanför ramen:
 
-### DEL 1: Modern Toggle Button Design
-
-**Current problem**: The toggles are fully colored when "on" (`bg-primary` = dark fill), making them visually heavy and unclear.
-
-**New design**: A subtle, minimal toggle inspired by iOS with:
-- A thin border when OFF
-- A subtle background tint + checkmark indicator when ON
-- No full-color fill
-
-```text
-OFF state:                    ON state:
-┌─────────────────┐          ┌─────────────────┐
-│  ○──────────    │          │    ──────────● ✓│
-│  (gray outline) │          │  (subtle tint)  │
-└─────────────────┘          └─────────────────┘
-```
-
-**Implementation**: Create a cleaner toggle style:
-
+**Alternativ 1: Justera translate-värdet**
 ```tsx
-// New modern toggle design
+// Ändra från translate-x-5 (20px) till translate-x-[18px]
 <button
-  onClick={() => setState(!state)}
   className={cn(
     'w-11 h-6 rounded-full transition-all duration-200 relative',
-    state 
-      ? 'bg-primary/20 border border-primary/40' 
-      : 'bg-secondary/50 border border-border'
+    active ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
   )}
 >
   <span 
     className={cn(
-      'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-      state 
-        ? 'translate-x-5 bg-primary' 
-        : 'translate-x-0.5 bg-muted-foreground/30'
+      'absolute top-0.5 left-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+      active ? 'translate-x-[18px] bg-primary' : 'translate-x-0 bg-muted-foreground/30'
     )}
   />
 </button>
 ```
 
-**Alternative - even more minimal (checkbox-style)**:
-
+**Alternativ 2: Använd flexbox istället för absolute positioning (rekommenderat)**
 ```tsx
-// Minimal checkbox toggle
 <button
-  onClick={() => setState(!state)}
   className={cn(
-    'w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center',
-    state 
-      ? 'bg-primary/10 border-primary' 
-      : 'border-muted-foreground/30'
+    'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+    active ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
   )}
 >
-  {state && <Check className="w-3 h-3 text-primary" />}
+  <span 
+    className={cn(
+      'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+      active ? 'bg-primary' : 'bg-muted-foreground/30'
+    )}
+  />
 </button>
 ```
 
----
+### Beräkning för Alternativ 1
+- Container bredd: 44px (w-11)
+- Cirkel: 20px (w-5)  
+- Padding vänster: 2px (left-0.5)
+- Tillgängligt utrymme: 44px - 20px - 2px - 2px = 20px → `translate-x-[18px]` eller `translate-x-5` men med `left-0.5` fast position
 
-### DEL 2: Change Dates to English
+### Filer att ändra
+| Fil | Ändring |
+|-----|---------|
+| `src/components/notes/NoteEditor.tsx` | Fixa alla 3 toggle-knappar |
+| `src/components/notes/NotebookPageEditor.tsx` | Fixa alla toggle-knappar |
 
-**Files with Swedish locale:**
-- `src/components/notes/NoteEditor.tsx` - Lines 3, 421, 467
-
-**Changes:**
-```tsx
-// BEFORE (line 3)
-import { sv } from 'date-fns/locale';
-
-// AFTER - remove import entirely or change to:
-import { enUS } from 'date-fns/locale';
-
-// BEFORE (line 421)
-{format(date, 'd MMMM yyyy', { locale: sv })}
-
-// AFTER
-{format(date, 'MMMM d, yyyy')}
-
-// BEFORE (line 467)
-{format(date, 'd MMM yyyy', { locale: sv })}
-
-// AFTER
-{format(date, 'MMM d, yyyy')}
-```
-
-**Also update toast messages to English:**
-```tsx
-// Line 202
-toast.warning('Image is large and may affect performance');
-
-// Line 211  
-toast.error('Could not add image');
-```
-
----
-
-### DEL 3: Add Undo/Redo Buttons
-
-TipTap has built-in undo/redo support via the history extension (included in StarterKit).
-
-**Placement**: Add to the left side of the toolbar, next to Pin/Folder buttons.
-
+### Visuellt resultat
 ```text
-New toolbar layout:
-┌──────────────────────────────────────────────────────────────────────────┐
-│  [↶][↷]  [Pin][Folder]  │  [Aa▼]  [B]  [I]  │  [+▼]  [⚙]  [🗑]  [▲]    │
-│  undo/redo              │                    │                           │
-└──────────────────────────────────────────────────────────────────────────┘
-```
-
-**Implementation:**
-
-```tsx
-import { Undo2, Redo2 } from 'lucide-react';
-
-// In the toolbar, left group:
-<div className="flex items-center gap-0.5">
-  <ToolbarBtn 
-    onClick={() => editor?.chain().focus().undo().run()}
-    disabled={!editor?.can().undo()}
-  >
-    <Undo2 className="w-4 h-4" />
-  </ToolbarBtn>
-  <ToolbarBtn 
-    onClick={() => editor?.chain().focus().redo().run()}
-    disabled={!editor?.can().redo()}
-  >
-    <Redo2 className="w-4 h-4" />
-  </ToolbarBtn>
-  
-  {/* Separator */}
-  <div className="w-px h-4 bg-border mx-1" />
-  
-  <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
-    <Pin className="w-4 h-4" />
-  </ToolbarBtn>
-  // ...
-</div>
-```
-
-**Update ToolbarBtn to handle disabled state:**
-
-```tsx
-const ToolbarBtn = ({
-  onClick, 
-  active, 
-  disabled,
-  children, 
-  // ...
-}: { 
-  onClick: () => void; 
-  active?: boolean;
-  disabled?: boolean;
-  // ...
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={cn(
-      'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
-      disabled && 'opacity-30 cursor-not-allowed active:scale-100',
-      // ...
-    )}
-  >
-    {children}
-  </button>
-);
-```
-
----
-
-### Files to Change
-
-| File | Changes |
-|------|---------|
-| `src/components/notes/NoteEditor.tsx` | Modern toggle design, English dates/text, add Undo/Redo |
-| `src/components/notes/NotebookPageEditor.tsx` | Modern toggle design, add Undo/Redo |
-
----
-
-### Visual Summary
-
-**Before Toggle:**
-```
-┌───────────────────────────────────────┐
-│ Show in Calendar       ████████○     │  ← Dark filled = unclear
-└───────────────────────────────────────┘
-```
-
-**After Toggle:**
-```
-┌───────────────────────────────────────┐
-│ Show in Calendar       ○─────────●   │  ← Subtle, modern
-│                        │ tint bg │   │
-└───────────────────────────────────────┘
-```
-
-**Undo/Redo placement:**
-```
-┌─────────────────────────────────────────────┐
-│  ↶ ↷ │ 📌 📁 │ Aa▼  B  I │ +▼  ⚙  🗑  ▲   │
-└─────────────────────────────────────────────┘
+OFF:                          ON:
+┌────────────────────┐       ┌────────────────────┐
+│ ●                  │       │                  ● │
+│ (grå cirkel)       │       │       (primär)     │
+└────────────────────┘       └────────────────────┘
+  ↑ Stannar innanför           ↑ Stannar innanför
 ```
 
