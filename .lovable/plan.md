@@ -1,70 +1,86 @@
 
 
-## Plan: Fixa Toggle-knapparna
+## Plan: Fix Date Display on Notes List + Allow Untitled Notes in Calendar
 
-### Problemet
-Toggle-cirkeln går utanför ramen eftersom:
-- Container: 44px bred × 24px hög
-- Cirkel: 20px × 20px  
-- `translate-x-5` (20px) + startposition (2px) = 22px, men utrymmet är bara 44px - 20px = 24px
+### Overview
+Two fixes needed:
+1. Show the note's assigned date (`note.date`) on the Notes start page, not just `updatedAt`
+2. Allow notes without a title to appear in the calendar with "Untitled" as fallback
 
-### Lösning
-Justera toggle-designen så cirkeln alltid stannar innanför ramen:
+---
 
-**Alternativ 1: Justera translate-värdet**
+### Issue 1: Date Not Syncing to Notes Start Page
+
+**Current behavior**: The NoteCard in NotesView displays `format(new Date(note.updatedAt), 'MMM d')` - this shows when the note was last edited, NOT the note's assigned date.
+
+**Expected behavior**: When you change the date in the note editor, that date should appear on the Notes start page.
+
+**Fix**: Update the NoteCard component to show `note.date` (if available) instead of `note.updatedAt`.
+
+**File**: `src/components/views/NotesView.tsx`
+
 ```tsx
-// Ändra från translate-x-5 (20px) till translate-x-[18px]
-<button
-  className={cn(
-    'w-11 h-6 rounded-full transition-all duration-200 relative',
-    active ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
-  )}
->
-  <span 
-    className={cn(
-      'absolute top-0.5 left-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-      active ? 'translate-x-[18px] bg-primary' : 'translate-x-0 bg-muted-foreground/30'
-    )}
-  />
-</button>
+// Line ~169-172 - Current:
+<span className="text-xs text-muted-foreground">
+  {format(new Date(note.updatedAt), 'MMM d')}
+</span>
+
+// After - Use note.date when available:
+<span className="text-xs text-muted-foreground">
+  {format(new Date(note.date || note.updatedAt), 'MMM d')}
+</span>
 ```
 
-**Alternativ 2: Använd flexbox istället för absolute positioning (rekommenderat)**
+---
+
+### Issue 2: Notes Without Title Not Showing in Calendar
+
+**Current behavior**: Notes render their title directly: `{note.title}` - if empty, nothing shows.
+
+**Expected behavior**: Notes with `showInCalendar` enabled should appear even without a title, showing "Untitled" as fallback.
+
+**Fix**: Add fallback text for empty titles in CalendarItemList.
+
+**File**: `src/components/calendar/CalendarItemList.tsx`
+
 ```tsx
-<button
-  className={cn(
-    'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-    active ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-  )}
->
-  <span 
-    className={cn(
-      'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-      active ? 'bg-primary' : 'bg-muted-foreground/30'
-    )}
-  />
-</button>
+// Line 277 - Current:
+<span className={cn('font-medium truncate', compact ? 'text-xs' : 'text-sm')}>
+  {note.title}
+</span>
+
+// After - Add fallback:
+<span className={cn('font-medium truncate', compact ? 'text-xs' : 'text-sm')}>
+  {note.title || 'Untitled'}
+</span>
 ```
 
-### Beräkning för Alternativ 1
-- Container bredd: 44px (w-11)
-- Cirkel: 20px (w-5)  
-- Padding vänster: 2px (left-0.5)
-- Tillgängligt utrymme: 44px - 20px - 2px - 2px = 20px → `translate-x-[18px]` eller `translate-x-5` men med `left-0.5` fast position
+---
 
-### Filer att ändra
-| Fil | Ändring |
-|-----|---------|
-| `src/components/notes/NoteEditor.tsx` | Fixa alla 3 toggle-knappar |
-| `src/components/notes/NotebookPageEditor.tsx` | Fixa alla toggle-knappar |
+### Bonus: Fix Swedish locale in CalendarItemList
 
-### Visuellt resultat
-```text
-OFF:                          ON:
-┌────────────────────┐       ┌────────────────────┐
-│ ●                  │       │                  ● │
-│ (grå cirkel)       │       │       (primär)     │
-└────────────────────┘       └────────────────────┘
-  ↑ Stannar innanför           ↑ Stannar innanför
+The file still uses Swedish locale on line 3 and 287. Should be updated to English to match the rest of the app.
+
+**File**: `src/components/calendar/CalendarItemList.tsx`
+
+```tsx
+// Line 3 - Remove:
+import { sv } from 'date-fns/locale';
+
+// Line 287 - Current:
+const formattedDate = format(date, 'd MMMM', { locale: sv });
+
+// After:
+const formattedDate = format(date, 'MMMM d');
 ```
+
+---
+
+### Summary of Changes
+
+| File | Change |
+|------|--------|
+| `src/components/views/NotesView.tsx` | Display `note.date` instead of `note.updatedAt` in NoteCard |
+| `src/components/calendar/CalendarItemList.tsx` | Add "Untitled" fallback for notes without title |
+| `src/components/calendar/CalendarItemList.tsx` | Change date format to English |
 
