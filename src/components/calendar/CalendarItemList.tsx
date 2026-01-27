@@ -25,6 +25,62 @@ const addMinutes = (time: string, minutes: number): string => {
 
 type ItemType = 'events' | 'tasks' | 'notes';
 
+type TimedItem = { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time: string; endTime?: string };
+
+// Calculate overlap columns for timeline items (Apple Calendar style)
+const getOverlapColumns = (items: TimedItem[]): Map<string, { column: number; totalColumns: number }> => {
+  const columns: Map<string, { column: number; totalColumns: number }> = new Map();
+  
+  if (items.length === 0) return columns;
+  
+  // Sort by start time
+  const sorted = [...items].sort((a, b) => a.time.localeCompare(b.time));
+  
+  // Find overlapping groups using a more accurate algorithm
+  const groups: TimedItem[][] = [];
+  
+  sorted.forEach((item) => {
+    const itemStart = item.time;
+    const itemEnd = item.endTime || addMinutes(item.time, 30);
+    
+    // Find if this item overlaps with any existing group
+    let addedToGroup = false;
+    
+    for (const group of groups) {
+      // Check if item overlaps with any item in the group
+      const overlapsWithGroup = group.some(existing => {
+        const existingStart = existing.time;
+        const existingEnd = existing.endTime || addMinutes(existing.time, 30);
+        return itemStart < existingEnd && itemEnd > existingStart;
+      });
+      
+      if (overlapsWithGroup) {
+        group.push(item);
+        addedToGroup = true;
+        break;
+      }
+    }
+    
+    if (!addedToGroup) {
+      groups.push([item]);
+    }
+  });
+  
+  // Assign columns within each group
+  groups.forEach(group => {
+    // Sort group by start time for consistent column assignment
+    group.sort((a, b) => a.time.localeCompare(b.time));
+    group.forEach((item, index) => {
+      columns.set(item.item.id, { 
+        column: index, 
+        totalColumns: group.length 
+      });
+    });
+  });
+  
+  return columns;
+};
+
 interface CalendarItemListProps {
   date: Date;
   events: CalendarEvent[];
@@ -145,6 +201,9 @@ export function CalendarItemList({
     return items.sort((a, b) => a.time.localeCompare(b.time));
   }, [timedEvents, timedTasks, timedNotes, activeFilters]);
 
+  // Calculate overlap columns for timeline view
+  const overlapColumns = useMemo(() => getOverlapColumns(timedItems), [timedItems]);
+
   const toggleFilter = (filter: ItemType) => {
     setActiveFilters(prev => 
       prev.includes(filter) 
@@ -211,9 +270,9 @@ export function CalendarItemList({
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(task, 'task')}
           className={cn(
-            'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3 relative',
+            'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative',
             task.completed ? 'bg-secondary' : getColorCardClass(color),
-            compact ? 'p-2' : 'p-3',
+            compact ? 'p-2 pt-2' : 'p-3 pt-3',
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
@@ -236,7 +295,7 @@ export function CalendarItemList({
             )}>
               {task.title}
             </span>
-          {showTime && (
+            {showTime && (
               <span className="text-xs text-foreground/60">
                 {time}{endTime && ` - ${endTime}`}
               </span>
@@ -289,9 +348,9 @@ export function CalendarItemList({
         onDragEnd={handleDragEnd}
         onClick={() => onItemClick(note, 'note')}
         className={cn(
-          'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-2',
+          'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
           getColorCardClass(color),
-          compact ? 'p-2' : 'p-3',
+          compact ? 'p-2 pt-2' : 'p-3 pt-3',
           fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
         )}
@@ -397,7 +456,7 @@ export function CalendarItemList({
               </div>
             ))}
 
-            {/* Timed items */}
+            {/* Timed items with column layout for overlaps */}
             <div className="absolute left-16 right-4 top-0 bottom-0">
               {timedItems.map(({ type, item, time, endTime }) => {
                 const top = getTimePosition(time);
@@ -405,11 +464,21 @@ export function CalendarItemList({
                 const calculatedEndTime = endTime || addMinutes(time, 30);
                 const height = Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5);
 
+                // Get column info for overlapping items
+                const colInfo = overlapColumns.get(item.id) || { column: 0, totalColumns: 1 };
+                const widthPercent = 100 / colInfo.totalColumns;
+                const leftPercent = colInfo.column * widthPercent;
+
                 return (
                   <div
                     key={item.id}
-                    className="absolute left-0 right-0"
-                    style={{ top, height }}
+                    className="absolute"
+                    style={{ 
+                      top, 
+                      height,
+                      left: `${leftPercent}%`,
+                      width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
+                    }}
                   >
                     {renderItemCard(item, type, undefined, undefined, true, true)}
                   </div>
