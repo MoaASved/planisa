@@ -14,6 +14,15 @@ import {
 const HOUR_HEIGHT = 60;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
+// Helper function: add minutes to a time string
+const addMinutes = (time: string, minutes: number): string => {
+  const [h, m] = time.split(':').map(Number);
+  const totalMinutes = h * 60 + m + minutes;
+  const newH = Math.floor(totalMinutes / 60) % 24;
+  const newM = totalMinutes % 60;
+  return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+};
+
 type ItemType = 'events' | 'tasks' | 'notes';
 
 interface CalendarItemListProps {
@@ -73,6 +82,8 @@ export function CalendarItemList({
   const timedEvents = dayEvents.filter(e => !e.isAllDay && e.startTime);
   const untimedTasks = dayTasks.filter(t => !t.time);
   const timedTasks = dayTasks.filter(t => t.time);
+  const untimedNotes = dayNotes.filter(n => !n.time);
+  const timedNotes = dayNotes.filter(n => n.time);
 
   // All items for non-timeline view (shows everything)
   const allItems = useMemo(() => {
@@ -88,7 +99,7 @@ export function CalendarItemList({
       dayTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time, endTime: t.endTime }));
     }
     if (activeFilters.includes('notes')) {
-      dayNotes.forEach(n => items.push({ type: 'note', item: n }));
+      dayNotes.forEach(n => items.push({ type: 'note', item: n, time: n.time, endTime: n.endTime }));
     }
     
     // Sort: untimed first, then by time
@@ -111,15 +122,15 @@ export function CalendarItemList({
       untimedTasks.forEach(t => items.push({ type: 'task', item: t }));
     }
     if (activeFilters.includes('notes')) {
-      dayNotes.forEach(n => items.push({ type: 'note', item: n }));
+      untimedNotes.forEach(n => items.push({ type: 'note', item: n }));
     }
     
     return items;
-  }, [allDayEvents, untimedTasks, dayNotes, activeFilters]);
+  }, [allDayEvents, untimedTasks, untimedNotes, activeFilters]);
 
   // Timed items for timeline view
   const timedItems = useMemo(() => {
-    const items: { type: 'event' | 'task'; item: CalendarEvent | Task; time: string; endTime?: string }[] = [];
+    const items: { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time: string; endTime?: string }[] = [];
     
     if (activeFilters.includes('events')) {
       timedEvents.forEach(e => items.push({ type: 'event', item: e, time: e.startTime!, endTime: e.endTime }));
@@ -127,9 +138,12 @@ export function CalendarItemList({
     if (activeFilters.includes('tasks')) {
       timedTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time!, endTime: t.endTime }));
     }
+    if (activeFilters.includes('notes')) {
+      timedNotes.forEach(n => items.push({ type: 'note', item: n, time: n.time!, endTime: n.endTime }));
+    }
     
     return items.sort((a, b) => a.time.localeCompare(b.time));
-  }, [timedEvents, timedTasks, activeFilters]);
+  }, [timedEvents, timedTasks, timedNotes, activeFilters]);
 
   const toggleFilter = (filter: ItemType) => {
     setActiveFilters(prev => 
@@ -383,10 +397,9 @@ export function CalendarItemList({
             <div className="absolute left-16 right-4 top-0 bottom-0">
             {timedItems.map(({ type, item, time, endTime }) => {
                 const top = getTimePosition(time);
-                const calculatedEndTime = endTime || time;
-                const height = (type === 'event' || (type === 'task' && endTime))
-                  ? Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5)
-                  : HOUR_HEIGHT * 0.5;
+                // Default to 30 minutes if no end time specified
+                const calculatedEndTime = endTime || addMinutes(time, 30);
+                const height = Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5);
 
                 return (
                   <div
