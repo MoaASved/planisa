@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
-import { sv } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass } from '@/lib/colors';
@@ -274,7 +273,7 @@ export function CalendarItemList({
         )}
       >
         <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-foreground/60 flex-shrink-0')} />
-        <span className={cn('font-medium truncate', compact ? 'text-xs' : 'text-sm')}>{note.title}</span>
+        <span className={cn('font-medium truncate', compact ? 'text-xs' : 'text-sm')}>{note.title || 'Untitled'}</span>
       </div>
     );
   }, [getItemColor, getNoteColor, onItemClick, onTaskToggle, showTimeline, draggedItem]);
@@ -283,9 +282,8 @@ export function CalendarItemList({
     ? (allDayItems.length > 0 || timedItems.length > 0)
     : allItems.length > 0;
 
-  // Format date for display (e.g., "16 December")
-  const formattedDate = format(date, 'd MMMM', { locale: sv });
-  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+  // Format date for display (e.g., "January 16")
+  const formattedDate = format(date, 'MMMM d');
 
   return (
     <div className="flex flex-col h-full">
@@ -293,7 +291,7 @@ export function CalendarItemList({
       <div className="flex items-center justify-between px-4 py-3">
         {/* Date display on left */}
         <span className="text-base font-semibold text-foreground">
-          {capitalizedDate}
+          {formattedDate}
         </span>
 
         {/* Clock icon + All filter on right */}
