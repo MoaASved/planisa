@@ -508,14 +508,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             <button
               onClick={() => setShowInCalendar(!showInCalendar)}
               className={cn(
-                'w-11 h-6 rounded-full transition-all duration-200 relative',
-                showInCalendar ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
+                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
               )}
             >
               <span 
                 className={cn(
-                  'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  showInCalendar ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
+                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
                 )}
               />
             </button>
@@ -530,14 +530,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             <button
               onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
               className={cn(
-                'w-11 h-6 rounded-full transition-all duration-200 relative',
-                hideFromAllNotes ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
+                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                hideFromAllNotes ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
               )}
             >
               <span 
                 className={cn(
-                  'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  hideFromAllNotes ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
+                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  hideFromAllNotes ? 'bg-primary' : 'bg-muted-foreground/30'
                 )}
               />
             </button>
@@ -552,14 +552,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             <button
               onClick={() => setHideDate(!hideDate)}
               className={cn(
-                'w-11 h-6 rounded-full transition-all duration-200 relative',
-                hideDate ? 'bg-primary/20 border border-primary/40' : 'bg-secondary/50 border border-border'
+                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
               )}
             >
               <span 
                 className={cn(
-                  'absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  hideDate ? 'translate-x-5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/30'
+                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
                 )}
               />
             </button>
