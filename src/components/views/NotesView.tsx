@@ -167,7 +167,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               </span>
             )}
             <span className="text-xs text-muted-foreground">
-              {format(new Date(note.updatedAt), 'MMM d')}
+              {format(new Date(note.date || note.updatedAt), 'MMM d')}
             </span>
           </div>
           
