@@ -16,7 +16,9 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   const { updateTask, deleteTask, hideTask, toggleTask, taskCategories } = useAppStore();
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [tempTime, setTempTime] = useState(task.time || '');
+  const [tempEndTime, setTempEndTime] = useState(task.endTime || '');
 
   const handleCategorySelect = (category: TaskCategory) => {
     updateTask(task.id, { category: category.name, color: category.color });
@@ -30,6 +32,16 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   const handleTimeChange = (time: string) => {
     setTempTime(time);
     updateTask(task.id, { time: time || undefined });
+    // Clear end time if start time is cleared
+    if (!time) {
+      setTempEndTime('');
+      updateTask(task.id, { endTime: undefined });
+    }
+  };
+
+  const handleEndTimeChange = (endTime: string) => {
+    setTempEndTime(endTime);
+    updateTask(task.id, { endTime: endTime || undefined });
   };
 
   const handleDelete = () => {
@@ -117,7 +129,7 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
               task.time ? 'text-foreground' : 'text-muted-foreground'
             )}>
               <Clock className="w-3.5 h-3.5" />
-              <span>{task.time || 'Time'}</span>
+              <span>{task.time ? `${task.time}${task.endTime ? ` - ${task.endTime}` : ''}` : 'Time'}</span>
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3 bg-card border-border" align="start">
@@ -130,6 +142,32 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
             />
           </PopoverContent>
         </Popover>
+
+        {/* End Time Picker - only shows when start time is set */}
+        {task.time && (
+          <Popover open={showEndTimePicker} onOpenChange={setShowEndTimePicker}>
+            <PopoverTrigger asChild>
+              <button className={cn(
+                'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+                'bg-secondary hover:bg-muted',
+                task.endTime ? 'text-foreground' : 'text-muted-foreground'
+              )}>
+                <Clock className="w-3.5 h-3.5" />
+                <span>{task.endTime || 'End'}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-3 bg-card border-border" align="start">
+              <input
+                type="time"
+                value={tempEndTime}
+                onChange={(e) => handleEndTimeChange(e.target.value)}
+                min={task.time}
+                className="flow-input"
+                autoFocus
+              />
+            </PopoverContent>
+          </Popover>
+        )}
 
         {/* Hide Button */}
         <button 

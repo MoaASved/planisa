@@ -85,7 +85,7 @@ export function CalendarItemList({
       });
     }
     if (activeFilters.includes('tasks')) {
-      dayTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time }));
+      dayTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time, endTime: t.endTime }));
     }
     if (activeFilters.includes('notes')) {
       dayNotes.forEach(n => items.push({ type: 'note', item: n }));
@@ -125,7 +125,7 @@ export function CalendarItemList({
       timedEvents.forEach(e => items.push({ type: 'event', item: e, time: e.startTime!, endTime: e.endTime }));
     }
     if (activeFilters.includes('tasks')) {
-      timedTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time! }));
+      timedTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time!, endTime: t.endTime }));
     }
     
     return items.sort((a, b) => a.time.localeCompare(b.time));
@@ -165,7 +165,11 @@ export function CalendarItemList({
       const event = item as CalendarEvent;
       return !!(event.startTime && event.endTime);
     }
-    return false; // Tasks don't have end times
+    if (type === 'task') {
+      const task = item as Task;
+      return !!(task.time && task.endTime);
+    }
+    return false;
   };
 
   const renderItemCard = useCallback((
@@ -216,8 +220,10 @@ export function CalendarItemList({
             )}>
               {task.title}
             </span>
-            {showTime && (
-              <span className="text-xs text-foreground/60">{time}</span>
+          {showTime && (
+              <span className="text-xs text-foreground/60">
+                {time}{endTime && ` - ${endTime}`}
+              </span>
             )}
           </div>
         </div>
@@ -375,10 +381,10 @@ export function CalendarItemList({
 
             {/* Timed items */}
             <div className="absolute left-16 right-4 top-0 bottom-0">
-              {timedItems.map(({ type, item, time, endTime }) => {
+            {timedItems.map(({ type, item, time, endTime }) => {
                 const top = getTimePosition(time);
                 const calculatedEndTime = endTime || time;
-                const height = type === 'event' 
+                const height = (type === 'event' || (type === 'task' && endTime))
                   ? Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5)
                   : HOUR_HEIGHT * 0.5;
 
