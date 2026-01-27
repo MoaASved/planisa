@@ -15,9 +15,8 @@ interface TaskEditPanelProps {
 export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   const { updateTask, deleteTask, hideTask, toggleTask, taskCategories } = useAppStore();
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-  const [tempTime, setTempTime] = useState(task.time || '');
+  const [isAllDay, setIsAllDay] = useState(!task.time);
+  const [tempTime, setTempTime] = useState(task.time || '09:00');
   const [tempEndTime, setTempEndTime] = useState(task.endTime || '');
 
   const handleCategorySelect = (category: TaskCategory) => {
@@ -29,14 +28,23 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
     updateTask(task.id, { date });
   };
 
+  const handleTimeToggle = () => {
+    if (isAllDay) {
+      setIsAllDay(false);
+      const defaultTime = '09:00';
+      setTempTime(defaultTime);
+      updateTask(task.id, { time: defaultTime });
+    } else {
+      setIsAllDay(true);
+      setTempTime('09:00');
+      setTempEndTime('');
+      updateTask(task.id, { time: undefined, endTime: undefined });
+    }
+  };
+
   const handleTimeChange = (time: string) => {
     setTempTime(time);
     updateTask(task.id, { time: time || undefined });
-    // Clear end time if start time is cleared
-    if (!time) {
-      setTempEndTime('');
-      updateTask(task.id, { endTime: undefined });
-    }
   };
 
   const handleEndTimeChange = (endTime: string) => {
@@ -120,60 +128,49 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
           </PopoverContent>
         </Popover>
 
-        {/* Time Picker */}
-        <Popover open={showTimePicker} onOpenChange={setShowTimePicker}>
-          <PopoverTrigger asChild>
-            <button className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-              'bg-secondary hover:bg-muted',
-              task.time ? 'text-foreground' : 'text-muted-foreground'
-            )}>
-              <Clock className="w-3.5 h-3.5" />
-              <span>{task.time ? `${task.time}${task.endTime ? ` - ${task.endTime}` : ''}` : 'Time'}</span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-3 bg-card border-border" align="start">
-            <input
-              type="time"
-              value={tempTime}
-              onChange={(e) => handleTimeChange(e.target.value)}
-              className="flow-input"
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
+        {/* Time Toggle Button */}
+        <button 
+          onClick={handleTimeToggle}
+          className={cn(
+            'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all',
+            isAllDay 
+              ? 'bg-secondary hover:bg-muted text-muted-foreground' 
+              : 'bg-primary text-primary-foreground'
+          )}
+        >
+          <Clock className="w-3.5 h-3.5" />
+          <span>{isAllDay ? 'Time' : tempTime}</span>
+        </button>
+      </div>
 
-        {/* End Time Picker - only shows when start time is set */}
-        {task.time && (
-          <Popover open={showEndTimePicker} onOpenChange={setShowEndTimePicker}>
-            <PopoverTrigger asChild>
-              <button className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all',
-                'bg-secondary hover:bg-muted',
-                task.endTime ? 'text-foreground' : 'text-muted-foreground'
-              )}>
-                <Clock className="w-3.5 h-3.5" />
-                <span>{task.endTime || 'End'}</span>
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-3 bg-card border-border" align="start">
-              <input
-                type="time"
-                value={tempEndTime}
-                onChange={(e) => handleEndTimeChange(e.target.value)}
-                min={task.time}
-                className="flow-input"
-                autoFocus
-              />
-            </PopoverContent>
-          </Popover>
-        )}
+      {/* Inline Time Inputs - shown when not all day */}
+      {!isAllDay && (
+        <div className="flex items-center gap-2 mt-3">
+          <input
+            type="time"
+            value={tempTime}
+            onChange={(e) => handleTimeChange(e.target.value)}
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20"
+          />
+          <span className="text-muted-foreground">-</span>
+          <input
+            type="time"
+            value={tempEndTime}
+            onChange={(e) => handleEndTimeChange(e.target.value)}
+            min={tempTime}
+            placeholder="End"
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2 mt-3">
 
         {/* Hide Button */}
         <button 
           onClick={() => { 
             if (!task.completed) {
-              toggleTask(task.id); // Mark as completed if not already
+              toggleTask(task.id);
             }
             hideTask(task.id); 
             onClose(); 

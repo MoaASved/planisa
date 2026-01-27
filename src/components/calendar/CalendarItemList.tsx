@@ -191,7 +191,8 @@ export function CalendarItemList({
     type: 'event' | 'task' | 'note',
     time?: string,
     endTime?: string,
-    compact?: boolean
+    compact?: boolean,
+    fillHeight?: boolean
   ) => {
     const color = type === 'note' 
       ? getNoteColor(item as Note)
@@ -213,6 +214,7 @@ export function CalendarItemList({
             'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-3 relative',
             task.completed ? 'bg-secondary' : getColorCardClass(color),
             compact ? 'p-2' : 'p-3',
+            fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
         >
@@ -247,7 +249,7 @@ export function CalendarItemList({
     if (type === 'event') {
       const event = item as CalendarEvent;
       return (
-        <div className="flex items-stretch gap-1.5">
+        <div className={cn("flex items-stretch gap-1.5", fillHeight && "h-full")}>
           {/* Timeline indicator - only for items with start AND end time */}
           {showTimelineIndicator && !showTimeline && (
             <div className="w-1 rounded-full bg-foreground/70 flex-shrink-0" />
@@ -261,6 +263,7 @@ export function CalendarItemList({
               'flex-1 rounded-xl cursor-pointer transition-all active:scale-[0.98] relative',
               getColorCardClass(color),
               compact ? 'p-2' : 'p-3',
+              fillHeight && 'h-full',
               isDragging && 'opacity-50 scale-95'
             )}
           >
@@ -289,6 +292,7 @@ export function CalendarItemList({
           'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-center gap-2',
           getColorCardClass(color),
           compact ? 'p-2' : 'p-3',
+          fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
         )}
       >
@@ -395,7 +399,7 @@ export function CalendarItemList({
 
             {/* Timed items */}
             <div className="absolute left-16 right-4 top-0 bottom-0">
-            {timedItems.map(({ type, item, time, endTime }) => {
+              {timedItems.map(({ type, item, time, endTime }) => {
                 const top = getTimePosition(time);
                 // Default to 30 minutes if no end time specified
                 const calculatedEndTime = endTime || addMinutes(time, 30);
@@ -407,7 +411,7 @@ export function CalendarItemList({
                     className="absolute left-0 right-0"
                     style={{ top, height }}
                   >
-                    {renderItemCard(item, type, undefined, undefined, true)}
+                    {renderItemCard(item, type, undefined, undefined, true, true)}
                   </div>
                 );
               })}
