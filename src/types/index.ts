@@ -21,6 +21,7 @@ export interface Task {
   hidden?: boolean;
   date?: Date;
   time?: string;
+  endTime?: string;
   category: string;
   color: PastelColor;
   subtasks: Subtask[];
