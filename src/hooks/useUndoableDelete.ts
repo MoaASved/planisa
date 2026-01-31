@@ -9,10 +9,10 @@ type DeleteableItem = Task | CalendarEvent | Note | NotebookPage;
 
 const getDeleteMessage = (type: DeleteType): string => {
   switch (type) {
-    case 'task': return 'Uppgift raderad';
-    case 'event': return 'Event raderat';
-    case 'note': return 'Anteckning raderad';
-    case 'notebookPage': return 'Sida raderad';
+    case 'task': return 'Task deleted';
+    case 'event': return 'Event deleted';
+    case 'note': return 'Note deleted';
+    case 'notebookPage': return 'Page deleted';
   }
 };
 
@@ -39,7 +39,7 @@ export function useUndoableDelete() {
     // Show toast with undo button
     toast(getDeleteMessage(type), {
       action: {
-        label: 'Ångra',
+        label: 'Undo',
         onClick: () => restoreItem(type, item)
       },
       duration: 5000,
@@ -114,7 +114,7 @@ export function useUndoableDelete() {
       }
     }
     haptics.success();
-    toast.success('Återställd!');
+    toast.success('Restored!');
   };
 
   return { deleteWithUndo };
