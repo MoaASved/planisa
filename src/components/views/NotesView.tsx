@@ -318,8 +318,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
         {showNotebookModal && (
           <>
-            <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowNotebookModal(false)} />
-            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
+            <div className="fixed inset-0 glass-overlay z-40" onClick={() => setShowNotebookModal(false)} />
+            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet glass-modal animate-slide-up">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">New Notebook</h3>
                 <button onClick={() => setShowNotebookModal(false)} className="p-2 rounded-full bg-secondary">
@@ -361,8 +361,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           )}
 
           <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-            {filteredStickyNotes.map(note => (
-              <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+            {filteredStickyNotes.map((note, index) => (
+              <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
+                <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+              </div>
             ))}
           </div>
 
@@ -466,8 +468,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
         {showFolderModal && (
           <>
-            <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40" onClick={() => setShowFolderModal(false)} />
-            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
+            <div className="fixed inset-0 glass-overlay z-40" onClick={() => setShowFolderModal(false)} />
+            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet glass-modal animate-slide-up">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">New Folder</h3>
                 <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">
@@ -508,10 +510,13 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         )}
 
         <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-          {filteredAllNotes.map(note => (
-            note.type === 'sticky' 
-              ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-              : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
+          {filteredAllNotes.map((note, index) => (
+            <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
+              {note.type === 'sticky' 
+                ? <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+                : <NoteCard note={note} isGrid={layoutMode === 'grid'} />
+              }
+            </div>
           ))}
         </div>
 

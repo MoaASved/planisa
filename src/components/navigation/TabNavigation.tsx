@@ -1,5 +1,6 @@
 import { Home, Calendar, CheckSquare, FileText, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface TabNavigationProps {
   activeTab: string;
@@ -17,6 +18,7 @@ const tabs = [
 ];
 
 export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
+  const haptics = useHaptics();
   return (
     <nav className="flow-nav-pill safe-bottom">
       {tabs.map((tab) => {
@@ -27,11 +29,14 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
           return (
             <button
               key={tab.id}
-              onClick={onPlusClick}
-              className="flow-nav-center"
+              onClick={() => {
+                haptics.medium();
+                onPlusClick();
+              }}
+              className="flow-nav-center transition-transform duration-200 active:scale-95"
             >
               <Icon className={cn(
-                "w-6 h-6 transition-transform duration-200",
+                "w-6 h-6 transition-transform duration-300",
                 isPlusActive && "rotate-45"
               )} />
             </button>
@@ -41,9 +46,12 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
         return (
           <button
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => {
+              haptics.micro();
+              onTabChange(tab.id);
+            }}
             className={cn(
-              'flow-nav-item',
+              'flow-nav-item transition-all duration-200 active:scale-95',
               isActive && 'flow-nav-item-active'
             )}
           >

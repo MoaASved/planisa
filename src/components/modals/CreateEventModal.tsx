@@ -67,10 +67,10 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div 
-        className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+        className="absolute inset-0 glass-overlay animate-fade-in"
         onClick={onClose}
       />
-      <div className="relative bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
+      <div className="relative glass-modal w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
         {/* Header */}
         <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-foreground">New Event</h2>

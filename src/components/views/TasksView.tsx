@@ -86,12 +86,13 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
         {/* Tasks Tab */}
         {activeTab === 'tasks' && (
           <div className="space-y-2">
-            {activeTasks.map((task) => (
-              <SwipeableTaskCard
-                key={task.id}
-                task={task}
-                onToggle={() => toggleTask(task.id)}
-              />
+            {activeTasks.map((task, index) => (
+              <div key={task.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
+                <SwipeableTaskCard
+                  task={task}
+                  onToggle={() => toggleTask(task.id)}
+                />
+              </div>
             ))}
 
             {/* Inline Task Input - Always visible at the bottom */}
@@ -114,15 +115,16 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
         {/* Categories Tab */}
         {activeTab === 'categories' && (
           <div className="grid grid-cols-2 gap-3">
-            {taskCategories.map((category) => {
+            {taskCategories.map((category, index) => {
               const taskCount = activeTasks.filter(t => t.category === category.name).length;
               return (
-                <CategoryCard
-                  key={category.id}
-                  category={category}
-                  taskCount={taskCount}
-                  onClick={() => setSelectedCategory(category)}
-                />
+                <div key={category.id} className="stagger-item" style={{ animationDelay: `${index * 50}ms` }}>
+                  <CategoryCard
+                    category={category}
+                    taskCount={taskCount}
+                    onClick={() => setSelectedCategory(category)}
+                  />
+                </div>
               );
             })}
 
@@ -137,14 +139,15 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
         {/* Completed Tab */}
         {activeTab === 'completed' && (
           <div className="space-y-2">
-            {completedTasks.map((task) => (
-              <CompletedTaskCard
-                key={task.id}
-                task={task}
-                onHide={() => hideTask(task.id)}
-                onUnhide={() => unhideTask(task.id)}
-                onDelete={() => deleteTask(task.id)}
-              />
+            {completedTasks.map((task, index) => (
+              <div key={task.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
+                <CompletedTaskCard
+                  task={task}
+                  onHide={() => hideTask(task.id)}
+                  onUnhide={() => unhideTask(task.id)}
+                  onDelete={() => deleteTask(task.id)}
+                />
+              </div>
             ))}
 
             {completedTasks.length === 0 && (

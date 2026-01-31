@@ -49,13 +49,13 @@ export function QuickCreateMenu({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-foreground/10 backdrop-blur-[2px] z-40 animate-fade-in"
+        className="fixed inset-0 glass-overlay z-40 animate-fade-in"
         onClick={onClose}
       />
 
       {/* Menu */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-pop-in">
-        <div className="bg-card rounded-3xl shadow-lg border border-border p-4">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-spring-pop">
+        <div className="glass-modal rounded-3xl shadow-lg p-4">
           <div className="grid grid-cols-2 gap-3">
             {actions.map((action) => {
               const Icon = action.icon;
