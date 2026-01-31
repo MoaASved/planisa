@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { NotebookPage, NoteType, PastelColor, Notebook } from '@/types';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -35,7 +36,8 @@ interface NotebookPageEditorProps {
 }
 
 export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEditorProps) {
-  const { addNotebookPage, updateNotebookPage, deleteNotebookPage, notebookPages } = useAppStore();
+  const { addNotebookPage, updateNotebookPage, notebookPages } = useAppStore();
+  const { deleteWithUndo } = useUndoableDelete();
   
   const [title, setTitle] = useState(page?.title || '');
   const [showInCalendar, setShowInCalendar] = useState(page?.showInCalendar || false);
@@ -107,7 +109,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
   const handleDelete = () => {
     if (page) {
-      deleteNotebookPage(page.id);
+      deleteWithUndo('notebookPage', page);
     }
     onClose();
   };

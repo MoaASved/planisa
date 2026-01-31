@@ -8,6 +8,7 @@ import { CompletedTaskCard } from '../tasks/CompletedTaskCard';
 import { CategoryCard } from '../tasks/CategoryCard';
 import { CategoryDetailView } from '../tasks/CategoryDetailView';
 import { InlineTaskInput } from '../tasks/InlineTaskInput';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 
 type TabType = 'tasks' | 'categories' | 'completed';
 
@@ -20,12 +21,12 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
   const { 
     tasks, 
     toggleTask, 
-    deleteTask,
     hideTask,
     unhideTask,
     searchQuery, 
     taskCategories 
   } = useAppStore();
+  const { deleteWithUndo } = useUndoableDelete();
   
   const [activeTab, setActiveTab] = useState<TabType>('tasks');
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
@@ -145,7 +146,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
                   task={task}
                   onHide={() => hideTask(task.id)}
                   onUnhide={() => unhideTask(task.id)}
-                  onDelete={() => deleteTask(task.id)}
+                  onDelete={() => deleteWithUndo('task', task)}
                 />
               </div>
             ))}

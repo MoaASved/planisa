@@ -9,6 +9,7 @@ import { pastelColors } from '@/lib/colors';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { FolderPickerSheet } from './FolderPickerSheet';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 
 interface StickyNoteEditorProps {
   note?: Note;
@@ -33,7 +34,8 @@ const getStickyBgClass = (color?: PastelColor): string => {
 };
 
 export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
-  const { addNote, updateNote, deleteNote, togglePinNote, folders } = useAppStore();
+  const { addNote, updateNote, togglePinNote, folders } = useAppStore();
+  const { deleteWithUndo } = useUndoableDelete();
   
   const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || '');
   const [color, setColor] = useState<PastelColor>(note?.color || 'yellow');
@@ -67,7 +69,7 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
 
   const handleDelete = () => {
     if (note) {
-      deleteNote(note.id);
+      deleteWithUndo('note', note);
     }
     onClose();
   };

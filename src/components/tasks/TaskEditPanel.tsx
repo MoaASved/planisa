@@ -4,6 +4,7 @@ import { Folder, Calendar, Clock, Trash2, X, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task, TaskCategory } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
@@ -13,7 +14,8 @@ interface TaskEditPanelProps {
 }
 
 export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
-  const { updateTask, deleteTask, hideTask, toggleTask, taskCategories } = useAppStore();
+  const { updateTask, hideTask, toggleTask, taskCategories } = useAppStore();
+  const { deleteWithUndo } = useUndoableDelete();
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [isAllDay, setIsAllDay] = useState(!task.time);
   const [tempTime, setTempTime] = useState(task.time || '09:00');
@@ -53,7 +55,7 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   };
 
   const handleDelete = () => {
-    deleteTask(task.id);
+    deleteWithUndo('task', task);
     onClose();
   };
 
