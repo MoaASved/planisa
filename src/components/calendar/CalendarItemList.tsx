@@ -295,7 +295,7 @@ export function CalendarItemList({
             )}>
               {task.title}
             </span>
-            {showTime && (
+            {(showTime || fillHeight) && time && (
               <span className="text-xs text-foreground/60">
                 {time}{endTime && ` - ${endTime}`}
               </span>
@@ -329,7 +329,7 @@ export function CalendarItemList({
             <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
               {event.title}
             </span>
-            {showTime && (
+            {(showTime || fillHeight) && time && (
               <span className="text-xs text-foreground/60">
                 {time}{endTime && ` - ${endTime}`}
               </span>
@@ -355,8 +355,15 @@ export function CalendarItemList({
           isDragging && 'opacity-50 scale-95'
         )}
       >
-        <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-foreground/60 flex-shrink-0')} />
-        <span className={cn('font-medium truncate', compact ? 'text-xs' : 'text-sm')}>{note.title || 'Untitled'}</span>
+        <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-foreground/60 flex-shrink-0 mt-0.5')} />
+        <div className="flex-1 min-w-0">
+          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{note.title || 'Untitled'}</span>
+          {(showTime || fillHeight) && time && (
+            <span className="text-xs text-foreground/60">
+              {time}{endTime && ` - ${endTime}`}
+            </span>
+          )}
+        </div>
       </div>
     );
   }, [getItemColor, getNoteColor, onItemClick, onTaskToggle, showTimeline, draggedItem]);
@@ -480,7 +487,7 @@ export function CalendarItemList({
                       width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
                     }}
                   >
-                    {renderItemCard(item, type, undefined, undefined, true, true)}
+                    {renderItemCard(item, type, time, endTime, true, true)}
                   </div>
                 );
               })}
