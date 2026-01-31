@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { CalendarEvent, PastelColor } from '@/types';
 import { pastelColors } from '@/lib/colors';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 
 interface EditEventModalProps {
   event: CalendarEvent | null;
@@ -13,7 +14,8 @@ interface EditEventModalProps {
 }
 
 export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) {
-  const { updateEvent, deleteEvent, eventCategories, addEventCategory } = useAppStore();
+  const { updateEvent, eventCategories, addEventCategory } = useAppStore();
+  const { deleteWithUndo } = useUndoableDelete();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -69,7 +71,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
 
   const handleDelete = () => {
     if (!event) return;
-    deleteEvent(event.id);
+    deleteWithUndo('event', event);
     onClose();
   };
 

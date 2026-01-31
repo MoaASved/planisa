@@ -46,6 +46,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
 import { FolderPickerSheet } from './FolderPickerSheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors } from '@/lib/colors';
 import { compressImage } from '@/lib/mediaUtils';
@@ -72,7 +73,8 @@ const colorHslMap: Record<PastelColor, string> = {
 };
 
 export function NoteEditor({ note, onClose }: NoteEditorProps) {
-  const { addNote, updateNote, deleteNote, togglePinNote, folders } = useAppStore();
+  const { addNote, updateNote, togglePinNote, folders } = useAppStore();
+  const { deleteWithUndo } = useUndoableDelete();
   
   const [title, setTitle] = useState(note?.title || '');
   const [folder, setFolder] = useState<string | undefined>(note?.folder);
@@ -153,7 +155,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
   const handleDelete = () => {
     if (note) {
-      deleteNote(note.id);
+      deleteWithUndo('note', note);
     }
     onClose();
   };
