@@ -613,6 +613,16 @@
 }
 
 /* Drag and drop visual feedback */
+/* Compact toast container */
+[data-sonner-toaster] {
+  --width: auto !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] {
+  width: auto !important;
+  min-width: 0 !important;
+}
+
 .ProseMirror-selectednode {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
