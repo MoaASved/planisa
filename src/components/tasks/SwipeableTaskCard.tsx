@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react';
 import { format, isToday } from 'date-fns';
-import { Check, Calendar, Clock, Flag, EyeOff, ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
+import { Calendar, Clock, Flag, ChevronDown, ChevronRight, Plus, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskEditPanel } from './TaskEditPanel';
+import { AnimatedCheckbox } from './AnimatedCheckbox';
+import { useHaptics } from '@/hooks/useHaptics';
 
 interface SwipeableTaskCardProps {
   task: Task;
@@ -20,6 +22,7 @@ const priorityColors = {
 
 export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
   const { toggleSubtask, addSubtask, removeSubtask, updateTask } = useAppStore();
+  const haptics = useHaptics();
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -141,17 +144,11 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
           onClick={handleCardClick}
         >
           <div className="flex items-start gap-3">
-            <button
-              onClick={handleCheckboxClick}
-              className={cn(
-                'mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0',
-                task.completed 
-                  ? 'bg-primary border-primary' 
-                  : 'border-muted-foreground hover:border-primary'
-              )}
-            >
-              {task.completed && <Check className="w-4 h-4 text-primary-foreground" />}
-            </button>
+            <AnimatedCheckbox
+              checked={task.completed}
+              onChange={onToggle}
+              className="mt-0.5"
+            />
 
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
