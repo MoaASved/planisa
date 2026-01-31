@@ -1,320 +1,189 @@
 
-## Förbättringsplan: Flow Planner - Premium UX och Smarta Funktioner
+## Plan: Undo-toast vid Delete
 
 ### Sammanfattning
-Efter att ha analyserat appen grundligt presenterar jag en helhetslösning för att göra Flow Planner till en premium, exklusiv upplevelse med smarta funktioner, polerade animationer och snabb interaktion.
+Implementera en "Ångra"-funktion som visas som en toast-notifikation i 5 sekunder när användaren raderar en task, event eller note. Om användaren klickar "Ångra" återställs objektet.
 
 ---
 
-## DEL 1: Haptic Feedback och Micro-interaktioner
+## Teknisk lösning
 
-### 1.1 Haptic Feedback på alla interaktioner
-Lägg till vibrationer på mobil för att ge taktil feedback.
+### Ny hook: `useUndoableDelete`
+Skapa en hook som hanterar delete med undo-funktionalitet genom att:
+1. Spara det raderade objektet temporärt
+2. Visa en toast med "Ångra"-knapp
+3. Om användaren klickar ångra → återställ objektet
+4. Om timeout (5 sek) → objektet förblir raderat
 
-**Implementering:**
-- Skapa en `useHaptics` hook som wrapppar `navigator.vibrate()`
-- Lägg till haptic feedback på:
-  - Checkbox-klick (kort vibration 10ms)
-  - Swipe-threshold (medium vibration 20ms)
-  - Skapa ny task/event/note (success-vibration 30ms)
-  - Radera objekt (lång vibration 50ms)
-  - Tab-byte i navigation (micro-vibration 5ms)
+**Ny fil:** `src/hooks/useUndoableDelete.ts`
 
-**Ny fil:** `src/hooks/useHaptics.ts`
-
-### 1.2 Skeleton Loading States
-Istället för tomma vyer, visa skeleton-animationer för en mer polerad känsla.
-
-**Implementering:**
-- Lägg till skeleton-komponenter för Tasks, Notes och Calendar
-- Använd `animate-pulse` med subtila gradienter
+```typescript
+// Hook som tar emot delete-funktioner och returnerar 
+// wrapper-funktioner med undo-stöd
+export function useUndoableDelete() {
+  const deleteTaskWithUndo = (task: Task, deleteTask: fn) => {
+    deleteTask(task.id);
+    toast("Uppgift raderad", {
+      action: {
+        label: "Ångra",
+        onClick: () => addTask(task) // Återställ
+      },
+      duration: 5000
+    });
+  };
+  // Samma för events och notes
+}
+```
 
 ---
 
-## DEL 2: Smarta Funktioner
+## Filer som ändras
 
-### 2.1 Smart Quick Add med AI-parsing
-Parsea naturligt språk i task-input för att automatiskt sätta datum, tid och kategori.
+### 1. Ny fil: `src/hooks/useUndoableDelete.ts`
+Hook med logik för undo-delete för alla typer (tasks, events, notes).
 
-**Exempel:**
+### 2. `src/components/tasks/TaskEditPanel.tsx`
+**Rad 55-58:** Ändra `handleDelete` till att använda undo-hook istället för direkt delete.
+
+```tsx
+// Före:
+const handleDelete = () => {
+  deleteTask(task.id);
+  onClose();
+};
+
+// Efter:
+const { deleteWithUndo } = useUndoableDelete();
+const handleDelete = () => {
+  deleteWithUndo('task', task);
+  onClose();
+};
+```
+
+### 3. `src/components/tasks/CompletedTaskCard.tsx`
+Uppdatera `onDelete` prop-hanteringen för att använda undo-toast.
+
+### 4. `src/components/notes/NoteEditor.tsx`
+**Rad 154-158:** Samma mönster för notes.
+
+### 5. `src/components/notes/StickyNoteEditor.tsx`
+**Rad 68-72:** Samma mönster för sticky notes.
+
+### 6. `src/components/notes/NotebookPageEditor.tsx`
+**Rad 108-112:** Samma mönster för notebook pages.
+
+### 7. `src/components/modals/EditEventModal.tsx`
+**Rad 70-74:** Samma mönster för events.
+
+---
+
+## Visuellt resultat
+
+När användaren klickar "Delete":
+
 ```text
-"Möte med Erik imorgon kl 14" →
-  title: "Möte med Erik"
-  date: [imorgon]
-  time: "14:00"
-  
-"Handla mat på fredag" →
-  title: "Handla mat"
-  date: [fredag]
-  category: "Shopping"
+┌─────────────────────────────────────────┐
+│  ✓ Uppgift raderad          [Ångra]    │
+│                                         │
+│  ═══════════════════════════            │  ← Progress bar (5 sek)
+└─────────────────────────────────────────┘
 ```
 
-**Implementering:**
-- Skapa `parseNaturalLanguage` utility-funktion
-- Regex-patterns för:
-  - Tidsuttryck: "kl 14", "14:00", "klockan 2"
-  - Datumuttryck: "imorgon", "på fredag", "nästa vecka"
-  - Nyckelord för kategorier: "handla" → Shopping, "träna" → Health
-
-**Ny fil:** `src/lib/smartParsing.ts`
-
-### 2.2 Undo/Redo med Toast
-Visa en toast när man raderar något med möjlighet att ångra.
-
-**Implementering:**
-- Lägg till en `undoStack` i store
-- Vid delete: visa toast med "Ångra"-knapp (5 sekunder)
-- Återställ från undoStack vid klick
-
-### 2.3 Smart Förslag på Tid
-När man skapar en ny task med tid, föreslå nästa lediga tidslucka baserat på befintliga events/tasks.
-
-**Implementering:**
-- Analysera dagens schema och hitta luckor
-- Föreslå första lediga 30-minuters slot
+Efter klick på "Ångra":
+- Objektet återställs till listan
+- Toast försvinner
+- Haptic feedback (success)
 
 ---
 
-## DEL 3: Premium Animationer
+## Implementation av hooken
 
-### 3.1 Spring-baserade Animationer
-Byt ut standard `ease-out` mot spring-animationer för mer naturlig känsla.
+```typescript
+// src/hooks/useUndoableDelete.ts
+import { toast } from 'sonner';
+import { useAppStore } from '@/store/useAppStore';
+import { useHaptics } from './useHaptics';
+import { Task, CalendarEvent, Note, NotebookPage } from '@/types';
 
-**Ny animation i index.css:**
-```css
-@keyframes spring-scale {
-  0% { transform: scale(0.9); }
-  50% { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
+type DeleteType = 'task' | 'event' | 'note' | 'notebookPage';
 
-@keyframes spring-slide {
-  0% { transform: translateY(20px); opacity: 0; }
-  60% { transform: translateY(-5px); }
-  100% { transform: translateY(0); opacity: 1; }
-}
-```
+export function useUndoableDelete() {
+  const { 
+    addTask, deleteTask,
+    addEvent, deleteEvent,
+    addNote, deleteNote,
+    addNotebookPage, deleteNotebookPage 
+  } = useAppStore();
+  const haptics = useHaptics();
 
-### 3.2 Staggered Entry Animations
-När en lista renderas, animera varje item med fördröjning.
+  const deleteWithUndo = (
+    type: DeleteType, 
+    item: Task | CalendarEvent | Note | NotebookPage
+  ) => {
+    // Utför delete
+    switch (type) {
+      case 'task': deleteTask(item.id); break;
+      case 'event': deleteEvent(item.id); break;
+      case 'note': deleteNote(item.id); break;
+      case 'notebookPage': deleteNotebookPage(item.id); break;
+    }
+    
+    haptics.error(); // Haptic för delete
+    
+    // Visa toast med ångra-knapp
+    toast(getDeleteMessage(type), {
+      action: {
+        label: 'Ångra',
+        onClick: () => restoreItem(type, item)
+      },
+      duration: 5000,
+    });
+  };
 
-**Implementering:**
-- Lägg till `animation-delay` baserat på index
-- Användning: Tasks-lista, Notes-grid, Calendar-items
+  const restoreItem = (type: DeleteType, item: any) => {
+    switch (type) {
+      case 'task': 
+        addTask({ ...item }); 
+        break;
+      case 'event': 
+        addEvent({ ...item }); 
+        break;
+      case 'note': 
+        addNote({ ...item }); 
+        break;
+      case 'notebookPage': 
+        addNotebookPage({ ...item }); 
+        break;
+    }
+    haptics.success();
+    toast.success('Återställd!');
+  };
 
-**Uppdatering i index.css:**
-```css
-.stagger-item {
-  animation: spring-slide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  opacity: 0;
-}
-
-.stagger-item:nth-child(1) { animation-delay: 0ms; }
-.stagger-item:nth-child(2) { animation-delay: 40ms; }
-.stagger-item:nth-child(3) { animation-delay: 80ms; }
-/* ... upp till 10 items */
-```
-
-### 3.3 Checkbox Animation
-Polerad checkbox-animation när man markerar en task som klar.
-
-**Implementering:**
-- Checkmark ritas in med stroke-dasharray animation
-- Liten "confetti burst" eller ring-expansion vid completion
-- Rad stryks över med animation (inte instant)
-
-**Ny CSS:**
-```css
-@keyframes checkmark-draw {
-  0% { stroke-dashoffset: 16; }
-  100% { stroke-dashoffset: 0; }
-}
-
-@keyframes completion-ring {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1.8); opacity: 0; }
-}
-```
-
-### 3.4 Glassmorphism Overlays
-Uppgradera modals och popovers med glassmorphism.
-
-**CSS-uppdatering:**
-```css
-.glass-modal {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  return { deleteWithUndo };
 }
 ```
 
 ---
 
-## DEL 4: Snabb och Responsiv Känsla
+## Sammanfattning av ändringar
 
-### 4.1 Optimistic Updates
-Uppdatera UI direkt utan att vänta på state-change för snabbare känsla.
-
-**Implementering:**
-- Vid toggle task: visa checkmark DIREKT, uppdatera store async
-- Vid swipe-delete: börja fade-out DIREKT
-
-### 4.2 Prefetch och Preload
-- Preloada fonts tidigt
-- Prefetcha vanliga navigeringar
-
-### 4.3 Debounced Inputs med Instant Feedback
-- Visa ändringar direkt i UI
-- Debounca sparning till store (300ms)
+| Fil | Ändring |
+|-----|---------|
+| `src/hooks/useUndoableDelete.ts` | **NY FIL** - Hook för delete med undo |
+| `src/components/tasks/TaskEditPanel.tsx` | Använd `deleteWithUndo` istället för `deleteTask` |
+| `src/components/tasks/CompletedTaskCard.tsx` | Uppdatera delete-hantering via prop från parent |
+| `src/components/views/TasksView.tsx` | Skicka `deleteWithUndo` till CompletedTaskCard |
+| `src/components/notes/NoteEditor.tsx` | Använd `deleteWithUndo` för notes |
+| `src/components/notes/StickyNoteEditor.tsx` | Använd `deleteWithUndo` för sticky notes |
+| `src/components/notes/NotebookPageEditor.tsx` | Använd `deleteWithUndo` för notebook pages |
+| `src/components/modals/EditEventModal.tsx` | Använd `deleteWithUndo` för events |
 
 ---
 
-## DEL 5: Smarta Genvägar och Gestures
+## Fördelar med denna lösning
 
-### 5.1 Long-press Context Menu
-Long-press på ett item visar en snabb meny.
-
-**Implementering:**
-- 400ms long-press threshold
-- Visa cirkulär meny med: Edit, Delete, Duplicate, Move
-- Haptic feedback vid trigger
-
-### 5.2 Pull-to-Refresh Animation
-Custom pull-to-refresh med stilren animation istället för browser-default.
-
-### 5.3 Keyboard Shortcuts (Desktop)
-- `⌘ + N`: Ny task
-- `⌘ + E`: Nytt event
-- `⌘ + K`: Quick search
-- `Escape`: Stäng modals
-
-**Ny hook:** `src/hooks/useKeyboardShortcuts.ts`
-
----
-
-## DEL 6: Visuella Förbättringar
-
-### 6.1 Dynamiska Skuggor
-Skuggor som anpassar sig efter kortets färg.
-
-**CSS:**
-```css
-.card-with-color-shadow {
-  box-shadow: 0 8px 24px -8px var(--card-color, hsl(220 20% 10% / 0.1));
-}
-```
-
-### 6.2 Gradient Accents
-Subtila gradienter på primary-knappar för mer djup.
-
-**CSS:**
-```css
-.flow-button-primary {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.85) 100%);
-}
-```
-
-### 6.3 Animerade Ikoner
-Lägg till subtila animationer på ikoner.
-
-**Exempel:**
-- Plus-ikon roterar mjukt vid hover
-- Klocka-ikon "tickar" subtilt
-- Calendar-ikon bläddrar sidor
-
----
-
-## DEL 7: Intelligenta Funktioner
-
-### 7.1 Smart Kategorisering
-Föreslå kategori baserat på task-titeln.
-
-**Mappning:**
-```text
-"möte", "meeting", "call" → Work
-"gym", "träna", "löpning" → Health
-"handla", "köpa" → Shopping
-"läsa", "studera" → Learning
-```
-
-### 7.2 Recurring Tasks (UI-förberedelse)
-Lägg till UI för återkommande tasks (daglig, veckovis, månadsvis).
-
-### 7.3 Focus Mode
-En "fokusläge" som döljer allt utom dagens viktigaste uppgifter.
-
----
-
-## DEL 8: Prioriterade Förbättringar
-
-### HÖGT PRIORITERADE (Gör stor skillnad, relativt enkelt):
-
-| # | Förbättring | Påverkan | Komplexitet |
-|---|-------------|----------|-------------|
-| 1 | Staggered entry animations | Stor | Låg |
-| 2 | Polerad checkbox-animation | Stor | Låg |
-| 3 | Haptic feedback | Medel | Låg |
-| 4 | Spring-animationer | Stor | Låg |
-| 5 | Glassmorphism på modals | Stor | Låg |
-| 6 | Undo-toast vid delete | Medel | Medel |
-
-### MEDEL PRIORITERADE:
-
-| # | Förbättring | Påverkan | Komplexitet |
-|---|-------------|----------|-------------|
-| 7 | Smart natural language parsing | Stor | Medel |
-| 8 | Long-press context menu | Medel | Medel |
-| 9 | Keyboard shortcuts | Medel | Låg |
-| 10 | Smart kategori-förslag | Medel | Låg |
-
-### LÄNGRE FRAM:
-
-| # | Förbättring | Påverkan | Komplexitet |
-|---|-------------|----------|-------------|
-| 11 | Pull-to-refresh | Låg | Medel |
-| 12 | Recurring tasks | Stor | Hög |
-| 13 | Focus mode | Medel | Medel |
-| 14 | Animerade ikoner | Låg | Medel |
-
----
-
-## Förslag: Implementation i Ordning
-
-**Sprint 1 - Micro-interaktioner och Animationer:**
-1. Staggered entry animations (alla listor)
-2. Spring-baserade animationer
-3. Polerad checkbox-animation
-4. Glassmorphism på modals/popovers
-5. Haptic feedback hook
-
-**Sprint 2 - Smarta Funktioner:**
-6. Undo-toast vid delete
-7. Smart natural language parsing i task-input
-8. Keyboard shortcuts
-9. Smart kategori-förslag
-
-**Sprint 3 - Avancerade Interaktioner:**
-10. Long-press context menu
-11. Pull-to-refresh
-12. Focus mode
-
----
-
-## Teknisk Sammanfattning
-
-| Fil | Ändringar |
-|-----|-----------|
-| `src/index.css` | Nya animationer (spring, stagger, checkmark, glassmorphism) |
-| `src/hooks/useHaptics.ts` | Ny hook för vibrationer |
-| `src/hooks/useKeyboardShortcuts.ts` | Ny hook för tangentbordsgenvägar |
-| `src/lib/smartParsing.ts` | Natural language parsing |
-| `src/store/useAppStore.ts` | Undo-stack och optimistic updates |
-| `src/components/tasks/SwipeableTaskCard.tsx` | Checkbox-animation, staggered entry |
-| `src/components/QuickCreateMenu.tsx` | Spring-animation |
-| `src/components/modals/CreateEventModal.tsx` | Glassmorphism styling |
-| `src/components/navigation/TabNavigation.tsx` | Haptic feedback, spring-animation |
-
----
-
-Vill du att jag börjar implementera Sprint 1 (Micro-interaktioner och Animationer)?
+1. **Återanvändbar hook** - Samma logik för alla delete-operationer
+2. **Konsekvent UX** - Samma beteende överallt i appen
+3. **5 sekunders ångra-fönster** - Tillräckligt för att hinna ångra misstag
+4. **Haptic feedback** - Taktil bekräftelse på mobil
+5. **Minimal påverkan på store** - Ingen undo-stack behövs, vi återställer genom att lägga till igen
