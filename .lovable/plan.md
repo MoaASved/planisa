@@ -1,34 +1,30 @@
 
 
-## Plan: Kompaktare Undo-toast
+## Plan: Verkligt kompakt Undo-toast
 
-### Sammanfattning
-Gör undo-toasten ännu mer diskret genom att flytta den till ett hörn och minska storleken så den inte tar upp en hel rad.
+### Problem
+Sonner's toaster-wrapper (containern som håller alla toasts) har en default `width: 356px` och centrerar/positionerar sig över hela bredden. Även om vi stylar själva toasten med `w-auto`, så sitter den fortfarande i en bred container.
 
 ---
 
-## Ändringar
+## Lösning
 
 ### `src/components/ui/sonner.tsx`
 
-**Position:**
-Ändra från `bottom-center` till `bottom-right` för att toasten ska dyka upp diskret i ett hörn istället för mitt på skärmen.
-
-**Styling-uppdateringar:**
-- Mindre padding: `py-2 px-3` istället för `py-2.5 px-3`
-- Mindre text: `text-xs` istället för `text-sm`
-- Auto width så den bara tar den plats som behövs: `w-auto`
-- Mindre action-knapp med tightare padding
+Lägg till en custom className på själva Toaster-komponenten som överskrider Sonner's default container-bredd. Vi använder `!important` via `!` prefix i Tailwind för att forcera stilarna.
 
 ```tsx
 <Sonner
   theme="light"
-  className="toaster group"
+  className="toaster group !right-4 !bottom-4"
   position="bottom-right"
+  style={{
+    '--width': 'auto',
+  } as React.CSSProperties}
   toastOptions={{
     classNames: {
       toast:
-        "group toast group-[.toaster]:bg-card/95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:text-xs group-[.toaster]:border-border/50 group-[.toaster]:shadow-sm group-[.toaster]:rounded-lg group-[.toaster]:py-2 group-[.toaster]:px-3 group-[.toaster]:w-auto group-[.toaster]:min-w-0",
+        "group toast group-[.toaster]:bg-card/95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:text-xs group-[.toaster]:border-border/50 group-[.toaster]:shadow-sm group-[.toaster]:rounded-lg group-[.toaster]:py-2 group-[.toaster]:px-3 group-[.toaster]:w-auto group-[.toaster]:min-w-0 group-[.toaster]:max-w-fit",
       description: "group-[.toast]:text-muted-foreground group-[.toast]:text-[10px]",
       actionButton: "group-[.toast]:bg-foreground group-[.toast]:text-background group-[.toast]:rounded-md group-[.toast]:text-[10px] group-[.toast]:font-medium group-[.toast]:py-0.5 group-[.toast]:px-2",
       cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded-md group-[.toast]:text-[10px]",
@@ -37,34 +33,48 @@ Gör undo-toasten ännu mer diskret genom att flytta den till ett hörn och mins
 />
 ```
 
+### `src/index.css`
+
+Lägg till CSS som overridar Sonner's container-bredd globalt:
+
+```css
+/* Compact toast container */
+[data-sonner-toaster] {
+  --width: auto !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] {
+  width: auto !important;
+  min-width: 0 !important;
+}
+```
+
 ---
 
 ## Visuell skillnad
 
-**Före (centrerad, bred):**
+**Före (container = 356px bred):**
 ```text
-            ┌────────────────────────────────┐
-            │ Task deleted        [Undo]     │
-            └────────────────────────────────┘
+┌────────────────────────────────────────┐
+│ Task deleted                    [Undo] │
+└────────────────────────────────────────┘
+             (bred container)
 ```
 
-**Efter (höger hörn, kompakt):**
+**Efter (container = auto, bara så bred som innehållet):**
 ```text
-                              ┌─────────────────┐
-                              │ Task deleted [Undo] │
-                              └─────────────────┘
+                      ┌──────────────────┐
+                      │ Task deleted [Undo]│
+                      └──────────────────┘
+                       (kompakt container)
 ```
 
 ---
 
 ## Sammanfattning
 
-| Ändring | Före | Efter |
-|---------|------|-------|
-| Position | `bottom-center` | `bottom-right` |
-| Text-storlek | `text-sm` | `text-xs` |
-| Padding | `py-2.5` | `py-2` |
-| Border-radius | `rounded-xl` | `rounded-lg` |
-| Action-knapp text | `text-xs` | `text-[10px]` |
-| Bredd | Full width | Auto (minimalt) |
+| Fil | Ändring |
+|-----|---------|
+| `src/components/ui/sonner.tsx` | Lägg till style prop för `--width: auto` + `max-w-fit` |
+| `src/index.css` | CSS override för Sonner's container-bredd |
 
