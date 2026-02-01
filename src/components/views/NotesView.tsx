@@ -24,6 +24,8 @@ import { NotebookCard } from '@/components/notes/NotebookCard';
 import { NotebookListCard } from '@/components/notes/NotebookListCard';
 import { FolderListCard } from '@/components/notes/FolderListCard';
 import { NotebookView } from '@/components/notes/NotebookView';
+import { NotebookActionSheet } from '@/components/notes/NotebookActionSheet';
+import { useHaptics } from '@/hooks/useHaptics';
 
 
 type ViewTab = 'notes' | 'folders' | 'sticky' | 'notebooks';
@@ -37,7 +39,8 @@ interface NotesViewProps {
 }
 
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor }: NotesViewProps) {
-  const { notes, folders, notebooks, addFolder, addNotebook, searchQuery, setSearchQuery } = useAppStore();
+  const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery } = useAppStore();
+  const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('notes');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
@@ -55,6 +58,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
+  
+  // Notebook action sheet state
+  const [actionSheetNotebook, setActionSheetNotebook] = useState<Notebook | null>(null);
+  const [showNotebookActions, setShowNotebookActions] = useState(false);
+  const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
 
   // Scroll to top when editor closes
   useEffect(() => {
@@ -105,6 +113,43 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   const handleCreateNotebook = () => {
     if (newNotebookName.trim()) {
+      addNotebook({ name: newNotebookName.trim(), color: newNotebookColor });
+      setNewNotebookName('');
+      setShowNotebookModal(false);
+    }
+  };
+
+  // Notebook action handlers
+  const handleNotebookLongPress = (notebook: Notebook) => {
+    haptics.medium();
+    setActionSheetNotebook(notebook);
+    setShowNotebookActions(true);
+  };
+
+  const handleDeleteNotebook = () => {
+    if (actionSheetNotebook) {
+      deleteNotebook(actionSheetNotebook.id);
+      haptics.error();
+      setActionSheetNotebook(null);
+    }
+  };
+
+  const handleEditNotebook = () => {
+    if (actionSheetNotebook) {
+      setEditingNotebook(actionSheetNotebook);
+      setNewNotebookName(actionSheetNotebook.name);
+      setNewNotebookColor(actionSheetNotebook.color);
+      setShowNotebookModal(true);
+    }
+  };
+
+  const handleSaveNotebook = () => {
+    if (editingNotebook && newNotebookName.trim()) {
+      updateNotebook(editingNotebook.id, { name: newNotebookName.trim(), color: newNotebookColor });
+      setEditingNotebook(null);
+      setNewNotebookName('');
+      setShowNotebookModal(false);
+    } else if (newNotebookName.trim()) {
       addNotebook({ name: newNotebookName.trim(), color: newNotebookColor });
       setNewNotebookName('');
       setShowNotebookModal(false);
@@ -316,9 +361,17 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 style={{ animationDelay: `${index * 40}ms` }}
               >
                 {layoutMode === 'grid' ? (
-                  <NotebookCard notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
+                  <NotebookCard 
+                    notebook={notebook} 
+                    onClick={() => setSelectedNotebook(notebook)}
+                    onLongPress={() => handleNotebookLongPress(notebook)}
+                  />
                 ) : (
-                  <NotebookListCard notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
+                  <NotebookListCard 
+                    notebook={notebook} 
+                    onClick={() => setSelectedNotebook(notebook)}
+                    onLongPress={() => handleNotebookLongPress(notebook)}
+                  />
                 )}
               </div>
             ))}
@@ -326,7 +379,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             {/* Add notebook button - adapts to layout */}
             {layoutMode === 'grid' ? (
               <button
-                onClick={() => setShowNotebookModal(true)}
+                onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('lavender'); setShowNotebookModal(true); }}
                 className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
               >
                 <div className="w-14 h-[72px] mb-2 flex items-center justify-center">
@@ -336,7 +389,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               </button>
             ) : (
               <button
-                onClick={() => setShowNotebookModal(true)}
+                onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('lavender'); setShowNotebookModal(true); }}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
               >
                 <div className="w-12 h-14 rounded-lg flex items-center justify-center bg-secondary/30">
@@ -357,11 +410,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
         {showNotebookModal && (
           <>
-            <div className="fixed inset-0 glass-overlay z-40" onClick={() => setShowNotebookModal(false)} />
+            <div className="fixed inset-0 glass-overlay z-40" onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} />
             <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet glass-modal animate-slide-up">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">New Notebook</h3>
-                <button onClick={() => setShowNotebookModal(false)} className="p-2 rounded-full bg-secondary">
+                <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
+                <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
                   <X className="w-5 h-5 text-muted-foreground" />
                 </button>
               </div>
@@ -371,10 +424,19 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   <button key={c.value} onClick={() => setNewNotebookColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newNotebookColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
                 ))}
               </div>
-              <button onClick={handleCreateNotebook} className="w-full flow-button-primary">Create Notebook</button>
+              <button onClick={handleSaveNotebook} className="w-full flow-button-primary">{editingNotebook ? 'Save Changes' : 'Create Notebook'}</button>
             </div>
           </>
         )}
+
+        {/* Notebook Action Sheet */}
+        <NotebookActionSheet
+          notebook={actionSheetNotebook}
+          open={showNotebookActions}
+          onOpenChange={setShowNotebookActions}
+          onEdit={handleEditNotebook}
+          onDelete={handleDeleteNotebook}
+        />
 
       </div>
     );

@@ -1,0 +1,41 @@
+import { useCallback, useRef } from 'react';
+
+interface UseLongPressOptions {
+  onLongPress: () => void;
+  onClick?: () => void;
+  delay?: number;
+}
+
+export function useLongPress({ onLongPress, onClick, delay = 500 }: UseLongPressOptions) {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
+
+  const start = useCallback(() => {
+    isLongPress.current = false;
+    timerRef.current = setTimeout(() => {
+      isLongPress.current = true;
+      onLongPress();
+    }, delay);
+  }, [onLongPress, delay]);
+
+  const clear = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+  }, []);
+
+  const handleClick = useCallback(() => {
+    if (!isLongPress.current && onClick) {
+      onClick();
+    }
+  }, [onClick]);
+
+  return {
+    onMouseDown: start,
+    onMouseUp: clear,
+    onMouseLeave: clear,
+    onTouchStart: start,
+    onTouchEnd: clear,
+    onClick: handleClick,
+  };
+}

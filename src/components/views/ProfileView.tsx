@@ -12,7 +12,8 @@ import {
   Calendar,
   CheckSquare,
   Edit3,
-  X
+  X,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -28,7 +29,7 @@ import {
 } from '@/components/ui/drawer';
 
 type Language = 'en' | 'sv';
-type CategorySection = 'calendar' | 'tasks' | 'notes';
+type CategorySection = 'calendar' | 'tasks' | 'notes' | 'notebooks';
 
 const languages: { value: Language; label: string; native: string }[] = [
   { value: 'en', label: 'English', native: 'English' },
@@ -50,7 +51,11 @@ export function ProfileView() {
     folders,
     addFolder,
     updateFolder,
-    deleteFolder
+    deleteFolder,
+    notebooks,
+    addNotebook,
+    updateNotebook,
+    deleteNotebook
   } = useAppStore();
 
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
@@ -106,6 +111,9 @@ export function ProfileView() {
       case 'notes':
         addFolder({ name: newItemName.trim(), color: newItemColor });
         break;
+      case 'notebooks':
+        addNotebook({ name: newItemName.trim(), color: newItemColor });
+        break;
     }
     
     setNewItemName('');
@@ -133,6 +141,9 @@ export function ProfileView() {
       case 'notes':
         updateFolder(editItemId, { name: editItemName.trim(), color: editItemColor });
         break;
+      case 'notebooks':
+        updateNotebook(editItemId, { name: editItemName.trim(), color: editItemColor });
+        break;
     }
     
     setShowEditDrawer(false);
@@ -149,6 +160,9 @@ export function ProfileView() {
         break;
       case 'notes':
         deleteFolder(id);
+        break;
+      case 'notebooks':
+        deleteNotebook(id);
         break;
     }
   };
@@ -437,6 +451,58 @@ export function ProfileView() {
                 </div>
               )}
             </div>
+
+            {/* Notebooks */}
+            <div className="flow-card-flat p-2">
+              <button
+                onClick={() => toggleSection('notebooks')}
+                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-pastel-coral/20 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-pastel-coral" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-foreground">Notebooks</p>
+                    <p className="text-sm text-muted-foreground">{notebooks.length} notebooks</p>
+                  </div>
+                </div>
+                {expandedSection === 'notebooks' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+              </button>
+
+              {expandedSection === 'notebooks' && (
+                <div className="mt-2 space-y-1 animate-fade-in">
+                  {notebooks.map((notebook) => (
+                    <div key={notebook.id} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-secondary">
+                      <div className="flex items-center gap-3">
+                        <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${notebook.color}`)} />
+                        <span className="font-medium text-foreground">{notebook.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          onClick={() => openEditDrawer('notebooks', notebook.id, notebook.name, notebook.color)}
+                          className="p-1.5 rounded-lg hover:bg-muted"
+                        >
+                          <Edit3 className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteItem('notebooks', notebook.id)}
+                          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => openAddDrawer('notebooks')}
+                    className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+                  >
+                    Add New Notebook
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -529,32 +595,32 @@ export function ProfileView() {
         </DrawerContent>
       </Drawer>
 
-      {/* Add Category/Folder Drawer */}
+      {/* Add Category/Folder/Notebook Drawer */}
       <CategoryEditDrawer
         isOpen={showAddDrawer}
         onClose={() => setShowAddDrawer(false)}
-        title={`New ${addDrawerSection === 'notes' ? 'Folder' : 'Category'}`}
+        title={`New ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'notebooks' ? 'Notebook' : 'Category'}`}
         itemName={newItemName}
         itemColor={newItemColor}
         onNameChange={setNewItemName}
         onColorChange={setNewItemColor}
         onSave={handleAddItem}
-        placeholder={addDrawerSection === 'notes' ? 'Folder name' : 'Category name'}
-        saveLabel={`Create ${addDrawerSection === 'notes' ? 'Folder' : 'Category'}`}
+        placeholder={addDrawerSection === 'notes' ? 'Folder name' : addDrawerSection === 'notebooks' ? 'Notebook name' : 'Category name'}
+        saveLabel={`Create ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'notebooks' ? 'Notebook' : 'Category'}`}
       />
 
-      {/* Edit Category/Folder Drawer */}
+      {/* Edit Category/Folder/Notebook Drawer */}
       <CategoryEditDrawer
         isOpen={showEditDrawer}
         onClose={() => setShowEditDrawer(false)}
-        title={`Edit ${editItemSection === 'notes' ? 'Folder' : 'Category'}`}
+        title={`Edit ${editItemSection === 'notes' ? 'Folder' : editItemSection === 'notebooks' ? 'Notebook' : 'Category'}`}
         itemName={editItemName}
         itemColor={editItemColor}
         onNameChange={setEditItemName}
         onColorChange={setEditItemColor}
         onSave={handleUpdateItem}
         onDelete={() => editItemId && handleDeleteItem(editItemSection, editItemId)}
-        placeholder={editItemSection === 'notes' ? 'Folder name' : 'Category name'}
+        placeholder={editItemSection === 'notes' ? 'Folder name' : editItemSection === 'notebooks' ? 'Notebook name' : 'Category name'}
         saveLabel="Save Changes"
         showDelete={true}
       />
