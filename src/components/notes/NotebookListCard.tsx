@@ -2,19 +2,27 @@ import { BookOpen, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Notebook } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
+import { useLongPress } from '@/hooks/useLongPress';
 
 interface NotebookListCardProps {
   notebook: Notebook;
   onClick: () => void;
+  onLongPress?: () => void;
 }
 
-export function NotebookListCard({ notebook, onClick }: NotebookListCardProps) {
+export function NotebookListCard({ notebook, onClick, onLongPress }: NotebookListCardProps) {
   const { notebookPages } = useAppStore();
   const pageCount = notebookPages.filter(p => p.notebookId === notebook.id).length;
 
+  const longPressHandlers = useLongPress({
+    onLongPress: () => onLongPress?.(),
+    onClick: onClick,
+    delay: 500,
+  });
+
   return (
     <button
-      onClick={onClick}
+      {...longPressHandlers}
       className={cn(
         'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border',
         'transition-all duration-200 active:scale-[0.98] hover:shadow-md group'
