@@ -1,80 +1,76 @@
 
 
-## Plan: Verkligt kompakt Undo-toast
+## Plan: Scrolla till toppen efter note-skapande
 
-### Problem
-Sonner's toaster-wrapper (containern som håller alla toasts) har en default `width: 356px` och centrerar/positionerar sig över hela bredden. Även om vi stylar själva toasten med `w-auto`, så sitter den fortfarande i en bred container.
+### Sammanfattning
+Lägg till scroll-to-top funktionalitet i NotesView så att användaren hamnar högst upp i listan efter att ha skapat eller redigerat en note.
 
 ---
 
-## Lösning
+## Ändringar
 
-### `src/components/ui/sonner.tsx`
+### `src/components/views/NotesView.tsx`
 
-Lägg till en custom className på själva Toaster-komponenten som överskrider Sonner's default container-bredd. Vi använder `!important` via `!` prefix i Tailwind för att forcera stilarna.
-
+**1. Lägg till imports och ref (rad 1-2):**
 ```tsx
-<Sonner
-  theme="light"
-  className="toaster group !right-4 !bottom-4"
-  position="bottom-right"
-  style={{
-    '--width': 'auto',
-  } as React.CSSProperties}
-  toastOptions={{
-    classNames: {
-      toast:
-        "group toast group-[.toaster]:bg-card/95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:text-xs group-[.toaster]:border-border/50 group-[.toaster]:shadow-sm group-[.toaster]:rounded-lg group-[.toaster]:py-2 group-[.toaster]:px-3 group-[.toaster]:w-auto group-[.toaster]:min-w-0 group-[.toaster]:max-w-fit",
-      description: "group-[.toast]:text-muted-foreground group-[.toast]:text-[10px]",
-      actionButton: "group-[.toast]:bg-foreground group-[.toast]:text-background group-[.toast]:rounded-md group-[.toast]:text-[10px] group-[.toast]:font-medium group-[.toast]:py-0.5 group-[.toast]:px-2",
-      cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:rounded-md group-[.toast]:text-[10px]",
-    },
-  }}
-/>
+import { useState, useRef, useEffect } from 'react';
 ```
 
-### `src/index.css`
-
-Lägg till CSS som overridar Sonner's container-bredd globalt:
-
-```css
-/* Compact toast container */
-[data-sonner-toaster] {
-  --width: auto !important;
-}
-
-[data-sonner-toaster] [data-sonner-toast] {
-  width: auto !important;
-  min-width: 0 !important;
-}
+**2. Lägg till scroll ref och state för att tracka när editorn stängs (runt rad 52-53):**
+```tsx
+const scrollContainerRef = useRef<HTMLDivElement>(null);
+const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
 ```
 
----
-
-## Visuell skillnad
-
-**Före (container = 356px bred):**
-```text
-┌────────────────────────────────────────┐
-│ Task deleted                    [Undo] │
-└────────────────────────────────────────┘
-             (bred container)
+**3. Lägg till useEffect för scroll-to-top (runt rad 54):**
+```tsx
+useEffect(() => {
+  if (shouldScrollToTop && scrollContainerRef.current) {
+    scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    setShouldScrollToTop(false);
+  }
+}, [shouldScrollToTop]);
 ```
 
-**Efter (container = auto, bara så bred som innehållet):**
-```text
-                      ┌──────────────────┐
-                      │ Task deleted [Undo]│
-                      └──────────────────┘
-                       (kompakt container)
+**4. Uppdatera handleCloseEditor (rad 111-117):**
+```tsx
+const handleCloseEditor = () => {
+  setSelectedNote(null);
+  setSelectedStickyNote(null);
+  setIsCreatingStickyNote(false);
+  onEditingChange?.(false);
+  onCloseEditor?.();
+  setShouldScrollToTop(true); // Trigger scroll to top
+};
+```
+
+**5. Lägg till ref på scroll-containern (Notes-vyn, rad 496):**
+```tsx
+<div ref={scrollContainerRef} className="min-h-screen pb-24 overflow-y-auto">
+```
+
+**6. Samma ref på Sticky-vyn (rad 347):**
+```tsx
+<div ref={scrollContainerRef} className="min-h-screen pb-24">
 ```
 
 ---
 
-## Sammanfattning
+## Teknisk förklaring
 
-| Fil | Ändring |
-|-----|---------|
-| `src/components/ui/sonner.tsx` | Lägg till style prop för `--width: auto` + `max-w-fit` |
-| `src/index.css` | CSS override för Sonner's container-bredd |
+| Koncept | Beskrivning |
+|---------|-------------|
+| `useRef` | Referens till DOM-elementet för scroll-containern |
+| `shouldScrollToTop` | State-flag som triggar scroll när editorn stängs |
+| `scrollTo({ top: 0, behavior: 'smooth' })` | Mjuk scroll-animation till toppen |
+| `useEffect` | Lyssnar på state-ändringar och utför scroll |
+
+---
+
+## Användarupplevelse
+
+1. Användaren skapar eller redigerar en note
+2. Trycker på tillbaka-pilen (sparar automatiskt)
+3. Editorn stängs och listan visas
+4. Vyn scrollar smidigt till toppen där den nya/uppdaterade noten finns
 
