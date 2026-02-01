@@ -1,53 +1,60 @@
 
 
-## Plan: Scroll till toppen vid tab-byte
+## Plan: Dynamisk Theme-Color
 
 ### Sammanfattning
-Lägger till automatisk scroll-to-top när användaren byter mellan huvudsektioner (Home, Calendar, Tasks, Notes, Profile). Detta säkerställer att man alltid börjar högst upp när man navigerar till en ny sektion.
+Ändrar theme-color från statisk blå till dynamisk färg som matchar appens bakgrund baserat på valt tema (ljust eller mörkt).
 
 ---
 
 ## Ändringar
 
-### `src/pages/Index.tsx`
+### 1. Uppdatera `index.html`
 
-**1. Lägg till useEffect för scroll-to-top (efter rad 35):**
+Ändra default theme-color till ljus bakgrundsfärg:
+
+```html
+<!-- Rad 9: Ändra från blå till appens ljusa bakgrundsfärg -->
+<meta name="theme-color" content="#f7f9fc" />
+```
+
+### 2. Uppdatera `src/pages/Index.tsx`
+
+Lägg till dynamisk uppdatering av theme-color när tema ändras:
 
 ```tsx
-// Scroll to top when changing tabs
+// I befintlig useEffect för tema (efter rad 33)
 useEffect(() => {
-  window.scrollTo({ top: 0, behavior: 'instant' });
-}, [activeTab]);
+  if (settings.theme === 'dark') {
+    document.documentElement.classList.add('dark');
+    // Uppdatera theme-color för mörkt tema
+    document.querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', '#0d1117');
+  } else {
+    document.documentElement.classList.remove('dark');
+    // Uppdatera theme-color för ljust tema
+    document.querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', '#f7f9fc');
+  }
+}, [settings.theme]);
 ```
 
 ---
 
-## Teknisk förklaring
+## Färger som används
 
-| Koncept | Beskrivning |
-|---------|-------------|
-| `useEffect` med `[activeTab]` | Körs varje gång `activeTab` ändras |
-| `behavior: 'instant'` | Omedelbar scroll (ej animerad) för snabb navigation |
-| `window.scrollTo` | Scrollar hela dokumentet till toppen |
-
----
-
-## Varför `instant` istället för `smooth`?
-
-- **Snabbare upplevelse** - Användaren vill se den nya sektionen direkt
-- **Undviker förvirring** - Smooth scroll kan kännas konstigt när allt innehåll byts ut
-- **Standard i appar** - De flesta mobila appar byter vy omedelbart
+| Tema | Bakgrundsfärg | Hex-kod |
+|------|---------------|---------|
+| Ljust | Mjuk ljusgrå ("Cloud Dancer") | `#f7f9fc` |
+| Mörkt | Mörk grå-blå | `#0d1117` |
 
 ---
 
-## Navigeringsflöden som täcks
+## Resultat
 
-| Navigeringssätt | Täcks |
-|-----------------|-------|
-| TabNavigation (nedre menyn) | ✅ |
-| HomeView widgets (klick på Calendar, Tasks) | ✅ |
-| Profile-knappen i TopBar | ✅ |
-| QuickCreate (skapar task/note) | ✅ |
+- **Ljust tema**: Statusbaren blir ljusgrå och smälter in med appen
+- **Mörkt tema**: Statusbaren blir mörk och matchar appens bakgrund
+- **Automatiskt**: Ändras direkt när användaren byter tema i inställningarna
 
 ---
 
@@ -55,5 +62,6 @@ useEffect(() => {
 
 | Fil | Åtgärd |
 |-----|--------|
-| `src/pages/Index.tsx` | Lägg till useEffect för scroll-to-top |
+| `index.html` | Ändra default theme-color till ljus bakgrundsfärg |
+| `src/pages/Index.tsx` | Lägg till dynamisk uppdatering av theme-color |
 
