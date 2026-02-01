@@ -21,6 +21,8 @@ import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 import { NotebookCard } from '@/components/notes/NotebookCard';
+import { NotebookListCard } from '@/components/notes/NotebookListCard';
+import { FolderListCard } from '@/components/notes/FolderListCard';
 import { NotebookView } from '@/components/notes/NotebookView';
 
 
@@ -302,21 +304,47 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-4">
-            {notebooks.map((notebook) => (
-              <NotebookCard key={notebook.id} notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
+          <div className={cn(
+            layoutMode === 'grid' 
+              ? 'grid grid-cols-3 gap-4' 
+              : 'space-y-3'
+          )}>
+            {notebooks.map((notebook, index) => (
+              <div 
+                key={notebook.id} 
+                className="stagger-item" 
+                style={{ animationDelay: `${index * 40}ms` }}
+              >
+                {layoutMode === 'grid' ? (
+                  <NotebookCard notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
+                ) : (
+                  <NotebookListCard notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
+                )}
+              </div>
             ))}
 
-            {/* Add notebook button */}
-            <button
-              onClick={() => setShowNotebookModal(true)}
-              className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
-            >
-              <div className="w-14 h-[72px] mb-2 flex items-center justify-center">
-                <Plus className="w-8 h-8 text-muted-foreground/50" />
-              </div>
-              <span className="text-sm font-medium text-muted-foreground">New</span>
-            </button>
+            {/* Add notebook button - adapts to layout */}
+            {layoutMode === 'grid' ? (
+              <button
+                onClick={() => setShowNotebookModal(true)}
+                className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
+              >
+                <div className="w-14 h-[72px] mb-2 flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-muted-foreground/50" />
+                </div>
+                <span className="text-sm font-medium text-muted-foreground">New</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowNotebookModal(true)}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
+              >
+                <div className="w-12 h-14 rounded-lg flex items-center justify-center bg-secondary/30">
+                  <Plus className="w-6 h-6 text-muted-foreground/50" />
+                </div>
+                <span className="font-medium text-muted-foreground">New Notebook</span>
+              </button>
+            )}
           </div>
 
           {notebooks.length === 0 && (
@@ -409,69 +437,102 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-4">
-            {folders.map((folder) => {
+          <div className={cn(
+            layoutMode === 'grid' 
+              ? 'grid grid-cols-3 gap-4' 
+              : 'space-y-3'
+          )}>
+            {folders.map((folder, index) => {
               const count = notes.filter(n => n.folder === folder.name).length;
               return (
-                <button
-                  key={folder.id}
-                  onClick={() => setSelectedFolder(folder)}
-                  className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30"
+                <div 
+                  key={folder.id} 
+                  className="stagger-item" 
+                  style={{ animationDelay: `${index * 40}ms` }}
                 >
-                  {/* macOS style folder icon */}
-                  <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2">
-                    <path 
-                      d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
-                      fill={`hsl(var(--pastel-${folder.color}))`}
-                      opacity="0.9"
-                    />
-                    <path 
-                      d="M4 16 L76 16 L76 60 C76 62 74 64 72 64 L8 64 C6 64 4 62 4 60 L4 16 Z" 
-                      fill={`hsl(var(--pastel-${folder.color}))`}
-                    />
-                  </svg>
-                  <span className="text-sm font-medium text-center truncate max-w-[80px]">
-                    {folder.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {count} {count === 1 ? 'item' : 'items'}
-                  </span>
-                </button>
+                  {layoutMode === 'grid' ? (
+                    <button
+                      onClick={() => setSelectedFolder(folder)}
+                      className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30"
+                    >
+                      {/* macOS style folder icon */}
+                      <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2">
+                        <path 
+                          d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
+                          fill={`hsl(var(--pastel-${folder.color}))`}
+                          opacity="0.9"
+                        />
+                        <path 
+                          d="M4 16 L76 16 L76 60 C76 62 74 64 72 64 L8 64 C6 64 4 62 4 60 L4 16 Z" 
+                          fill={`hsl(var(--pastel-${folder.color}))`}
+                        />
+                      </svg>
+                      <span className="text-sm font-medium text-center truncate max-w-[80px]">
+                        {folder.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {count} {count === 1 ? 'item' : 'items'}
+                      </span>
+                    </button>
+                  ) : (
+                    <FolderListCard folder={folder} count={count} onClick={() => setSelectedFolder(folder)} />
+                  )}
+                </div>
               );
             })}
 
-            {/* Add folder button */}
-            <button
-              onClick={() => setShowFolderModal(true)}
-              className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
-            >
-              <div className="w-16 h-14 mb-2 flex items-center justify-center">
-                <Plus className="w-8 h-8 text-muted-foreground/50" />
-              </div>
-              <span className="text-sm font-medium text-muted-foreground">New Folder</span>
-            </button>
+            {/* Add folder button - adapts to layout */}
+            {layoutMode === 'grid' ? (
+              <button
+                onClick={() => setShowFolderModal(true)}
+                className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
+              >
+                <div className="w-16 h-14 mb-2 flex items-center justify-center">
+                  <Plus className="w-8 h-8 text-muted-foreground/50" />
+                </div>
+                <span className="text-sm font-medium text-muted-foreground">New Folder</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowFolderModal(true)}
+                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
+              >
+                <div className="w-12 h-10 rounded-lg flex items-center justify-center bg-secondary/30">
+                  <Plus className="w-6 h-6 text-muted-foreground/50" />
+                </div>
+                <span className="font-medium text-muted-foreground">New Folder</span>
+              </button>
+            )}
           </div>
 
-          {/* No folder section */}
+          {/* No folder section - adapts to layout */}
           {(() => {
             const noFolderNotes = notes.filter(n => !n.folder);
             if (noFolderNotes.length === 0) return null;
             return (
               <div className="mt-6 pt-4 border-t border-border/50">
-                <button
-                  onClick={() => setSelectedFolder({ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder)}
-                  className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 opacity-60"
-                >
-                  <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2 opacity-50">
-                    <path 
-                      d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
-                      fill="hsl(var(--muted-foreground))"
-                      opacity="0.3"
-                    />
-                  </svg>
-                  <span className="text-sm font-medium text-muted-foreground">No Folder</span>
-                  <span className="text-xs text-muted-foreground/70">{noFolderNotes.length} items</span>
-                </button>
+                {layoutMode === 'grid' ? (
+                  <button
+                    onClick={() => setSelectedFolder({ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder)}
+                    className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 opacity-60"
+                  >
+                    <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2 opacity-50">
+                      <path 
+                        d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
+                        fill="hsl(var(--muted-foreground))"
+                        opacity="0.3"
+                      />
+                    </svg>
+                    <span className="text-sm font-medium text-muted-foreground">No Folder</span>
+                    <span className="text-xs text-muted-foreground/70">{noFolderNotes.length} items</span>
+                  </button>
+                ) : (
+                  <FolderListCard 
+                    folder={{ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder}
+                    count={noFolderNotes.length}
+                    onClick={() => setSelectedFolder({ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder)}
+                  />
+                )}
               </div>
             );
           })()}
