@@ -29,8 +29,12 @@ const Index = () => {
   useEffect(() => {
     if (settings.theme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', '#0d1117');
     } else {
       document.documentElement.classList.remove('dark');
+      document.querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', '#f7f9fc');
     }
   }, [settings.theme]);
 
