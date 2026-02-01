@@ -1,59 +1,166 @@
 
-## Plan: List-vy för Notebooks och Folders
+## Plan: Raderingsmöjlighet för Notebooks
 
 ### Sammanfattning
-Lägger till möjlighet att växla mellan grid-vy (nuvarande macOS-stilikoner) och list-vy (staplade kort) för både Notebooks och Folders. List-vyn har en modern, minimalistisk design med mjuka animationer.
+Implementerar två sätt att hantera notebooks:
+1. **Profile-sektion** - Lägger till "Notebooks" under "Categories & Folders" i Profile (precis som Folders fungerar idag)
+2. **Long-press** - Håll in på en notebook i grid/list-vyn för att visa snabbmeny med redigera/radera
 
 ---
 
 ## Ändringar
 
-### 1. Skapa `NotebookListCard.tsx` (ny fil)
+### 1. Uppdatera ProfileView.tsx
 
-En kompakt list-variant av NotebookCard med horisontell layout:
+**Lägg till notebooks i store-importen:**
+```tsx
+const { 
+  // ... existing imports
+  notebooks,
+  addNotebook,
+  updateNotebook,
+  deleteNotebook
+} = useAppStore();
+```
+
+**Utöka CategorySection type:**
+```tsx
+type CategorySection = 'calendar' | 'tasks' | 'notes' | 'notebooks';
+```
+
+**Uppdatera handleAddItem och handleUpdateItem för notebooks:**
+```tsx
+case 'notebooks':
+  addNotebook({ name: newItemName.trim(), color: newItemColor });
+  break;
+
+// och för update:
+case 'notebooks':
+  updateNotebook(editItemId, { name: editItemName.trim(), color: editItemColor });
+  break;
+```
+
+**Lägg till ny sektion för Notebooks (efter Notes Folders):**
+```tsx
+{/* Notebooks */}
+<div className="flow-card-flat p-2">
+  <button
+    onClick={() => toggleSection('notebooks')}
+    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+  >
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-pastel-coral/20 flex items-center justify-center">
+        <BookOpen className="w-5 h-5 text-pastel-coral" />
+      </div>
+      <div className="text-left">
+        <p className="font-medium text-foreground">Notebooks</p>
+        <p className="text-sm text-muted-foreground">{notebooks.length} notebooks</p>
+      </div>
+    </div>
+    {expandedSection === 'notebooks' ? <ChevronDown /> : <ChevronRight />}
+  </button>
+
+  {expandedSection === 'notebooks' && (
+    <div className="mt-2 space-y-1 animate-fade-in">
+      {notebooks.map((notebook) => (
+        <div key={notebook.id} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-secondary">
+          <div className="flex items-center gap-3">
+            <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${notebook.color}`)} />
+            <span className="font-medium text-foreground">{notebook.name}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button onClick={() => openEditDrawer('notebooks', notebook.id, notebook.name, notebook.color)}>
+              <Edit3 className="w-4 h-4" />
+            </button>
+            <button onClick={() => deleteNotebook(notebook.id)}>
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      ))}
+      <button onClick={() => openAddDrawer('notebooks')}>
+        Add New Notebook
+      </button>
+    </div>
+  )}
+</div>
+```
+
+---
+
+### 2. Skapa useLongPress hook (ny fil)
+
+**`src/hooks/useLongPress.ts`**
+```tsx
+import { useCallback, useRef } from 'react';
+
+interface UseLongPressOptions {
+  onLongPress: () => void;
+  onClick?: () => void;
+  delay?: number;
+}
+
+export function useLongPress({ onLongPress, onClick, delay = 500 }: UseLongPressOptions) {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
+
+  const start = useCallback(() => {
+    isLongPress.current = false;
+    timerRef.current = setTimeout(() => {
+      isLongPress.current = true;
+      onLongPress();
+    }, delay);
+  }, [onLongPress, delay]);
+
+  const clear = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+  }, []);
+
+  const handleClick = useCallback(() => {
+    if (!isLongPress.current && onClick) {
+      onClick();
+    }
+  }, [onClick]);
+
+  return {
+    onMouseDown: start,
+    onMouseUp: clear,
+    onMouseLeave: clear,
+    onTouchStart: start,
+    onTouchEnd: clear,
+    onClick: handleClick,
+  };
+}
+```
+
+---
+
+### 3. Uppdatera NotebookCard.tsx med long-press
 
 ```tsx
-import { BookOpen, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Notebook } from '@/types';
-import { useAppStore } from '@/store/useAppStore';
+import { useLongPress } from '@/hooks/useLongPress';
 
-interface NotebookListCardProps {
+interface NotebookCardProps {
   notebook: Notebook;
   onClick: () => void;
+  onLongPress?: () => void;  // Ny prop
 }
 
-export function NotebookListCard({ notebook, onClick }: NotebookListCardProps) {
-  const { notebookPages } = useAppStore();
-  const pageCount = notebookPages.filter(p => p.notebookId === notebook.id).length;
+export function NotebookCard({ notebook, onClick, onLongPress }: NotebookCardProps) {
+  const longPressHandlers = useLongPress({
+    onLongPress: () => onLongPress?.(),
+    onClick: onClick,
+    delay: 500,
+  });
 
   return (
     <button
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border',
-        'transition-all duration-200 active:scale-[0.98] hover:shadow-md group'
-      )}
+      {...longPressHandlers}
+      className="..."
     >
-      {/* Compact notebook icon */}
-      <div className={cn(
-        'w-12 h-14 rounded-lg flex items-center justify-center relative flex-shrink-0',
-        `bg-[hsl(var(--pastel-${notebook.color}))]`
-      )}>
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-black/10 rounded-l-lg" />
-        <BookOpen className="w-5 h-5 text-white/80" />
-      </div>
-      
-      {/* Info */}
-      <div className="flex-1 min-w-0 text-left">
-        <h4 className="font-semibold text-foreground truncate">{notebook.name}</h4>
-        <p className="text-sm text-muted-foreground">
-          {pageCount} {pageCount === 1 ? 'page' : 'pages'}
-        </p>
-      </div>
-      
-      {/* Chevron */}
-      <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      ...
     </button>
   );
 }
@@ -61,249 +168,156 @@ export function NotebookListCard({ notebook, onClick }: NotebookListCardProps) {
 
 ---
 
-### 2. Skapa `FolderListCard.tsx` (ny fil)
+### 4. Uppdatera NotebookListCard.tsx med long-press
 
-En kompakt list-variant av folder-kortet:
+Samma mönster som NotebookCard - lägg till `onLongPress` prop och `useLongPress` hook.
+
+---
+
+### 5. Skapa NotebookActionSheet komponent (ny fil)
+
+**`src/components/notes/NotebookActionSheet.tsx`**
+
+En minimalistisk bottom sheet som visas vid long-press:
 
 ```tsx
-import { FolderOpen, ChevronRight } from 'lucide-react';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Edit3, Trash2, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Folder } from '@/types';
-import { useAppStore } from '@/store/useAppStore';
+import { Notebook } from '@/types';
 
-interface FolderListCardProps {
-  folder: Folder;
-  count: number;
-  onClick: () => void;
+interface NotebookActionSheetProps {
+  notebook: Notebook | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export function FolderListCard({ folder, count, onClick }: FolderListCardProps) {
+export function NotebookActionSheet({ 
+  notebook, 
+  open, 
+  onOpenChange, 
+  onEdit, 
+  onDelete 
+}: NotebookActionSheetProps) {
+  if (!notebook) return null;
+
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border',
-        'transition-all duration-200 active:scale-[0.98] hover:shadow-md group'
-      )}
-    >
-      {/* Folder icon */}
-      <div className={cn(
-        'w-12 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-        `bg-[hsl(var(--pastel-${folder.color})/0.3)]`
-      )}>
-        <FolderOpen className={cn('w-6 h-6', `text-[hsl(var(--pastel-${folder.color}))]`)} />
-      </div>
-      
-      {/* Info */}
-      <div className="flex-1 min-w-0 text-left">
-        <h4 className="font-semibold text-foreground truncate">{folder.name}</h4>
-        <p className="text-sm text-muted-foreground">
-          {count} {count === 1 ? 'item' : 'items'}
-        </p>
-      </div>
-      
-      {/* Chevron */}
-      <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-    </button>
-  );
-}
-```
-
----
-
-### 3. Uppdatera `NotesView.tsx`
-
-**Notebooks-sektionen (rad ~287-352):**
-
-Ersätt den fasta grid-layouten med villkorlig layout baserat på `layoutMode`:
-
-```tsx
-// Notebooks view
-if (viewTab === 'notebooks') {
-  return (
-    <div className="min-h-screen pb-24">
-      <div className="px-4 py-4">
-        <TabsHeader />
-        
-        {showSearch && (
-          <div className="mb-4 animate-fade-in">
-            <input ... />
-          </div>
-        )}
-
-        {/* Conditional layout */}
-        <div className={cn(
-          layoutMode === 'grid' 
-            ? 'grid grid-cols-3 gap-4' 
-            : 'space-y-3'
-        )}>
-          {notebooks.map((notebook, index) => (
-            <div 
-              key={notebook.id} 
-              className="stagger-item" 
-              style={{ animationDelay: `${index * 40}ms` }}
-            >
-              {layoutMode === 'grid' ? (
-                <NotebookCard notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
-              ) : (
-                <NotebookListCard notebook={notebook} onClick={() => setSelectedNotebook(notebook)} />
-              )}
-            </div>
-          ))}
-
-          {/* Add notebook button - adapts to layout */}
-          {layoutMode === 'grid' ? (
-            <button onClick={() => setShowNotebookModal(true)} className="...grid style...">
-              ...
-            </button>
-          ) : (
-            <button onClick={() => setShowNotebookModal(true)} 
-              className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
-            >
-              <div className="w-12 h-14 rounded-lg flex items-center justify-center bg-secondary/30">
-                <Plus className="w-6 h-6 text-muted-foreground/50" />
-              </div>
-              <span className="font-medium text-muted-foreground">New Notebook</span>
-            </button>
-          )}
-        </div>
-        ...
-      </div>
-    </div>
-  );
-}
-```
-
-**Folders-sektionen (rad ~394-502):**
-
-Samma mönster - villkorlig layout:
-
-```tsx
-// Folders view
-if (viewTab === 'folders') {
-  return (
-    <div className="min-h-screen pb-24">
-      <div className="px-4 py-4">
-        <TabsHeader />
-
-        {showSearch && ...}
-
-        {/* Conditional layout */}
-        <div className={cn(
-          layoutMode === 'grid' 
-            ? 'grid grid-cols-3 gap-4' 
-            : 'space-y-3'
-        )}>
-          {folders.map((folder, index) => {
-            const count = notes.filter(n => n.folder === folder.name).length;
-            return (
-              <div 
-                key={folder.id} 
-                className="stagger-item" 
-                style={{ animationDelay: `${index * 40}ms` }}
-              >
-                {layoutMode === 'grid' ? (
-                  // Existing SVG folder button
-                  <button onClick={() => setSelectedFolder(folder)} className="...">
-                    <svg>...</svg>
-                    ...
-                  </button>
-                ) : (
-                  <FolderListCard folder={folder} count={count} onClick={() => setSelectedFolder(folder)} />
-                )}
-              </div>
-            );
-          })}
-
-          {/* Add folder button - adapts to layout */}
-          {layoutMode === 'grid' ? (
-            <button onClick={() => setShowFolderModal(true)} className="...grid style...">
-              ...
-            </button>
-          ) : (
-            <button onClick={() => setShowFolderModal(true)}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
-            >
-              <div className="w-12 h-10 rounded-lg flex items-center justify-center bg-secondary/30">
-                <Plus className="w-6 h-6 text-muted-foreground/50" />
-              </div>
-              <span className="font-medium text-muted-foreground">New Folder</span>
-            </button>
-          )}
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="pb-8">
+        {/* Notebook preview */}
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border/50">
+          <div className={cn('w-10 h-12 rounded-lg', `bg-[hsl(var(--pastel-${notebook.color}))]`)} />
+          <span className="font-semibold">{notebook.name}</span>
         </div>
 
-        {/* No folder section - also adapts */}
-        {(() => {
-          const noFolderNotes = notes.filter(n => !n.folder);
-          if (noFolderNotes.length === 0) return null;
-          return (
-            <div className="mt-6 pt-4 border-t border-border/50">
-              {layoutMode === 'grid' ? (
-                // Existing grid style
-                <button onClick={() => setSelectedFolder({...})} className="...">
-                  <svg>...</svg>
-                  ...
-                </button>
-              ) : (
-                <FolderListCard 
-                  folder={{ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder}
-                  count={noFolderNotes.length}
-                  onClick={() => setSelectedFolder({...})}
-                />
-              )}
-            </div>
-          );
-        })()}
-        ...
-      </div>
-    </div>
+        {/* Actions */}
+        <div className="p-2">
+          <button
+            onClick={() => { onEdit(); onOpenChange(false); }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-secondary"
+          >
+            <Edit3 className="w-5 h-5 text-muted-foreground" />
+            <span className="font-medium">Edit Notebook</span>
+          </button>
+          
+          <button
+            onClick={() => { onDelete(); onOpenChange(false); }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-destructive/10 text-destructive"
+          >
+            <Trash2 className="w-5 h-5" />
+            <span className="font-medium">Delete Notebook</span>
+          </button>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
 ```
 
 ---
 
-### 4. Imports i NotesView.tsx
+### 6. Uppdatera NotesView.tsx
 
-Lägg till de nya komponenterna:
-
+**Lägg till state och handlers för action sheet:**
 ```tsx
-import { NotebookListCard } from '@/components/notes/NotebookListCard';
-import { FolderListCard } from '@/components/notes/FolderListCard';
+const [actionSheetNotebook, setActionSheetNotebook] = useState<Notebook | null>(null);
+const [showNotebookActions, setShowNotebookActions] = useState(false);
+
+const handleNotebookLongPress = (notebook: Notebook) => {
+  haptics.medium(); // Haptic feedback
+  setActionSheetNotebook(notebook);
+  setShowNotebookActions(true);
+};
+
+const handleDeleteNotebook = () => {
+  if (actionSheetNotebook) {
+    deleteNotebook(actionSheetNotebook.id);
+    haptics.error();
+  }
+};
+
+const handleEditNotebook = () => {
+  // Öppna edit modal med vald notebook
+  // Kan återanvända befintlig notebook modal
+};
+```
+
+**Uppdatera notebook-rendering:**
+```tsx
+{layoutMode === 'grid' ? (
+  <NotebookCard 
+    notebook={notebook} 
+    onClick={() => setSelectedNotebook(notebook)}
+    onLongPress={() => handleNotebookLongPress(notebook)}
+  />
+) : (
+  <NotebookListCard 
+    notebook={notebook} 
+    onClick={() => setSelectedNotebook(notebook)}
+    onLongPress={() => handleNotebookLongPress(notebook)}
+  />
+)}
+```
+
+**Lägg till ActionSheet i JSX:**
+```tsx
+<NotebookActionSheet
+  notebook={actionSheetNotebook}
+  open={showNotebookActions}
+  onOpenChange={setShowNotebookActions}
+  onEdit={handleEditNotebook}
+  onDelete={handleDeleteNotebook}
+/>
 ```
 
 ---
 
-## Animationer
+## Visuell översikt
 
-| Element | Animation |
-|---------|-----------|
-| List-kort | `stagger-item` med 40ms delay per item för mjuk cascade |
-| Hover | `hover:shadow-md` + `group-hover:opacity-100` på chevron |
-| Press | `active:scale-[0.98]` för taktil feedback |
-| Layout-byte | `transition-all duration-200` på alla kort |
-
----
-
-## Visuell skillnad
-
-**Grid-vy (nuvarande):**
+**Profile-vyn:**
 ```text
-┌────┐  ┌────┐  ┌────┐
-│ 📓 │  │ 📓 │  │ + │
-│Name│  │Name│  │New │
-└────┘  └────┘  └────┘
+Categories & Folders
+┌─────────────────────────────────┐
+│ 📅 Calendar Categories    5 >  │
+├─────────────────────────────────┤
+│ ✅ Tasks Categories       5 >  │
+├─────────────────────────────────┤
+│ 📁 Notes Folders          4 >  │
+├─────────────────────────────────┤
+│ 📓 Notebooks              2 >  │  <- NY SEKTION
+└─────────────────────────────────┘
 ```
 
-**List-vy (ny):**
+**Long-press action sheet:**
 ```text
-┌───────────────────────────────┐
-│ 📓  Notebook Name    3 pages >│
-├───────────────────────────────┤
-│ 📓  Work Notes       5 pages >│
-├───────────────────────────────┤
-│ +   New Notebook              │
-└───────────────────────────────┘
+┌─────────────────────────────────┐
+│  📓  My Notebook                │
+├─────────────────────────────────┤
+│  ✏️  Edit Notebook              │
+│  🗑️  Delete Notebook            │
+└─────────────────────────────────┘
 ```
 
 ---
@@ -312,6 +326,20 @@ import { FolderListCard } from '@/components/notes/FolderListCard';
 
 | Fil | Åtgärd |
 |-----|--------|
-| `src/components/notes/NotebookListCard.tsx` | Ny fil |
-| `src/components/notes/FolderListCard.tsx` | Ny fil |
-| `src/components/views/NotesView.tsx` | Uppdatera Notebooks och Folders-sektionerna |
+| `src/hooks/useLongPress.ts` | Ny fil - hook för long-press |
+| `src/components/notes/NotebookActionSheet.tsx` | Ny fil - action sheet komponent |
+| `src/components/views/ProfileView.tsx` | Lägg till Notebooks-sektion |
+| `src/components/notes/NotebookCard.tsx` | Lägg till long-press support |
+| `src/components/notes/NotebookListCard.tsx` | Lägg till long-press support |
+| `src/components/views/NotesView.tsx` | Integrera action sheet och handlers |
+
+---
+
+## Animationer och UX
+
+| Interaktion | Feedback |
+|-------------|----------|
+| Long-press start | 500ms delay innan aktivering |
+| Action sheet öppnas | Slide-up animation från Drawer |
+| Haptic feedback | `medium` vid long-press, `error` vid delete |
+| Delete | Omedelbar radering utan bekräftelse (enligt projektstandard) |
