@@ -34,6 +34,11 @@ const Index = () => {
     }
   }, [settings.theme]);
 
+  // Scroll to top when changing tabs
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeTab]);
+
   const handlePlusClick = () => {
     setShowQuickCreate(!showQuickCreate);
   };
