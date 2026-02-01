@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { 
   FolderOpen, 
@@ -51,6 +51,16 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [newNotebookColor, setNewNotebookColor] = useState<PastelColor>('lavender');
   const [showSearch, setShowSearch] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
+
+  // Scroll to top when editor closes
+  useEffect(() => {
+    if (shouldScrollToTop) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setShouldScrollToTop(false);
+    }
+  }, [shouldScrollToTop]);
 
   // Get all notes and sticky notes
   const allNotes = notes.filter(n => !n.hideFromAllNotes);
@@ -114,6 +124,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     setIsCreatingStickyNote(false);
     onEditingChange?.(false);
     onCloseEditor?.();
+    setShouldScrollToTop(true);
   };
 
   const handleCreateNote = () => {
