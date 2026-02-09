@@ -100,44 +100,36 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
             className="w-full text-lg font-medium bg-transparent border-0 outline-none placeholder:text-muted-foreground"
           />
 
-          <div>
-            <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="flow-input"
-            />
+          <div className="bg-secondary rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-2 flex-1">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">All Day</span>
+                <button onClick={() => setIsAllDay(!isAllDay)}>
+                  <div className={cn('w-11 h-6 rounded-full transition-all duration-300 relative', isAllDay ? 'bg-primary' : 'bg-muted')}>
+                    <div className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300', isAllDay ? 'left-5' : 'left-0.5')} />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {!isAllDay && (
+              <div className="flex items-center gap-3 px-3 pb-3 border-t border-border/20 pt-2">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
+                <span className="text-muted-foreground text-xs">–</span>
+                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
+              </div>
+            )}
           </div>
-
-          <button
-            onClick={() => setIsAllDay(!isAllDay)}
-            className="flex items-center justify-between w-full p-3 rounded-xl bg-secondary"
-          >
-            <span className="font-medium text-foreground">All Day</span>
-            <div className={cn('w-12 h-7 rounded-full transition-all duration-300 relative', isAllDay ? 'bg-primary' : 'bg-muted')}>
-              <div className={cn('absolute top-1 w-5 h-5 rounded-full bg-white transition-all duration-300', isAllDay ? 'left-6' : 'left-1')} />
-            </div>
-          </button>
-
-          {!isAllDay && (
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Start
-                </label>
-                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="flow-input" />
-              </div>
-              <div className="flex-1">
-                <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> End
-                </label>
-                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="flow-input" />
-              </div>
-            </div>
-          )}
 
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
