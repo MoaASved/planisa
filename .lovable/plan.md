@@ -1,97 +1,62 @@
 
 
-## Plan: Modern gradient-stripe indikator for timed events
+## Plan: Gradient-stripe i tidslinje + smart eventformular
 
 ### Sammanfattning
-Ersatter den morka vertikala linjen bredvid event-kort med en modern gradient-stripe inuti kortet. Stripen gar fran kategori-fargen till transparent, som ger en elegant glassmorphism-kansla.
+Tre andringar: (1) gradient-stripe pa event-kort aven i tidslinjevyn, (2) ta bort tidstexten fran kort i tidslinjen, och (3) smartare "Skapa event"-modal med auto-ifyllt datum och automatisk sluttid.
 
 ---
 
-## Vad andras visuellt
+## Andring 1: Gradient-stripe i tidslinjevyn
 
-**Fore:** En mork, separat vertikal linje (`bg-foreground/70`) utanfor kortet.
+**Fil:** `src/components/calendar/CalendarItemList.tsx`
 
-**Efter:** En tunn vertikal gradient-stripe pa vanstersidan *inuti* kortet. Gradient gar fran full kategori-farg till transparent. Kortet far ocksa en rundad vansterkant for att integrera stripen.
+Idag visas gradient-stripen bara nar tidslinjen ar avstangd (`!showTimeline`). Andringen gor att stripen alltid visas pa event-kort som har tidsintervall -- aven i tidslinjevyn.
+
+- Andring pa rad 320: Ta bort villkoret `&& !showTimeline` fran `pl-4` padding
+- Andring pa rad 326: Ta bort villkoret `&& !showTimeline` sa att gradient-div alltid renderas nar `showTimelineIndicator` ar sant
 
 ---
 
-## Tekniska detaljer
+## Andring 2: Ta bort tidstexten i tidslinjevyn
 
-### `src/components/calendar/CalendarItemList.tsx`
+**Fil:** `src/components/calendar/CalendarItemList.tsx`
 
-**1. Ta bort den separata morka linjen (rad 311-315)**
+I tidslinjevyn visar tidsrutnatet redan vilken tid ett event ar pa, sa tidstexten inuti korten ar overflodigt. Tiden ska bara visas i listvyn (nar tidslinjen ar avstangd).
 
-Den gamla layouten med en separat `div` utanfor kortet tas bort. Istallet laggs gradient-stripen direkt inuti event-kortet.
+- Andring pa rad 337: Andra villkoret fran `(showTime || fillHeight) && time` till `showTime && time` (dvs ta bort `fillHeight` fran villkoret)
+- Samma andring for tasks (rad 298) och notes (rad 365) -- ta bort `fillHeight` fran villkoret sa att tid inte visas i timeline-kort
 
-**2. Lagg till gradient-stripe inuti event-kortet**
+---
 
-Inuti event-kortets `div`, lagg till ett `absolute`-positionerat element med:
-- `position: absolute`, ankrad till vansterkanten
-- Full hojd, tunn bredd (3px)
-- CSS gradient fran kategori-farg (full opacitet) till transparent
-- Rundade horn som foljer kortets border-radius
+## Andring 3: Auto-ifyllt datum och sluttid i CreateEventModal
 
-**3. Lagg till ny hjalp-funktion i `src/lib/colors.ts`**
+### 3a. Skicka valt datum till modalen
 
-En ny funktion `getColorHex` som returnerar den riktiga CSS-variabeln for en pastellfarg, sa att vi kan anvanda den i inline `background`-styles for gradient.
+**Fil:** `src/pages/Index.tsx`
 
-### Kod-andringar
+- Lagg till state `selectedCalendarDate` som CalendarView kan uppdatera
+- Skicka denna som `initialDate` prop till `CreateEventModal`
 
-**`src/lib/colors.ts`** - lagg till:
-```tsx
-export const getColorVar = (color: PastelColor): string => {
-  return `hsl(var(--pastel-${color}))`;
-};
+**Fil:** `src/components/views/CalendarView.tsx`
+
+- Ta emot en `onDateChange` callback-prop
+- Anropa den nar `selectedDate` andras, sa att Index.tsx alltid har det senaste valda datumet
+
+### 3b. Uppdatera CreateEventModal
+
+**Fil:** `src/components/modals/CreateEventModal.tsx`
+
+- Lagg till prop `initialDate?: Date`
+- Nar modalen oppnas och `initialDate` finns, formtera den till `YYYY-MM-DD` och satt som default for date-faltet
+- Nar anvandaren andrar starttid, berakna automatiskt sluttid som +1 timme:
+
+```text
+Starttid: 10:00  -->  Sluttid: 11:00 (auto)
+Starttid: 23:00  -->  Sluttid: 23:59 (capped)
 ```
 
-**`src/components/calendar/CalendarItemList.tsx`** - event-render (rad 308-339):
-
-Fran:
-```tsx
-<div className={cn("flex items-stretch gap-1.5", fillHeight && "h-full")}>
-  {showTimelineIndicator && !showTimeline && (
-    <div className="w-1 rounded-full bg-foreground/70 flex-shrink-0" />
-  )}
-  <div ... className="flex-1 rounded-xl ...">
-    ...
-  </div>
-</div>
-```
-
-Till:
-```tsx
-<div
-  onClick={() => onItemClick(event, 'event')}
-  className={cn(
-    'rounded-xl cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
-    getColorCardClass(color),
-    compact ? 'p-2' : 'p-3',
-    showTimelineIndicator && !showTimeline && 'pl-4',
-    fillHeight && 'h-full',
-    isDragging && 'opacity-50 scale-95'
-  )}
->
-  {/* Gradient stripe for timed events */}
-  {showTimelineIndicator && !showTimeline && (
-    <div
-      className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
-      style={{
-        background: `linear-gradient(to bottom, ${getColorVar(color)}, transparent)`
-      }}
-    />
-  )}
-  <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
-    {event.title}
-  </span>
-  {(showTime || fillHeight) && time && (
-    <span className="text-xs text-foreground/60">
-      {time}{endTime && ` - ${endTime}`}
-    </span>
-  )}
-</div>
-```
-
-Layouten forenklas -- ingen yttre wrapper med `gap-1.5` behovs langre. Gradient-stripen lever inuti kortet.
+- Anvandaren kan alltid andra sluttiden manuellt. Auto-berakningen sker bara nar sluttiden inte redan har andrasts manuellt av anvandaren.
 
 ---
 
@@ -99,6 +64,8 @@ Layouten forenklas -- ingen yttre wrapper med `gap-1.5` behovs langre. Gradient-
 
 | Fil | Atgard |
 |-----|--------|
-| `src/lib/colors.ts` | Lagg till `getColorVar()` hjalp-funktion |
-| `src/components/calendar/CalendarItemList.tsx` | Ersatt mork linje med gradient-stripe inuti kortet |
+| `src/components/calendar/CalendarItemList.tsx` | Visa gradient-stripe aven i timeline; ta bort tid fran timeline-kort |
+| `src/components/modals/CreateEventModal.tsx` | Ta emot `initialDate`, auto-fylla datum och sluttid |
+| `src/pages/Index.tsx` | Halla koll pa valt datum, skicka till CreateEventModal |
+| `src/components/views/CalendarView.tsx` | Rapportera valt datum uppat via callback |
 
