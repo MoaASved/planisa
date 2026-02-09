@@ -120,54 +120,40 @@ export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventMo
             autoFocus
           />
 
-          {/* Date */}
-          <div>
-            <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="flow-input"
-            />
-          </div>
-
-          {/* All Day Toggle */}
-          <button
-            onClick={() => setIsAllDay(!isAllDay)}
-            className="flex items-center justify-between w-full p-3 rounded-xl bg-secondary"
-          >
-            <span className="font-medium text-foreground">All Day</span>
-            <div className={cn('w-12 h-7 rounded-full transition-all duration-300 relative', isAllDay ? 'bg-primary' : 'bg-muted')}>
-              <div className={cn('absolute top-1 w-5 h-5 rounded-full bg-white transition-all duration-300', isAllDay ? 'left-6' : 'left-1')} />
+          {/* Date + All Day */}
+          <div className="bg-secondary rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between p-3">
+              <div className="flex items-center gap-2 flex-1">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">All Day</span>
+                <button onClick={() => setIsAllDay(!isAllDay)}>
+                  <div className={cn('w-11 h-6 rounded-full transition-all duration-300 relative', isAllDay ? 'bg-primary' : 'bg-muted')}>
+                    <div className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300', isAllDay ? 'left-5' : 'left-0.5')} />
+                  </div>
+                </button>
+              </div>
             </div>
-          </button>
+          </div>
 
           {/* Time */}
           {!isAllDay && (
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Start
-                </label>
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => handleStartTimeChange(e.target.value)}
-                  className="flow-input"
-                />
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input type="time" value={startTime} onChange={(e) => handleStartTimeChange(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
               </div>
-              <div className="flex-1">
-                <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> End
-                </label>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => handleEndTimeChange(e.target.value)}
-                  className="flow-input"
-                />
+              <span className="text-muted-foreground text-sm">–</span>
+              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input type="time" value={endTime} onChange={(e) => handleEndTimeChange(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
               </div>
             </div>
           )}

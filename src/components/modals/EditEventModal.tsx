@@ -104,12 +104,12 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
             <div className="flex items-center justify-between p-3">
               <div className="flex items-center gap-2 flex-1">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-          />
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">All Day</span>
@@ -120,18 +120,21 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                 </button>
               </div>
             </div>
+          </div>
 
-            {!isAllDay && (
-          <div className="flex items-center gap-3 px-3 pb-3 border-t border-border/20 pt-2">
-              <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-              <div className="flex items-center gap-2 flex-1">
-                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:hidden" />
-                <span className="text-muted-foreground text-xs">–</span>
-                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:hidden" />
+          {!isAllDay && (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
+              </div>
+              <span className="text-muted-foreground text-sm">–</span>
+              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
               </div>
             </div>
-            )}
-          </div>
+          )}
 
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-2">
