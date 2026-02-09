@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Calendar, Clock, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor } from '@/types';
 import { pastelColors } from '@/lib/colors';
+import { format } from 'date-fns';
 
 interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialDate?: Date;
 }
 
-export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
+export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventModalProps) {
   const { addEvent, eventCategories, addEventCategory } = useAppStore();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -20,11 +22,39 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
   const [color, setColor] = useState<PastelColor>(eventCategories[0]?.color || 'sky');
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
+  const endTimeManuallySet = useRef(false);
 
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
+
+  // Set initial date when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      if (initialDate) {
+        setDate(format(initialDate, 'yyyy-MM-dd'));
+      }
+      endTimeManuallySet.current = false;
+    }
+  }, [isOpen, initialDate]);
+
+  // Auto-calculate end time when start time changes
+  const handleStartTimeChange = (newStartTime: string) => {
+    setStartTime(newStartTime);
+    if (!endTimeManuallySet.current && newStartTime) {
+      const [h, m] = newStartTime.split(':').map(Number);
+      const endH = Math.min(h + 1, 23);
+      const endM = h >= 23 ? 59 : m;
+      setEndTime(`${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`);
+    }
+  };
+
+  const handleEndTimeChange = (newEndTime: string) => {
+    endTimeManuallySet.current = true;
+    setEndTime(newEndTime);
+  };
+
 
   const handleCreateCategory = () => {
     if (newCategoryName.trim()) {
@@ -124,7 +154,7 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
                 <input
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
                   className="flow-input"
                 />
               </div>
@@ -135,7 +165,7 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
                 <input
                   type="time"
                   value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
                   className="flow-input"
                 />
               </div>

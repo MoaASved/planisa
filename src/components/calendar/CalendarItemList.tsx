@@ -295,7 +295,7 @@ export function CalendarItemList({
             )}>
               {task.title}
             </span>
-            {(showTime || fillHeight) && time && (
+            {showTime && time && (
               <span className="text-xs text-foreground/60">
                 {time}{endTime && ` - ${endTime}`}
               </span>
@@ -317,13 +317,13 @@ export function CalendarItemList({
             'rounded-xl cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
             compact ? 'p-2' : 'p-3',
-            showTimelineIndicator && !showTimeline && 'pl-4',
+            showTimelineIndicator && 'pl-4',
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
         >
           {/* Gradient stripe for timed events */}
-          {showTimelineIndicator && !showTimeline && (
+          {showTimelineIndicator && (
             <div
               className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
               style={{
@@ -334,7 +334,7 @@ export function CalendarItemList({
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
             {event.title}
           </span>
-          {(showTime || fillHeight) && time && (
+          {showTime && time && (
             <span className="text-xs text-foreground/60">
               {time}{endTime && ` - ${endTime}`}
             </span>
@@ -362,7 +362,7 @@ export function CalendarItemList({
         <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-foreground/60 flex-shrink-0 mt-0.5')} />
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{note.title || 'Untitled'}</span>
-          {(showTime || fillHeight) && time && (
+          {showTime && time && (
             <span className="text-xs text-foreground/60">
               {time}{endTime && ` - ${endTime}`}
             </span>

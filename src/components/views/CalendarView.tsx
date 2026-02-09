@@ -13,7 +13,7 @@ import { TaskEditPanel } from '@/components/tasks/TaskEditPanel';
 
 type SimpleView = 'month' | 'weekday';
 
-export function CalendarViewComponent() {
+export function CalendarViewComponent({ onDateChange }: { onDateChange?: (date: Date) => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
@@ -85,6 +85,7 @@ export function CalendarViewComponent() {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+    onDateChange?.(date);
   };
 
   const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
