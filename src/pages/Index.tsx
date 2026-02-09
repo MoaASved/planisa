@@ -15,6 +15,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showEventModal, setShowEventModal] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
   const { settings } = useAppStore();
 
   // Note editing state
@@ -81,7 +82,7 @@ const Index = () => {
       case 'home':
         return <HomeView onNavigate={setActiveTab} />;
       case 'calendar':
-        return <CalendarViewComponent />;
+        return <CalendarViewComponent onDateChange={setSelectedCalendarDate} />;
       case 'tasks':
         return (
           <TasksView 
@@ -151,7 +152,7 @@ const Index = () => {
       )}
 
       {/* Modals */}
-      <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} />
+      <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} initialDate={selectedCalendarDate} />
     </div>
   );
 };
