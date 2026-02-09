@@ -7,34 +7,34 @@
 @layer base {
   :root {
     /* Premium Apple-inspired light theme */
-    --background: 210 20% 98%;
-    --foreground: 220 20% 10%;
+    --background: 30 20% 98%;
+    --foreground: 30 10% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
+    --card-foreground: 30 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
+    --popover-foreground: 30 10% 10%;
 
     /* Dark accent for primary actions */
-    --primary: 220 15% 15%;
+    --primary: 30 8% 15%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 20% 94%;
-    --secondary-foreground: 220 20% 20%;
+    --secondary: 30 15% 94%;
+    --secondary-foreground: 30 10% 20%;
 
-    --muted: 210 15% 91%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 30 10% 91%;
+    --muted-foreground: 30 8% 45%;
 
-    --accent: 220 15% 15%;
+    --accent: 30 8% 15%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 15% 90%;
-    --input: 210 15% 90%;
-    --ring: 220 15% 15%;
+    --border: 30 10% 90%;
+    --input: 30 10% 90%;
+    --ring: 30 8% 15%;
 
     --radius: 1rem;
 
@@ -50,19 +50,19 @@
     --pastel-rose: 340 60% 75%;
     --pastel-gray: 220 10% 70%;
     
-    --shadow-soft: 0 1px 3px 0 hsl(220 20% 10% / 0.04), 0 1px 2px -1px hsl(220 20% 10% / 0.04);
-    --shadow-card: 0 4px 6px -1px hsl(220 20% 10% / 0.05), 0 2px 4px -2px hsl(220 20% 10% / 0.05);
-    --shadow-elevated: 0 10px 15px -3px hsl(220 20% 10% / 0.08), 0 4px 6px -4px hsl(220 20% 10% / 0.08);
-    --shadow-nav: 0 -2px 20px -4px hsl(220 20% 10% / 0.08);
+    --shadow-soft: 0 1px 3px 0 hsl(30 10% 10% / 0.04), 0 1px 2px -1px hsl(30 10% 10% / 0.04);
+    --shadow-card: 0 4px 6px -1px hsl(30 10% 10% / 0.05), 0 2px 4px -2px hsl(30 10% 10% / 0.05);
+    --shadow-elevated: 0 10px 15px -3px hsl(30 10% 10% / 0.08), 0 4px 6px -4px hsl(30 10% 10% / 0.08);
+    --shadow-nav: 0 -2px 20px -4px hsl(30 10% 10% / 0.08);
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 20% 10%;
-    --sidebar-primary: 220 15% 15%;
+    --sidebar-foreground: 30 10% 10%;
+    --sidebar-primary: 30 8% 15%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 96%;
-    --sidebar-accent-foreground: 220 20% 20%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 220 15% 15%;
+    --sidebar-accent: 30 15% 96%;
+    --sidebar-accent-foreground: 30 10% 20%;
+    --sidebar-border: 30 10% 91%;
+    --sidebar-ring: 30 8% 15%;
   }
 
   .dark {
