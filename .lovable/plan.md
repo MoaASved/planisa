@@ -1,63 +1,53 @@
 
 
-## Plan: Strukturera datum/tid-sektionen i EditEventModal
+## Plan: Ny datum/tid-layout for bade CreateEventModal och EditEventModal
 
 ### Problem
-- Pa desktop renderar `<input type="time">` inbyggda klock-ikoner fran webblasaren, sa det syns tre klockor totalt (1 manuell + 2 native)
-- Pa mobil syns bara en klocka, men tidsraderna kanns inte uppradade med datumraden ovanfor
-- Start/slut-tiderna ar centrerade under ett vansterjusterat datum, vilket ser ostrukturerat ut
+1. `[&::-webkit-calendar-picker-indicator]:hidden` gor att man inte kan andra tid pa desktop
+2. Start- och sluttid ser ut som ett enda falt, inte tva separata
+3. CreateEventModal och EditEventModal har helt olika layout
 
-### Losning
+### Referens
+CalendarNoteModal (note-redigering) har den onskvarda stilen: separata `bg-secondary rounded-xl` containrar for start och slut, med en enkel `-` mellan.
 
-**Fil:** `src/components/modals/EditEventModal.tsx` (rad 103-132)
-
-1. **Dolj native klock-ikoner** med CSS (`[&::-webkit-calendar-picker-indicator]` doljs via Tailwind-klass) pa bade time- och date-inputs
-2. **Rada upp tidsraden under datumraden** sa att start/slut-tiderna borjar pa samma indrag som datumet (efter ikonen)
-3. **Lagg till labels** "Start" och "End" som smala text-labels for tydlighet
-4. **Anvand samma layout-struktur** pa bada raderna for konsistens
-
-### Ny layout
+### Ny gemensam layout (bade Create och Edit)
 
 ```text
 +----------------------------------------------+
-| [Kalender]  2025-02-09        All Day [    ] |
-|----------------------------------------------|
-| [Klocka]    10:00  –  11:00                  |
+| [Kalender]  2025-02-09        All Day [tog]  |
 +----------------------------------------------+
+
+  [ 10:00        ]  -  [ 11:00        ]
+  (bg-secondary)       (bg-secondary)
 ```
 
-### Andringar i detalj
-
-**Rad 107-112 (date input):** Lagg till klass for att dolj native ikon:
-```
-className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-```
-
-**Rad 124-131 (time section):** Strukturera om sa tiderna ar vansterjusterade med labels:
-```tsx
-{!isAllDay && (
-  <div className="flex items-center gap-3 px-3 pb-3 border-t border-border/20 pt-2">
-    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-    <div className="flex items-center gap-2 flex-1">
-      <input type="time" value={startTime} onChange={...}
-        className="bg-transparent border-0 outline-none text-sm font-medium text-foreground
-          [&::-webkit-calendar-picker-indicator]:hidden" />
-      <span className="text-muted-foreground text-xs">–</span>
-      <input type="time" value={endTime} onChange={...}
-        className="bg-transparent border-0 outline-none text-sm font-medium text-foreground
-          [&::-webkit-calendar-picker-indicator]:hidden" />
-    </div>
-  </div>
-)}
-```
-
-Genom att anvanda `[&::-webkit-calendar-picker-indicator]:hidden` pa time-inputs forsvinner de extra klock-ikonerna pa desktop. Den manuella Clock-ikonen behalls som enda visuella indikator.
+- **Datum + All Day** i ett kompakt `bg-secondary rounded-xl` block (som Edit redan har)
+- **Tid** som tva separata `bg-secondary rounded-xl` inputs med `-` mellan (likt CalendarNoteModal)
+- Ingen `[&::-webkit-calendar-picker-indicator]:hidden` pa time-inputs -- latt webblasaren visa sin native picker sa det fungerar pa desktop
+- Dold native date-ikon behalls (opacity-0 + absolute) sa att man fortfarande kan klicka pa datum
 
 ---
 
-## Filer som paverkas
+### Tekniska detaljer
+
+**Fil 1: `src/components/modals/EditEventModal.tsx`** (rad 103-134)
+
+Ersatt hela datum/tid-blocket med:
+- Datum-rad: behall nuvarande layout men fixa indrag
+- Tid-sektion: ta bort ur `bg-secondary`-blocket, lagg som egen rad med tva separata `flex-1 bg-secondary rounded-xl px-3 py-2.5` inputs, exakt som CalendarNoteModal rad 128-144
+- Ta bort `[&::-webkit-calendar-picker-indicator]:hidden` fran time-inputs
+
+**Fil 2: `src/components/modals/CreateEventModal.tsx`** (rad 123-173)
+
+Ersatt datum-, all day-, och tid-sektionerna med exakt samma layout som EditEventModal:
+- Kombinerat datum + all day till ett `bg-secondary rounded-xl` block
+- Tid som tva separata `bg-secondary rounded-xl` inputs under
+- Behall auto-calculate-logiken for sluttid (handleStartTimeChange/handleEndTimeChange)
+
+### Filer som paverkas
 
 | Fil | Atgard |
 |-----|--------|
-| `src/components/modals/EditEventModal.tsx` | Dolj native ikoner, rada upp tid under datum konsekvent |
+| `src/components/modals/EditEventModal.tsx` | Ny tid-layout med separata containrar, fixa desktop-klickbarhet |
+| `src/components/modals/CreateEventModal.tsx` | Matcha samma layout som EditEventModal |
 
