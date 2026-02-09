@@ -440,8 +440,8 @@ export function CalendarItemList({
         <div ref={timelineRef} className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* All-day items - 2 columns */}
           {allDayItems.length > 0 && (
-            <div className="px-4 pb-3">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="px-4 pt-2 pb-4 border-b border-border/20 mb-2">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                 {allDayItems.map(({ type, item }) => (
                   <div key={item.id}>
                     {renderItemCard(item, type, undefined, undefined, true)}
