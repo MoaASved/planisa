@@ -1,77 +1,57 @@
 
 
-## Plan: Kompakt datum/tid-sektion i EditEventModal
+## Plan: Strukturera datum/tid-sektionen i EditEventModal
 
-### Sammanfattning
-Gor datum-, all day-, start- och sluttid-sektionen mer kompakt genom att kombinera dem till en tightare layout istallet for att varje falt tar en hel rad.
+### Problem
+- Pa desktop renderar `<input type="time">` inbyggda klock-ikoner fran webblasaren, sa det syns tre klockor totalt (1 manuell + 2 native)
+- Pa mobil syns bara en klocka, men tidsraderna kanns inte uppradade med datumraden ovanfor
+- Start/slut-tiderna ar centrerade under ett vansterjusterat datum, vilket ser ostrukturerat ut
 
----
+### Losning
 
-## Andring
+**Fil:** `src/components/modals/EditEventModal.tsx` (rad 103-132)
 
-**Fil:** `src/components/modals/EditEventModal.tsx` (rad 103-140)
+1. **Dolj native klock-ikoner** med CSS (`[&::-webkit-calendar-picker-indicator]` doljs via Tailwind-klass) pa bade time- och date-inputs
+2. **Rada upp tidsraden under datumraden** sa att start/slut-tiderna borjar pa samma indrag som datumet (efter ikonen)
+3. **Lagg till labels** "Start" och "End" som smala text-labels for tydlighet
+4. **Anvand samma layout-struktur** pa bada raderna for konsistens
 
-### Nuvarande layout (4 separata block)
-1. Date-falt med label (hel rad)
-2. All Day toggle (hel rad)
-3. Start + End tidsinput (tva kolumner, hel rad)
-
-### Ny kompakt layout
-
-Kombinera allt till ett enda `bg-secondary rounded-xl` block med inre rader:
+### Ny layout
 
 ```text
 +----------------------------------------------+
-| [Kalenderikon]  2025-02-09          [toggle]  |  <-- Datum + All Day pa samma rad
+| [Kalender]  2025-02-09        All Day [    ] |
 |----------------------------------------------|
-| Start    10:00          End     11:00         |  <-- Tider (visas bara om ej all day)
+| [Klocka]    10:00  –  11:00                  |
 +----------------------------------------------+
 ```
 
-**Detaljer:**
+### Andringar i detalj
 
-- **Rad 1:** Date-input och All Day toggle pa samma rad, separerade med flex justify-between
-- **Rad 2:** Start/end tid pa samma rad (visas villkorligt), med en tunn `border-t border-border/20` som separator
-- Hela blocket inuti en gemensam `bg-secondary rounded-xl p-3` container
-- Ta bort separata labels -- anvand inline-stil istallet
-- Mindre padding och typografi for att spara vertikalt utrymme
+**Rad 107-112 (date input):** Lagg till klass for att dolj native ikon:
+```
+className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+```
 
-### Kod
-
-Rad 103-140 ersatts med:
-
+**Rad 124-131 (time section):** Strukturera om sa tiderna ar vansterjusterade med labels:
 ```tsx
-<div className="bg-secondary rounded-xl overflow-hidden">
-  <div className="flex items-center justify-between p-3">
+{!isAllDay && (
+  <div className="flex items-center gap-3 px-3 pb-3 border-t border-border/20 pt-2">
+    <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
     <div className="flex items-center gap-2 flex-1">
-      <Calendar className="w-4 h-4 text-muted-foreground" />
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        className="bg-transparent border-0 outline-none text-sm font-medium text-foreground"
-      />
-    </div>
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">All Day</span>
-      <button onClick={() => setIsAllDay(!isAllDay)}>
-        <div className={cn('w-11 h-6 rounded-full transition-all relative', isAllDay ? 'bg-primary' : 'bg-muted')}>
-          <div className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all', isAllDay ? 'left-5' : 'left-0.5')} />
-        </div>
-      </button>
+      <input type="time" value={startTime} onChange={...}
+        className="bg-transparent border-0 outline-none text-sm font-medium text-foreground
+          [&::-webkit-calendar-picker-indicator]:hidden" />
+      <span className="text-muted-foreground text-xs">–</span>
+      <input type="time" value={endTime} onChange={...}
+        className="bg-transparent border-0 outline-none text-sm font-medium text-foreground
+          [&::-webkit-calendar-picker-indicator]:hidden" />
     </div>
   </div>
-
-  {!isAllDay && (
-    <div className="flex items-center gap-3 px-3 pb-3 pt-0">
-      <Clock className="w-4 h-4 text-muted-foreground" />
-      <input type="time" value={startTime} onChange={...} className="bg-transparent text-sm ..." />
-      <span className="text-muted-foreground text-xs">-</span>
-      <input type="time" value={endTime} onChange={...} className="bg-transparent text-sm ..." />
-    </div>
-  )}
-</div>
+)}
 ```
+
+Genom att anvanda `[&::-webkit-calendar-picker-indicator]:hidden` pa time-inputs forsvinner de extra klock-ikonerna pa desktop. Den manuella Clock-ikonen behalls som enda visuella indikator.
 
 ---
 
@@ -79,5 +59,5 @@ Rad 103-140 ersatts med:
 
 | Fil | Atgard |
 |-----|--------|
-| `src/components/modals/EditEventModal.tsx` | Komprimera datum/tid-sektionen till ett enda block |
+| `src/components/modals/EditEventModal.tsx` | Dolj native ikoner, rada upp tid under datum konsekvent |
 
