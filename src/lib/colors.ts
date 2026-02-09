@@ -113,3 +113,8 @@ export const getColorStripeClass = (color: PastelColor): string => {
   };
   return colorMap[color] || 'bg-pastel-sky';
 };
+
+// Get CSS color value for inline styles (gradients etc.) - Tailwind JIT compatible
+export const getColorVar = (color: PastelColor): string => {
+  return `hsl(var(--pastel-${color}))`;
+};

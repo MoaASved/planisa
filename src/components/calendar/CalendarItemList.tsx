@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass } from '@/lib/colors';
+import { getColorCardClass, getColorVar } from '@/lib/colors';
 import { Check, FileText, Clock, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
@@ -308,33 +308,37 @@ export function CalendarItemList({
     if (type === 'event') {
       const event = item as CalendarEvent;
       return (
-        <div className={cn("flex items-stretch gap-1.5", fillHeight && "h-full")}>
-          {/* Timeline indicator - only for items with start AND end time */}
-          {showTimelineIndicator && !showTimeline && (
-            <div className="w-1 rounded-full bg-foreground/70 flex-shrink-0" />
+        <div
+          draggable
+          onDragStart={() => handleDragStart(event.id, 'event')}
+          onDragEnd={handleDragEnd}
+          onClick={() => onItemClick(event, 'event')}
+          className={cn(
+            'rounded-xl cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
+            getColorCardClass(color),
+            compact ? 'p-2' : 'p-3',
+            showTimelineIndicator && !showTimeline && 'pl-4',
+            fillHeight && 'h-full',
+            isDragging && 'opacity-50 scale-95'
           )}
-          <div
-            draggable
-            onDragStart={() => handleDragStart(event.id, 'event')}
-            onDragEnd={handleDragEnd}
-            onClick={() => onItemClick(event, 'event')}
-            className={cn(
-              'flex-1 rounded-xl cursor-pointer transition-all active:scale-[0.98] relative',
-              getColorCardClass(color),
-              compact ? 'p-2' : 'p-3',
-              fillHeight && 'h-full',
-              isDragging && 'opacity-50 scale-95'
-            )}
-          >
-            <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
-              {event.title}
+        >
+          {/* Gradient stripe for timed events */}
+          {showTimelineIndicator && !showTimeline && (
+            <div
+              className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+              style={{
+                background: `linear-gradient(to bottom, ${getColorVar(color)}, transparent)`
+              }}
+            />
+          )}
+          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
+            {event.title}
+          </span>
+          {(showTime || fillHeight) && time && (
+            <span className="text-xs text-foreground/60">
+              {time}{endTime && ` - ${endTime}`}
             </span>
-            {(showTime || fillHeight) && time && (
-              <span className="text-xs text-foreground/60">
-                {time}{endTime && ` - ${endTime}`}
-              </span>
-            )}
-          </div>
+          )}
         </div>
       );
     }
