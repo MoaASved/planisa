@@ -42,8 +42,11 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
     if (isAllDay) {
       setIsAllDay(false);
       const defaultTime = '09:00';
+      const defaultEndTime = calculateEndTime(defaultTime);
       setTempTime(defaultTime);
-      updateTask(task.id, { time: defaultTime });
+      setTempEndTime(defaultEndTime);
+      endTimeManuallySet.current = false;
+      updateTask(task.id, { time: defaultTime, endTime: defaultEndTime });
     } else {
       setIsAllDay(true);
       setTempTime('09:00');
