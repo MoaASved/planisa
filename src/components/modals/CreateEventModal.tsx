@@ -23,6 +23,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventMo
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
   const endTimeManuallySet = useRef(false);
+  const startTimeRef = useRef<HTMLInputElement>(null);
+  const endTimeRef = useRef<HTMLInputElement>(null);
 
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -146,14 +148,20 @@ export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventMo
           {/* Time */}
           {!isAllDay && (
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
+              <div 
+                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2 cursor-pointer"
+                onClick={() => { try { startTimeRef.current?.showPicker(); } catch { startTimeRef.current?.focus(); } }}
+              >
                 <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                <input type="time" value={startTime} onChange={(e) => handleStartTimeChange(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute" />
+                <input ref={startTimeRef} type="time" value={startTime} onChange={(e) => handleStartTimeChange(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground w-full cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute" />
               </div>
               <span className="text-muted-foreground text-sm">–</span>
-              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
+              <div 
+                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2 cursor-pointer"
+                onClick={() => { try { endTimeRef.current?.showPicker(); } catch { endTimeRef.current?.focus(); } }}
+              >
                 <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                <input type="time" value={endTime} onChange={(e) => handleEndTimeChange(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute" />
+                <input ref={endTimeRef} type="time" value={endTime} onChange={(e) => handleEndTimeChange(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground w-full cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute" />
               </div>
             </div>
           )}
