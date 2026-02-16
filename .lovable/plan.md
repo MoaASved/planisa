@@ -1,37 +1,50 @@
 
-## Plan: Auto-ifyllning av sluttid (starttid + 1 timme) overallt
 
-### Sammanfattning
-Nar man anger en starttid ska sluttiden automatiskt fyllas i till exakt 1 timme senare -- om anvandaren inte redan manuellt andrat sluttiden. CreateEventModal har redan denna logik, sa vi ateranvander samma monster i alla andra stallen.
+## Fix: Auto-ifyllning av sluttid vid tidstoggling + Event-tidsinput
 
-### Logik
-- Nar starttid andras: berakna `startTime + 1 timme` (max 23:59) och satt som sluttid
-- Om anvandaren manuellt andrar sluttiden: sluta auto-berakna (anvand en `useRef`-flagga)
-- Redan implementerat i `CreateEventModal` -- samma monster kopieras
+### Problem som hittades
 
-### Filer som paverkas
+1. **TaskEditPanel** (rad 41-52): Nar du trycker pa tidsknappen och gar fran "All Day" till tidslagt, satts `tempTime` till `'09:00'` men `tempEndTime` forblir tom. Saknar `setTempEndTime(calculateEndTime('09:00'))`.
+
+2. **CreateEventModal** (rad 23): `isAllDay` startar som `false`, vilket innebar att tidsfalten visas -- men "All Day"-togglen visar sig som "av" (gra), sa det ser ut som att All Day ar av. Problemet ar att togglen ar inverterad visuellt. Nar `isAllDay = false` borde det vara tydligt att tider kan anges. Korrigeringen ar att satta `isAllDay` till `true` som standard, sa anvandaren maste aktivt stanga av "All Day" for att se tidsfalten -- precis som i EditEventModal.
+
+3. **CalendarNoteModal** (rad 116-123): Samma problem som TaskEditPanel -- nar man slapper tidslagen fran "All Day" satts `time` till `'09:00'` men `endTime` satts inte. Saknar `setEndTime(calculateEndTime('09:00'))`.
+
+### Andringar
 
 | Fil | Andring |
 |-----|---------|
-| `src/components/modals/EditEventModal.tsx` | Lagg till auto-berakning av endTime nar startTime andras |
-| `src/components/tasks/TaskEditPanel.tsx` | Lagg till auto-berakning av tempEndTime nar tempTime andras |
-| `src/components/modals/CalendarNoteModal.tsx` | Lagg till auto-berakning av endTime nar time andras |
-| `src/components/notes/NoteEditor.tsx` | Lagg till auto-berakning av endTime nar time andras |
+| `src/components/tasks/TaskEditPanel.tsx` | I `handleTimeToggle` (rad 43-46): lagg till `setTempEndTime(calculateEndTime('09:00'))` och `updateTask` med bade `time` och `endTime` |
+| `src/components/modals/CreateEventModal.tsx` | Andra `isAllDay` default fran `false` till `true` (rad 23) sa att anvandaren maste stanga av "All Day" for att se tidsfalten |
+| `src/components/modals/CalendarNoteModal.tsx` | I tidstogglingen (rad 117-118): lagg till `setEndTime(calculateEndTime('09:00'))` nar man aktiverar tidslagt |
 
 ### Tekniska detaljer
 
-Varje fil far:
-
-1. En `useRef(false)` for `endTimeManuallySet` -- satts till `true` nar anvandaren andrar sluttiden manuellt
-2. En hjalpfunktion som beraknar `+1 timme`:
+**TaskEditPanel** -- rad 42-46 andras till:
 ```typescript
-const calculateEndTime = (start: string): string => {
-  const [h, m] = start.split(':').map(Number);
-  const endH = Math.min(h + 1, 23);
-  const endMin = h + 1 > 23 ? 59 : m;
-  return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
-};
+if (isAllDay) {
+  setIsAllDay(false);
+  const defaultTime = '09:00';
+  const defaultEndTime = calculateEndTime(defaultTime);
+  setTempTime(defaultTime);
+  setTempEndTime(defaultEndTime);
+  endTimeManuallySet.current = false;
+  updateTask(task.id, { time: defaultTime, endTime: defaultEndTime });
+}
 ```
-3. Starttid-onChange anropar berakningen och sattar sluttid (om flaggan inte ar satt)
-4. Sluttid-onChange sattar flaggan till `true`
-5. Flaggan aterställs vid komponent-reset (t.ex. nar modal oppnas med ny data)
+
+**CreateEventModal** -- rad 23:
+```typescript
+const [isAllDay, setIsAllDay] = useState(true);  // andrat fran false
+```
+
+**CalendarNoteModal** -- rad 116-119 andras till:
+```typescript
+if (isAllDay) {
+  setIsAllDay(false);
+  const defaultTime = '09:00';
+  setTime(defaultTime);
+  setEndTime(calculateEndTime(defaultTime));
+  endTimeManuallySet.current = false;
+}
+```
