@@ -21,6 +21,8 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   const [tempTime, setTempTime] = useState(task.time || '09:00');
   const [tempEndTime, setTempEndTime] = useState(task.endTime || '');
   const endTimeManuallySet = useRef(false);
+  const startTimeRef = useRef<HTMLInputElement>(null);
+  const endTimeRef = useRef<HTMLInputElement>(null);
 
   const calculateEndTime = (start: string): string => {
     const [h, m] = start.split(':').map(Number);
@@ -165,21 +167,33 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
       {/* Inline Time Inputs - shown when not all day */}
       {!isAllDay && (
         <div className="flex items-center gap-2 mt-3">
-          <input
-            type="time"
-            value={tempTime}
-            onChange={(e) => handleTimeChange(e.target.value)}
-            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-          />
+          <div 
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 cursor-pointer"
+            onClick={() => { try { startTimeRef.current?.showPicker(); } catch { startTimeRef.current?.focus(); } }}
+          >
+            <input
+              ref={startTimeRef}
+              type="time"
+              value={tempTime}
+              onChange={(e) => handleTimeChange(e.target.value)}
+              className="w-full bg-transparent text-sm border-0 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+            />
+          </div>
           <span className="text-muted-foreground">-</span>
-          <input
-            type="time"
-            value={tempEndTime}
-            onChange={(e) => handleEndTimeChange(e.target.value)}
-            min={tempTime}
-            placeholder="End"
-            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-          />
+          <div 
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 cursor-pointer"
+            onClick={() => { try { endTimeRef.current?.showPicker(); } catch { endTimeRef.current?.focus(); } }}
+          >
+            <input
+              ref={endTimeRef}
+              type="time"
+              value={tempEndTime}
+              onChange={(e) => handleEndTimeChange(e.target.value)}
+              min={tempTime}
+              placeholder="End"
+              className="w-full bg-transparent text-sm border-0 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+            />
+          </div>
         </div>
       )}
 
