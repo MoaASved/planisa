@@ -12,7 +12,7 @@ interface CalendarTaskModalProps {
 }
 
 export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: CalendarTaskModalProps) {
-  const { updateTask, toggleSubtask, addSubtask, removeSubtask } = useAppStore();
+  const { updateTask, toggleTask, toggleSubtask, addSubtask, removeSubtask } = useAppStore();
   
   const [title, setTitle] = useState('');
   const [newSubtask, setNewSubtask] = useState('');
@@ -82,14 +82,34 @@ export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: Cale
           </button>
         </div>
 
-        {/* Title */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm mb-3 border-0 outline-none text-foreground placeholder:text-muted-foreground"
-          placeholder="Task title"
-        />
+        {/* Title with checkbox */}
+        <div className="flex items-center gap-2.5 mb-3">
+          <button
+            onClick={() => toggleTask(task.id)}
+            className={cn(
+              'w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 transition-all',
+              currentTask.completed
+                ? 'bg-primary border-primary'
+                : 'border-muted-foreground/40 hover:border-primary'
+            )}
+          >
+            {currentTask.completed && (
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground" />
+              </svg>
+            )}
+          </button>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className={cn(
+              "flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none placeholder:text-muted-foreground",
+              currentTask.completed ? "line-through text-muted-foreground" : "text-foreground"
+            )}
+            placeholder="Task title"
+          />
+        </div>
 
         {/* Subtasks */}
         {(currentTask.subtasks.length > 0 || true) && (
