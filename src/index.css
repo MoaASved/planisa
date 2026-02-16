@@ -7,7 +7,6 @@ input[type="time"],
 input[type="date"] {
   position: relative;
   z-index: 1;
-  min-height: 44px;
   cursor: pointer;
 }
 
