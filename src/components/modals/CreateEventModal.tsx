@@ -20,7 +20,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventMo
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState(eventCategories[0]?.name || 'Meetings');
   const [color, setColor] = useState<PastelColor>(eventCategories[0]?.color || 'sky');
-  const [isAllDay, setIsAllDay] = useState(true);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
   const endTimeManuallySet = useRef(false);
 

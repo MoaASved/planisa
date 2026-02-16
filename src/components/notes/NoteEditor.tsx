@@ -91,6 +91,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
   };
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar || false);
+
+  // Auto-calculate endTime when it's missing and start time exists
+  useEffect(() => {
+    if (showInCalendar && time && !endTime && !endTimeManuallySet.current) {
+      setEndTime(calculateEndTime(time));
+    }
+  }, [showInCalendar, time, endTime]);
   const [hideFromAllNotes, setHideFromAllNotes] = useState(note?.hideFromAllNotes || false);
   const [hideDate, setHideDate] = useState(note?.hideDate || false);
   
@@ -591,7 +598,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 />
                 {endTime && (
                   <button 
-                    onClick={() => setEndTime(undefined)}
+                    onClick={() => {
+                      endTimeManuallySet.current = false;
+                      setEndTime(undefined);
+                    }}
                     className="p-1 rounded-lg hover:bg-secondary transition-colors"
                   >
                     <EyeOff className="w-4 h-4 text-muted-foreground" />
