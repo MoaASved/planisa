@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { X, Plus, Calendar, Clock, Tag, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,15 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
 
+  const endTimeManuallySet = useRef(false);
+
+  const calculateEndTime = (start: string): string => {
+    const [h, m] = start.split(':').map(Number);
+    const endH = Math.min(h + 1, 23);
+    const endMin = h + 1 > 23 ? 59 : m;
+    return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     if (event) {
       setTitle(event.title);
@@ -39,6 +48,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       setColor(event.color);
       setIsAllDay(event.isAllDay);
       setDescription(event.description || '');
+      endTimeManuallySet.current = false;
     }
   }, [event]);
 
@@ -126,12 +136,20 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
+                <input type="time" value={startTime} onChange={(e) => {
+                  setStartTime(e.target.value);
+                  if (!endTimeManuallySet.current && e.target.value) {
+                    setEndTime(calculateEndTime(e.target.value));
+                  }
+                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
               </div>
               <span className="text-muted-foreground text-sm">–</span>
               <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
+                <input type="time" value={endTime} onChange={(e) => {
+                  endTimeManuallySet.current = true;
+                  setEndTime(e.target.value);
+                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1" />
               </div>
             </div>
           )}
