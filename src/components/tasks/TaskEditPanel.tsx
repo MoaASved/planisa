@@ -169,7 +169,7 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
             type="time"
             value={tempTime}
             onChange={(e) => handleTimeChange(e.target.value)}
-            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20"
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
           />
           <span className="text-muted-foreground">-</span>
           <input
@@ -178,7 +178,7 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
             onChange={(e) => handleEndTimeChange(e.target.value)}
             min={tempTime}
             placeholder="End"
-            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20"
+            className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-primary/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
           />
         </div>
       )}
