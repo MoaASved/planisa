@@ -1,53 +1,59 @@
 
 
-## Plan: Varmare, beige-neutral bakgrundsfarg
+## Plan: Ny CalendarTaskModal (likt CalendarNoteModal)
 
 ### Sammanfattning
-Byta hela ljusa temats graton fran kall bla-gra (hue 210-220) till varm beige-neutral (hue ~30-40). Detta paverkar background, secondary, muted, border, input, shadows och meta theme-color.
+Skapa en ny `CalendarTaskModal` som ersatter den nuvarande `TaskEditPanel`-popupen nar man klickar pa en task i kalendern. Modalen foljer exakt samma stil som `CalendarNoteModal` -- kompakt bottom-sheet med modernt utseende.
 
----
+### Innehall i modalen
 
-## Andringar
+```text
++----------------------------------------------+
+| Task                                    [X]  |
+|----------------------------------------------|
+| [ Titel-input                              ] |
+|----------------------------------------------|
+| [ ] Subtask 1                                |
+| [v] Subtask 2  (avbockad)                    |
+| [ + ] Lagg till subtask...                   |
+|----------------------------------------------|
+|   [ Open ]          [ Save ]                 |
++----------------------------------------------+
+```
 
-### Fil 1: `src/index.css` (ljust tema, rad 8-56)
+1. **Header**: "Task" + stangknapp (som CalendarNoteModal)
+2. **Titelinput**: Redigerbart textfalt i `bg-secondary rounded-xl`
+3. **Subtasks-lista**: Visa alla subtasks med avbockningsbara checkboxar. Avbockade far genomstruken text. Plus en "Add subtask..." input langst ner
+4. **Open-knapp**: Navigerar till Tasks-fliken (exakt som notens "Open"-knapp)
+5. **Save-knapp**: Sparar titel-andringar och stanger modalen
 
-Byta alla kalla bla-gra nyanser till varma, neutrala toner:
+### Tekniska detaljer
 
-| Variabel | Nuvarande (kall bla) | Ny (varm beige-neutral) |
-|----------|----------------------|-------------------------|
-| `--background` | `210 20% 98%` | `30 20% 98%` |
-| `--secondary` | `210 20% 94%` | `30 15% 94%` |
-| `--muted` | `210 15% 91%` | `30 10% 91%` |
-| `--border` | `210 15% 90%` | `30 10% 90%` |
-| `--input` | `210 15% 90%` | `30 10% 90%` |
-| `--sidebar-accent` | `210 20% 96%` | `30 15% 96%` |
-| `--sidebar-border` | `220 13% 91%` | `30 10% 91%` |
+**Ny fil: `src/components/modals/CalendarTaskModal.tsx`**
 
-Shadows andras ocksa fran `hsl(220 20% 10% / ...)` till `hsl(30 10% 10% / ...)` for att matcha den varma tonen.
+- Props: `task: Task | null`, `isOpen: boolean`, `onClose: () => void`, `onOpenInTasks: (task: Task) => void`
+- State: `title`, `newSubtask`
+- Anvander `toggleSubtask`, `addSubtask`, `removeSubtask`, `updateTask` fran `useAppStore`
+- Layouten ar en kopia av CalendarNoteModal: `fixed inset-x-3 bottom-3 z-50 bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated`
+- Subtask-checkboxar anvander runda checkboxar med `bg-primary` nar avbockade (matchar SwipeableTaskCard-stilen)
+- Open-knappen har `bg-primary/10 text-primary` stil med en `ExternalLink` eller `ListTodo` ikon
 
-Foreground-farger (text) behaller sin morkhet men far en varmare hue:
+**Andrad fil: `src/components/views/CalendarView.tsx`**
 
-| Variabel | Nuvarande | Ny |
-|----------|-----------|-----|
-| `--foreground` | `220 20% 10%` | `30 10% 10%` |
-| `--card-foreground` | `220 20% 10%` | `30 10% 10%` |
-| `--popover-foreground` | `220 20% 10%` | `30 10% 10%` |
-| `--primary` | `220 15% 15%` | `30 8% 15%` |
-| `--secondary-foreground` | `220 20% 20%` | `30 10% 20%` |
-| `--muted-foreground` | `220 10% 45%` | `30 8% 45%` |
-| `--ring` | `220 15% 15%` | `30 8% 15%` |
-| `--accent` | `220 15% 15%` | `30 8% 15%` |
+- Importera `CalendarTaskModal` istallet for att rendera `TaskEditPanel` inline
+- Lagg till en `handleOpenTaskInTasks`-funktion som satter `activeTab` till `'tasks'` via en callback/prop
+- Ersatt hela task-editing-blocket (rad 175-186) med `<CalendarTaskModal>`
+- Ta bort den gamla TaskEditPanel-wrappern med backdrop
 
-### Fil 2: `index.html` (rad 9)
+**Andrad fil: `src/pages/Index.tsx`**
 
-Uppdatera meta theme-color fran `#f7f9fc` (kall bla) till `#faf9f7` (varm beige).
+- Skicka en `onNavigateToTask`-callback till CalendarView som byter aktiv flik till Tasks
 
-### Fil 3: `src/pages/Index.tsx` (rad 38)
+### Filer som paverkas
 
-Uppdatera den dynamiska ljusa theme-color fran `#f7f9fc` till `#faf9f7`.
-
----
-
-### Resultat
-Bakgrunden och alla gra-element far en varm, beige, sandaktig ton istallet for kall bla-gra. Morkt tema paverkas inte. Pastel-paletten behalls som den ar.
+| Fil | Atgard |
+|-----|--------|
+| `src/components/modals/CalendarTaskModal.tsx` | Ny fil -- kompakt bottom-sheet modal for tasks i kalendern |
+| `src/components/views/CalendarView.tsx` | Ersatt TaskEditPanel med CalendarTaskModal, lagg till navigation-callback |
+| `src/pages/Index.tsx` | Skicka tab-navigation callback till CalendarView |
 
