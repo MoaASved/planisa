@@ -134,22 +134,22 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
 
           {!isAllDay && (
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-secondary rounded-xl px-3 py-3 min-h-[44px] flex items-center gap-2">
+              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input type="time" value={startTime} onChange={(e) => {
                   setStartTime(e.target.value);
                   if (!endTimeManuallySet.current && e.target.value) {
                     setEndTime(calculateEndTime(e.target.value));
                   }
-                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 min-h-[36px] cursor-pointer" />
+                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer" />
               </div>
               <span className="text-muted-foreground text-sm">–</span>
-              <div className="flex-1 bg-secondary rounded-xl px-3 py-3 min-h-[44px] flex items-center gap-2">
+              <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input type="time" value={endTime} onChange={(e) => {
                   endTimeManuallySet.current = true;
                   setEndTime(e.target.value);
-                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 min-h-[36px] cursor-pointer" />
+                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer" />
               </div>
             </div>
           )}
