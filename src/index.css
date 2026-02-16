@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure native time/date pickers work inside backdrop-filter containers */
+input[type="time"],
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  cursor: pointer;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
