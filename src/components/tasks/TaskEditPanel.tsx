@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { Folder, Calendar, Clock, Trash2, X, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,14 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   const [isAllDay, setIsAllDay] = useState(!task.time);
   const [tempTime, setTempTime] = useState(task.time || '09:00');
   const [tempEndTime, setTempEndTime] = useState(task.endTime || '');
+  const endTimeManuallySet = useRef(false);
+
+  const calculateEndTime = (start: string): string => {
+    const [h, m] = start.split(':').map(Number);
+    const endH = Math.min(h + 1, 23);
+    const endMin = h + 1 > 23 ? 59 : m;
+    return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+  };
 
   const handleCategorySelect = (category: TaskCategory) => {
     updateTask(task.id, { category: category.name, color: category.color });
@@ -47,9 +55,15 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
   const handleTimeChange = (time: string) => {
     setTempTime(time);
     updateTask(task.id, { time: time || undefined });
+    if (!endTimeManuallySet.current && time) {
+      const computed = calculateEndTime(time);
+      setTempEndTime(computed);
+      updateTask(task.id, { time: time || undefined, endTime: computed });
+    }
   };
 
   const handleEndTimeChange = (endTime: string) => {
+    endTimeManuallySet.current = true;
     setTempEndTime(endTime);
     updateTask(task.id, { endTime: endTime || undefined });
   };

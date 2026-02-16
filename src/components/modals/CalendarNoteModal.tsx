@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, FileText, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,14 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const [isAllDay, setIsAllDay] = useState(true);
   const [time, setTime] = useState<string | undefined>(undefined);
   const [endTime, setEndTime] = useState<string | undefined>(undefined);
+  const endTimeManuallySet = useRef(false);
+
+  const calculateEndTime = (start: string): string => {
+    const [h, m] = start.split(':').map(Number);
+    const endH = Math.min(h + 1, 23);
+    const endMin = h + 1 > 23 ? 59 : m;
+    return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (note) {
@@ -30,6 +38,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
       setTime(note.time);
       setEndTime(note.endTime);
       setIsAllDay(!note.time);
+      endTimeManuallySet.current = false;
     }
   }, [note]);
 
@@ -129,14 +138,22 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             <input
               type="time"
               value={time || '09:00'}
-              onChange={(e) => setTime(e.target.value)}
+              onChange={(e) => {
+                setTime(e.target.value);
+                if (!endTimeManuallySet.current && e.target.value) {
+                  setEndTime(calculateEndTime(e.target.value));
+                }
+              }}
               className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
             />
             <span className="text-muted-foreground">-</span>
             <input
               type="time"
               value={endTime || ''}
-              onChange={(e) => setEndTime(e.target.value || undefined)}
+              onChange={(e) => {
+                endTimeManuallySet.current = true;
+                setEndTime(e.target.value || undefined);
+              }}
               min={time}
               placeholder="End"
               className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
