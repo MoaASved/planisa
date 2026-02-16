@@ -288,13 +288,20 @@ export function CalendarItemList({
             {task.completed && <Check className={cn(compact ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-primary-foreground')} />}
           </div>
           <div className="flex-1 min-w-0">
-            <span className={cn(
-              'font-medium block truncate',
-              compact ? 'text-xs' : 'text-sm',
-              task.completed && 'line-through opacity-50'
-            )}>
-              {task.title}
-            </span>
+            <div className="flex items-center justify-between gap-1">
+              <span className={cn(
+                'font-medium truncate',
+                compact ? 'text-xs' : 'text-sm',
+                task.completed && 'line-through opacity-50'
+              )}>
+                {task.title}
+              </span>
+              {task.subtasks.length > 0 && (
+                <span className={cn('text-muted-foreground flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')}>
+                  {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                </span>
+              )}
+            </div>
             {showTime && time && (
               <span className="text-xs text-foreground/60">
                 {time}{endTime && ` - ${endTime}`}
