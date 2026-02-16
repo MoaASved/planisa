@@ -1,50 +1,43 @@
 
 
-## Fix: Auto-ifyllning av sluttid vid tidstoggling + Event-tidsinput
+## Fix: Event-tid och Note end-time auto-berakning
 
-### Problem som hittades
+### Problem 1: Event -- kan inte lagga in tid
+`isAllDay` sattes till `true` i senaste fixen, men du vill att den ska vara `false` (AV) sa att tidsfalten syns direkt nar du skapar ett event.
 
-1. **TaskEditPanel** (rad 41-52): Nar du trycker pa tidsknappen och gar fran "All Day" till tidslagt, satts `tempTime` till `'09:00'` men `tempEndTime` forblir tom. Saknar `setTempEndTime(calculateEndTime('09:00'))`.
+**Fil:** `src/components/modals/CreateEventModal.tsx`
+- Andra `isAllDay` tillbaka till `false` (rad 23)
 
-2. **CreateEventModal** (rad 23): `isAllDay` startar som `false`, vilket innebar att tidsfalten visas -- men "All Day"-togglen visar sig som "av" (gra), sa det ser ut som att All Day ar av. Problemet ar att togglen ar inverterad visuellt. Nar `isAllDay = false` borde det vara tydligt att tider kan anges. Korrigeringen ar att satta `isAllDay` till `true` som standard, sa anvandaren maste aktivt stanga av "All Day" for att se tidsfalten -- precis som i EditEventModal.
+### Problem 2: Note -- end time stammer inte efter att man dolt och visat den igen
+I NoteEditor, nar man klickar EyeOff-knappen pa end time (rad 594), satts `endTime` till `undefined` men `endTimeManuallySet`-flaggan forblir `true`. Nar end time sedan visas igen (for att start time finns kvar) triggas inte auto-berakningen.
 
-3. **CalendarNoteModal** (rad 116-123): Samma problem som TaskEditPanel -- nar man slapper tidslagen fran "All Day" satts `time` till `'09:00'` men `endTime` satts inte. Saknar `setEndTime(calculateEndTime('09:00'))`.
+**Fil:** `src/components/notes/NoteEditor.tsx`
+- Rad 594: Nar end time doljs, aterstall `endTimeManuallySet.current = false` och berakna nytt endTime direkt baserat pa nuvarande startTime
 
-### Andringar
+Andring:
+```typescript
+// Rad 593-594, nar EyeOff klickas pa end time:
+<button 
+  onClick={() => {
+    endTimeManuallySet.current = false;
+    setEndTime(undefined);
+  }}
+>
+```
+
+Dessutom: nar end time visas igen (dvs nar `time` finns men `endTime` ar `undefined`), auto-berakna endTime. Lagg till en `useEffect`:
+```typescript
+useEffect(() => {
+  if (showInCalendar && time && !endTime && !endTimeManuallySet.current) {
+    setEndTime(calculateEndTime(time));
+  }
+}, [showInCalendar, time, endTime]);
+```
+
+### Sammanfattning
 
 | Fil | Andring |
 |-----|---------|
-| `src/components/tasks/TaskEditPanel.tsx` | I `handleTimeToggle` (rad 43-46): lagg till `setTempEndTime(calculateEndTime('09:00'))` och `updateTask` med bade `time` och `endTime` |
-| `src/components/modals/CreateEventModal.tsx` | Andra `isAllDay` default fran `false` till `true` (rad 23) sa att anvandaren maste stanga av "All Day" for att se tidsfalten |
-| `src/components/modals/CalendarNoteModal.tsx` | I tidstogglingen (rad 117-118): lagg till `setEndTime(calculateEndTime('09:00'))` nar man aktiverar tidslagt |
+| `CreateEventModal.tsx` | `isAllDay` default till `false` |
+| `NoteEditor.tsx` | Aterstall flagga vid EyeOff + auto-berakna endTime nar den saknas |
 
-### Tekniska detaljer
-
-**TaskEditPanel** -- rad 42-46 andras till:
-```typescript
-if (isAllDay) {
-  setIsAllDay(false);
-  const defaultTime = '09:00';
-  const defaultEndTime = calculateEndTime(defaultTime);
-  setTempTime(defaultTime);
-  setTempEndTime(defaultEndTime);
-  endTimeManuallySet.current = false;
-  updateTask(task.id, { time: defaultTime, endTime: defaultEndTime });
-}
-```
-
-**CreateEventModal** -- rad 23:
-```typescript
-const [isAllDay, setIsAllDay] = useState(true);  // andrat fran false
-```
-
-**CalendarNoteModal** -- rad 116-119 andras till:
-```typescript
-if (isAllDay) {
-  setIsAllDay(false);
-  const defaultTime = '09:00';
-  setTime(defaultTime);
-  setEndTime(calculateEndTime(defaultTime));
-  endTimeManuallySet.current = false;
-}
-```
