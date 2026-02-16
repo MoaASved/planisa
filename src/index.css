@@ -5,8 +5,6 @@
 /* Ensure native time/date pickers work inside backdrop-filter containers */
 input[type="time"],
 input[type="date"] {
-  -webkit-appearance: none;
-  appearance: none;
   position: relative;
   z-index: 1;
   min-height: 44px;
