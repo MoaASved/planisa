@@ -1,23 +1,21 @@
 
 
-## Fix: Ta bort `appearance: none` som blockerar tidsvaeljarens native picker
+## Fix: Ta bort `min-height: 44px` fran globala CSS-regeln
 
 ### Rotorsak
 
-Den CSS-regel som lades till i foersta fixfoersoeket (`appearance: none` och `-webkit-appearance: none` paa `input[type="time"]`) tar bort webblaesarens inbyggda tidsvael-granssnitt (spinner, dropdown). Det aer detta som goer att man inte kan valja tid -- inputen faar fokus men det finns ingen native picker att interagera med.
+Den globala CSS-regeln i `src/index.css` (rad 5-12) satter `min-height: 44px` pa alla `input[type="time"]` och `input[type="date"]`. Detta overskrider den smalare paddingen (`py-2.5`) i komponenterna och gor att containrarna alltid blir minst 44px hoga.
 
-### Loesning
+### Losning
 
-**Fil:** `src/index.css` (rad 5-14)
+**Fil:** `src/index.css` (rad 5-12)
 
-Ta bort `appearance: none` och `-webkit-appearance: none` fraan regeln. Behaall `position: relative`, `z-index: 1` och `min-height: 44px` som fortfarande behoevs foer att loesa z-index-problem med backdrop-filter.
+Ta bort `min-height: 44px` fran regeln. Behaall `position: relative`, `z-index: 1` och `cursor: pointer`.
 
-AEndra fraan:
+Fran:
 ```css
 input[type="time"],
 input[type="date"] {
-  -webkit-appearance: none;
-  appearance: none;
   position: relative;
   z-index: 1;
   min-height: 44px;
@@ -31,11 +29,11 @@ input[type="time"],
 input[type="date"] {
   position: relative;
   z-index: 1;
-  min-height: 44px;
   cursor: pointer;
 }
 ```
 
 ### Sammanfattning
 
-En enda radering av tvaa rader CSS (`appearance: none`) loser hela problemet. Native time pickers aaterstaells och anvandaren kan valja tid igen.
+En enda radering av `min-height: 44px` gor att tid-containrarna atergar till sin naturliga, nattare storlek baserad pa komponenternas padding.
+
