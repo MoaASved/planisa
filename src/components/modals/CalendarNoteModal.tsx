@@ -115,7 +115,10 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             onClick={() => {
               if (isAllDay) {
                 setIsAllDay(false);
-                setTime('09:00');
+                const defaultTime = '09:00';
+                setTime(defaultTime);
+                setEndTime(calculateEndTime(defaultTime));
+                endTimeManuallySet.current = false;
               } else {
                 setIsAllDay(true);
                 setTime(undefined);
