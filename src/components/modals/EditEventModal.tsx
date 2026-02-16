@@ -141,7 +141,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                   if (!endTimeManuallySet.current && e.target.value) {
                     setEndTime(calculateEndTime(e.target.value));
                   }
-                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer" />
+                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute" />
               </div>
               <span className="text-muted-foreground text-sm">–</span>
               <div className="flex-1 bg-secondary rounded-xl px-3 py-2.5 flex items-center gap-2">
@@ -149,7 +149,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                 <input type="time" value={endTime} onChange={(e) => {
                   endTimeManuallySet.current = true;
                   setEndTime(e.target.value);
-                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer" />
+                }} className="bg-transparent border-0 outline-none text-sm font-medium text-foreground flex-1 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute" />
               </div>
             </div>
           )}
