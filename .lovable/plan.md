@@ -1,39 +1,44 @@
 
 
-## Fix: Ta bort `min-height: 44px` fran globala CSS-regeln
+## Fix: Gor hela tid-containern klickbar pa bade mobil och desktop
 
-### Rotorsak
+### Problem
 
-Den globala CSS-regeln i `src/index.css` (rad 5-12) satter `min-height: 44px` pa alla `input[type="time"]` och `input[type="date"]`. Detta overskrider den smalare paddingen (`py-2.5`) i komponenterna och gor att containrarna alltid blir minst 44px hoga.
+Tids-inputarna (`input[type="time"]`) saknar de WebKit-regler som datum-inputen redan har. Detta orsakar tva problem:
+
+1. **Mobil (iOS/Android)**: Inputen kollapsar till noll bredd nar vardet ar tomt -- hela containern blir oklickbar
+2. **Desktop**: Webblasarens inbyggda klockikon visas bredvid Lucide-ikonen, vilket ger "tva klockor"
+
+Datum-inputen fungerar korrekt eftersom den redan har `[&::-webkit-calendar-picker-indicator]:opacity-0` och `[&::-webkit-calendar-picker-indicator]:absolute` (se rad 132 i CreateEventModal).
 
 ### Losning
 
-**Fil:** `src/index.css` (rad 5-12)
+Lagg till exakt samma tva CSS-regler pa alla fyra tids-inputs (start + slut i bade CreateEventModal och EditEventModal). Inga andra andringar behovs.
 
-Ta bort `min-height: 44px` fran regeln. Behaall `position: relative`, `z-index: 1` och `cursor: pointer`.
+### Tekniska detaljer
 
-Fran:
-```css
-input[type="time"],
-input[type="date"] {
-  position: relative;
-  z-index: 1;
-  min-height: 44px;
-  cursor: pointer;
-}
+**Fil 1: `src/components/modals/CreateEventModal.tsx`**
+
+Rad 151 -- startTime input, lagg till picker-regler:
+```
+className="... flex-1 cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
 ```
 
-Till:
-```css
-input[type="time"],
-input[type="date"] {
-  position: relative;
-  z-index: 1;
-  cursor: pointer;
-}
-```
+Rad 156 -- endTime input, samma andring.
 
-### Sammanfattning
+**Fil 2: `src/components/modals/EditEventModal.tsx`**
 
-En enda radering av `min-height: 44px` gor att tid-containrarna atergar till sin naturliga, nattare storlek baserad pa komponenternas padding.
+Rad 144 -- startTime input, samma andring.
+Rad 152 -- endTime input, samma andring.
+
+**Fil 3: `src/components/tasks/TaskEditPanel.tsx`**
+
+Rad 156 -- startTime input, samma andring.
+Rad 163 -- endTime input, samma andring.
+
+### Vad detta gor
+
+- `opacity-0` doljer webblasarens native klockikon (loser "tva klockor" pa desktop)
+- `absolute` gor att den osynliga native-pickern tacker hela inputen, sa hela containern blir klickbar (loser mobil-problemet)
+- Containrarna behallar sin slimma storlek (`py-2.5`) utan nagon `min-height`
 
