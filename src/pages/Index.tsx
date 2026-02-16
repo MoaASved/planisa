@@ -82,7 +82,7 @@ const Index = () => {
       case 'home':
         return <HomeView onNavigate={setActiveTab} />;
       case 'calendar':
-        return <CalendarViewComponent onDateChange={setSelectedCalendarDate} />;
+        return <CalendarViewComponent onDateChange={setSelectedCalendarDate} onNavigateToTasks={() => setActiveTab('tasks')} />;
       case 'tasks':
         return (
           <TasksView 

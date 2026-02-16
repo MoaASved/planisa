@@ -8,12 +8,12 @@ import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
+import { CalendarTaskModal } from '@/components/modals/CalendarTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
-import { TaskEditPanel } from '@/components/tasks/TaskEditPanel';
 
 type SimpleView = 'month' | 'weekday';
 
-export function CalendarViewComponent({ onDateChange }: { onDateChange?: (date: Date) => void }) {
+export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: () => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
@@ -189,21 +189,16 @@ export function CalendarViewComponent({ onDateChange }: { onDateChange?: (date: 
         )}
       </div>
 
-      {/* Task Edit Panel (inline instead of modal) */}
-      {editingTask && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div 
-            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
-            onClick={() => setEditingTask(null)}
-          />
-          <div className="relative w-full max-w-lg p-4 pb-8 safe-bottom animate-slide-up">
-            <TaskEditPanel 
-              task={editingTask} 
-              onClose={() => setEditingTask(null)} 
-            />
-          </div>
-        </div>
-      )}
+      {/* Calendar Task Modal */}
+      <CalendarTaskModal
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        onOpenInTasks={() => {
+          setEditingTask(null);
+          onNavigateToTasks?.();
+        }}
+      />
 
       {/* Edit Modals */}
       <EditEventModal
