@@ -86,7 +86,6 @@ export function WeekDayView({
                 onClick={() => onDateSelect(day)}
                 className={cn(
                   'py-2 text-center transition-all rounded-2xl',
-                  isSelected && !isTodayDate && 'bg-[#1C1C1E]/5 dark:bg-white/10',
                   !isSelected && 'hover:bg-secondary/40'
                 )}
               >
@@ -96,7 +95,7 @@ export function WeekDayView({
                 <span className={cn(
                   'text-lg mt-0.5 w-9 h-9 rounded-full flex items-center justify-center mx-auto transition-all',
                   isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
-                  isSelected && !isTodayDate && 'font-medium text-foreground',
+                  isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-white/20 font-medium text-foreground',
                   !isTodayDate && !isSelected && 'font-light text-foreground/80'
                 )}>
                   {format(day, 'd')}

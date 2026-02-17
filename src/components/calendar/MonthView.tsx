@@ -131,13 +131,13 @@ export function MonthView({
                       'h-11 flex flex-col items-center justify-center rounded-full transition-all duration-200 relative',
                       !isCurrentMonth && 'opacity-25',
                       isTodayDate && 'bg-[#1C1C1E] dark:bg-white',
-                      isSelected && !isTodayDate && 'bg-[#1C1C1E]/10 dark:bg-white/15',
                       !isTodayDate && !isSelected && 'hover:bg-secondary/40'
                     )}
                   >
                     <span className={cn(
-                      'text-[15px] font-light tracking-tight',
-                      isTodayDate ? 'text-white dark:text-[#1C1C1E] font-medium' : 'text-foreground/80'
+                      'text-[15px] font-light tracking-tight w-9 h-9 rounded-full flex items-center justify-center',
+                      isTodayDate ? 'text-white dark:text-[#1C1C1E] font-medium' : 'text-foreground/80',
+                      isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-white/20 font-medium'
                     )}>
                       {format(day, 'd')}
                     </span>
