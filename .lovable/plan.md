@@ -1,57 +1,58 @@
 
 
-## Fix: Tidsinput i CreateEventModal och EditEventModal -- gör som i resten av appen
+## Fix: Vertical centering of nav icons + Quick Create popup positioning
 
-### Problem
+### Issue 1 -- Vertical centering
 
-CreateEventModal och EditEventModal döljer webbläsarens inbyggda tidsväljare med `[&::-webkit-calendar-picker-indicator]:opacity-0` och `[&::-webkit-calendar-picker-indicator]:absolute`. Det gör att inputen kollapsar till noll bredd på iOS och blir omöjlig att trycka på.
+The plus button has `-mt-5` which pulls it upward to create the elevated effect. This negative margin shifts the entire flex container's alignment. The `safe-bottom` class also adds extra bottom padding via `env(safe-area-inset-bottom)`, creating uneven vertical spacing.
 
-I CalendarNoteModal och NoteEditor (som fungerar på mobil) används vanliga `input[type="time"]` utan att dölja native-indikatorn.
+**Fix in `src/index.css`:**
+- Remove `-mt-5` from `.flow-nav-center-btn` -- instead use a negative `margin-bottom` approach or `relative` + negative `top` so the button floats upward without affecting the flex layout of sibling items.
+- Change `.flow-nav-center-btn` to use `position: relative; top: -10px;` instead of `-mt-5` so it visually elevates without affecting the flex container's vertical alignment.
 
-### Lösning
+**Fix in `src/components/navigation/TabNavigation.tsx`:**
+- Remove `safe-bottom` from the nav element. The `safe-area-inset-bottom` padding is already accounted for by the `bottom: 16px/24px` positioning, and it causes uneven top/bottom padding inside the bar.
 
-Byt till samma enkla mönster som redan fungerar i CalendarNoteModal -- ren `input[type="time"]` med enkel styling, utan dolda indikatorer, utan refs, utan `onClick`-handlers.
+### Issue 2 -- Quick Create popup positioning
 
-### Tekniska detaljer
+The popup in `QuickCreateMenu.tsx` uses `fixed bottom-24` which is a hardcoded value that doesn't relate to the plus button's actual position.
 
-**Fil 1: `src/components/modals/CreateEventModal.tsx`**
+**Fix in `src/components/QuickCreateMenu.tsx`:**
+- Change the popup from `fixed bottom-24 left-1/2 -translate-x-1/2` to `fixed bottom-[90px] left-1/2 -translate-x-1/2` (or similar value) to position it just above the nav bar with a ~12px gap.
+- The exact `bottom` value: nav bar is at `bottom: 24px`, bar height is roughly 56px, so popup bottom should be around `24 + 56 + 12 = 92px`. Use `bottom-[92px]` on desktop. Add a responsive adjustment for mobile where nav is at `bottom: 16px` (so `bottom-[84px]`).
 
-Ersätt hela tids-blocket (rad 149-166) med:
+### Technical details
 
-```tsx
-{!isAllDay && (
-  <div className="flex items-center gap-2">
-    <input
-      type="time"
-      value={startTime}
-      onChange={(e) => handleStartTimeChange(e.target.value)}
-      className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-    />
-    <span className="text-muted-foreground text-sm">-</span>
-    <input
-      type="time"
-      value={endTime}
-      onChange={(e) => handleEndTimeChange(e.target.value)}
-      className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-    />
-  </div>
-)}
+**File 1: `src/index.css`**
+
+In `.flow-nav-center-btn` (line 216), replace `-mt-5` with relative positioning:
+```css
+.flow-nav-center-btn {
+  @apply flex items-center justify-center w-12 h-12 rounded-full;
+  position: relative;
+  top: -10px;
+  background: #ffffff;
+  color: #1C1C1E;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.3);
+}
 ```
 
-Ta även bort `startTimeRef` och `endTimeRef` från komponentens refs (de behövs inte längre).
+**File 2: `src/components/navigation/TabNavigation.tsx`**
 
-**Fil 2: `src/components/modals/EditEventModal.tsx`**
+Remove `safe-bottom` from the nav className (line 23):
+```tsx
+<nav className="flow-nav-floating">
+```
 
-Exakt samma ändring -- byt tids-blocket till enkla inputs utan dolda indikatorer, utan wrapper-divs med onClick-handlers, utan refs.
+**File 3: `src/components/QuickCreateMenu.tsx`**
 
-**Fil 3: `src/components/tasks/TaskEditPanel.tsx`**
+Change the popup container (line 57) positioning to sit just above the nav bar:
+```tsx
+<div className="fixed bottom-[92px] left-1/2 -translate-x-1/2 z-50 animate-spring-pop sm:bottom-[100px]">
+```
 
-Samma ändring -- byt till enkla inputs som matchar CalendarNoteModal-mönstret.
-
-### Varför detta fungerar
-
-- Webbläsarens native tidsväljare visas och är klickbar direkt -- ingen `showPicker()` behövs
-- Inputen har alltid bredd tack vare `flex-1` och att native-indikatorn inte är dold
-- Matchar exakt det mönster som redan fungerar i CalendarNoteModal och NoteEditor
-- Containrarna förblir slimma med `py-2.5`
-
+### Summary
+- 3 files changed
+- Nav icons become vertically centered by switching from `-mt-5` (which affects flex layout) to `relative top` (which doesn't)
+- Remove `safe-bottom` to eliminate uneven padding
+- Quick Create popup repositioned to float centered above the nav bar
