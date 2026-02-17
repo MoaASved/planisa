@@ -78,7 +78,6 @@ export function MonthView({
       const deltaX = endX - touchStartRef.current.x;
       const deltaY = endY - touchStartRef.current.y;
 
-      // Only trigger swipe if horizontal movement is greater than vertical
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
         if (deltaX > 0) {
           onMonthChange('prev');
@@ -96,13 +95,13 @@ export function MonthView({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Calendar grid */}
-      <div className="flex-shrink-0 px-2">
+      {/* Calendar grid - clean white background */}
+      <div className="flex-shrink-0 px-3 pb-3 bg-white dark:bg-card">
         {/* Day headers */}
-        <div className="grid grid-cols-[24px_repeat(7,1fr)] mb-1">
-          <div className="text-center text-[9px] font-normal text-muted-foreground/40 py-1">v</div>
+        <div className="grid grid-cols-[20px_repeat(7,1fr)] mb-1">
+          <div className="text-center text-[9px] font-normal text-muted-foreground/30 py-1">v</div>
           {['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'].map((day, i) => (
-            <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">
+            <div key={i} className="text-center text-[11px] font-medium text-muted-foreground/60 py-1 uppercase tracking-wide">
               {day}
             </div>
           ))}
@@ -111,9 +110,9 @@ export function MonthView({
         {/* Calendar grid */}
         <div className="flex flex-col gap-0.5">
           {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="grid grid-cols-[24px_repeat(7,1fr)] gap-0.5">
-              {/* Week number - narrower column */}
-              <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/30 h-10">
+            <div key={weekIndex} className="grid grid-cols-[20px_repeat(7,1fr)] gap-0.5">
+              {/* Week number */}
+              <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 h-11">
                 {getWeek(week[0], { weekStartsOn: 1 })}
               </div>
               
@@ -129,27 +128,27 @@ export function MonthView({
                     key={dayIndex}
                     onClick={() => onDateSelect(day)}
                     className={cn(
-                      'h-10 flex flex-col items-center justify-center rounded-xl transition-all duration-200 relative',
-                      !isCurrentMonth && 'opacity-30',
-                      isTodayDate && 'bg-primary text-primary-foreground',
-                      isSelected && !isTodayDate && 'bg-primary/15 ring-1 ring-primary/50',
-                      !isTodayDate && !isSelected && 'hover:bg-secondary/60'
+                      'h-11 flex flex-col items-center justify-center rounded-full transition-all duration-200 relative',
+                      !isCurrentMonth && 'opacity-25',
+                      isTodayDate && 'bg-[#1C1C1E] dark:bg-white',
+                      isSelected && !isTodayDate && 'bg-[#1C1C1E]/10 dark:bg-white/15',
+                      !isTodayDate && !isSelected && 'hover:bg-secondary/40'
                     )}
                   >
                     <span className={cn(
-                      'text-sm font-medium',
-                      isTodayDate ? 'text-primary-foreground' : 'text-foreground'
+                      'text-[15px] font-light tracking-tight',
+                      isTodayDate ? 'text-white dark:text-[#1C1C1E] font-medium' : 'text-foreground/80'
                     )}>
                       {format(day, 'd')}
                     </span>
                     {hasItems && (
-                      <div className="absolute bottom-1 flex gap-0.5">
+                      <div className="absolute bottom-1 flex gap-[3px]">
                         {dayEvents.slice(0, 1).map((event, j) => (
                           <div 
                             key={j} 
                             className={cn(
-                              'w-1 h-1 rounded-full',
-                              isTodayDate ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(event, 'event'))
+                              'w-[5px] h-[5px] rounded-full',
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(event, 'event'))
                             )} 
                           />
                         ))}
@@ -157,8 +156,8 @@ export function MonthView({
                           <div 
                             key={`t-${j}`} 
                             className={cn(
-                              'w-1 h-1 rounded-full',
-                              isTodayDate ? 'bg-primary-foreground/70' : getColorDotClass(getItemColor(task, 'task'))
+                              'w-[5px] h-[5px] rounded-full',
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(task, 'task'))
                             )} 
                           />
                         ))}
@@ -166,8 +165,8 @@ export function MonthView({
                           <div 
                             key={`n-${j}`} 
                             className={cn(
-                              'w-1 h-1 rounded-full',
-                              isTodayDate ? 'bg-primary-foreground/70' : getColorDotClass(getNoteColor(note))
+                              'w-[5px] h-[5px] rounded-full',
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
                             )} 
                           />
                         ))}
@@ -181,8 +180,15 @@ export function MonthView({
         </div>
       </div>
 
-      {/* Items list */}
-      <div className="flex-1 overflow-hidden border-t border-border/30 mt-2">
+      {/* Lower section - warm beige card sliding up */}
+      <div 
+        className="flex-1 overflow-hidden relative"
+        style={{
+          background: '#F5F3F0',
+          borderRadius: '20px 20px 0 0',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
+        }}
+      >
         <CalendarItemList
           date={selectedDate}
           events={events}

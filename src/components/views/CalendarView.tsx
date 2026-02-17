@@ -136,7 +136,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden">
+    <div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden bg-white dark:bg-card">
       {/* Header */}
       <CalendarHeader
         currentDate={currentDate}
