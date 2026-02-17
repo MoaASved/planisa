@@ -456,7 +456,7 @@ export function CalendarItemList({
           background: '#ffffff',
           borderRadius: '20px 20px 0 0',
           boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
-          minHeight: '100%',
+          minHeight: 'calc(100vh - 200px)',
         }}
       >
       {/* Filter toolbar */}
