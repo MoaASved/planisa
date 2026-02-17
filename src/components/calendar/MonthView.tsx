@@ -181,7 +181,7 @@ export function MonthView({
       </div>
 
       {/* Lower section - unified background, no divider */}
-      <div className="flex-1 overflow-hidden relative bg-background">
+      <div className="flex-1 flex flex-col relative bg-background">
         <CalendarItemList
           date={selectedDate}
           events={events}
