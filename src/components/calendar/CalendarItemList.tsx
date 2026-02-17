@@ -269,6 +269,7 @@ export function CalendarItemList({
           onDragStart={() => handleDragStart(task.id, 'task')}
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(task, 'task')}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
             'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative',
             task.completed ? 'bg-secondary' : getColorCardClass(color),
@@ -320,6 +321,7 @@ export function CalendarItemList({
           onDragStart={() => handleDragStart(event.id, 'event')}
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(event, 'event')}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
             'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
@@ -358,6 +360,7 @@ export function CalendarItemList({
         onDragStart={() => handleDragStart(note.id, 'note')}
         onDragEnd={handleDragEnd}
         onClick={() => onItemClick(note, 'note')}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
           'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
           getColorCardClass(color),
