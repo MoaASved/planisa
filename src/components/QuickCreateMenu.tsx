@@ -49,14 +49,14 @@ export function QuickCreateMenu({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 animate-fade-in"
+        className="fixed inset-0 z-[1100] animate-fade-in"
         style={{ background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
         onClick={onClose}
       />
 
       {/* Menu */}
       <div
-        className="fixed left-1/2 z-[9999] animate-spring-pop"
+        className="fixed left-1/2 z-[1200] animate-spring-pop"
         style={{
           bottom: 'calc(48px + 76px + 16px)',
           transform: 'translateX(-50%)',

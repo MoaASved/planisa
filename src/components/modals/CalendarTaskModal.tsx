@@ -65,12 +65,12 @@ export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: Cale
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 animate-fade-in" 
+        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[1100] animate-fade-in" 
         onClick={onClose} 
       />
       
       {/* Compact Bottom Sheet Modal */}
-      <div className="fixed inset-x-3 bottom-3 z-50 bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated">
+      <div className="fixed inset-x-3 bottom-3 z-[1200] bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-base font-semibold text-foreground">Task</h3>

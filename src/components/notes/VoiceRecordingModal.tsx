@@ -113,7 +113,7 @@ export function VoiceRecordingModal({ isOpen, onClose, onRecordingComplete }: Vo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center animate-fade-in">
+    <div className="fixed inset-0 z-[1100] bg-black/50 flex items-center justify-center animate-fade-in">
       <div 
         className="bg-card rounded-3xl p-8 w-72 flex flex-col items-center gap-6 shadow-xl animate-scale-in"
         onClick={(e) => e.stopPropagation()}

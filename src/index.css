@@ -191,7 +191,7 @@ input[type="date"] {
     gap: 10px;
     padding: 12px 28px;
     border-radius: 9999px;
-    z-index: 50;
+    z-index: 1000;
     background: #1C1C1E;
     box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.2);
   }

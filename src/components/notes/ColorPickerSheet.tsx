@@ -16,10 +16,10 @@ export function ColorPickerSheet({ isOpen, onClose, selectedColor, onSelectColor
   return (
     <>
       <div 
-        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50" 
+        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[1100]" 
         onClick={onClose} 
       />
-      <div className="fixed inset-x-0 bottom-0 z-50 flow-bottom-sheet animate-slide-up">
+      <div className="fixed inset-x-0 bottom-0 z-[1200] flow-bottom-sheet animate-slide-up">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-foreground">Note Color</h3>
           <button onClick={onClose} className="p-2 rounded-full bg-secondary">
