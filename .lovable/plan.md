@@ -1,84 +1,77 @@
 
-# Fix: White Card Extends to Bottom of Screen
+# Fix: Vitt kort täcker hela skärmen (inklusive pb-24)
 
-## Root Cause Analysis
+## Rotorsaken
 
-There are two compounding issues causing the beige strip at the bottom:
+I `src/pages/Index.tsx` linje 130 har `<main>` klassen `pb-24` (96px padding längst ner). Det vita kortet i `CalendarItemList` fyller sin container men container slutar vid content-kanten — de sista 96px är beige padding som syns under det vita kortet.
 
-**Issue 1 – CalendarView has a hard height cap:**
-In `src/components/views/CalendarView.tsx` line 139, the outer wrapper is:
+Dessutom är `<div className="min-h-screen bg-background">` i `Index.tsx` beige, vilket syns i alla gap.
+
+## Lösningen
+
+Det enklaste och pålitligaste sättet: ändra det vita kortets `minHeight` i `CalendarItemList` till att täcka hela viewport:
+
 ```
-h-[calc(100vh-140px)]
+minHeight: 'calc(100vh - 200px)'
 ```
-This means the entire calendar — including the white card — is artificially capped and stops 140px before the bottom of the screen. Everything below that cap is beige background from the page.
 
-**Issue 2 – White card can't stretch beyond its container:**
-The `CalendarItemList` white card uses `flex-grow`, which only fills space *within* its parent. Since the parent is capped by the `h-[calc(100vh-140px)]` container, the white card stops there too, even if it has nothing to fill.
+Men ett ännu bättre tillvägagångssätt — ändra bakgrundsfärgen på `<body>` / root-elementet för kalendersidan till vitt, eller ge det vita kortet en `paddingBottom` som kompenserar för `pb-24`.
 
-## The Fix
+Den rätta tekniska lösningen är:
 
-The correct approach is to stop capping the height and instead let the content scroll naturally, while ensuring the white card always covers the full remaining screen.
-
-### Changes needed:
-
-**1. `src/components/views/CalendarView.tsx`**
-
-Change the outer wrapper from a fixed `h-[calc(100vh-140px)]` to a `min-h` approach that allows the white card to reach the bottom of the viewport:
+**`src/components/calendar/CalendarItemList.tsx`** — ge det vita kortet explicit `minHeight` beräknad på viewport minus toppavståndet:
 
 ```tsx
-// Before:
-<div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden bg-background">
-
-// After:
-<div className="flex flex-col min-h-[calc(100vh-56px)] overflow-x-hidden bg-background">
+style={{
+  background: '#ffffff',
+  borderRadius: '20px 20px 0 0',
+  boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+  minHeight: 'calc(100vh - 200px)',  // täcker alltid till botten
+}}
 ```
 
-(56px accounts for the tab navigation bar at the bottom)
+Och ta bort `overflow-hidden` från `CalendarView.tsx` rad 153 (`<div className="flex-1 overflow-hidden">`) — annars klipps det vita kortet även om det är tillräckligt stort.
 
-**2. `src/components/calendar/CalendarItemList.tsx`**
+## Alla ändringar
 
-The white card needs to use `min-h` calculated from the viewport rather than relying on flex to stretch it. The simplest reliable fix: instead of `flex-grow` on the white card, give it an explicit `min-h` that guarantees it covers to the bottom:
+**1. `src/components/calendar/CalendarItemList.tsx`**
 
+Ändra `minHeight: '100%'` till `minHeight: 'calc(100vh - 200px)'` på det vita kortet. Det säkerställer att kortet alltid når långt under synfältet.
+
+**2. `src/components/views/CalendarView.tsx`**
+
+Ändra:
 ```tsx
-// White card wrapper: add min-h to guarantee full coverage
-<div
-  className="flex flex-col flex-grow"
-  style={{
-    background: '#ffffff',
-    borderRadius: '20px 20px 0 0',
-    boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
-    minHeight: '100%',      // ← added
-  }}
->
+<div className="flex-1 overflow-hidden">
+```
+Till:
+```tsx
+<div className="flex-1">
 ```
 
-**3. `src/components/calendar/MonthView.tsx`** and **`src/components/calendar/WeekDayView.tsx`**
+`overflow-hidden` klipper innehållet och hindrar det vita kortet från att växa ut till botten.
 
-The lower section wrapper that contains `CalendarItemList` must also pass its full height down:
+**3. `src/components/calendar/MonthView.tsx`**
 
-MonthView line 184:
+Ta bort `overflow-hidden` från lower section wrappern:
 ```tsx
-// Before:
 <div className="flex-1 flex flex-col relative bg-background">
-
-// After:
-<div className="flex-1 flex flex-col relative bg-background overflow-hidden">
 ```
 
-WeekDayView line 110:
+**4. `src/components/calendar/WeekDayView.tsx`**
+
+Ta bort `overflow-hidden` från lower section wrappern:
 ```tsx
-// Before:
-<div className="flex-1 overflow-hidden relative bg-background">
-
-// After:
-<div className="flex-1 flex flex-col relative bg-background overflow-hidden">
+<div className="flex-1 flex flex-col relative bg-background">
 ```
 
-## Summary of Files Changed
+## Teknisk förklaring
 
-- `src/components/views/CalendarView.tsx` — fix root height cap (1 line)
-- `src/components/calendar/CalendarItemList.tsx` — add `minHeight: '100%'` to white card style (1 line)
-- `src/components/calendar/MonthView.tsx` — ensure lower section passes full height (1 line)
-- `src/components/calendar/WeekDayView.tsx` — make lower section consistent with MonthView (1 line)
+Problemet är att `overflow-hidden` i olika lager klippt det vita kortets verkliga storlek. Och `min-h: 100%` fungerar inte när föräldrar inte har explicit höjd definierad — `%` räknar från närmaste förälder med definierad höjd. Med `calc(100vh - 200px)` bypassa hela kedjan och säkerställer att det vita kortet alltid räcker ner oavsett layouthierarki.
 
-No visual styling changes — same beige gap, same white card, same shadows, same event cards.
+## Sammanfattning
+
+- `src/components/calendar/CalendarItemList.tsx` — ändra `minHeight` till viewport-baserad beräkning
+- `src/components/views/CalendarView.tsx` — ta bort `overflow-hidden` från flex-1 wrapper
+- `src/components/calendar/MonthView.tsx` — ta bort `overflow-hidden` från lower section
+- `src/components/calendar/WeekDayView.tsx` — ta bort `overflow-hidden` från lower section
