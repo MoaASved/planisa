@@ -95,7 +95,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventMo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1100] flex items-end justify-center">
+    <div className="fixed inset-0 z-[1100] flex items-end justify-center" style={{ paddingBottom: '40%' }}>
       <div 
         className="absolute inset-0 glass-overlay animate-fade-in"
         onClick={onClose}
