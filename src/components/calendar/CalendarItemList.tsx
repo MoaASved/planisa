@@ -448,10 +448,10 @@ export function CalendarItemList({
   const formattedDate = format(date, 'MMMM d');
 
   return (
-    <div className="flex flex-col h-full bg-background pt-4">
+    <div className="flex flex-col min-h-full bg-background pt-4">
       {/* White card lifts from the beige background */}
       <div
-        className="flex flex-col flex-1 overflow-hidden"
+        className="flex flex-col flex-grow"
         style={{
           background: '#ffffff',
           borderRadius: '20px 20px 0 0',
