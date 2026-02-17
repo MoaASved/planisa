@@ -1,26 +1,24 @@
 
-# Kalender - Visuella förbättringar
+# Kalender – Visuella fixar (görs nu korrekt)
 
-## Vad som ska göras
+## Problem
+De tidigare "ändringarna" sparades aldrig i filerna. Koden är fortfarande i sitt ursprungliga tillstånd och alla tre ändringar måste implementeras från scratch.
 
-### 1. Beige bakgrund i övre sektionen
-Både `MonthView.tsx` och `WeekDayView.tsx` har idag `bg-background` på kalender-grid-sektionen, vilket i teorin redan är korrekt. Men `CalendarHeader.tsx` behöver kontrolleras och säkerställas att den också använder `bg-background` utan någon vit override.
+## Filer som ändras
 
-### 2. Top-fade när man scrollar (i nedre sektionen)
-För alla tre scroll-containrar i `CalendarItemList.tsx`:
+### 1. `src/components/calendar/CalendarHeader.tsx`
+**Rad 29** – byt `bg-white dark:bg-card` mot `bg-background`:
+```
+// Innan:
+<div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-card">
 
-- **Listvy** – `ListScrollContainer` (rad 85–119): Redan har bottom-fade. Lägg till en top-fade som visas när `scrollTop > 0` (dvs. användaren har scrollat ner och kort försvunnit uppåt).
+// Efter:
+<div className="flex items-center justify-between px-4 py-3 bg-background">
+```
 
-- **Tidslinje-vy** – `<div ref={timelineRef}>` (rad 487): Denna är just nu ett vanligt scroll-element utan fade-logik. Wrap:as i ett nytt container med samma fade-logik (top + bottom).
+### 2. `src/components/calendar/CalendarItemList.tsx`
 
-- **All-day-sektionen** i tidslinjevyn scrollar inte separat, så den behöver ingen fade.
-
-## Tekniska ändringar
-
-### `src/components/calendar/CalendarItemList.tsx`
-
-**Uppdatera `ListScrollContainer`** – lägg till `canScrollUp`-state och top-fade:
-
+**A) `ListScrollContainer` (rad 85–119)** – lägg till `canScrollUp` + top-fade:
 ```tsx
 function ListScrollContainer({ children }) {
   const scrollRef = useRef(null);
@@ -34,40 +32,75 @@ function ListScrollContainer({ children }) {
     setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
   }, []);
 
+  useEffect(() => { checkScroll(); }, [children, checkScroll]);
+
   return (
     <div className="flex-1 relative overflow-hidden">
-      <div ref={scrollRef} onScroll={checkScroll} ...>
+      <div ref={scrollRef} onScroll={checkScroll} className="h-full overflow-y-auto overflow-x-hidden px-4 pb-4 space-y-2">
         {children}
       </div>
-      {/* Top fade - visas när man scrollat ner */}
       {canScrollUp && (
-        <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{
-          height: '70px',
-          background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))',
-        }} />
+        <div className="absolute top-0 left-0 right-0 pointer-events-none"
+          style={{ height: '70px', background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))' }} />
       )}
-      {/* Bottom fade - visas när mer innehåll finns nedanför */}
       {canScrollDown && (
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
-          height: '70px',
-          background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))',
-        }} />
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{ height: '70px', background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))' }} />
       )}
     </div>
   );
 }
 ```
 
-**Wrap tidslinjevyn** i en ny `TimelineScrollContainer` med samma fade-logik. Tidslinje-containern (rad 487) byter från vanlig `div` med `ref={timelineRef}` till en wrapper som:
-- Hanterar scroll-state (up/down)
-- Visar top/bottom-fader beroende på scroll-position
-- Behåller `ref` för auto-scroll till 07:00
+**B) Tidslinje-vyn (rad 487)** – wrap `div ref={timelineRef}` i en ny container med fade-logik:
 
-### `src/components/calendar/CalendarHeader.tsx`
-Kontrollera och säkerställ att headern har `bg-background` (ingen vit bakgrund).
+Lägg till två nya state-variabler i komponenten:
+```tsx
+const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
+const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
+```
+
+Lägg till en `checkTimelineScroll`-funktion och koppla till `useEffect` för auto-scroll:
+```tsx
+const checkTimelineScroll = useCallback(() => {
+  const el = timelineRef.current;
+  if (!el) return;
+  setTimelineCanScrollUp(el.scrollTop > 4);
+  setTimelineCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+}, []);
+
+useEffect(() => {
+  if (showTimeline && timelineRef.current) {
+    timelineRef.current.scrollTop = 7 * HOUR_HEIGHT;
+    checkTimelineScroll();
+  }
+}, [showTimeline, checkTimelineScroll]);
+```
+
+Tidslinjens render-block byter struktur:
+```tsx
+// Förut:
+<div ref={timelineRef} className="flex-1 overflow-y-auto overflow-x-hidden">
+  ...
+</div>
+
+// Efter:
+<div className="flex-1 relative overflow-hidden">
+  <div ref={timelineRef} onScroll={checkTimelineScroll} className="absolute inset-0 overflow-y-auto overflow-x-hidden">
+    ...
+  </div>
+  {timelineCanScrollUp && (
+    <div className="absolute top-0 left-0 right-0 pointer-events-none"
+      style={{ height: '70px', background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))' }} />
+  )}
+  {timelineCanScrollDown && (
+    <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+      style={{ height: '70px', background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))' }} />
+  )}
+</div>
+```
 
 ## Vad som INTE ändras
-- All funktionalitet behålls exakt som den är
-- Layout, knappar, toggler, filter – allt oförändrat
-- Kortens utseende, färger och shadows – oförändrade
-- Tidslinjens layout och timme-linjer – oförändrade
+- All funktionalitet, knappar, filter, layout – oförändrat
+- Kortens utseende, färger, shadows – oförändrat
+- Tidslinjens timme-linjer och placering – oförändrat
