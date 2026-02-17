@@ -20,7 +20,7 @@ const tabs = [
 export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
   const haptics = useHaptics();
   return (
-    <nav className="flow-nav-pill safe-bottom">
+    <nav className="flow-nav-floating safe-bottom">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -33,10 +33,10 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
                 haptics.medium();
                 onPlusClick();
               }}
-              className="flow-nav-center transition-transform duration-200 active:scale-95"
+              className="flow-nav-center-btn transition-transform duration-200 active:scale-90"
             >
               <Icon className={cn(
-                "w-6 h-6 transition-transform duration-300",
+                "w-5 h-5 transition-transform duration-300",
                 isPlusActive && "rotate-45"
               )} />
             </button>
@@ -51,12 +51,11 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
               onTabChange(tab.id);
             }}
             className={cn(
-              'flow-nav-item transition-all duration-200 active:scale-95',
-              isActive && 'flow-nav-item-active'
+              'flow-nav-icon transition-all duration-200 active:scale-90',
+              isActive && 'flow-nav-icon-active'
             )}
           >
-            <Icon className="w-5 h-5" />
-            <span className="text-[10px] font-medium">{tab.label}</span>
+            <Icon className="w-[22px] h-[22px]" />
           </button>
         );
       })}
