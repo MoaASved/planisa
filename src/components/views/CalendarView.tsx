@@ -136,7 +136,15 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden bg-white dark:bg-card">
+    <div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden bg-white dark:bg-card relative">
+      {/* Status bar gradient overlay - fades from transparent at top to white */}
+      <div 
+        className="absolute top-0 left-0 right-0 z-10 pointer-events-none"
+        style={{
+          height: '60px',
+          background: 'linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%)',
+        }}
+      />
       {/* Header */}
       <CalendarHeader
         currentDate={currentDate}

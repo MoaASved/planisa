@@ -111,9 +111,11 @@ export function WeekDayView({
       <div 
         className="flex-1 overflow-hidden relative"
         style={{
-          background: '#F5F3F0',
+          background: '#EBE7E0',
           borderRadius: '20px 20px 0 0',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
+          marginBottom: '-100px',
+          paddingBottom: '100px',
         }}
       >
         <CalendarItemList
