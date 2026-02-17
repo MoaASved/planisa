@@ -85,14 +85,14 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 animate-in fade-in-0 duration-200"
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[1100] animate-in fade-in-0 duration-200"
         onClick={handleSave}
       />
       
       {/* Sticky Note Modal */}
       <div 
         className={cn(
-          'fixed left-4 right-4 top-1/2 -translate-y-1/2 z-50 rounded-3xl p-6 shadow-xl',
+          'fixed left-4 right-4 top-1/2 -translate-y-1/2 z-[1200] rounded-3xl p-6 shadow-xl',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           getStickyBgClass(color)
         )}

@@ -187,7 +187,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   }, [selectedColor]);
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+    <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
       {/* Collapsible Toolbar */}
       <div className="sticky top-0 z-10">
         {showToolbar && (

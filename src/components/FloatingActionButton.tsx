@@ -38,14 +38,14 @@ export function FloatingActionButton({
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 animate-fade-in"
+          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[1100] animate-fade-in"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Bottom Sheet Style Actions */}
       {isOpen && (
-        <div className="fixed inset-x-4 bottom-24 z-50 flow-bottom-sheet animate-slide-up">
+        <div className="fixed inset-x-4 bottom-24 z-[1200] flow-bottom-sheet animate-slide-up">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">Create New</h3>
             <button

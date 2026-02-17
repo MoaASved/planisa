@@ -278,7 +278,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
+      className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
     >
       {/* Top Horizontal Toolbar - Collapsible */}
       <div className="flex-shrink-0">
@@ -487,7 +487,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {/* Click-outside overlay to close metadata */}
       {showMetadata && (
         <div 
-          className="fixed inset-0 z-40" 
+          className="fixed inset-0 z-[1150]" 
           onClick={() => setShowMetadata(false)} 
         />
       )}
@@ -495,7 +495,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {/* Metadata Section (popup from settings button) */}
       {showMetadata && (
         <div 
-          className="fixed left-4 right-4 top-16 border border-white/20 bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-50 shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200"
+          className="fixed left-4 right-4 top-16 border border-white/20 bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-[1200] shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Date picker */}
