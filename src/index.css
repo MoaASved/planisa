@@ -182,11 +182,24 @@ input[type="date"] {
 
   /* Navigation - Floating Dark Pill */
   .flow-nav-floating {
-    @apply fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-2.5 rounded-full z-50;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    border-radius: 9999px;
+    z-index: 50;
     background: #1C1C1E;
     box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.2);
-    width: auto;
-    max-width: 280px;
+  }
+
+  @media (max-width: 640px) {
+    .flow-nav-floating {
+      bottom: 16px;
+    }
   }
 
   .flow-nav-icon {
