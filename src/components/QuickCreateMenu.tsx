@@ -54,7 +54,7 @@ export function QuickCreateMenu({
       />
 
       {/* Menu */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 animate-spring-pop">
+      <div className="fixed bottom-[92px] sm:bottom-[100px] left-1/2 -translate-x-1/2 z-50 animate-spring-pop">
         <div className="glass-modal rounded-3xl shadow-lg p-4">
           <div className="grid grid-cols-2 gap-3">
             {actions.map((action) => {
