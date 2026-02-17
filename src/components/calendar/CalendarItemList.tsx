@@ -103,7 +103,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
       <div
         ref={scrollRef}
         onScroll={checkScroll}
-        className="h-full overflow-y-auto overflow-x-hidden px-4 pb-4 space-y-2"
+        className="h-full overflow-y-auto overflow-x-hidden px-5 pb-6 space-y-2"
       >
         {children}
       </div>
@@ -112,7 +112,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           className="absolute top-0 left-0 right-0 pointer-events-none"
           style={{
             height: '70px',
-            background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))',
+            background: 'linear-gradient(to top, transparent, #ffffff)',
           }}
         />
       )}
@@ -121,7 +121,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           className="absolute bottom-0 left-0 right-0 pointer-events-none"
           style={{
             height: '70px',
-            background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))',
+            background: 'linear-gradient(to bottom, transparent, #ffffff)',
           }}
         />
       )}
@@ -448,9 +448,18 @@ export function CalendarItemList({
   const formattedDate = format(date, 'MMMM d');
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background pt-4">
+      {/* White card lifts from the beige background */}
+      <div
+        className="flex flex-col flex-1 overflow-hidden"
+        style={{
+          background: '#ffffff',
+          borderRadius: '20px 20px 0 0',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+        }}
+      >
       {/* Filter toolbar */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-5 py-4">
         {/* Date display on left */}
         <span className="text-base font-semibold text-foreground/80">
           {formattedDate}
@@ -572,7 +581,7 @@ export function CalendarItemList({
               className="absolute top-0 left-0 right-0 pointer-events-none"
               style={{
                 height: '70px',
-                background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))',
+                background: 'linear-gradient(to top, transparent, #ffffff)',
               }}
             />
           )}
@@ -581,7 +590,7 @@ export function CalendarItemList({
               className="absolute bottom-0 left-0 right-0 pointer-events-none"
               style={{
                 height: '70px',
-                background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))',
+                background: 'linear-gradient(to bottom, transparent, #ffffff)',
               }}
             />
           )}
@@ -596,6 +605,7 @@ export function CalendarItemList({
           ))}
         </ListScrollContainer>
       )}
+      </div>
     </div>
   );
 }
