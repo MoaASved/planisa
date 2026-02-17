@@ -49,34 +49,50 @@ export function QuickCreateMenu({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 glass-overlay z-40 animate-fade-in"
+        className="fixed inset-0 z-[9998] animate-fade-in"
+        style={{ background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)' }}
         onClick={onClose}
       />
 
       {/* Menu */}
-      <div className="fixed bottom-[92px] sm:bottom-[100px] left-1/2 -translate-x-1/2 z-50 animate-spring-pop">
-        <div className="glass-modal rounded-3xl shadow-lg p-4">
-          <div className="grid grid-cols-2 gap-3">
-            {actions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.id}
-                  onClick={() => handleAction(action.id)}
-                  className={cn(
-                    'flex flex-col items-center justify-center gap-2 p-5 rounded-2xl',
-                    'bg-secondary/50 hover:bg-secondary active:scale-95',
-                    'transition-all duration-150'
-                  )}
-                >
-                  <Icon className="w-6 h-6 text-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {action.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+      <div
+        className="fixed left-1/2 z-[9999] animate-spring-pop"
+        style={{
+          bottom: 'calc(48px + 76px + 16px)',
+          transform: 'translateX(-50%)',
+        }}
+      >
+        <div
+          style={{
+            background: '#1C1C1E',
+            borderRadius: 20,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            overflow: 'hidden',
+            minWidth: 200,
+          }}
+        >
+          {actions.map((action, index) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.id}
+                onClick={() => handleAction(action.id)}
+                className={cn(
+                  'flex items-center gap-3 w-full text-left transition-colors duration-150',
+                  'hover:bg-white/10 active:bg-white/15'
+                )}
+                style={{
+                  padding: '14px 24px',
+                  borderBottom: index < actions.length - 1 ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                }}
+              >
+                <Icon className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+                <span className="text-sm font-medium" style={{ color: '#ffffff' }}>
+                  {action.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </>
