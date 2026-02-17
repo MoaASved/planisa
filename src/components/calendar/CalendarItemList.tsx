@@ -81,14 +81,16 @@ const getOverlapColumns = (items: TimedItem[]): Map<string, { column: number; to
   return columns;
 };
 
-// Scroll container with bottom fade effect
+// Scroll container with top + bottom fade effect
 function ListScrollContainer({ children }: { children: React.ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
   const [canScrollDown, setCanScrollDown] = useState(false);
 
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
+    setCanScrollUp(el.scrollTop > 4);
     setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
   }, []);
 
@@ -105,6 +107,15 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
       >
         {children}
       </div>
+      {canScrollUp && (
+        <div
+          className="absolute top-0 left-0 right-0 pointer-events-none"
+          style={{
+            height: '70px',
+            background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))',
+          }}
+        />
+      )}
       {canScrollDown && (
         <div
           className="absolute bottom-0 left-0 right-0 pointer-events-none"
@@ -143,16 +154,26 @@ export function CalendarItemList({
   const [activeFilters, setActiveFilters] = useState<ItemType[]>(['events', 'tasks', 'notes']);
   const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'task' | 'event' | 'note' } | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
+  const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
 
   const dateStr = format(date, 'yyyy-MM-dd');
+
+  const checkTimelineScroll = useCallback(() => {
+    const el = timelineRef.current;
+    if (!el) return;
+    setTimelineCanScrollUp(el.scrollTop > 4);
+    setTimelineCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
 
   // Auto-scroll to 7:00 when timeline is activated
   useEffect(() => {
     if (showTimeline && timelineRef.current) {
       const scrollPosition = 7 * HOUR_HEIGHT;
       timelineRef.current.scrollTop = scrollPosition;
+      checkTimelineScroll();
     }
-  }, [showTimeline]);
+  }, [showTimeline, checkTimelineScroll]);
 
   // Filter items for this date
   const dayEvents = useMemo(() => 
@@ -484,66 +505,86 @@ export function CalendarItemList({
         </div>
       ) : showTimeline ? (
         // Timeline view - only timed items + all-day at top
-        <div ref={timelineRef} className="flex-1 overflow-y-auto overflow-x-hidden">
-          {/* All-day items - 2 columns */}
-          {allDayItems.length > 0 && (
-            <div className="px-4 pt-2 pb-4 border-b border-border/20 mb-2">
-              <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                {allDayItems.map(({ type, item }) => (
-                  <div key={item.id}>
-                    {renderItemCard(item, type, undefined, undefined, true)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Timeline */}
-          <div className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
-            {/* Hour lines - subtle thin lines */}
-            {HOURS.map((hour) => (
-              <div
-                key={hour}
-                className="absolute w-full flex"
-                style={{ top: hour * HOUR_HEIGHT }}
-              >
-                <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/35 text-right pr-3 -mt-2 font-light">
-                  {format(new Date().setHours(hour, 0), 'HH:mm')}
+        <div className="flex-1 relative overflow-hidden">
+          <div ref={timelineRef} onScroll={checkTimelineScroll} className="absolute inset-0 overflow-y-auto overflow-x-hidden">
+            {/* All-day items - 2 columns */}
+            {allDayItems.length > 0 && (
+              <div className="px-4 pt-2 pb-4 border-b border-border/20 mb-2">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                  {allDayItems.map(({ type, item }) => (
+                    <div key={item.id}>
+                      {renderItemCard(item, type, undefined, undefined, true)}
+                    </div>
+                  ))}
                 </div>
-                <div className="flex-1 border-t border-foreground/[0.06]" />
               </div>
-            ))}
+            )}
 
-            {/* Timed items with column layout for overlaps */}
-            <div className="absolute left-16 right-4 top-0 bottom-0">
-              {timedItems.map(({ type, item, time, endTime }) => {
-                const top = getTimePosition(time);
-                // Default to 30 minutes if no end time specified
-                const calculatedEndTime = endTime || addMinutes(time, 30);
-                const height = Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5);
-
-                // Get column info for overlapping items
-                const colInfo = overlapColumns.get(item.id) || { column: 0, totalColumns: 1 };
-                const widthPercent = 100 / colInfo.totalColumns;
-                const leftPercent = colInfo.column * widthPercent;
-
-                return (
-                  <div
-                    key={item.id}
-                    className="absolute"
-                    style={{ 
-                      top, 
-                      height,
-                      left: `${leftPercent}%`,
-                      width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
-                    }}
-                  >
-                    {renderItemCard(item, type, time, endTime, true, true)}
+            {/* Timeline */}
+            <div className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
+              {/* Hour lines - subtle thin lines */}
+              {HOURS.map((hour) => (
+                <div
+                  key={hour}
+                  className="absolute w-full flex"
+                  style={{ top: hour * HOUR_HEIGHT }}
+                >
+                  <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/35 text-right pr-3 -mt-2 font-light">
+                    {format(new Date().setHours(hour, 0), 'HH:mm')}
                   </div>
-                );
-              })}
+                  <div className="flex-1 border-t border-foreground/[0.06]" />
+                </div>
+              ))}
+
+              {/* Timed items with column layout for overlaps */}
+              <div className="absolute left-16 right-4 top-0 bottom-0">
+                {timedItems.map(({ type, item, time, endTime }) => {
+                  const top = getTimePosition(time);
+                  // Default to 30 minutes if no end time specified
+                  const calculatedEndTime = endTime || addMinutes(time, 30);
+                  const height = Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5);
+
+                  // Get column info for overlapping items
+                  const colInfo = overlapColumns.get(item.id) || { column: 0, totalColumns: 1 };
+                  const widthPercent = 100 / colInfo.totalColumns;
+                  const leftPercent = colInfo.column * widthPercent;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="absolute"
+                      style={{ 
+                        top, 
+                        height,
+                        left: `${leftPercent}%`,
+                        width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
+                      }}
+                    >
+                      {renderItemCard(item, type, time, endTime, true, true)}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
+          {timelineCanScrollUp && (
+            <div
+              className="absolute top-0 left-0 right-0 pointer-events-none"
+              style={{
+                height: '70px',
+                background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))',
+              }}
+            />
+          )}
+          {timelineCanScrollDown && (
+            <div
+              className="absolute bottom-0 left-0 right-0 pointer-events-none"
+              style={{
+                height: '70px',
+                background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))',
+              }}
+            />
+          )}
         </div>
       ) : (
         // List view - all items with time shown on cards
