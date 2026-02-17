@@ -1,62 +1,84 @@
 
-# Fix: White card extends fully to screen bottom
+# Fix: White Card Extends to Bottom of Screen
 
-## The Problem
+## Root Cause Analysis
 
-In `src/components/calendar/CalendarItemList.tsx`, the outer wrapper uses `h-full bg-background pt-4`. The white card inside uses `flex flex-col flex-1 overflow-hidden`. When there are few or no items, the card content doesn't fill the available height and the beige background shows through at the bottom.
+There are two compounding issues causing the beige strip at the bottom:
 
-## Root Cause
-
-The `CalendarItemList` component renders inside a parent (`MonthView` / `WeekDayView`) that itself sits inside `CalendarView`'s `flex-1 overflow-hidden` container. The `h-full` on the `CalendarItemList` root should work — but the `pt-4` gap at the top creates a small beige strip visible above the card, while the card itself may not be stretching down because the parent containers don't consistently enforce full height.
-
-## Fix
-
-**File: `src/components/calendar/CalendarItemList.tsx`**
-
-Change the outer return wrapper so the white card always fills from the gap all the way to the bottom. The key is to ensure the white card uses `min-h-full` instead of relying purely on flex to stretch it. The structure becomes:
-
+**Issue 1 – CalendarView has a hard height cap:**
+In `src/components/views/CalendarView.tsx` line 139, the outer wrapper is:
 ```
-<div className="flex flex-col h-full bg-background pt-4">         ← beige bg, gap at top
-  <div style={{ background: #fff, borderRadius: 20px top, ... }}
-       className="flex flex-col flex-1 min-h-0">                  ← white card, fills rest
-    ...content...
-  </div>
-</div>
+h-[calc(100vh-140px)]
 ```
+This means the entire calendar — including the white card — is artificially capped and stops 140px before the bottom of the screen. Everything below that cap is beige background from the page.
 
-The real issue is that `overflow-hidden` on the white card may cap its height. The fix:
+**Issue 2 – White card can't stretch beyond its container:**
+The `CalendarItemList` white card uses `flex-grow`, which only fills space *within* its parent. Since the parent is capped by the `h-[calc(100vh-140px)]` container, the white card stops there too, even if it has nothing to fill.
 
-1. The outer `div` stays `flex flex-col h-full bg-background pt-4` — this creates the visible beige gap at top.
-2. The white card `div` changes from `flex flex-col flex-1 overflow-hidden` to `flex flex-col flex-1` — removing `overflow-hidden` here and letting the inner scroll containers manage overflow themselves. This allows the white card to always stretch fully.
+## The Fix
 
-Actually looking more carefully: the white card IS `flex-1` which should stretch it. The issue is more likely that the parent component (MonthView or WeekDayView) that renders `CalendarItemList` is not giving it full remaining height. Let me check the parent structure.
+The correct approach is to stop capping the height and instead let the content scroll naturally, while ensuring the white card always covers the full remaining screen.
 
-## Technical Change
+### Changes needed:
 
-The simplest and most reliable fix is to change the outer container from `h-full` to use an approach that guarantees the white extends to the bottom even if the parent height calculation is off:
+**1. `src/components/views/CalendarView.tsx`**
+
+Change the outer wrapper from a fixed `h-[calc(100vh-140px)]` to a `min-h` approach that allows the white card to reach the bottom of the viewport:
 
 ```tsx
 // Before:
-<div className="flex flex-col h-full bg-background pt-4">
+<div className="flex flex-col h-[calc(100vh-140px)] overflow-x-hidden bg-background">
 
 // After:
-<div className="flex flex-col min-h-full bg-background pt-4">
+<div className="flex flex-col min-h-[calc(100vh-56px)] overflow-x-hidden bg-background">
 ```
 
-And ensure the white card has `flex-grow` to fill all remaining space:
+(56px accounts for the tab navigation bar at the bottom)
+
+**2. `src/components/calendar/CalendarItemList.tsx`**
+
+The white card needs to use `min-h` calculated from the viewport rather than relying on flex to stretch it. The simplest reliable fix: instead of `flex-grow` on the white card, give it an explicit `min-h` that guarantees it covers to the bottom:
 
 ```tsx
-// White card: change flex-1 overflow-hidden → flex-1, keep rest
+// White card wrapper: add min-h to guarantee full coverage
 <div
-  className="flex flex-col flex-1"   // removed overflow-hidden from outer
-  style={{ background: '#ffffff', borderRadius: '20px 20px 0 0', boxShadow: '...' }}
+  className="flex flex-col flex-grow"
+  style={{
+    background: '#ffffff',
+    borderRadius: '20px 20px 0 0',
+    boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+    minHeight: '100%',      // ← added
+  }}
 >
 ```
 
-The scroll containers inside (`ListScrollContainer` and the timeline div) already have their own `overflow-y-auto` so they manage scrolling correctly without needing `overflow-hidden` on the parent card.
+**3. `src/components/calendar/MonthView.tsx`** and **`src/components/calendar/WeekDayView.tsx`**
 
-## Files Changed
+The lower section wrapper that contains `CalendarItemList` must also pass its full height down:
 
-- `src/components/calendar/CalendarItemList.tsx` — 2 small class changes on lines ~451 and ~454
+MonthView line 184:
+```tsx
+// Before:
+<div className="flex-1 flex flex-col relative bg-background">
 
-No functionality, card styling, shadows, colors, or event cards are affected.
+// After:
+<div className="flex-1 flex flex-col relative bg-background overflow-hidden">
+```
+
+WeekDayView line 110:
+```tsx
+// Before:
+<div className="flex-1 overflow-hidden relative bg-background">
+
+// After:
+<div className="flex-1 flex flex-col relative bg-background overflow-hidden">
+```
+
+## Summary of Files Changed
+
+- `src/components/views/CalendarView.tsx` — fix root height cap (1 line)
+- `src/components/calendar/CalendarItemList.tsx` — add `minHeight: '100%'` to white card style (1 line)
+- `src/components/calendar/MonthView.tsx` — ensure lower section passes full height (1 line)
+- `src/components/calendar/WeekDayView.tsx` — make lower section consistent with MonthView (1 line)
+
+No visual styling changes — same beige gap, same white card, same shadows, same event cards.
