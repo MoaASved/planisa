@@ -81,6 +81,43 @@ const getOverlapColumns = (items: TimedItem[]): Map<string, { column: number; to
   return columns;
 };
 
+// Scroll container with bottom fade effect
+function ListScrollContainer({ children }: { children: React.ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+  }, [children, checkScroll]);
+
+  return (
+    <div className="flex-1 relative overflow-hidden">
+      <div
+        ref={scrollRef}
+        onScroll={checkScroll}
+        className="h-full overflow-y-auto overflow-x-hidden px-4 pb-4 space-y-2"
+      >
+        {children}
+      </div>
+      {canScrollDown && (
+        <div
+          className="absolute bottom-0 left-0 right-0 pointer-events-none"
+          style={{
+            height: '70px',
+            background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))',
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 interface CalendarItemListProps {
   date: Date;
   events: CalendarEvent[];
@@ -510,13 +547,13 @@ export function CalendarItemList({
         </div>
       ) : (
         // List view - all items with time shown on cards
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 space-y-2">
+        <ListScrollContainer>
           {allItems.map(({ type, item, time, endTime }) => (
             <div key={item.id}>
               {renderItemCard(item, type, time, endTime)}
             </div>
           ))}
-        </div>
+        </ListScrollContainer>
       )}
     </div>
   );
