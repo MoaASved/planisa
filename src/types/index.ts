@@ -8,7 +8,8 @@ export type PastelColor =
   | 'sky' 
   | 'lavender' 
   | 'rose' 
-  | 'gray';
+  | 'gray'
+  | 'stone';
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 

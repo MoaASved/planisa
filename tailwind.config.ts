@@ -71,6 +71,7 @@ export default {
           lavender: "hsl(var(--pastel-lavender))",
           rose: "hsl(var(--pastel-rose))",
           gray: "hsl(var(--pastel-gray))",
+          stone: "hsl(var(--pastel-stone))",
         },
       },
       borderRadius: {

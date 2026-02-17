@@ -60,16 +60,17 @@ interface NoteEditorProps {
 
 // Color map for dynamic styling
 const colorHslMap: Record<PastelColor, string> = {
-  coral: 'hsl(12, 76%, 70%)',
-  peach: 'hsl(25, 70%, 75%)',
-  amber: 'hsl(38, 80%, 70%)',
-  yellow: 'hsl(48, 85%, 75%)',
-  mint: 'hsl(158, 50%, 65%)',
-  teal: 'hsl(175, 50%, 60%)',
-  sky: 'hsl(200, 70%, 70%)',
-  lavender: 'hsl(262, 60%, 75%)',
-  rose: 'hsl(340, 60%, 75%)',
-  gray: 'hsl(220, 10%, 70%)',
+  coral: 'hsl(123, 10%, 51%)',
+  peach: 'hsl(53, 24%, 69%)',
+  amber: 'hsl(195, 29%, 53%)',
+  yellow: 'hsl(196, 27%, 87%)',
+  mint: 'hsl(20, 96%, 75%)',
+  teal: 'hsl(33, 96%, 76%)',
+  sky: 'hsl(1, 64%, 75%)',
+  lavender: 'hsl(344, 48%, 67%)',
+  rose: 'hsl(283, 18%, 57%)',
+  gray: 'hsl(34, 19%, 58%)',
+  stone: 'hsl(44, 16%, 85%)',
 };
 
 export function NoteEditor({ note, onClose }: NoteEditorProps) {

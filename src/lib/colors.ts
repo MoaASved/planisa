@@ -1,16 +1,17 @@
 import { PastelColor } from '@/types';
 
 export const pastelColors: { value: PastelColor; label: string; class: string }[] = [
-  { value: 'coral', label: 'Coral', class: 'bg-pastel-coral' },
-  { value: 'peach', label: 'Peach', class: 'bg-pastel-peach' },
-  { value: 'amber', label: 'Amber', class: 'bg-pastel-amber' },
-  { value: 'yellow', label: 'Yellow', class: 'bg-pastel-yellow' },
-  { value: 'mint', label: 'Mint', class: 'bg-pastel-mint' },
-  { value: 'teal', label: 'Teal', class: 'bg-pastel-teal' },
-  { value: 'sky', label: 'Sky', class: 'bg-pastel-sky' },
-  { value: 'lavender', label: 'Lavender', class: 'bg-pastel-lavender' },
-  { value: 'rose', label: 'Rose', class: 'bg-pastel-rose' },
-  { value: 'gray', label: 'Gray', class: 'bg-pastel-gray' },
+  { value: 'coral', label: 'Fern Green', class: 'bg-pastel-coral' },
+  { value: 'peach', label: 'Pistachio', class: 'bg-pastel-peach' },
+  { value: 'amber', label: 'Lagune', class: 'bg-pastel-amber' },
+  { value: 'yellow', label: 'Sky', class: 'bg-pastel-yellow' },
+  { value: 'mint', label: 'Peach', class: 'bg-pastel-mint' },
+  { value: 'teal', label: 'Honey', class: 'bg-pastel-teal' },
+  { value: 'sky', label: 'Peony', class: 'bg-pastel-sky' },
+  { value: 'lavender', label: 'Rose', class: 'bg-pastel-lavender' },
+  { value: 'rose', label: 'Soft Plum', class: 'bg-pastel-rose' },
+  { value: 'gray', label: 'Warm Taupe', class: 'bg-pastel-gray' },
+  { value: 'stone', label: 'Stone', class: 'bg-pastel-stone' },
 ];
 
 export const getColorClass = (color: PastelColor): string => {
@@ -42,6 +43,7 @@ export const getColorCardClass = (color: PastelColor): string => {
     lavender: 'bg-pastel-lavender/40',
     rose: 'bg-pastel-rose/40',
     gray: 'bg-pastel-gray/40',
+    stone: 'bg-pastel-stone/40',
   };
   return colorMap[color] || 'bg-pastel-sky/40';
 };
@@ -59,6 +61,7 @@ export const getColorDotClass = (color: PastelColor): string => {
     lavender: 'bg-pastel-lavender',
     rose: 'bg-pastel-rose',
     gray: 'bg-pastel-gray',
+    stone: 'bg-pastel-stone',
   };
   return colorMap[color] || 'bg-pastel-sky';
 };
@@ -76,6 +79,7 @@ export const getAvatarBgClass = (color: PastelColor): string => {
     lavender: 'bg-pastel-lavender/30',
     rose: 'bg-pastel-rose/30',
     gray: 'bg-pastel-gray/30',
+    stone: 'bg-pastel-stone/30',
   };
   return colorMap[color] || 'bg-secondary';
 };
@@ -93,6 +97,7 @@ export const getAvatarTextClass = (color: PastelColor): string => {
     lavender: 'text-pastel-lavender',
     rose: 'text-pastel-rose',
     gray: 'text-pastel-gray',
+    stone: 'text-pastel-stone',
   };
   return colorMap[color] || 'text-muted-foreground';
 };
@@ -110,6 +115,7 @@ export const getColorStripeClass = (color: PastelColor): string => {
     lavender: 'bg-pastel-lavender',
     rose: 'bg-pastel-rose',
     gray: 'bg-pastel-gray',
+    stone: 'bg-pastel-stone',
   };
   return colorMap[color] || 'bg-pastel-sky';
 };

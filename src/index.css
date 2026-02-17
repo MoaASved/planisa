@@ -49,14 +49,15 @@ input[type="date"] {
     /* Pastel color palette - 10 options */
     --pastel-coral: 123 10% 51%;
     --pastel-peach: 53 24% 69%;
-    --pastel-amber: 20 96% 75%;
-    --pastel-yellow: 1 64% 75%;
-    --pastel-mint: 196 27% 87%;
+    --pastel-amber: 195 29% 53%;
+    --pastel-yellow: 196 27% 87%;
+    --pastel-mint: 20 96% 75%;
     --pastel-teal: 33 96% 76%;
-    --pastel-sky: 195 29% 53%;
-    --pastel-lavender: 259 16% 74%;
-    --pastel-rose: 44 16% 85%;
+    --pastel-sky: 1 64% 75%;
+    --pastel-lavender: 344 48% 67%;
+    --pastel-rose: 283 18% 57%;
     --pastel-gray: 34 19% 58%;
+    --pastel-stone: 44 16% 85%;
     
     --shadow-soft: 0 1px 3px 0 hsl(30 10% 10% / 0.04), 0 1px 2px -1px hsl(30 10% 10% / 0.04);
     --shadow-card: 0 4px 6px -1px hsl(30 10% 10% / 0.05), 0 2px 4px -2px hsl(30 10% 10% / 0.05);
@@ -259,6 +260,7 @@ input[type="date"] {
   .flow-badge-lavender { @apply bg-[hsl(var(--pastel-lavender)/0.2)] text-[hsl(var(--pastel-lavender))]; }
   .flow-badge-rose { @apply bg-[hsl(var(--pastel-rose)/0.2)] text-[hsl(var(--pastel-rose))]; }
   .flow-badge-gray { @apply bg-[hsl(var(--pastel-gray)/0.2)] text-[hsl(var(--pastel-gray))]; }
+  .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone)/0.2)] text-[hsl(var(--pastel-stone))]; }
   .flow-badge-primary { @apply bg-primary/10 text-primary; }
 
   /* Bottom Sheet */

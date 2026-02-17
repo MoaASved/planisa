@@ -29,6 +29,7 @@ const getStickyBgClass = (color?: PastelColor): string => {
     lavender: 'bg-pastel-lavender',
     rose: 'bg-pastel-rose',
     gray: 'bg-pastel-gray',
+    stone: 'bg-pastel-stone',
   };
   return colorMap[color] || 'bg-pastel-yellow';
 };
