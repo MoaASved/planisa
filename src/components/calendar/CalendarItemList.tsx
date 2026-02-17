@@ -270,9 +270,9 @@ export function CalendarItemList({
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(task, 'task')}
           className={cn(
-            'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative',
             task.completed ? 'bg-secondary' : getColorCardClass(color),
-            compact ? 'p-2 pt-2' : 'p-3 pt-3',
+            compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
@@ -321,9 +321,9 @@ export function CalendarItemList({
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(event, 'event')}
           className={cn(
-            'rounded-xl cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
-            compact ? 'p-2' : 'p-3',
+            compact ? 'p-2.5' : 'p-3.5',
             showTimelineIndicator && 'pl-4',
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
@@ -332,17 +332,17 @@ export function CalendarItemList({
           {/* Gradient stripe for timed events */}
           {showTimelineIndicator && (
             <div
-              className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+              className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-[12px]"
               style={{
                 background: `linear-gradient(to bottom, ${getColorVar(color)}, transparent)`
               }}
             />
           )}
-          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>
+          <span className={cn('font-semibold block truncate', compact ? 'text-xs' : 'text-sm')}>
             {event.title}
           </span>
           {showTime && time && (
-            <span className="text-xs text-foreground/60">
+            <span className="text-xs text-foreground/45 font-light mt-0.5 block">
               {time}{endTime && ` - ${endTime}`}
             </span>
           )}
@@ -358,10 +358,10 @@ export function CalendarItemList({
         onDragStart={() => handleDragStart(note.id, 'note')}
         onDragEnd={handleDragEnd}
         onClick={() => onItemClick(note, 'note')}
-        className={cn(
-          'rounded-xl cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
+          className={cn(
+          'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
           getColorCardClass(color),
-          compact ? 'p-2 pt-2' : 'p-3 pt-3',
+          compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
           fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
         )}
@@ -391,7 +391,7 @@ export function CalendarItemList({
       {/* Filter toolbar */}
       <div className="flex items-center justify-between px-4 py-3">
         {/* Date display on left */}
-        <span className="text-base font-semibold text-foreground">
+        <span className="text-base font-semibold text-foreground/80">
           {formattedDate}
         </span>
 
@@ -460,17 +460,17 @@ export function CalendarItemList({
 
           {/* Timeline */}
           <div className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
-            {/* Hour lines */}
+            {/* Hour lines - subtle thin lines */}
             {HOURS.map((hour) => (
               <div
                 key={hour}
                 className="absolute w-full flex"
                 style={{ top: hour * HOUR_HEIGHT }}
               >
-                <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/50 text-right pr-2 -mt-2">
+                <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/35 text-right pr-3 -mt-2 font-light">
                   {format(new Date().setHours(hour, 0), 'HH:mm')}
                 </div>
-                <div className="flex-1 border-t border-border/20" />
+                <div className="flex-1 border-t border-foreground/[0.06]" />
               </div>
             ))}
 

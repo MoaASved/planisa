@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Grid3X3, List, CalendarDays } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Grid3X3, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type SimpleView = 'month' | 'weekday';
@@ -26,28 +26,28 @@ export function CalendarHeader({
   onTodayClick,
 }: CalendarHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 py-3">
+    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-card">
       {/* Month navigation */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <button
           onClick={onPrev}
-          className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+          className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
         >
-          <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+          <ChevronLeft className="w-5 h-5 text-foreground/50" />
         </button>
         
         <button
           onClick={onMonthClick}
-          className="text-lg font-semibold text-foreground hover:opacity-70 transition-opacity min-w-[140px] text-center"
+          className="text-lg font-semibold text-foreground hover:opacity-70 transition-opacity min-w-[140px] text-center tracking-tight"
         >
           {format(currentDate, 'MMMM yyyy')}
         </button>
         
         <button
           onClick={onNext}
-          className="p-2 rounded-full hover:bg-secondary/60 transition-colors"
+          className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
         >
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <ChevronRight className="w-5 h-5 text-foreground/50" />
         </button>
       </div>
 
@@ -59,11 +59,11 @@ export function CalendarHeader({
             className={cn(
               'p-2.5 rounded-xl transition-colors',
               view === 'month' 
-                ? 'bg-primary text-primary-foreground' 
-                : 'text-muted-foreground hover:bg-secondary/60'
+                ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]' 
+                : 'text-foreground/40 hover:bg-secondary/40'
             )}
           >
-            <Grid3X3 className="w-5 h-5" />
+            <Grid3X3 className="w-4.5 h-4.5" />
           </button>
           
           <button
@@ -71,16 +71,16 @@ export function CalendarHeader({
             className={cn(
               'p-2.5 rounded-xl transition-colors',
               view === 'weekday' 
-                ? 'bg-primary text-primary-foreground' 
-                : 'text-muted-foreground hover:bg-secondary/60'
+                ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]' 
+                : 'text-foreground/40 hover:bg-secondary/40'
             )}
           >
-            <List className="w-5 h-5" />
+            <List className="w-4.5 h-4.5" />
           </button>
 
           <button
             onClick={onTodayClick}
-            className="ml-1 px-3 py-1.5 rounded-xl text-xs font-medium bg-secondary/60 hover:bg-secondary transition-colors text-foreground"
+            className="ml-1 px-3 py-1.5 rounded-full text-xs font-medium text-foreground/60 hover:text-foreground hover:bg-secondary/40 transition-all tracking-wide"
           >
             Idag
           </button>

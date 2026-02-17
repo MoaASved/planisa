@@ -51,7 +51,6 @@ export function WeekDayView({
       const deltaX = endX - touchStartRef.current.x;
       const deltaY = endY - touchStartRef.current.y;
 
-      // Only trigger swipe if horizontal movement is greater than vertical
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
         if (deltaX > 0) {
           onWeekChange('prev');
@@ -69,11 +68,11 @@ export function WeekDayView({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Week header with week number */}
-      <div className="flex-shrink-0 px-2 pb-2">
-        <div className="grid grid-cols-[24px_repeat(7,1fr)] gap-1">
+      {/* Week header - clean white background */}
+      <div className="flex-shrink-0 px-3 pb-3 bg-white dark:bg-card">
+        <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-1">
           {/* Week number */}
-          <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/40 py-2">
+          <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 py-2">
             v{weekNumber}
           </div>
           
@@ -86,18 +85,19 @@ export function WeekDayView({
                 key={i}
                 onClick={() => onDateSelect(day)}
                 className={cn(
-                  'py-2 text-center transition-all rounded-xl',
-                  isSelected && 'bg-primary/15',
-                  !isSelected && 'hover:bg-secondary/60'
+                  'py-2 text-center transition-all rounded-2xl',
+                  isSelected && !isTodayDate && 'bg-[#1C1C1E]/5 dark:bg-white/10',
+                  !isSelected && 'hover:bg-secondary/40'
                 )}
               >
-                <span className="text-[10px] font-medium text-muted-foreground uppercase block">
+                <span className="text-[10px] font-medium text-muted-foreground/50 uppercase block tracking-wide">
                   {format(day, 'EEE')}
                 </span>
                 <span className={cn(
-                  'text-lg font-semibold mt-0.5 w-8 h-8 rounded-full flex items-center justify-center mx-auto',
-                  isTodayDate && 'bg-primary text-primary-foreground',
-                  !isTodayDate && 'text-foreground'
+                  'text-lg mt-0.5 w-9 h-9 rounded-full flex items-center justify-center mx-auto transition-all',
+                  isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
+                  isSelected && !isTodayDate && 'font-medium text-foreground',
+                  !isTodayDate && !isSelected && 'font-light text-foreground/80'
                 )}>
                   {format(day, 'd')}
                 </span>
@@ -107,8 +107,15 @@ export function WeekDayView({
         </div>
       </div>
 
-      {/* Items list */}
-      <div className="flex-1 overflow-hidden border-t border-border/30">
+      {/* Lower section - warm beige card sliding up */}
+      <div 
+        className="flex-1 overflow-hidden relative"
+        style={{
+          background: '#F5F3F0',
+          borderRadius: '20px 20px 0 0',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
+        }}
+      >
         <CalendarItemList
           date={selectedDate}
           events={events}
