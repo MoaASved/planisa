@@ -88,7 +88,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   if (!isOpen || !event) return null;
 
   return (
-    <div className="fixed inset-0 z-[1100] flex items-end justify-center">
+    <div className="fixed inset-0 z-[1100] flex items-end justify-center" style={{ paddingBottom: '40%' }}>
       <div 
         className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
         onClick={onClose}

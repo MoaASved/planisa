@@ -68,7 +68,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
       />
       
       {/* Compact Bottom Sheet Modal */}
-      <div className="fixed inset-x-3 bottom-3 z-[1200] bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated">
+      <div className="fixed inset-x-3 z-[1200] bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated" style={{ bottom: '40%' }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-base font-semibold text-foreground">Note</h3>
