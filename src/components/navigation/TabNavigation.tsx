@@ -10,12 +10,12 @@ interface TabNavigationProps {
 }
 
 const tabs = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'calendar', label: 'Calendar', icon: Calendar },
-  { id: 'plus', label: '', icon: Plus, isCenter: true },
-  { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-  { id: 'notes', label: 'Notes', icon: FileText },
-];
+{ id: 'home', label: 'Home', icon: Home },
+{ id: 'calendar', label: 'Calendar', icon: Calendar },
+{ id: 'plus', label: '', icon: Plus, isCenter: true },
+{ id: 'tasks', label: 'Tasks', icon: CheckSquare },
+{ id: 'notes', label: 'Notes', icon: FileText }];
+
 
 export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
   const haptics = useHaptics();
@@ -24,7 +24,7 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
-        
+
         if (tab.isCenter) {
           return (
             <button
@@ -33,16 +33,16 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
                 haptics.medium();
                 onPlusClick();
               }}
-              className="flow-nav-center-btn transition-transform duration-200 active:scale-90"
-            >
+              className="flow-nav-center-btn transition-transform duration-200 active:scale-90 my-[10px]">
+
               <Icon className={cn(
                 "w-5 h-5 transition-transform duration-300",
                 isPlusActive && "rotate-45"
               )} />
-            </button>
-          );
+            </button>);
+
         }
-        
+
         return (
           <button
             key={tab.id}
@@ -53,12 +53,12 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
             className={cn(
               'flow-nav-icon transition-all duration-200 active:scale-90',
               isActive && 'flow-nav-icon-active'
-            )}
-          >
+            )}>
+
             <Icon className="w-[22px] h-[22px]" />
-          </button>
-        );
+          </button>);
+
       })}
-    </nav>
-  );
+    </nav>);
+
 }
