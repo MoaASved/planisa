@@ -1,58 +1,73 @@
 
+# Kalender - Visuella förbättringar
 
-## Fix: Vertical centering of nav icons + Quick Create popup positioning
+## Vad som ska göras
 
-### Issue 1 -- Vertical centering
+### 1. Beige bakgrund i övre sektionen
+Både `MonthView.tsx` och `WeekDayView.tsx` har idag `bg-background` på kalender-grid-sektionen, vilket i teorin redan är korrekt. Men `CalendarHeader.tsx` behöver kontrolleras och säkerställas att den också använder `bg-background` utan någon vit override.
 
-The plus button has `-mt-5` which pulls it upward to create the elevated effect. This negative margin shifts the entire flex container's alignment. The `safe-bottom` class also adds extra bottom padding via `env(safe-area-inset-bottom)`, creating uneven vertical spacing.
+### 2. Top-fade när man scrollar (i nedre sektionen)
+För alla tre scroll-containrar i `CalendarItemList.tsx`:
 
-**Fix in `src/index.css`:**
-- Remove `-mt-5` from `.flow-nav-center-btn` -- instead use a negative `margin-bottom` approach or `relative` + negative `top` so the button floats upward without affecting the flex layout of sibling items.
-- Change `.flow-nav-center-btn` to use `position: relative; top: -10px;` instead of `-mt-5` so it visually elevates without affecting the flex container's vertical alignment.
+- **Listvy** – `ListScrollContainer` (rad 85–119): Redan har bottom-fade. Lägg till en top-fade som visas när `scrollTop > 0` (dvs. användaren har scrollat ner och kort försvunnit uppåt).
 
-**Fix in `src/components/navigation/TabNavigation.tsx`:**
-- Remove `safe-bottom` from the nav element. The `safe-area-inset-bottom` padding is already accounted for by the `bottom: 16px/24px` positioning, and it causes uneven top/bottom padding inside the bar.
+- **Tidslinje-vy** – `<div ref={timelineRef}>` (rad 487): Denna är just nu ett vanligt scroll-element utan fade-logik. Wrap:as i ett nytt container med samma fade-logik (top + bottom).
 
-### Issue 2 -- Quick Create popup positioning
+- **All-day-sektionen** i tidslinjevyn scrollar inte separat, så den behöver ingen fade.
 
-The popup in `QuickCreateMenu.tsx` uses `fixed bottom-24` which is a hardcoded value that doesn't relate to the plus button's actual position.
+## Tekniska ändringar
 
-**Fix in `src/components/QuickCreateMenu.tsx`:**
-- Change the popup from `fixed bottom-24 left-1/2 -translate-x-1/2` to `fixed bottom-[90px] left-1/2 -translate-x-1/2` (or similar value) to position it just above the nav bar with a ~12px gap.
-- The exact `bottom` value: nav bar is at `bottom: 24px`, bar height is roughly 56px, so popup bottom should be around `24 + 56 + 12 = 92px`. Use `bottom-[92px]` on desktop. Add a responsive adjustment for mobile where nav is at `bottom: 16px` (so `bottom-[84px]`).
+### `src/components/calendar/CalendarItemList.tsx`
 
-### Technical details
+**Uppdatera `ListScrollContainer`** – lägg till `canScrollUp`-state och top-fade:
 
-**File 1: `src/index.css`**
+```tsx
+function ListScrollContainer({ children }) {
+  const scrollRef = useRef(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
 
-In `.flow-nav-center-btn` (line 216), replace `-mt-5` with relative positioning:
-```css
-.flow-nav-center-btn {
-  @apply flex items-center justify-center w-12 h-12 rounded-full;
-  position: relative;
-  top: -10px;
-  background: #ffffff;
-  color: #1C1C1E;
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.3);
+  const checkScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollUp(el.scrollTop > 4);
+    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+
+  return (
+    <div className="flex-1 relative overflow-hidden">
+      <div ref={scrollRef} onScroll={checkScroll} ...>
+        {children}
+      </div>
+      {/* Top fade - visas när man scrollat ner */}
+      {canScrollUp && (
+        <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{
+          height: '70px',
+          background: 'linear-gradient(to top, transparent, hsl(30 20% 98%))',
+        }} />
+      )}
+      {/* Bottom fade - visas när mer innehåll finns nedanför */}
+      {canScrollDown && (
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
+          height: '70px',
+          background: 'linear-gradient(to bottom, transparent, hsl(30 20% 98%))',
+        }} />
+      )}
+    </div>
+  );
 }
 ```
 
-**File 2: `src/components/navigation/TabNavigation.tsx`**
+**Wrap tidslinjevyn** i en ny `TimelineScrollContainer` med samma fade-logik. Tidslinje-containern (rad 487) byter från vanlig `div` med `ref={timelineRef}` till en wrapper som:
+- Hanterar scroll-state (up/down)
+- Visar top/bottom-fader beroende på scroll-position
+- Behåller `ref` för auto-scroll till 07:00
 
-Remove `safe-bottom` from the nav className (line 23):
-```tsx
-<nav className="flow-nav-floating">
-```
+### `src/components/calendar/CalendarHeader.tsx`
+Kontrollera och säkerställ att headern har `bg-background` (ingen vit bakgrund).
 
-**File 3: `src/components/QuickCreateMenu.tsx`**
-
-Change the popup container (line 57) positioning to sit just above the nav bar:
-```tsx
-<div className="fixed bottom-[92px] left-1/2 -translate-x-1/2 z-50 animate-spring-pop sm:bottom-[100px]">
-```
-
-### Summary
-- 3 files changed
-- Nav icons become vertically centered by switching from `-mt-5` (which affects flex layout) to `relative top` (which doesn't)
-- Remove `safe-bottom` to eliminate uneven padding
-- Quick Create popup repositioned to float centered above the nav bar
+## Vad som INTE ändras
+- All funktionalitet behålls exakt som den är
+- Layout, knappar, toggler, filter – allt oförändrat
+- Kortens utseende, färger och shadows – oförändrade
+- Tidslinjens layout och timme-linjer – oförändrade
