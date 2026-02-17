@@ -150,7 +150,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
       />
 
       {/* Main content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1">
         {showYearView ? (
           <div className="h-full overflow-y-auto px-2">
             <YearView
