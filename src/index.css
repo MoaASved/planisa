@@ -180,23 +180,30 @@ input[type="date"] {
     @apply bg-muted;
   }
 
-  /* Navigation */
-  .flow-nav-pill {
-    @apply fixed bottom-4 left-4 right-4 bg-card/95 backdrop-blur-xl rounded-[28px] px-2 py-2 flex items-center justify-around;
-    box-shadow: var(--shadow-elevated);
+  /* Navigation - Floating Dark Pill */
+  .flow-nav-floating {
+    @apply fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-2.5 rounded-full z-50;
+    background: #1C1C1E;
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.2);
+    width: auto;
+    max-width: 280px;
   }
 
-  .flow-nav-item {
-    @apply flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl transition-all duration-200 text-muted-foreground min-w-[60px];
+  .flow-nav-icon {
+    @apply flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200;
+    color: rgba(255, 255, 255, 0.5);
   }
 
-  .flow-nav-item-active {
-    @apply bg-primary text-primary-foreground;
+  .flow-nav-icon-active {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
   }
 
-  .flow-nav-center {
-    @apply w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center -mt-6;
-    box-shadow: var(--shadow-elevated);
+  .flow-nav-center-btn {
+    @apply flex items-center justify-center w-12 h-12 rounded-full -mt-5;
+    background: #ffffff;
+    color: #1C1C1E;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.3);
   }
 
   /* FAB */
