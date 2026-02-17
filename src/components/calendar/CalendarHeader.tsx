@@ -82,7 +82,7 @@ export function CalendarHeader({
             onClick={onTodayClick}
             className="ml-1 px-3 py-1.5 rounded-full text-xs font-medium text-foreground/60 hover:text-foreground hover:bg-secondary/40 transition-all tracking-wide"
           >
-            Idag
+            Today
           </button>
         </div>
       )}
