@@ -100,7 +100,7 @@ export function MonthView({
         {/* Day headers */}
         <div className="grid grid-cols-[20px_repeat(7,1fr)] mb-1">
           <div className="text-center text-[9px] font-normal text-muted-foreground/30 py-1">v</div>
-          {['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'].map((day, i) => (
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
             <div key={i} className="text-center text-[11px] font-medium text-muted-foreground/60 py-1 uppercase tracking-wide">
               {day}
             </div>
