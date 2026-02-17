@@ -20,7 +20,7 @@ const tabs = [
 export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
   const haptics = useHaptics();
   return (
-    <nav className="flow-nav-floating safe-bottom">
+    <nav className="flow-nav-floating">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
