@@ -96,7 +96,7 @@ export function MonthView({
       onTouchEnd={handleTouchEnd}
     >
       {/* Calendar grid - clean white background */}
-      <div className="flex-shrink-0 px-3 pb-3 bg-white dark:bg-card">
+      <div className="flex-shrink-0 px-3 pb-3 bg-background">
         {/* Day headers */}
         <div className="grid grid-cols-[20px_repeat(7,1fr)] mb-1">
           <div className="text-center text-[9px] font-normal text-muted-foreground/30 py-1">v</div>
@@ -180,17 +180,8 @@ export function MonthView({
         </div>
       </div>
 
-      {/* Lower section - warm beige card sliding up */}
-      <div 
-        className="flex-1 overflow-hidden relative"
-        style={{
-          background: '#EBE7E0',
-          borderRadius: '20px 20px 0 0',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
-          marginBottom: '-100px',
-          paddingBottom: '100px',
-        }}
-      >
+      {/* Lower section - unified background, no divider */}
+      <div className="flex-1 overflow-hidden relative bg-background">
         <CalendarItemList
           date={selectedDate}
           events={events}
