@@ -49,8 +49,8 @@ export function QuickCreateMenu({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[9998] animate-fade-in"
-        style={{ background: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+        className="fixed inset-0 z-40 animate-fade-in"
+        style={{ background: 'rgba(0,0,0,0.15)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
         onClick={onClose}
       />
 
