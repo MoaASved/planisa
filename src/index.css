@@ -47,16 +47,16 @@ input[type="date"] {
     --radius: 1rem;
 
     /* Pastel color palette - 10 options */
-    --pastel-coral: 12 76% 70%;
-    --pastel-peach: 25 70% 75%;
-    --pastel-amber: 38 80% 70%;
-    --pastel-yellow: 48 85% 75%;
-    --pastel-mint: 158 50% 65%;
-    --pastel-teal: 175 50% 60%;
-    --pastel-sky: 200 70% 70%;
-    --pastel-lavender: 262 60% 75%;
-    --pastel-rose: 340 60% 75%;
-    --pastel-gray: 220 10% 70%;
+    --pastel-coral: 11 72% 69%;
+    --pastel-peach: 27 68% 73%;
+    --pastel-amber: 43 74% 69%;
+    --pastel-yellow: 134 28% 67%;
+    --pastel-mint: 134 28% 67%;
+    --pastel-teal: 173 34% 63%;
+    --pastel-sky: 213 58% 67%;
+    --pastel-lavender: 260 35% 73%;
+    --pastel-rose: 345 62% 76%;
+    --pastel-gray: 214 20% 63%;
     
     --shadow-soft: 0 1px 3px 0 hsl(30 10% 10% / 0.04), 0 1px 2px -1px hsl(30 10% 10% / 0.04);
     --shadow-card: 0 4px 6px -1px hsl(30 10% 10% / 0.05), 0 2px 4px -2px hsl(30 10% 10% / 0.05);
