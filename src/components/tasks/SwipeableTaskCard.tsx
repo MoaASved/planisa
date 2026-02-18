@@ -512,10 +512,24 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
         </div>
       )}
 
-      {/* ─── Add subtask input (shown when plus clicked or after first subtask) ─── */}
+      {/* ─── Add subtask input ─── */}
       {isExpanded && showSubtaskInput && (
         <div className="ml-9">
-          <form onSubmit={handleAddSubtask} className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded-xl">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (newSubtask.trim()) {
+                addSubtask(task.id, newSubtask.trim());
+                setNewSubtask('');
+                setIsExpanded(true);
+                // keep input open for chaining subtasks
+                setTimeout(() => subtaskInputRef.current?.focus(), 0);
+              } else {
+                setShowSubtaskInput(false);
+              }
+            }}
+            className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded-xl"
+          >
             <div className="w-5 h-5 rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
               <Plus className="w-3 h-3 text-muted-foreground/50" />
             </div>
@@ -524,25 +538,21 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
               type="text"
               value={newSubtask}
               onChange={(e) => setNewSubtask(e.target.value)}
-              onBlur={() => { if (!newSubtask.trim()) setShowSubtaskInput(false); }}
+              onBlur={() => {
+                if (newSubtask.trim()) {
+                  // auto-save on blur if there's content
+                  addSubtask(task.id, newSubtask.trim());
+                  setNewSubtask('');
+                  setIsExpanded(true);
+                } else {
+                  setShowSubtaskInput(false);
+                }
+              }}
               placeholder="Add subtask..."
               className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/50"
             />
             <button type="submit" className="sr-only" />
           </form>
-        </div>
-      )}
-
-      {/* ─── "Add subtask" trigger after subtask list (only when has subtasks and not already showing input) ─── */}
-      {isExpanded && hasSubtasks && !showSubtaskInput && (
-        <div className="ml-9">
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowSubtaskInput(true); }}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors py-1 px-1"
-          >
-            <Plus className="w-3 h-3" />
-            <span>Add subtask</span>
-          </button>
         </div>
       )}
     </div>

@@ -68,7 +68,15 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onBlur={(e) => {
+              setIsFocused(false);
+              const trimmed = title.trim();
+              if (trimmed) {
+                // Simulate form submit on blur so task is saved when clicking away
+                const form = e.currentTarget.closest('form');
+                form?.requestSubmit();
+              }
+            }}
             placeholder="Add a task..."
             className="flex-1 bg-transparent border-0 outline-none text-foreground placeholder:text-muted-foreground/50 font-medium"
           />
