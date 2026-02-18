@@ -34,20 +34,27 @@ interface PortalOverlayProps {
 
 function PortalOverlay({ children, onClose }: PortalOverlayProps) {
   return ReactDOM.createPortal(
-    <div
-      className="fixed inset-0 z-[1600] flex items-center justify-center"
-      onClick={onClose}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/20" />
-      {/* Content – stop propagation so clicking inside doesn't close */}
+    <>
+      {/* Backdrop – separate layer so it never covers the content */}
       <div
-        className="relative z-[1601] animate-in fade-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+        style={{ zIndex: 9998 }}
+        onClick={onClose}
+      />
+      {/* Centering shell – pointer-events:none so clicks pass through to backdrop when outside content */}
+      <div
+        className="fixed inset-0 flex items-center justify-center"
+        style={{ zIndex: 9999, pointerEvents: 'none' }}
       >
-        {children}
+        <div
+          className="animate-in fade-in zoom-in-95 duration-150"
+          style={{ pointerEvents: 'auto' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {children}
+        </div>
       </div>
-    </div>,
+    </>,
     document.body
   );
 }
@@ -59,12 +66,13 @@ interface TaskMenuProps {
   onClose: () => void;
   onHide: () => void;
   onDelete: () => void;
+  onOpenCategory: () => void;
+  onOpenDate: () => void;
 }
 
-function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps) {
-  const { updateTask, taskCategories } = useAppStore();
+function TaskMenu({ task, anchorRef, onClose, onHide, onDelete, onOpenCategory, onOpenDate }: TaskMenuProps) {
+  const { updateTask } = useAppStore();
   const menuRef = useRef<HTMLDivElement>(null);
-  const [subMenu, setSubMenu] = useState<'category' | 'date' | 'time' | null>(null);
   const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
   // Position menu near the anchor button
@@ -107,18 +115,6 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
     };
   }, [onClose, anchorRef]);
 
-  const handleCategorySelect = (cat: TaskCategory) => {
-    updateTask(task.id, { category: cat.name, color: cat.color });
-    setSubMenu(null);
-    onClose();
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    updateTask(task.id, { date });
-    setSubMenu(null);
-    onClose();
-  };
-
   const handleTimeSelect = (time: string) => {
     updateTask(task.id, { time: time || undefined });
   };
@@ -133,7 +129,7 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
 
         {/* Category */}
         <button
-          onClick={() => setSubMenu('category')}
+          onClick={onOpenCategory}
           className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left"
         >
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -149,7 +145,7 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
 
         {/* Date */}
         <button
-          onClick={() => setSubMenu('date')}
+          onClick={onOpenDate}
           className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left"
         >
           <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -211,68 +207,12 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
     </div>
   );
 
-  return (
-    <>
-      {ReactDOM.createPortal(menu, document.body)}
-
-      {/* Category picker overlay */}
-      {subMenu === 'category' && (
-        <PortalOverlay onClose={() => setSubMenu(null)}>
-          <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden w-56">
-            <div className="px-4 py-3 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">Select Category</p>
-            </div>
-            <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
-              <button
-                onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); setSubMenu(null); onClose(); }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors"
-              >
-                No category
-              </button>
-              {taskCategories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategorySelect(cat)}
-                  className={cn(
-                    'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
-                    task.category === cat.name
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-secondary'
-                  )}
-                >
-                  <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', `bg-pastel-${cat.color}`)} />
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </PortalOverlay>
-      )}
-
-      {/* Date picker overlay */}
-      {subMenu === 'date' && (
-        <PortalOverlay onClose={() => setSubMenu(null)}>
-          <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">Select Date</p>
-            </div>
-            <CalendarComponent
-              mode="single"
-              selected={task.date ? new Date(task.date) : undefined}
-              onSelect={handleDateSelect}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </div>
-        </PortalOverlay>
-      )}
-    </>
-  );
+  return ReactDOM.createPortal(menu, document.body);
 }
 
 // ─── Main card ───────────────────────────────────────────────
 export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableTaskCardProps) {
-  const { toggleSubtask, addSubtask, removeSubtask, updateTask, hideTask, toggleTask } = useAppStore();
+  const { toggleSubtask, addSubtask, removeSubtask, updateTask, hideTask, toggleTask, taskCategories } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
   const haptics = useHaptics();
 
@@ -282,6 +222,7 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [subMenu, setSubMenu] = useState<'category' | 'date' | null>(null);
 
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
@@ -352,6 +293,26 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
 
   const handleDelete = () => {
     deleteWithUndo('task', task);
+  };
+
+  const handleOpenCategory = () => {
+    setShowMenu(false);
+    setSubMenu('category');
+  };
+
+  const handleOpenDate = () => {
+    setShowMenu(false);
+    setSubMenu('date');
+  };
+
+  const handleCategorySelect = (cat: TaskCategory) => {
+    updateTask(task.id, { category: cat.name, color: cat.color });
+    setSubMenu(null);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    updateTask(task.id, { date });
+    setSubMenu(null);
   };
 
   // Whether this task has subtasks
@@ -473,6 +434,8 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
           onClose={() => setShowMenu(false)}
           onHide={handleHide}
           onDelete={handleDelete}
+          onOpenCategory={handleOpenCategory}
+          onOpenDate={handleOpenDate}
         />
       )}
 
@@ -565,6 +528,58 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
             <button type="submit" className="sr-only" />
           </form>
         </div>
+      )}
+
+      {/* ─── Category picker portal ─── */}
+      {subMenu === 'category' && (
+        <PortalOverlay onClose={() => setSubMenu(null)}>
+          <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden w-56">
+            <div className="px-4 py-3 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">Select Category</p>
+            </div>
+            <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
+              <button
+                onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); setSubMenu(null); }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors text-left"
+              >
+                No category
+              </button>
+              {taskCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategorySelect(cat)}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors text-left',
+                    task.category === cat.name
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-secondary'
+                  )}
+                >
+                  <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', `bg-pastel-${cat.color}`)} />
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </PortalOverlay>
+      )}
+
+      {/* ─── Date picker portal ─── */}
+      {subMenu === 'date' && (
+        <PortalOverlay onClose={() => setSubMenu(null)}>
+          <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">Select Date</p>
+            </div>
+            <CalendarComponent
+              mode="single"
+              selected={task.date ? new Date(task.date) : undefined}
+              onSelect={handleDateSelect}
+              initialFocus
+              className="p-3"
+            />
+          </div>
+        </PortalOverlay>
       )}
     </div>
   );
