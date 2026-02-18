@@ -23,7 +23,8 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
     }
   }, [autoFocus]);
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
     
@@ -40,48 +41,39 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
     inputRef.current?.focus();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && title.trim()) {
-      e.preventDefault();
-      handleSubmit();
-    }
-    if (e.key === 'Escape') {
-      setTitle('');
-      inputRef.current?.blur();
-    }
-  };
-
   return (
-    <div 
-      className={cn(
-        'flow-card-flat transition-all duration-200',
-        isFocused && 'ring-2 ring-primary/20'
-      )}
-    >
-      <div className="flex items-center gap-3">
-        <div className={cn(
-          'w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors flex-shrink-0',
-          isFocused ? 'border-primary' : 'border-muted-foreground/40'
-        )}>
-          <Plus className={cn(
-            'w-4 h-4 transition-colors',
-            isFocused ? 'text-primary' : 'text-muted-foreground/40'
-          )} />
+    <form onSubmit={handleSubmit}>
+      <div 
+        className={cn(
+          'flow-card-flat transition-all duration-200',
+          isFocused && 'ring-2 ring-primary/20'
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            'w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors flex-shrink-0',
+            isFocused ? 'border-primary' : 'border-muted-foreground/40'
+          )}>
+            <Plus className={cn(
+              'w-4 h-4 transition-colors',
+              isFocused ? 'text-primary' : 'text-muted-foreground/40'
+            )} />
+          </div>
+          
+          <input
+            ref={inputRef}
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder="Add a task..."
+            className="flex-1 bg-transparent border-0 outline-none text-foreground placeholder:text-muted-foreground/50 font-medium"
+          />
+          {/* Hidden submit button enables any mobile keyboard submit action */}
+          <button type="submit" className="sr-only" aria-hidden="true" />
         </div>
-        
-        <input
-          ref={inputRef}
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add a task..."
-          className="flex-1 bg-transparent border-0 outline-none text-foreground placeholder:text-muted-foreground/50 font-medium"
-        />
       </div>
-    </div>
+    </form>
   );
 }
-
