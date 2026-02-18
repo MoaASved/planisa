@@ -482,19 +482,19 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
           {task.subtasks.map((subtask) => (
             <div
               key={subtask.id}
-              className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-xl group"
+              className="flex items-center gap-2 px-3 py-2 bg-secondary/50 rounded-xl group cursor-pointer"
+              onClick={() => toggleSubtask(task.id, subtask.id)}
             >
-              <button
-                onClick={() => toggleSubtask(task.id, subtask.id)}
+              <div
                 className={cn(
                   'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0',
                   subtask.completed
                     ? 'bg-primary border-primary'
-                    : 'border-muted-foreground/50 hover:border-primary'
+                    : 'border-muted-foreground/50'
                 )}
               >
                 {subtask.completed && <Check className="w-3 h-3 text-primary-foreground" />}
-              </button>
+              </div>
               <span className={cn(
                 'flex-1 text-sm',
                 subtask.completed && 'line-through text-muted-foreground'
@@ -502,13 +502,24 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
                 {subtask.title}
               </span>
               <button
-                onClick={() => removeSubtask(task.id, subtask.id)}
+                onClick={(e) => { e.stopPropagation(); removeSubtask(task.id, subtask.id); }}
                 className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-secondary transition-all"
               >
                 <X className="w-3 h-3 text-muted-foreground" />
               </button>
             </div>
           ))}
+
+          {/* Always-visible "Add subtask" trigger */}
+          {!showSubtaskInput && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowSubtaskInput(true); setTimeout(() => subtaskInputRef.current?.focus(), 50); }}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors py-1 px-1"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Add subtask</span>
+            </button>
+          )}
         </div>
       )}
 
