@@ -11,7 +11,6 @@ import { AnimatedCheckbox } from './AnimatedCheckbox';
 import { useHaptics } from '@/hooks/useHaptics';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import ReactDOM from 'react-dom';
 
 interface SwipeableTaskCardProps {
@@ -26,6 +25,32 @@ const priorityColors = {
   medium: 'text-pastel-amber',
   high: 'text-pastel-coral',
 };
+
+// ─── Centered portal overlay for sub-selections ──────────────
+interface PortalOverlayProps {
+  children: React.ReactNode;
+  onClose: () => void;
+}
+
+function PortalOverlay({ children, onClose }: PortalOverlayProps) {
+  return ReactDOM.createPortal(
+    <div
+      className="fixed inset-0 z-[1600] flex items-center justify-center"
+      onClick={onClose}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/20" />
+      {/* Content – stop propagation so clicking inside doesn't close */}
+      <div
+        className="relative z-[1601] animate-in fade-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 // ─── Three-dot popup menu ────────────────────────────────────
 interface TaskMenuProps {
@@ -50,12 +75,11 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
     const vh = window.innerHeight;
 
     const menuWidth = 220;
-    const menuHeight = 240; // approx
+    const menuHeight = 240;
 
     let top = rect.bottom + 6;
     let left = rect.right - menuWidth;
 
-    // Keep inside viewport
     if (left < 8) left = 8;
     if (left + menuWidth > vw - 8) left = vw - menuWidth - 8;
     if (top + menuHeight > vh - 80) top = rect.top - menuHeight - 6;
@@ -85,17 +109,18 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
 
   const handleCategorySelect = (cat: TaskCategory) => {
     updateTask(task.id, { category: cat.name, color: cat.color });
+    setSubMenu(null);
     onClose();
   };
 
   const handleDateSelect = (date: Date | undefined) => {
     updateTask(task.id, { date });
+    setSubMenu(null);
     onClose();
   };
 
   const handleTimeSelect = (time: string) => {
     updateTask(task.id, { time: time || undefined });
-    onClose();
   };
 
   const menu = (
@@ -107,72 +132,36 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
       <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Category */}
-        <Popover open={subMenu === 'category'} onOpenChange={(o) => setSubMenu(o ? 'category' : null)}>
-          <PopoverTrigger asChild>
-            <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Folder className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">Category</p>
-                <p className="text-xs text-muted-foreground truncate">{task.category || 'None'}</p>
-              </div>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-44 p-2 bg-card border-border z-[1500]" align="end" side="left">
-            <div className="space-y-1">
-              <button
-                onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); onClose(); }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-secondary transition-colors"
-              >
-                No category
-              </button>
-              {taskCategories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategorySelect(cat)}
-                  className={cn(
-                    'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
-                    task.category === cat.name
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-secondary'
-                  )}
-                >
-                  <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', `bg-pastel-${cat.color}`)} />
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <button
+          onClick={() => setSubMenu('category')}
+          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left"
+        >
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Folder className="w-3.5 h-3.5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">Category</p>
+            <p className="text-xs text-muted-foreground truncate">{task.category || 'None'}</p>
+          </div>
+        </button>
 
         <div className="h-px bg-border/40 mx-4" />
 
         {/* Date */}
-        <Popover open={subMenu === 'date'} onOpenChange={(o) => setSubMenu(o ? 'date' : null)}>
-          <PopoverTrigger asChild>
-            <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">Date</p>
-                <p className="text-xs text-muted-foreground">
-                  {task.date ? format(new Date(task.date), 'MMM d, yyyy') : 'No date'}
-                </p>
-              </div>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-card border-border z-[1500]" align="end" side="left">
-            <CalendarComponent
-              mode="single"
-              selected={task.date ? new Date(task.date) : undefined}
-              onSelect={handleDateSelect}
-              initialFocus
-              className="p-3 pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
+        <button
+          onClick={() => setSubMenu('date')}
+          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/60 transition-colors text-left"
+        >
+          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Calendar className="w-3.5 h-3.5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">Date</p>
+            <p className="text-xs text-muted-foreground">
+              {task.date ? format(new Date(task.date), 'MMM d, yyyy') : 'No date'}
+            </p>
+          </div>
+        </button>
 
         <div className="h-px bg-border/40 mx-4" />
 
@@ -222,7 +211,63 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
     </div>
   );
 
-  return ReactDOM.createPortal(menu, document.body);
+  return (
+    <>
+      {ReactDOM.createPortal(menu, document.body)}
+
+      {/* Category picker overlay */}
+      {subMenu === 'category' && (
+        <PortalOverlay onClose={() => setSubMenu(null)}>
+          <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden w-56">
+            <div className="px-4 py-3 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">Select Category</p>
+            </div>
+            <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
+              <button
+                onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); setSubMenu(null); onClose(); }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors"
+              >
+                No category
+              </button>
+              {taskCategories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategorySelect(cat)}
+                  className={cn(
+                    'w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors',
+                    task.category === cat.name
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-secondary'
+                  )}
+                >
+                  <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', `bg-pastel-${cat.color}`)} />
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </PortalOverlay>
+      )}
+
+      {/* Date picker overlay */}
+      {subMenu === 'date' && (
+        <PortalOverlay onClose={() => setSubMenu(null)}>
+          <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border/40">
+              <p className="text-sm font-semibold text-foreground">Select Date</p>
+            </div>
+            <CalendarComponent
+              mode="single"
+              selected={task.date ? new Date(task.date) : undefined}
+              onSelect={handleDateSelect}
+              initialFocus
+              className="p-3 pointer-events-auto"
+            />
+          </div>
+        </PortalOverlay>
+      )}
+    </>
+  );
 }
 
 // ─── Main card ───────────────────────────────────────────────
@@ -246,8 +291,16 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
   useEffect(() => {
     if (collapseSignal !== undefined && collapseSignal > 0) {
       setIsExpanded(false);
+      setShowSubtaskInput(false);
     }
   }, [collapseSignal]);
+
+  // Focus subtask input when shown
+  useEffect(() => {
+    if (showSubtaskInput) {
+      setTimeout(() => subtaskInputRef.current?.focus(), 50);
+    }
+  }, [showSubtaskInput]);
 
   // ─── Title editing ────────────────────────────────────────
   const handleTitleClick = (e: React.MouseEvent) => {
@@ -278,8 +331,16 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
     if (newSubtask.trim()) {
       addSubtask(task.id, newSubtask.trim());
       setNewSubtask('');
+      setIsExpanded(true);
       subtaskInputRef.current?.focus();
     }
+  };
+
+  // ─── Plus icon click → open subtask input ─────────────────
+  const handlePlusClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowSubtaskInput(true);
+    setIsExpanded(true);
   };
 
   // ─── Hide / Delete ────────────────────────────────────────
@@ -293,12 +354,15 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
     deleteWithUndo('task', task);
   };
 
+  // Whether this task has subtasks
+  const hasSubtasks = task.subtasks.length > 0;
+
   return (
     <div className="space-y-1.5">
       {/* ─── Task card ─── */}
       <div className="flow-card-flat relative bg-card">
         <div className="flex items-start gap-3">
-          {/* Checkbox — isolated, does not toggle subtasks */}
+          {/* Checkbox — isolated */}
           <div onClick={(e) => e.stopPropagation()}>
             <AnimatedCheckbox
               checked={task.completed}
@@ -307,10 +371,12 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
             />
           </div>
 
-          {/* Clickable row area (toggles subtasks) */}
+          {/* Clickable row area */}
           <div
             className="flex-1 min-w-0 cursor-pointer"
-            onClick={() => { if (task.subtasks.length > 0 && !isEditingTitle) setIsExpanded(v => !v); }}
+            onClick={() => {
+              if (hasSubtasks && !isEditingTitle) setIsExpanded(v => !v);
+            }}
           >
             <div className="flex items-start justify-between gap-2">
               {isEditingTitle ? (
@@ -337,12 +403,22 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
                 </p>
               )}
 
+              {/* Right-side icons: plus OR chevron, then three-dot */}
               <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 {task.priority !== 'none' && (
                   <Flag className={cn('w-4 h-4', priorityColors[task.priority])} />
                 )}
-                {/* Chevron — only shown when task has subtasks */}
-                {task.subtasks.length > 0 && (
+
+                {/* Plus icon (no subtasks yet) or Chevron (has subtasks) */}
+                {!hasSubtasks ? (
+                  <button
+                    onClick={handlePlusClick}
+                    className="p-1 rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/60 transition-colors"
+                    aria-label="Add subtask"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                ) : (
                   <button
                     onClick={(e) => { e.stopPropagation(); setIsExpanded(v => !v); }}
                     className="p-1 rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/60 transition-colors"
@@ -353,6 +429,7 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
                       : <ChevronRight className="w-4 h-4" />}
                   </button>
                 )}
+
                 {/* Three-dot menu button */}
                 <button
                   ref={menuButtonRef}
@@ -400,7 +477,7 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
       )}
 
       {/* ─── Subtasks ─── */}
-      {isExpanded && task.subtasks.length > 0 && (
+      {isExpanded && hasSubtasks && (
         <div className="ml-9 space-y-1.5">
           {task.subtasks.map((subtask) => (
             <div
@@ -435,35 +512,37 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
         </div>
       )}
 
-      {/* ─── Add subtask ─── */}
-      {isExpanded && (
+      {/* ─── Add subtask input (shown when plus clicked or after first subtask) ─── */}
+      {isExpanded && showSubtaskInput && (
         <div className="ml-9">
-          {showSubtaskInput ? (
-            <form onSubmit={handleAddSubtask} className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded-xl">
-              <div className="w-5 h-5 rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
-                <Plus className="w-3 h-3 text-muted-foreground/50" />
-              </div>
-              <input
-                ref={subtaskInputRef}
-                type="text"
-                value={newSubtask}
-                onChange={(e) => setNewSubtask(e.target.value)}
-                onBlur={() => { if (!newSubtask.trim()) setShowSubtaskInput(false); }}
-                autoFocus
-                placeholder="Add subtask..."
-                className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/50"
-              />
-              <button type="submit" className="sr-only" />
-            </form>
-          ) : (
-            <button
-              onClick={() => setShowSubtaskInput(true)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors py-1 px-1"
-            >
-              <Plus className="w-3 h-3" />
-              <span>Add subtask</span>
-            </button>
-          )}
+          <form onSubmit={handleAddSubtask} className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded-xl">
+            <div className="w-5 h-5 rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
+              <Plus className="w-3 h-3 text-muted-foreground/50" />
+            </div>
+            <input
+              ref={subtaskInputRef}
+              type="text"
+              value={newSubtask}
+              onChange={(e) => setNewSubtask(e.target.value)}
+              onBlur={() => { if (!newSubtask.trim()) setShowSubtaskInput(false); }}
+              placeholder="Add subtask..."
+              className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/50"
+            />
+            <button type="submit" className="sr-only" />
+          </form>
+        </div>
+      )}
+
+      {/* ─── "Add subtask" trigger after subtask list (only when has subtasks and not already showing input) ─── */}
+      {isExpanded && hasSubtasks && !showSubtaskInput && (
+        <div className="ml-9">
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowSubtaskInput(true); }}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground/40 hover:text-muted-foreground transition-colors py-1 px-1"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Add subtask</span>
+          </button>
         </div>
       )}
     </div>
