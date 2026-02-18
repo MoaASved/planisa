@@ -38,7 +38,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
     }
   }, [isCreatingNewTask]);
 
-  // Filter tasks based on search and hidden status (completed tasks stay visible)
+  // Filter tasks: only hidden tasks are removed from main list; completed tasks stay visible
   const activeTasks = tasks.filter(task => {
     if (task.hidden) return false;
     if (searchQuery) {
