@@ -23,11 +23,11 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
     }
   }, [autoFocus]);
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
-    
+
     addTask({
       title: trimmedTitle,
       completed: false,
@@ -36,15 +36,16 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
       subtasks: [],
       priority: 'none',
     });
-    
+
     setTitle('');
-    inputRef.current?.focus();
     onTaskCreated?.('');
+    // Re-focus so user can keep adding tasks
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div 
+      <div
         className={cn(
           'flow-card-flat transition-all duration-200',
           isFocused && 'ring-2 ring-primary/20'
@@ -60,7 +61,7 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
               isFocused ? 'text-primary' : 'text-muted-foreground/40'
             )} />
           </div>
-          
+
           <input
             ref={inputRef}
             type="text"
@@ -71,8 +72,13 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
             placeholder="Add a task..."
             className="flex-1 bg-transparent border-0 outline-none text-foreground placeholder:text-muted-foreground/50 font-medium"
           />
-          {/* Hidden submit button enables any mobile keyboard submit action */}
-          <button type="submit" className="sr-only" aria-hidden="true" />
+          {/* Visible submit button ensures mobile keyboards submit on "Done"/"Return"/"Go" */}
+          <button
+            type="submit"
+            className="sr-only"
+            aria-hidden="true"
+            tabIndex={-1}
+          />
         </div>
       </div>
     </form>
