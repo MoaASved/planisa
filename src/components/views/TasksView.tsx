@@ -30,6 +30,8 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
   
   const [activeTab, setActiveTab] = useState<TabType>('tasks');
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
+  // Increment this signal whenever a new task is created → collapses all existing subtask sections
+  const [collapseSignal, setCollapseSignal] = useState(0);
 
   // Auto-switch to tasks tab when creating new task
   useEffect(() => {
@@ -92,13 +94,15 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
                 <SwipeableTaskCard
                   task={task}
                   onToggle={() => toggleTask(task.id)}
+                  collapseSignal={collapseSignal}
                 />
               </div>
             ))}
 
             {/* Inline Task Input - Always visible at the bottom */}
             <InlineTaskInput 
-              autoFocus={isCreatingNewTask} 
+              autoFocus={isCreatingNewTask}
+              onTaskCreated={() => setCollapseSignal(s => s + 1)}
             />
 
             {activeTasks.length === 0 && (

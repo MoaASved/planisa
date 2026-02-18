@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { format, isToday } from 'date-fns';
 import {
   Calendar, Clock, Flag, Plus, X, Check,
-  EyeOff, Trash2, MoreVertical, Folder,
+  EyeOff, Trash2, MoreVertical, Folder, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task, TaskCategory } from '@/types';
@@ -17,6 +17,7 @@ import ReactDOM from 'react-dom';
 interface SwipeableTaskCardProps {
   task: Task;
   onToggle: () => void;
+  collapseSignal?: number;
 }
 
 const priorityColors = {
@@ -225,7 +226,7 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete }: TaskMenuProps)
 }
 
 // ─── Main card ───────────────────────────────────────────────
-export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
+export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableTaskCardProps) {
   const { toggleSubtask, addSubtask, removeSubtask, updateTask, hideTask, toggleTask } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
   const haptics = useHaptics();
@@ -235,10 +236,18 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
   const [newSubtask, setNewSubtask] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-collapse when signal changes (new task created elsewhere)
+  useEffect(() => {
+    if (collapseSignal !== undefined && collapseSignal > 0) {
+      setIsExpanded(false);
+    }
+  }, [collapseSignal]);
 
   // ─── Title editing ────────────────────────────────────────
   const handleTitleClick = (e: React.MouseEvent) => {
@@ -289,13 +298,20 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
       {/* ─── Task card ─── */}
       <div className="flow-card-flat relative bg-card">
         <div className="flex items-start gap-3">
-          <AnimatedCheckbox
-            checked={task.completed}
-            onChange={onToggle}
-            className="mt-0.5"
-          />
+          {/* Checkbox — isolated, does not toggle subtasks */}
+          <div onClick={(e) => e.stopPropagation()}>
+            <AnimatedCheckbox
+              checked={task.completed}
+              onChange={onToggle}
+              className="mt-0.5"
+            />
+          </div>
 
-          <div className="flex-1 min-w-0">
+          {/* Clickable row area (toggles subtasks) */}
+          <div
+            className="flex-1 min-w-0 cursor-pointer"
+            onClick={() => { if (task.subtasks.length > 0 && !isEditingTitle) setIsExpanded(v => !v); }}
+          >
             <div className="flex items-start justify-between gap-2">
               {isEditingTitle ? (
                 <input
@@ -305,11 +321,12 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
                   onChange={(e) => setEditedTitle(e.target.value)}
                   onKeyDown={handleTitleKeyDown}
                   onBlur={handleTitleSave}
-                  className="font-medium bg-transparent border-0 outline-none w-full"
+                  className="font-medium bg-transparent border-0 outline-none w-full cursor-text"
+                  onClick={(e) => e.stopPropagation()}
                 />
               ) : (
                 <p
-                  onClick={handleTitleClick}
+                  onClick={(e) => { e.stopPropagation(); handleTitleClick(e); }}
                   className={cn(
                     'font-medium transition-all duration-200',
                     !task.completed && 'cursor-text hover:text-primary/80',
@@ -320,9 +337,21 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
                 </p>
               )}
 
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                 {task.priority !== 'none' && (
                   <Flag className={cn('w-4 h-4', priorityColors[task.priority])} />
+                )}
+                {/* Chevron — only shown when task has subtasks */}
+                {task.subtasks.length > 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setIsExpanded(v => !v); }}
+                    className="p-1 rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-secondary/60 transition-colors"
+                    aria-label={isExpanded ? 'Collapse subtasks' : 'Expand subtasks'}
+                  >
+                    {isExpanded
+                      ? <ChevronDown className="w-4 h-4" />
+                      : <ChevronRight className="w-4 h-4" />}
+                  </button>
                 )}
                 {/* Three-dot menu button */}
                 <button
@@ -370,8 +399,8 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
         />
       )}
 
-      {/* ─── Subtasks (always expanded) ─── */}
-      {task.subtasks.length > 0 && (
+      {/* ─── Subtasks ─── */}
+      {isExpanded && task.subtasks.length > 0 && (
         <div className="ml-9 space-y-1.5">
           {task.subtasks.map((subtask) => (
             <div
@@ -407,34 +436,36 @@ export function SwipeableTaskCard({ task, onToggle }: SwipeableTaskCardProps) {
       )}
 
       {/* ─── Add subtask ─── */}
-      <div className="ml-9">
-        {showSubtaskInput ? (
-          <form onSubmit={handleAddSubtask} className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded-xl">
-            <div className="w-5 h-5 rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
-              <Plus className="w-3 h-3 text-muted-foreground/50" />
-            </div>
-            <input
-              ref={subtaskInputRef}
-              type="text"
-              value={newSubtask}
-              onChange={(e) => setNewSubtask(e.target.value)}
-              onBlur={() => { if (!newSubtask.trim()) setShowSubtaskInput(false); }}
-              autoFocus
-              placeholder="Add subtask..."
-              className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/50"
-            />
-            <button type="submit" className="sr-only" />
-          </form>
-        ) : (
-          <button
-            onClick={() => setShowSubtaskInput(true)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors py-1 px-1"
-          >
-            <Plus className="w-3 h-3" />
-            <span>Add subtask</span>
-          </button>
-        )}
-      </div>
+      {isExpanded && (
+        <div className="ml-9">
+          {showSubtaskInput ? (
+            <form onSubmit={handleAddSubtask} className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded-xl">
+              <div className="w-5 h-5 rounded-md border-2 border-dashed border-muted-foreground/30 flex items-center justify-center flex-shrink-0">
+                <Plus className="w-3 h-3 text-muted-foreground/50" />
+              </div>
+              <input
+                ref={subtaskInputRef}
+                type="text"
+                value={newSubtask}
+                onChange={(e) => setNewSubtask(e.target.value)}
+                onBlur={() => { if (!newSubtask.trim()) setShowSubtaskInput(false); }}
+                autoFocus
+                placeholder="Add subtask..."
+                className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground/50"
+              />
+              <button type="submit" className="sr-only" />
+            </form>
+          ) : (
+            <button
+              onClick={() => setShowSubtaskInput(true)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors py-1 px-1"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Add subtask</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

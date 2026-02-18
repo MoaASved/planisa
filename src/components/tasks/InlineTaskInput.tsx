@@ -39,6 +39,7 @@ export function InlineTaskInput({ onTaskCreated, autoFocus }: InlineTaskInputPro
     
     setTitle('');
     inputRef.current?.focus();
+    onTaskCreated?.('');
   };
 
   return (
