@@ -189,7 +189,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   return (
     <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
       {/* Collapsible Toolbar */}
-      <div className="sticky top-0 z-10 px-4 pt-3 pb-1">
+      <div className="sticky top-0 z-10 px-4 pt-3 pb-1 shrink-0">
         {showToolbar && (
           <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-2 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">
@@ -349,7 +349,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 pt-8">
+      <div className="flex items-center gap-3 px-4 py-3 pt-8 shrink-0">
         <button 
           onClick={handleSave}
           className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
