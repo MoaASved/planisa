@@ -188,8 +188,16 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
   return (
     <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
-      {/* Floating Toolbar - fixed, always visible */}
-      <div className="fixed top-3 left-4 right-4 z-[1200]">
+      {/* Fixed Back Arrow - top left, always visible */}
+      <button 
+        onClick={handleSave}
+        className="fixed top-4 left-4 z-[1300] w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </button>
+
+      {/* Floating Toolbar - fixed, below back arrow */}
+      <div className="fixed top-16 left-4 right-4 z-[1250]">
         {showToolbar && (
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] px-2 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">
@@ -346,43 +354,34 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         </div>
       </div>
 
-      {/* Scrollable content: Header + Settings + Editor */}
+      {/* Scrollable content */}
       <div className="flex-1 overflow-auto" onClick={() => showSettings && setShowSettings(false)}>
-        {/* Top spacer for toolbar */}
-        <div className={showToolbar ? 'h-16' : 'h-10'} />
+        {/* Top spacer for fixed elements */}
+        <div className={showToolbar ? 'h-28' : 'h-20'} />
 
-        {/* Header - scrolls with content */}
-        <div className="flex items-center gap-3 px-4 py-3">
-          <button 
-            onClick={handleSave}
-            className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          
-          <div className="flex-1">
-            {!hideDate && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className={cn(
-                    'text-sm font-medium',
-                    selectedColor ? `text-[hsl(var(--pastel-${selectedColor}))]` : 'text-muted-foreground'
-                  )}>
-                    {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy')}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
+        {/* Date - centered */}
+        {!hideDate && (
+          <div className="text-center px-4 mb-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className={cn(
+                  'text-sm font-medium',
+                  selectedColor ? `text-[hsl(var(--pastel-${selectedColor}))]` : 'text-muted-foreground'
+                )}>
+                  {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy')}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-        </div>
+        )}
 
         {/* Settings popup */}
         {showSettings && (
