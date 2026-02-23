@@ -308,11 +308,13 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
   const handleCategorySelect = (cat: TaskCategory) => {
     updateTask(task.id, { category: cat.name, color: cat.color });
     setSubMenu(null);
+    setShowMenu(true);
   };
 
   const handleDateSelect = (date: Date | undefined) => {
     updateTask(task.id, { date });
     setSubMenu(null);
+    setShowMenu(true);
   };
 
   // Whether this task has subtasks
