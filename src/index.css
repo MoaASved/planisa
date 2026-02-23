@@ -654,8 +654,8 @@ input[type="date"] {
 }
 
 .ProseMirror-selectednode {
-  outline: 2px solid #A89880;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   border-radius: 12px;
 }
 
