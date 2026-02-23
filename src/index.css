@@ -656,7 +656,9 @@ input[type="date"] {
 .ProseMirror-selectednode {
   outline: none;
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border: 2px solid rgba(0,0,0,0.08);
   border-radius: 12px;
+  overflow: hidden;
 }
 
 [data-drag-handle] {
