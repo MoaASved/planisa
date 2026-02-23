@@ -142,7 +142,7 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
                   <div className={cn('w-5 h-5 rounded-full', getStickyBgClass(color))} />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-3" align="start">
+              <PopoverContent className="w-auto p-3 z-[9999]" align="start">
                 <div className="flex flex-wrap gap-2 max-w-[200px]">
                   {pastelColors.map((c) => (
                     <button
@@ -179,7 +179,7 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
                   {showInCalendar && <span>{format(date, 'd MMM', { locale: sv })}</span>}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent className="w-auto p-0 z-[9999]" align="start">
                 <div className="p-3 border-b">
                   <label className="flex items-center gap-2 text-sm">
                     <input
