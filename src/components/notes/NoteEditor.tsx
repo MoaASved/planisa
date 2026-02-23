@@ -509,7 +509,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                   {format(date, 'MMM d, yyyy')}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className="w-auto p-0 z-[9999]" align="end">
                 <CalendarComponent
                   mode="single"
                   selected={date}
