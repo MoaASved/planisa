@@ -56,7 +56,7 @@ export function VoiceNotePlayer({ audioSrc, duration, onDelete, className }: Voi
 
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 bg-secondary/30 rounded-2xl",
+      "flex items-center gap-3 p-3 bg-white rounded-2xl shadow-[0_2px_6px_rgba(0,0,0,0.08)]",
       className
     )}>
       {/* Play/Pause button - minimalist black */}
