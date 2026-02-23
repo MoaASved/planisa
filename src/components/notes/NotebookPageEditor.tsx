@@ -188,16 +188,8 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
   return (
     <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
-      {/* Fixed Back Arrow - top left, always visible */}
-      <button 
-        onClick={handleSave}
-        className="fixed top-4 left-4 z-[1300] w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
-
-      {/* Floating Toolbar - fixed, below back arrow */}
-      <div className="fixed top-16 left-4 right-4 z-[1250]">
+      {/* Floating Toolbar - fixed, centered */}
+      <div className="fixed top-[60px] left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]">
         {showToolbar && (
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] px-2 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">
@@ -356,8 +348,18 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
       {/* Scrollable content */}
       <div className="flex-1 overflow-auto" onClick={() => showSettings && setShowSettings(false)}>
-        {/* Top spacer for fixed elements */}
-        <div className={showToolbar ? 'h-28' : 'h-20'} />
+        {/* Back arrow + spacer */}
+        <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+          <button 
+            onClick={handleSave}
+            className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Spacer for floating toolbar */}
+        <div className={showToolbar ? 'h-14' : 'h-8'} />
 
         {/* Date - centered */}
         {!hideDate && (
