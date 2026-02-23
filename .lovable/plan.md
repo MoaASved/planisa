@@ -1,13 +1,14 @@
 
 
-## Remove selection border, add shadow on selected images
+## Keep rounded border on selected images
 
-Replace the current outline/border on selected images in the editor with a subtle shadow effect.
+Add back a subtle rounded border alongside the shadow on selected images in the editor.
 
 ### Change
 
 **`src/index.css`** - Update `.ProseMirror-selectednode` style:
-- Remove `outline` and `outline-offset`
-- Add `box-shadow: 0 4px 16px rgba(0,0,0,0.15)` for a soft elevation effect
+- Keep `outline: none` and the shadow
+- Add `border: 2px solid rgba(0,0,0,0.08)` for a soft visible rounded edge
+- Add `overflow: hidden` so the border-radius clips the image content properly
 - Keep existing `border-radius: 12px`
 
