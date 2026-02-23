@@ -447,21 +447,26 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           </div>
         )}
 
-        {/* Toolbar toggle tab */}
-        <div className="flex justify-center pt-1">
-          <button
-            onClick={() => setToolbarCollapsed(!toolbarCollapsed)}
-            className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
-          >
-            {toolbarCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-          </button>
-        </div>
+        {/* Toolbar toggle tab - only when expanded */}
+        {!toolbarCollapsed && (
+          <div className="flex justify-center pt-1">
+            <button
+              onClick={() => setToolbarCollapsed(true)}
+              className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto px-4 pb-10">
         {/* Spacer for floating toolbar */}
-        <div className={toolbarCollapsed ? 'h-10' : 'h-16'} />
+        <div 
+          className={`${toolbarCollapsed ? 'h-10 cursor-pointer' : 'h-16'}`} 
+          onClick={toolbarCollapsed ? () => setToolbarCollapsed(false) : undefined}
+        />
 
         {/* Header - Back arrow */}
         <div className="flex items-center py-2">
