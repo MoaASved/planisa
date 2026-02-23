@@ -285,17 +285,17 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {/* Top Horizontal Toolbar - Collapsible */}
       <div className="flex-shrink-0">
         {/* Collapsed state - discrete tab */}
-        {toolbarCollapsed ? (
-          <div className="flex justify-center py-2">
+      {toolbarCollapsed ? (
+          <div className="flex justify-center pt-3 pb-1 px-4">
             <button
               onClick={() => setToolbarCollapsed(false)}
-              className="flex items-center justify-center w-10 h-6 rounded-full bg-white/80 backdrop-blur-sm shadow-sm text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
+              className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
             >
               <ChevronDown className="w-4 h-4" />
             </button>
           </div>
         ) : (
-          <div className="bg-white/80 backdrop-blur-xl border-b border-white/20 shadow-sm">
+          <div className="mx-4 mt-3 mb-1 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
             {/* Toolbar content */}
             <div className="flex items-center justify-between px-2 py-1.5 gap-2">
               {/* Left group: Undo/Redo + Note actions */}

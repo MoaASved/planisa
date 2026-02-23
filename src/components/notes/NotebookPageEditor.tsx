@@ -189,9 +189,9 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   return (
     <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
       {/* Collapsible Toolbar */}
-      <div className="sticky top-0 z-10">
+      <div className="sticky top-0 z-10 px-4 pt-3 pb-1">
         {showToolbar && (
-          <div className="bg-card/80 backdrop-blur-xl border-b border-border/30 px-4 py-2 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-2 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">
               {/* Left group: Undo/Redo */}
               <div className="flex items-center gap-0.5">
@@ -338,12 +338,14 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         )}
 
         {/* Toolbar toggle tab */}
-        <button
-          onClick={() => setShowToolbar(!showToolbar)}
-          className="absolute left-1/2 -translate-x-1/2 -bottom-5 bg-card/80 backdrop-blur-xl px-4 py-1 rounded-b-xl border border-t-0 border-border/30 z-20"
-        >
-          {showToolbar ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
+        <div className="flex justify-center pt-1">
+          <button
+            onClick={() => setShowToolbar(!showToolbar)}
+            className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
+          >
+            {showToolbar ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Header */}
