@@ -515,10 +515,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                   mode="single"
                   selected={date}
                   onSelect={(d) => {
-                    if (d) {
-                      setDate(d);
-                      setDatePickerOpen(false);
-                    }
+                    if (d) setDate(d);
                   }}
                   initialFocus
                   className="p-3 pointer-events-auto"
