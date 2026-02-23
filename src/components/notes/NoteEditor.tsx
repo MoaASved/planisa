@@ -108,6 +108,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   // TipTap editor
   const editor = useEditor({
@@ -486,7 +487,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       </div>
 
       {/* Click-outside overlay to close metadata */}
-      {showMetadata && (
+      {showMetadata && !datePickerOpen && (
         <div 
           className="fixed inset-0 z-[1150]" 
           onClick={() => setShowMetadata(false)} 
@@ -502,19 +503,22 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           {/* Date picker */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-foreground">Date</span>
-            <Popover modal={true}>
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
                   <Calendar className="w-4 h-4" />
                   {format(date, 'MMM d, yyyy')}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[9999]" align="end" onInteractOutside={(e) => e.preventDefault()}>
+              <PopoverContent className="w-auto p-0 z-[9999]" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
                 <CalendarComponent
                   mode="single"
                   selected={date}
                   onSelect={(d) => {
-                    if (d) setDate(d);
+                    if (d) {
+                      setDate(d);
+                      setDatePickerOpen(false);
+                    }
                   }}
                   initialFocus
                   className="p-3 pointer-events-auto"
