@@ -1,61 +1,37 @@
 
+# Ta bort pilen under toolbaren nar den ar ihopfalld
 
-# Floating Toolbar i NoteEditor + Aterstall NotebookPageEditor
+## Problem
+Toggle-knappen (pilen) under toolbaren visas alltid - bade nar toolbaren ar expanderad och nar den ar ihopfalld. Den ska bara synas nar toolbaren ar expanderad.
 
-## Oversikt
+## Andring
 
-Tva andringar:
-1. Aterstall NotebookPageEditor.tsx till originalversionen (innan floating toolbar-andringarna)
-2. Gor toolbaren i NoteEditor.tsx till en fixed/floating komponent
+**Fil: `src/components/notes/NoteEditor.tsx` (rad 450-458)**
 
-## Andring 1: Aterstall NotebookPageEditor.tsx
-
-Aterstall filen till den version som visas i `<current-code>` - den ursprungliga versionen innan nagra toolbar-andringar gjordes. Den har redan korrekt struktur med toolbar som del av sidan.
-
-## Andring 2: NoteEditor.tsx - Floating Toolbar
-
-### Nuvarande problem
-Toolbaren (raderna 294-459) ar en `flex-shrink-0` div som sitter i normalt dokumentflode. Nedanfor den finns header (back-pil, rad 461-469) och datum/folder (rad 471-485), ocksa `flex-shrink-0`. Sedan kommer scrollbart innehall (rad 488-500).
-
-### Ny struktur
+Wrappa "Toolbar toggle tab"-sektionen i ett villkor sa den bara renderas nar `!toolbarCollapsed`:
 
 ```text
-+--------------------------------------------------+
-| [Fixed inset-0 container]                        |
-|                                                  |
-|  [FIXED TOOLBAR - position: fixed]               |
-|   top: 12px, centered, z-[1250]                 |
-|   White rounded container with shadow            |
-|   + collapse/expand toggle below it              |
-|                                                  |
-|  [SCROLLABLE AREA - flex-1 overflow-auto]         |
-|   - Spacer div (for toolbar overlap)             |
-|   - Back arrow (scrolls away)                    |
-|   - Date centered (scrolls away)                 |
-|   - Folder label (scrolls away)                  |
-|   - Title input                                  |
-|   - Editor content                               |
-|                                                  |
-|  [Metadata popup, FolderPicker, VoiceRecorder]    |
-+--------------------------------------------------+
+Fore:
+  {/* Toolbar toggle tab */}
+  <div className="flex justify-center pt-1">
+    <button ...>
+      {toolbarCollapsed ? <ChevronDown /> : <ChevronUp />}
+    </button>
+  </div>
+
+Efter:
+  {/* Toolbar toggle tab - only when expanded */}
+  {!toolbarCollapsed && (
+    <div className="flex justify-center pt-1">
+      <button onClick={() => setToolbarCollapsed(true)} ...>
+        <ChevronUp />
+      </button>
+    </div>
+  )}
 ```
 
-### Tekniska detaljer
+Nar toolbaren ar ihopfalld finns det redan en ChevronUp-knapp inne i sjalva toolbaren (rad 440-444) som kan anvandas for att falla ihop den, och nar den ar ihopfalld behover anvandaren trycka nagon annanstans for att oppna den igen - eller sa kan vi lata spacern/toolbaromradet vara klickbart. 
 
-**Toolbar** (nuvarande rad 294-459):
-- Flytta ut ur normalt flode
-- Wrappa i `<div className="fixed top-3 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]">`
-- Behall all toolbar-funktionalitet (collapsed/expanded, dropdown-menyer, knappar)
-- Uppdatera shadow till `shadow-[0_2px_12px_rgba(0,0,0,0.12)]`
-- Collapse-knappen placeras under toolbaren i samma fixed container
+Notera: Eftersom pilen forsvinner helt nar toolbaren ar ihopfalld, behovs ett satt att oppna den igen. Det finns redan en collapse-knapp i toolbaren (rad 440-444) som stanger den. For att oppna igen kan vi gora spacer-diven klickbar nar toolbaren ar ihopfalld.
 
-**Header och datum** (nuvarande rad 461-485):
-- Ta bort `flex-shrink-0` fran bade header-div och datum-div
-- Flytta in i scrollable area (nuvarande rad 488)
-- De scrollar normalt med innehallet
-
-**Scrollable area**:
-- Lagg till en spacer-div langst upp (`h-16` nar toolbar ar expanded, `h-10` nar collapsed) for att forhindra overlap
-- Back-pil, datum, folder, titel och editor finns har
-
-**Inga andra andringar** - all funktionalitet (metadata popup, folder picker, voice recorder, highlight picker, save/delete) forblir oforandrad.
+Alternativt: Visa en liten diskret "oppna"-knapp bara nar collapsed, men det andrar beteendet. Enklast ar att bara ta bort pilen under nar expanded och behalla den lilla toggle-logiken via spacern.
