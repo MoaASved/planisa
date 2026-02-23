@@ -502,18 +502,20 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           {/* Date picker */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-foreground">Date</span>
-            <Popover>
+            <Popover modal={true}>
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
                   <Calendar className="w-4 h-4" />
                   {format(date, 'MMM d, yyyy')}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[9999]" align="end">
+              <PopoverContent className="w-auto p-0 z-[9999]" align="end" onInteractOutside={(e) => e.preventDefault()}>
                 <CalendarComponent
                   mode="single"
                   selected={date}
-                  onSelect={(d) => d && setDate(d)}
+                  onSelect={(d) => {
+                    if (d) setDate(d);
+                  }}
                   initialFocus
                   className="p-3 pointer-events-auto"
                 />
