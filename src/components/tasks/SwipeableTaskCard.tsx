@@ -221,7 +221,7 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
   const [newSubtask, setNewSubtask] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [subMenu, setSubMenu] = useState<'category' | 'date' | null>(null);
 
   const menuButtonRef = useRef<HTMLButtonElement>(null);
