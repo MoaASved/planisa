@@ -136,7 +136,7 @@ function TaskMenu({ task, anchorRef, onClose, onHide, onDelete, onOpenCategory, 
             <Folder className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">Category</p>
+            <p className="text-sm font-medium text-foreground">List</p>
             <p className="text-xs text-muted-foreground truncate">{task.category || 'None'}</p>
           </div>
         </button>
@@ -537,14 +537,14 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
         <PortalOverlay onClose={() => setSubMenu(null)}>
           <div className="bg-card border border-border/40 rounded-2xl shadow-2xl overflow-hidden w-56">
             <div className="px-4 py-3 border-b border-border/40">
-              <p className="text-sm font-semibold text-foreground">Select Category</p>
+              <p className="text-sm font-semibold text-foreground">Select List</p>
             </div>
             <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
               <button
                 onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); setSubMenu(null); }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors text-left"
               >
-                No category
+                No list
               </button>
               {taskCategories.map((cat) => (
                 <button

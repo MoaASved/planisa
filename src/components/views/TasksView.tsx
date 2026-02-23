@@ -72,7 +72,9 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
       <div className="px-4 py-4">
         {/* Tab Navigation */}
         <div className="flow-segment mb-4">
-          {(['tasks', 'categories', 'completed'] as TabType[]).map((tab) => (
+          {(['tasks', 'categories', 'completed'] as TabType[]).map((tab) => {
+            const label = tab === 'categories' ? 'lists' : tab;
+            return (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -81,9 +83,10 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
                 activeTab === tab && 'flow-segment-item-active'
               )}
             >
-              {tab}
+              {label}
             </button>
-          ))}
+          );
+          })}
         </div>
 
         {/* Tasks Tab */}
@@ -135,7 +138,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
 
             {taskCategories.length === 0 && (
               <div className="col-span-2 flex flex-col items-center justify-center py-16 text-center">
-                <p className="text-sm text-muted-foreground">No categories yet</p>
+                <p className="text-sm text-muted-foreground">No lists yet</p>
               </div>
             )}
           </div>
