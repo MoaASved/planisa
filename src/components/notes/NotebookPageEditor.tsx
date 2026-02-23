@@ -188,120 +188,8 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
   return (
     <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
-      {/* Header - fixed at top */}
-      <div className="flex items-center gap-3 px-4 py-3 pt-4 shrink-0 z-20 bg-background">
-        <button 
-          onClick={handleSave}
-          className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        
-        <div className="flex-1">
-          {!hideDate && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className={cn(
-                  'text-sm font-medium',
-                  selectedColor ? `text-[hsl(var(--pastel-${selectedColor}))]` : 'text-muted-foreground'
-                )}>
-                  {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy')}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
-      </div>
-
-      {/* Settings popup */}
-      {showSettings && (
-        <div 
-          className="mx-4 mb-4 p-4 bg-card rounded-2xl border border-border animate-fade-in"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="space-y-4">
-            {/* Color picker */}
-            <div>
-              <label className="text-sm font-medium mb-2 block">Color</label>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setSelectedColor(undefined)}
-                  className={cn(
-                    'w-8 h-8 rounded-full border-2 transition-all',
-                    !selectedColor ? 'border-foreground scale-110' : 'border-border'
-                  )}
-                  style={{ background: 'white' }}
-                />
-                {pastelColors.map(colorObj => (
-                  <button
-                    key={colorObj.value}
-                    onClick={() => setSelectedColor(colorObj.value)}
-                    className={cn(
-                      'w-8 h-8 rounded-full border-2 transition-all',
-                      selectedColor === colorObj.value ? 'border-foreground scale-110' : 'border-transparent'
-                    )}
-                    style={{ background: `hsl(var(--pastel-${colorObj.value}))` }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Toggles */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Show in Calendar</span>
-              </div>
-              <button
-                onClick={() => setShowInCalendar(!showInCalendar)}
-                className={cn(
-                  'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                  showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                )}
-              >
-                <span 
-                  className={cn(
-                    'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                    showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
-                  )}
-                />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {hideDate ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
-                <span className="text-sm">Hide Date</span>
-              </div>
-              <button
-                onClick={() => setHideDate(!hideDate)}
-                className={cn(
-                  'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                  hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                )}
-              >
-                <span 
-                  className={cn(
-                    'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                    hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
-                  )}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Floating Toolbar */}
-      <div className="sticky top-0 z-10 px-4 pt-2 pb-1 shrink-0">
+      {/* Floating Toolbar - fixed, always visible */}
+      <div className="fixed top-3 left-4 right-4 z-[1200]">
         {showToolbar && (
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] px-2 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">
@@ -332,7 +220,6 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 
                 <div className="w-px h-4 bg-border mx-1" />
                 
-                {/* Format dropdown (Aa) */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
@@ -381,9 +268,8 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 </button>
               </div>
 
-              {/* Right group: Insert dropdown + Settings + Delete */}
+              {/* Right group */}
               <div className="flex items-center gap-0.5">
-                {/* Insert dropdown (+) */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
@@ -460,18 +346,134 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1 overflow-auto px-4" onClick={() => showSettings && setShowSettings(false)}>
-        <div className="bg-secondary/20 rounded-2xl p-4 min-h-full">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title"
-            className="w-full text-2xl font-bold bg-transparent border-0 outline-none mb-4 placeholder:text-muted-foreground/50"
-          />
-          <div className="tiptap-content">
-            <EditorContent editor={editor} />
+      {/* Scrollable content: Header + Settings + Editor */}
+      <div className="flex-1 overflow-auto" onClick={() => showSettings && setShowSettings(false)}>
+        {/* Top spacer for toolbar */}
+        <div className={showToolbar ? 'h-16' : 'h-10'} />
+
+        {/* Header - scrolls with content */}
+        <div className="flex items-center gap-3 px-4 py-3">
+          <button 
+            onClick={handleSave}
+            className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          
+          <div className="flex-1">
+            {!hideDate && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={cn(
+                    'text-sm font-medium',
+                    selectedColor ? `text-[hsl(var(--pastel-${selectedColor}))]` : 'text-muted-foreground'
+                  )}>
+                    {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy')}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
+        </div>
+
+        {/* Settings popup */}
+        {showSettings && (
+          <div 
+            className="mx-4 mb-4 p-4 bg-card rounded-2xl border border-border animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Color</label>
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setSelectedColor(undefined)}
+                    className={cn(
+                      'w-8 h-8 rounded-full border-2 transition-all',
+                      !selectedColor ? 'border-foreground scale-110' : 'border-border'
+                    )}
+                    style={{ background: 'white' }}
+                  />
+                  {pastelColors.map(colorObj => (
+                    <button
+                      key={colorObj.value}
+                      onClick={() => setSelectedColor(colorObj.value)}
+                      className={cn(
+                        'w-8 h-8 rounded-full border-2 transition-all',
+                        selectedColor === colorObj.value ? 'border-foreground scale-110' : 'border-transparent'
+                      )}
+                      style={{ background: `hsl(var(--pastel-${colorObj.value}))` }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Show in Calendar</span>
+                </div>
+                <button
+                  onClick={() => setShowInCalendar(!showInCalendar)}
+                  className={cn(
+                    'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                    showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                  )}
+                >
+                  <span 
+                    className={cn(
+                      'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                      showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
+                    )}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {hideDate ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
+                  <span className="text-sm">Hide Date</span>
+                </div>
+                <button
+                  onClick={() => setHideDate(!hideDate)}
+                  className={cn(
+                    'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                    hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                  )}
+                >
+                  <span 
+                    className={cn(
+                      'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                      hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Editor content */}
+        <div className="px-4 pb-4">
+          <div className="bg-secondary/20 rounded-2xl p-4 min-h-full">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full text-2xl font-bold bg-transparent border-0 outline-none mb-4 placeholder:text-muted-foreground/50"
+            />
+            <div className="tiptap-content">
+              <EditorContent editor={editor} />
+            </div>
           </div>
         </div>
       </div>
