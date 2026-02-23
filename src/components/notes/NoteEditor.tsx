@@ -291,20 +291,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     <div 
       className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
     >
-      {/* Top Horizontal Toolbar - Collapsible */}
-      <div className="flex-shrink-0">
-        {/* Collapsed state - discrete tab */}
-      {toolbarCollapsed ? (
-          <div className="flex justify-center pt-3 pb-1 px-4">
-            <button
-              onClick={() => setToolbarCollapsed(false)}
-              className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
-            >
-              <ChevronDown className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <div className="mx-4 mt-3 mb-1 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+      {/* Fixed Floating Toolbar */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]">
+        {toolbarCollapsed ? null : (
+          <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
             {/* Toolbar content */}
             <div className="flex items-center justify-between px-2 py-1.5 gap-2">
               {/* Left group: Undo/Redo + Note actions */}
@@ -344,7 +334,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                       <ChevronDown className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="min-w-[140px] z-[1200]">
+                  <DropdownMenuContent align="center" className="min-w-[140px] z-[1300]">
                     <DropdownMenuItem 
                       onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                       className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
@@ -397,7 +387,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                       <ChevronDown className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[160px] z-[1200]">
+                  <DropdownMenuContent align="end" className="min-w-[160px] z-[1300]">
                     <DropdownMenuItem 
                       onClick={() => editor?.chain().focus().toggleBulletList().run()}
                       className={cn(editor?.isActive('bulletList') && 'bg-secondary')}
@@ -456,36 +446,47 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Header - Back arrow with white circular background */}
-      <div className="flex-shrink-0 flex items-center px-4 py-2">
-        <button 
-          onClick={handleSave}
-          className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Date and Folder centered */}
-      <div className="flex-shrink-0 flex flex-col items-center px-4 pb-2">
-        {!hideDate && (
-          <span 
-            className="text-sm font-medium text-muted-foreground"
+        {/* Toolbar toggle tab */}
+        <div className="flex justify-center pt-1">
+          <button
+            onClick={() => setToolbarCollapsed(!toolbarCollapsed)}
+            className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
           >
-            {format(date, 'MMMM d, yyyy')}
-          </span>
-        )}
-        {folder && (
-          <span className={cn("px-3 py-1 rounded-full bg-white shadow-sm text-xs font-medium text-muted-foreground", !hideDate && "mt-1.5")}>
-            {folder}
-          </span>
-        )}
+            {toolbarCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
-      {/* Content - scrollable independently */}
+      {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto px-4 pb-10">
+        {/* Spacer for floating toolbar */}
+        <div className={toolbarCollapsed ? 'h-10' : 'h-16'} />
+
+        {/* Header - Back arrow */}
+        <div className="flex items-center py-2">
+          <button 
+            onClick={handleSave}
+            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Date and Folder centered */}
+        <div className="flex flex-col items-center pb-2">
+          {!hideDate && (
+            <span className="text-sm font-medium text-muted-foreground">
+              {format(date, 'MMMM d, yyyy')}
+            </span>
+          )}
+          {folder && (
+            <span className={cn("px-3 py-1 rounded-full bg-white shadow-sm text-xs font-medium text-muted-foreground", !hideDate && "mt-1.5")}>
+              {folder}
+            </span>
+          )}
+        </div>
+
         {/* Title input */}
         <input
           type="text"
