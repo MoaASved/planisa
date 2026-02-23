@@ -260,7 +260,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     disabled,
     children, 
     className,
-    destructive
+    destructive,
+    preventFocusLoss = false,
   }: { 
     onClick: () => void; 
     active?: boolean;
@@ -268,14 +269,16 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     children: React.ReactNode;
     className?: string;
     destructive?: boolean;
+    preventFocusLoss?: boolean;
   }) => (
     <button
       onClick={onClick}
       disabled={disabled}
+      onMouseDown={preventFocusLoss ? (e) => e.preventDefault() : undefined}
       className={cn(
         'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
         disabled && 'opacity-30 cursor-not-allowed active:scale-100',
-        active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-black/5',
+        active ? 'bg-primary/15 text-primary font-semibold shadow-sm' : 'text-muted-foreground hover:bg-black/5',
         destructive && 'hover:bg-destructive/10 text-destructive',
         className
       )}
@@ -309,12 +312,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 <ToolbarBtn 
                   onClick={() => editor?.chain().focus().undo().run()}
                   disabled={!editor?.can().undo()}
+                  preventFocusLoss
                 >
                   <Undo2 className="w-4 h-4" />
                 </ToolbarBtn>
                 <ToolbarBtn 
                   onClick={() => editor?.chain().focus().redo().run()}
                   disabled={!editor?.can().redo()}
+                  preventFocusLoss
                 >
                   <Redo2 className="w-4 h-4" />
                 </ToolbarBtn>
@@ -369,12 +374,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 <ToolbarBtn 
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   active={editor?.isActive('bold')}
+                  preventFocusLoss
                 >
                   <Bold className="w-4 h-4" />
                 </ToolbarBtn>
                 <ToolbarBtn 
                   onClick={() => editor?.chain().focus().toggleItalic().run()}
                   active={editor?.isActive('italic')}
+                  preventFocusLoss
                 >
                   <Italic className="w-4 h-4" />
                 </ToolbarBtn>
