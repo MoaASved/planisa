@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Folder, FolderPlus, X, Check } from 'lucide-react';
+import ReactDOM from 'react-dom';
+import { FolderPlus, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor } from '@/types';
@@ -29,108 +30,114 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
 
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <>
-      <div 
-        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[1100]" 
-        onClick={onClose} 
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+        style={{ zIndex: 9998 }}
+        onClick={onClose}
       />
-      <div className="fixed inset-x-0 bottom-0 z-[1200] flow-bottom-sheet animate-slide-up max-h-[70vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">Select Folder</h3>
-          <button onClick={onClose} className="p-2 rounded-full bg-secondary">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
+      {/* Centering shell */}
+      <div
+        className="fixed inset-0 flex items-center justify-center"
+        style={{ zIndex: 9999, pointerEvents: 'none' }}
+      >
+        <div
+          className="animate-in fade-in zoom-in-95 duration-150 bg-card rounded-2xl shadow-xl w-[280px] max-h-[60vh] overflow-y-auto"
+          style={{ pointerEvents: 'auto' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {!showCreateFolder ? (
+            <div className="py-2">
+              {/* Header */}
+              <p className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Select Folder
+              </p>
 
-        {!showCreateFolder ? (
-          <div className="space-y-2">
-            {/* No folder option */}
-            <button
-              onClick={() => onSelectFolder(undefined)}
-              className={cn(
-                'w-full flex items-center gap-3 p-3 rounded-xl transition-colors',
-                !selectedFolder ? 'bg-primary/10' : 'hover:bg-secondary'
-              )}
-            >
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                <Folder className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <span className="flex-1 text-left font-medium text-foreground">No folder</span>
-              {!selectedFolder && <Check className="w-5 h-5 text-primary" />}
-            </button>
-
-            {/* Existing folders */}
-            {folders.map((folder) => (
+              {/* No folder */}
               <button
-                key={folder.id}
-                onClick={() => onSelectFolder(folder.name)}
+                onClick={() => onSelectFolder(undefined)}
                 className={cn(
-                  'w-full flex items-center gap-3 p-3 rounded-xl transition-colors',
-                  selectedFolder === folder.name ? 'bg-primary/10' : 'hover:bg-secondary'
+                  'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                  !selectedFolder ? 'bg-primary/10' : 'hover:bg-secondary'
                 )}
               >
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', `bg-pastel-${folder.color}/20`)}>
-                  <Folder className={cn('w-5 h-5', `text-pastel-${folder.color}`)} />
-                </div>
-                <span className="flex-1 text-left font-medium text-foreground">{folder.name}</span>
-                {selectedFolder === folder.name && <Check className="w-5 h-5 text-primary" />}
+                <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
+                <span className="flex-1 text-left text-sm font-medium text-foreground">No folder</span>
+                {!selectedFolder && <Check className="w-4 h-4 text-primary" />}
               </button>
-            ))}
 
-            {/* Create new folder button */}
-            <button
-              onClick={() => setShowCreateFolder(true)}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary transition-colors"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <FolderPlus className="w-5 h-5 text-primary" />
-              </div>
-              <span className="flex-1 text-left font-medium text-primary">Create new folder</span>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="Folder name"
-              className="flow-input"
-              autoFocus
-            />
-            
-            <div className="flex flex-wrap gap-2">
-              {pastelColors.map((c) => (
+              {/* Folders */}
+              {folders.map((folder) => (
                 <button
-                  key={c.value}
-                  onClick={() => setNewFolderColor(c.value)}
+                  key={folder.id}
+                  onClick={() => onSelectFolder(folder.name)}
                   className={cn(
-                    'w-8 h-8 rounded-full transition-all',
-                    c.class,
-                    newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                    'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                    selectedFolder === folder.name ? 'bg-primary/10' : 'hover:bg-secondary'
                   )}
-                />
+                >
+                  <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${folder.color}`)} />
+                  <span className="flex-1 text-left text-sm font-medium text-foreground">{folder.name}</span>
+                  {selectedFolder === folder.name && <Check className="w-4 h-4 text-primary" />}
+                </button>
               ))}
-            </div>
 
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowCreateFolder(false)}
-                className="flex-1 flow-button-secondary"
+              {/* Create new */}
+              <button
+                onClick={() => setShowCreateFolder(true)}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary transition-colors border-t border-border"
               >
-                Cancel
-              </button>
-              <button 
-                onClick={handleCreateFolder}
-                className="flex-1 flow-button-primary"
-              >
-                Create
+                <FolderPlus className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">New folder</span>
               </button>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="p-4 space-y-4">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                New Folder
+              </p>
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Folder name"
+                className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground placeholder:text-muted-foreground"
+                autoFocus
+              />
+              <div className="flex flex-wrap gap-2">
+                {pastelColors.map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => setNewFolderColor(c.value)}
+                    className={cn(
+                      'w-7 h-7 rounded-full transition-all',
+                      c.class,
+                      newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCreateFolder(false)}
+                  className="flex-1 py-2 rounded-xl bg-secondary text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateFolder}
+                  className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
