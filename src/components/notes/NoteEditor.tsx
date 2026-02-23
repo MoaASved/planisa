@@ -110,6 +110,9 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
+  // Force re-render on editor transactions so undo/redo buttons update
+  const [, forceUpdate] = useState(0);
+
   // TipTap editor
   const editor = useEditor({
     extensions: [
@@ -142,6 +145,9 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       attributes: {
         class: 'tiptap-editor prose prose-sm min-h-[300px] outline-none max-w-none',
       },
+    },
+    onTransaction: () => {
+      forceUpdate(n => n + 1);
     },
   });
 
