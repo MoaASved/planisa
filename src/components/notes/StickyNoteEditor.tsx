@@ -39,7 +39,11 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
   const { deleteWithUndo } = useUndoableDelete();
   
   const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || '');
-  const [color, setColor] = useState<PastelColor>(note?.color || 'yellow');
+  const [color, setColor] = useState<PastelColor>(() => {
+    if (note?.color) return note.color;
+    const colors: PastelColor[] = ['coral', 'peach', 'amber', 'yellow', 'mint', 'teal', 'sky', 'lavender', 'rose', 'gray', 'stone'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  });
   const [folder, setFolder] = useState(note?.folder || '');
   const [date, setDate] = useState<Date>(note?.date || new Date());
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
