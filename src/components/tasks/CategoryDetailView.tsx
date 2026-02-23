@@ -53,7 +53,7 @@ export function CategoryDetailView({
 
         {tasks.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground">No tasks in this category</p>
+            <p className="text-muted-foreground">No tasks in this list</p>
           </div>
         )}
       </div>

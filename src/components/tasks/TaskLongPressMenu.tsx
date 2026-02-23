@@ -59,7 +59,7 @@ export function TaskLongPressMenu({ task, onClose }: TaskLongPressMenuProps) {
                 <Folder className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">Category</p>
+                <p className="text-sm font-medium text-foreground">List</p>
                 <p className="text-xs text-muted-foreground truncate">{task.category || 'None'}</p>
               </div>
             </button>
@@ -70,7 +70,7 @@ export function TaskLongPressMenu({ task, onClose }: TaskLongPressMenuProps) {
                 onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); onClose(); }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-secondary transition-colors"
               >
-                No category
+                No list
               </button>
               {taskCategories.map((cat) => (
                 <button

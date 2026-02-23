@@ -359,8 +359,8 @@ export function ProfileView() {
                     <CheckSquare className="w-5 h-5 text-pastel-mint" />
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-foreground">Tasks Categories</p>
-                    <p className="text-sm text-muted-foreground">{taskCategories.length} categories</p>
+                    <p className="font-medium text-foreground">Tasks Lists</p>
+                    <p className="text-sm text-muted-foreground">{taskCategories.length} lists</p>
                   </div>
                 </div>
                 {expandedSection === 'tasks' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
@@ -394,7 +394,7 @@ export function ProfileView() {
                     onClick={() => openAddDrawer('tasks')}
                     className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    Add New Category
+                    Add New List
                   </button>
                 </div>
               )}
@@ -599,28 +599,28 @@ export function ProfileView() {
       <CategoryEditDrawer
         isOpen={showAddDrawer}
         onClose={() => setShowAddDrawer(false)}
-        title={`New ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'notebooks' ? 'Notebook' : 'Category'}`}
+        title={`New ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'notebooks' ? 'Notebook' : addDrawerSection === 'tasks' ? 'List' : 'Category'}`}
         itemName={newItemName}
         itemColor={newItemColor}
         onNameChange={setNewItemName}
         onColorChange={setNewItemColor}
         onSave={handleAddItem}
-        placeholder={addDrawerSection === 'notes' ? 'Folder name' : addDrawerSection === 'notebooks' ? 'Notebook name' : 'Category name'}
-        saveLabel={`Create ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'notebooks' ? 'Notebook' : 'Category'}`}
+        placeholder={addDrawerSection === 'notes' ? 'Folder name' : addDrawerSection === 'notebooks' ? 'Notebook name' : addDrawerSection === 'tasks' ? 'List name' : 'Category name'}
+        saveLabel={`Create ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'notebooks' ? 'Notebook' : addDrawerSection === 'tasks' ? 'List' : 'Category'}`}
       />
 
       {/* Edit Category/Folder/Notebook Drawer */}
       <CategoryEditDrawer
         isOpen={showEditDrawer}
         onClose={() => setShowEditDrawer(false)}
-        title={`Edit ${editItemSection === 'notes' ? 'Folder' : editItemSection === 'notebooks' ? 'Notebook' : 'Category'}`}
+        title={`Edit ${editItemSection === 'notes' ? 'Folder' : editItemSection === 'notebooks' ? 'Notebook' : editItemSection === 'tasks' ? 'List' : 'Category'}`}
         itemName={editItemName}
         itemColor={editItemColor}
         onNameChange={setEditItemName}
         onColorChange={setEditItemColor}
         onSave={handleUpdateItem}
         onDelete={() => editItemId && handleDeleteItem(editItemSection, editItemId)}
-        placeholder={editItemSection === 'notes' ? 'Folder name' : editItemSection === 'notebooks' ? 'Notebook name' : 'Category name'}
+        placeholder={editItemSection === 'notes' ? 'Folder name' : editItemSection === 'notebooks' ? 'Notebook name' : editItemSection === 'tasks' ? 'List name' : 'Category name'}
         saveLabel="Save Changes"
         showDelete={true}
       />
