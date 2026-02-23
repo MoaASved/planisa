@@ -344,7 +344,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                       <ChevronDown className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="min-w-[140px]">
+                  <DropdownMenuContent align="center" className="min-w-[140px] z-[1200]">
                     <DropdownMenuItem 
                       onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                       className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
@@ -397,7 +397,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                       <ChevronDown className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[160px]">
+                  <DropdownMenuContent align="end" className="min-w-[160px] z-[1200]">
                     <DropdownMenuItem 
                       onClick={() => editor?.chain().focus().toggleBulletList().run()}
                       className={cn(editor?.isActive('bulletList') && 'bg-secondary')}

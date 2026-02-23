@@ -210,7 +210,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 {note.title || 'Untitled'}
               </h4>
               {note.isPinned && (
-                <Star className="w-4 h-4 text-[hsl(var(--pastel-amber))] flex-shrink-0" fill="currentColor" />
+                <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
               )}
             </div>
             <p className={cn('text-sm text-muted-foreground mt-1', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>

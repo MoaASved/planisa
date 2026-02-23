@@ -68,7 +68,7 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
               {getPreview(note.content) || note.title || 'Empty note'}
             </p>
             {note.isPinned && (
-              <Star className="w-4 h-4 text-foreground/60 flex-shrink-0" fill="currentColor" />
+              <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
             )}
           </div>
         </div>
