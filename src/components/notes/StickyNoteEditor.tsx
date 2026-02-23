@@ -180,7 +180,7 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                <div className="p-3 border-b">
+                <div className="p-3">
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
