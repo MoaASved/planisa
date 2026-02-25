@@ -51,12 +51,8 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div
-            className="w-1 self-stretch rounded-full"
-            style={{ backgroundColor: notebookColor }}
-          />
           <BookOpen className="w-5 h-5" style={{ color: notebookColor }} />
-          <h1 className="font-bold text-lg" style={{ color: '#1C1C1E' }}>{notebook.name}</h1>
+          <h1 className="text-lg" style={{ color: '#1C1C1E', fontWeight: 500 }}>{notebook.name}</h1>
         </div>
       </div>
 
@@ -85,9 +81,9 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                 }}
               >
                 <div className="flex items-center gap-3 h-full">
-                  <FileText className="w-5 h-5 shrink-0" style={{ color: '#8E8E93' }} />
+                  <FileText className="w-5 h-5 shrink-0" style={{ color: '#C7C7CC' }} />
                   <div className="flex-1 min-w-0">
-                    <h4 className="truncate" style={{ fontWeight: 700, color: '#1C1C1E', fontSize: 16 }}>
+                    <h4 className="truncate" style={{ fontWeight: 600, color: '#1C1C1E', fontSize: 16 }}>
                       {page.title}
                     </h4>
                     {preview && (
