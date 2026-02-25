@@ -37,30 +37,31 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
     );
   }
 
+  const notebookColor = `hsl(var(--pastel-${notebook.color}))`;
+
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
         <button 
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
+          className="w-10 h-10 rounded-full bg-card flex items-center justify-center active:scale-95 transition-all"
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className={cn(
-            'w-8 h-10 rounded-lg flex items-center justify-center relative',
-            `bg-[hsl(var(--pastel-${notebook.color})/0.3)]`
-          )}>
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-black/10 rounded-l-lg" />
-            <BookOpen className={cn('w-4 h-4', `text-[hsl(var(--pastel-${notebook.color}))]`)} />
-          </div>
-          <h1 className="font-semibold text-lg">{notebook.name}</h1>
+          <div
+            className="w-1 self-stretch rounded-full"
+            style={{ backgroundColor: notebookColor }}
+          />
+          <BookOpen className="w-5 h-5" style={{ color: notebookColor }} />
+          <h1 className="font-bold text-lg" style={{ color: '#1C1C1E' }}>{notebook.name}</h1>
         </div>
       </div>
 
       {/* Pages list */}
-      <div className="px-4 py-4 space-y-2">
+      <div className="px-4 py-4" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {pages.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -68,42 +69,52 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
             <p className="text-sm">Add your first page</p>
           </div>
         ) : (
-          pages.map((page, index) => (
-            <button
-              key={page.id}
-              onClick={() => setSelectedPage(page)}
-              className={cn(
-                'w-full text-left p-4 rounded-xl transition-all active:scale-[0.98]',
-                page.type === 'sticky' 
-                  ? `bg-[hsl(var(--pastel-${page.color || 'yellow'})/0.4)]` 
-                  : 'bg-card border border-border'
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
+          pages.map((page, index) => {
+            const plainText = page.content.replace(/<[^>]*>/g, '').trim();
+            const preview = plainText.split('\n')[0]?.slice(0, 60) || '';
+            return (
+              <button
+                key={page.id}
+                onClick={() => setSelectedPage(page)}
+                className="w-full text-left transition-all active:scale-[0.98] bg-white"
+                style={{
+                  borderRadius: 14,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+                  height: 72,
+                  padding: 16,
+                }}
+              >
+                <div className="flex items-center gap-3 h-full">
+                  <FileText className="w-5 h-5 shrink-0" style={{ color: '#8E8E93' }} />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="truncate" style={{ fontWeight: 700, color: '#1C1C1E', fontSize: 16 }}>
+                      {page.title}
+                    </h4>
+                    {preview && (
+                      <p className="truncate" style={{ color: '#8E8E93', fontSize: 13 }}>
+                        {preview}
+                      </p>
+                    )}
+                  </div>
+                  <span className="shrink-0" style={{ color: '#C7C7CC', fontSize: 13 }}>
+                    Page {index + 1}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium truncate">{page.title}</h4>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {page.content.replace(/<[^>]*>/g, '').slice(0, 50) || 'Empty page'}
-                  </p>
-                </div>
-                <span className="text-xs text-muted-foreground">Page {index + 1}</span>
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
 
-      {/* Add page FAB - positioned above navbar */}
+      {/* Add page FAB */}
       <div className="fixed bottom-[120px] right-4 z-[1100]">
         <button
           onClick={handleAddPage}
           className={cn(
-            'w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95',
+            'w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95',
             `bg-[hsl(var(--pastel-${notebook.color}))]`
           )}
+          style={{ boxShadow: '0 -2px 8px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.12)' }}
         >
           <Plus className="w-6 h-6" />
         </button>
