@@ -145,6 +145,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       attributes: {
         class: 'tiptap-editor prose prose-sm min-h-[300px] outline-none max-w-none',
       },
+      scrollThreshold: 0,
+      scrollMargin: 0,
     },
     onTransaction: () => {
       forceUpdate(n => n + 1);
@@ -494,6 +496,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          onFocus={(e) => e.target.scrollIntoView = () => {}}
           className="w-full text-2xl font-bold bg-transparent border-0 outline-none text-foreground mb-4 text-center"
           placeholder="Note title"
         />

@@ -76,6 +76,8 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       attributes: {
         class: 'tiptap-editor outline-none min-h-[300px] leading-snug',
       },
+      scrollThreshold: 0,
+      scrollMargin: 0,
     },
   });
 
@@ -469,6 +471,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onFocus={(e) => e.target.scrollIntoView = () => {}}
               placeholder="Title"
               className="w-full text-2xl font-bold bg-transparent border-0 outline-none mb-4 placeholder:text-muted-foreground/50"
             />
