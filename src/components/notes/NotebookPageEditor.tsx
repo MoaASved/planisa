@@ -188,10 +188,29 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     };
   }, [selectedColor]);
 
+  // Track visual viewport offset for mobile keyboard
+  const [viewportOffset, setViewportOffset] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      setViewportOffset(vv.offsetTop);
+    };
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
       {/* Floating Toolbar - fixed, centered */}
-      <div className="fixed top-[60px] left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]">
+      <div 
+        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]"
+        style={{ top: `${60 + viewportOffset}px` }}
+      >
         {showToolbar && (
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] px-2 py-2 animate-fade-in">
             <div className="flex items-center justify-between gap-2">

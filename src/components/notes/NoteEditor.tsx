@@ -289,12 +289,31 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     </button>
   );
 
+  // Track visual viewport offset for mobile keyboard
+  const [viewportOffset, setViewportOffset] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      setViewportOffset(vv.offsetTop);
+    };
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
+  }, []);
+
   return (
     <div 
       className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
     >
       {/* Fixed Floating Toolbar */}
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]">
+      <div 
+        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]"
+        style={{ top: `${12 + viewportOffset}px` }}
+      >
         {toolbarCollapsed ? null : (
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
             {/* Toolbar content */}
