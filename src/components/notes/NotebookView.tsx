@@ -83,7 +83,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                 <div className="flex items-center gap-3 h-full">
                   <FileText className="w-5 h-5 shrink-0" style={{ color: '#C7C7CC' }} />
                   <div className="flex-1 min-w-0">
-                    <h4 className="truncate" style={{ fontWeight: 600, color: '#1C1C1E', fontSize: 16 }}>
+                    <h4 className="truncate" style={{ fontWeight: 500, color: '#1C1C1E', fontSize: 16 }}>
                       {page.title}
                     </h4>
                     {preview && (
