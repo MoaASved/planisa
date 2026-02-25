@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, Plus, BookOpen, FileText, StickyNote } from 'lucide-react';
+import { ArrowLeft, Plus, BookOpen, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Notebook, NotebookPage } from '@/types';
 import { NotebookPageEditor } from './NotebookPageEditor';
-import { StickyNoteCard } from './StickyNoteCard';
 
 interface NotebookViewProps {
   notebook: Notebook;
@@ -15,27 +14,13 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
   const { notebookPages, addNotebookPage } = useAppStore();
   const [selectedPage, setSelectedPage] = useState<NotebookPage | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
-  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const pages = notebookPages
     .filter(p => p.notebookId === notebook.id)
     .sort((a, b) => a.order - b.order);
 
-  const handleAddPage = (type: 'note' | 'sticky') => {
-    if (type === 'note') {
-      setIsCreatingPage(true);
-    } else {
-      // For sticky notes, create directly
-      addNotebookPage({
-        notebookId: notebook.id,
-        title: 'Quick Note',
-        content: '',
-        type: 'sticky',
-        order: pages.length,
-        color: 'yellow',
-      });
-    }
-    setShowAddMenu(false);
+  const handleAddPage = () => {
+    setIsCreatingPage(true);
   };
 
   // Show page editor
@@ -96,11 +81,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
-                  {page.type === 'sticky' ? (
-                    <StickyNote className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <FileText className="w-4 h-4 text-muted-foreground" />
-                  )}
+                  <FileText className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium truncate">{page.title}</h4>
@@ -115,40 +96,16 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
         )}
       </div>
 
-      {/* Add page FAB */}
-      <div className="fixed bottom-24 right-4 z-[1100]">
-        {showAddMenu && (
-          <>
-            <div 
-              className="fixed inset-0" 
-              onClick={() => setShowAddMenu(false)} 
-            />
-            <div className="absolute bottom-16 right-0 bg-card rounded-2xl shadow-lg border border-border p-2 min-w-[160px] animate-fade-in">
-              <button
-                onClick={() => handleAddPage('note')}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors"
-              >
-                <FileText className="w-5 h-5 text-primary" />
-                <span className="font-medium">Add Page</span>
-              </button>
-              <button
-                onClick={() => handleAddPage('sticky')}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-secondary transition-colors"
-              >
-                <StickyNote className="w-5 h-5 text-[hsl(var(--pastel-yellow))]" />
-                <span className="font-medium">Add Sticky</span>
-              </button>
-            </div>
-          </>
-        )}
+      {/* Add page FAB - positioned above navbar */}
+      <div className="fixed bottom-[120px] right-4 z-[1100]">
         <button
-          onClick={() => setShowAddMenu(!showAddMenu)}
+          onClick={handleAddPage}
           className={cn(
             'w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95',
             `bg-[hsl(var(--pastel-${notebook.color}))]`
           )}
         >
-          <Plus className={cn('w-6 h-6 transition-transform', showAddMenu && 'rotate-45')} />
+          <Plus className="w-6 h-6" />
         </button>
       </div>
     </div>
