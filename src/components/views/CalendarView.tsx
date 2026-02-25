@@ -19,7 +19,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
   
-  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders } = useAppStore();
+  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages } = useAppStore();
 
   // Edit modal states
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
@@ -28,7 +28,28 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [showNoteEditor, setShowNoteEditor] = useState(false);
 
   // Filter notes to only show those with showInCalendar enabled
-  const calendarNotes = notes.filter(n => n.showInCalendar);
+  const calendarNotes: Note[] = [
+    ...notes.filter(n => n.showInCalendar),
+    // Include notebook pages with showInCalendar as Note-like objects
+    ...notebookPages
+      .filter(p => p.showInCalendar)
+      .map(p => ({
+        id: `nbp-${p.id}`,
+        title: p.title || 'Untitled',
+        content: p.content,
+        type: 'note' as const,
+        tags: [],
+        color: p.color,
+        date: p.date ? new Date(p.date) : p.createdAt ? new Date(p.createdAt) : new Date(),
+        time: p.time,
+        endTime: p.endTime,
+        createdAt: new Date(p.createdAt),
+        updatedAt: new Date(p.updatedAt),
+        isPinned: false,
+        showInCalendar: true,
+        hideDate: p.hideDate,
+      })),
+  ];
 
   // Get effective color: manual color > category color
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {

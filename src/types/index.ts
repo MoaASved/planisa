@@ -103,6 +103,9 @@ export interface NotebookPage {
   type: NoteType;
   color?: PastelColor;
   order: number;
+  date?: Date;
+  time?: string;
+  endTime?: string;
   createdAt: Date;
   updatedAt: Date;
   showInCalendar?: boolean;
