@@ -1,3 +1,4 @@
+import { MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Notebook } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -8,9 +9,10 @@ interface NotebookCardProps {
   notebook: Notebook;
   onClick: () => void;
   onLongPress?: () => void;
+  onEdit?: () => void;
 }
 
-export function NotebookCard({ notebook, onClick, onLongPress }: NotebookCardProps) {
+export function NotebookCard({ notebook, onClick, onLongPress, onEdit }: NotebookCardProps) {
   const { notebookPages } = useAppStore();
   const pageCount = notebookPages.filter(p => p.notebookId === notebook.id).length;
 
@@ -47,6 +49,27 @@ export function NotebookCard({ notebook, onClick, onLongPress }: NotebookCardPro
           <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>
             {pageCount} {pageCount === 1 ? 'page' : 'pages'}
           </p>
+        </div>
+        {/* Three-dot menu */}
+        <div
+          className="absolute bottom-2 right-2 z-10"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onEdit?.();
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          style={{
+            background: 'rgba(0,0,0,0.15)',
+            borderRadius: 6,
+            padding: 4,
+            cursor: 'pointer',
+          }}
+        >
+          <MoreHorizontal className="w-5 h-5" style={{ color: '#fff' }} />
         </div>
       </AspectRatio>
     </button>

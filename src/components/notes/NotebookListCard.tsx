@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { Notebook } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -7,9 +7,10 @@ interface NotebookListCardProps {
   notebook: Notebook;
   onClick: () => void;
   onLongPress?: () => void;
+  onEdit?: () => void;
 }
 
-export function NotebookListCard({ notebook, onClick, onLongPress }: NotebookListCardProps) {
+export function NotebookListCard({ notebook, onClick, onLongPress, onEdit }: NotebookListCardProps) {
   const { notebookPages } = useAppStore();
   const pageCount = notebookPages.filter(p => p.notebookId === notebook.id).length;
 
@@ -50,8 +51,25 @@ export function NotebookListCard({ notebook, onClick, onLongPress }: NotebookLis
       </div>
 
       {/* Chevron */}
-      <div className="pr-4">
+      <div className="pr-2">
         <ChevronRight className="w-5 h-5" style={{ color: '#C7C7CC' }} />
+      </div>
+
+      {/* Three-dot menu */}
+      <div
+        className="pr-4"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onEdit?.();
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        style={{ cursor: 'pointer' }}
+      >
+        <MoreHorizontal className="w-5 h-5" style={{ color: '#C7C7CC' }} />
       </div>
     </button>
   );
