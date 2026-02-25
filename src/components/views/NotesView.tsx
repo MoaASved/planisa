@@ -415,20 +415,22 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
               onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} 
             />
-            <div className="fixed z-[9999] p-6 bg-card rounded-[20px] shadow-xl animate-scale-in" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
-                <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
+            <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
+              <div className="bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
+                  <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
+                    <X className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </div>
+                <input type="text" value={newNotebookName} onChange={(e) => setNewNotebookName(e.target.value)} placeholder="Notebook name" className="flow-input mb-4" />
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {pastelColors.map((c) => (
+                    <button key={c.value} onClick={() => setNewNotebookColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newNotebookColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
+                  ))}
+                </div>
+                <button onClick={handleSaveNotebook} className="w-full flow-button-primary">{editingNotebook ? 'Save Changes' : 'Create Notebook'}</button>
               </div>
-              <input type="text" value={newNotebookName} onChange={(e) => setNewNotebookName(e.target.value)} placeholder="Notebook name" className="flow-input mb-4" />
-              <div className="flex flex-wrap gap-2 mb-4">
-                {pastelColors.map((c) => (
-                  <button key={c.value} onClick={() => setNewNotebookColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newNotebookColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
-                ))}
-              </div>
-              <button onClick={handleSaveNotebook} className="w-full flow-button-primary">{editingNotebook ? 'Save Changes' : 'Create Notebook'}</button>
             </div>
           </>
         )}
