@@ -11,7 +11,8 @@ import {
   Search,
   BookOpen,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  MoreHorizontal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -25,6 +26,7 @@ import { NotebookListCard } from '@/components/notes/NotebookListCard';
 import { FolderListCard } from '@/components/notes/FolderListCard';
 import { NotebookView } from '@/components/notes/NotebookView';
 import { NotebookActionSheet } from '@/components/notes/NotebookActionSheet';
+import { NotebookEditModal } from '@/components/notes/NotebookEditModal';
 import { useHaptics } from '@/hooks/useHaptics';
 
 
@@ -63,6 +65,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [actionSheetNotebook, setActionSheetNotebook] = useState<Notebook | null>(null);
   const [showNotebookActions, setShowNotebookActions] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
+  const [editModalNotebook, setEditModalNotebook] = useState<Notebook | null>(null);
 
   // Scroll to top when editor closes
   useEffect(() => {
@@ -365,12 +368,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                     notebook={notebook} 
                     onClick={() => setSelectedNotebook(notebook)}
                     onLongPress={() => handleNotebookLongPress(notebook)}
+                    onEdit={() => setEditModalNotebook(notebook)}
                   />
                 ) : (
                   <NotebookListCard 
                     notebook={notebook} 
                     onClick={() => setSelectedNotebook(notebook)}
                     onLongPress={() => handleNotebookLongPress(notebook)}
+                    onEdit={() => setEditModalNotebook(notebook)}
                   />
                 )}
               </div>
@@ -430,6 +435,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           onEdit={handleEditNotebook}
           onDelete={handleDeleteNotebook}
         />
+
+        {/* Edit Notebook Modal (from three-dot menu) */}
+        {editModalNotebook && (
+          <NotebookEditModal
+            notebook={editModalNotebook}
+            onClose={() => setEditModalNotebook(null)}
+          />
+        )}
 
       </div>
     );
