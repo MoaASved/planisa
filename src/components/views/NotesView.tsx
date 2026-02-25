@@ -415,7 +415,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
               onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} 
             />
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-48px)] max-w-sm z-[1200] bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
+            <div className="fixed z-[9999] p-6 bg-card rounded-[20px] shadow-xl animate-scale-in" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
                 <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
