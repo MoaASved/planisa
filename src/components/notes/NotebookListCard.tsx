@@ -1,5 +1,4 @@
-import { BookOpen, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChevronRight } from 'lucide-react';
 import { Notebook } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -23,30 +22,37 @@ export function NotebookListCard({ notebook, onClick, onLongPress }: NotebookLis
   return (
     <button
       {...longPressHandlers}
-      className={cn(
-        'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border',
-        'transition-all duration-200 active:scale-[0.98] hover:shadow-md group'
-      )}
+      className="w-full flex items-center rounded-[14px] overflow-hidden transition-all duration-200 active:scale-[0.98]"
+      style={{
+        height: 72,
+        backgroundColor: '#fff',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+      }}
     >
-      {/* Compact notebook icon */}
-      <div className={cn(
-        'w-12 h-14 rounded-lg flex items-center justify-center relative flex-shrink-0',
-        `bg-[hsl(var(--pastel-${notebook.color}))]`
-      )}>
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-black/10 rounded-l-lg" />
-        <BookOpen className="w-5 h-5 text-white/80" />
-      </div>
-      
+      {/* Color bar */}
+      <div
+        className="h-full flex-shrink-0"
+        style={{
+          width: 8,
+          backgroundColor: `hsl(var(--pastel-${notebook.color}, 160 30% 65%))`,
+          borderRadius: '4px 0 0 4px',
+        }}
+      />
+
       {/* Info */}
-      <div className="flex-1 min-w-0 text-left">
-        <h4 className="font-semibold text-foreground truncate">{notebook.name}</h4>
-        <p className="text-sm text-muted-foreground">
+      <div className="flex-1 min-w-0 text-left pl-4">
+        <h4 className="font-bold text-[16px] leading-tight" style={{ color: '#1C1C1E' }}>
+          {notebook.name}
+        </h4>
+        <p className="text-[13px] mt-0.5" style={{ color: '#8E8E93' }}>
           {pageCount} {pageCount === 1 ? 'page' : 'pages'}
         </p>
       </div>
-      
+
       {/* Chevron */}
-      <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="pr-4">
+        <ChevronRight className="w-5 h-5" style={{ color: '#C7C7CC' }} />
+      </div>
     </button>
   );
 }
