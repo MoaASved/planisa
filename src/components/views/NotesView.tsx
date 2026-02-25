@@ -351,9 +351,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
           <div className={cn(
             layoutMode === 'grid' 
-              ? 'grid grid-cols-3 gap-4' 
-              : 'space-y-3'
-          )}>
+              ? 'grid grid-cols-2 gap-4 p-4' 
+              : 'space-y-2 px-4'
+          )} style={{ margin: layoutMode === 'grid' ? '-16px' : undefined }}>
             {notebooks.map((notebook, index) => (
               <div 
                 key={notebook.id} 
@@ -375,29 +375,16 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 )}
               </div>
             ))}
+          </div>
 
-            {/* Add notebook button - adapts to layout */}
-            {layoutMode === 'grid' ? (
-              <button
-                onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('lavender'); setShowNotebookModal(true); }}
-                className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
-              >
-                <div className="w-14 h-[72px] mb-2 flex items-center justify-center">
-                  <Plus className="w-8 h-8 text-muted-foreground/50" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">New</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('lavender'); setShowNotebookModal(true); }}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
-              >
-                <div className="w-12 h-14 rounded-lg flex items-center justify-center bg-secondary/30">
-                  <Plus className="w-6 h-6 text-muted-foreground/50" />
-                </div>
-                <span className="font-medium text-muted-foreground">New Notebook</span>
-              </button>
-            )}
+          {/* FAB for creating new notebook */}
+          <div className="fixed bottom-[120px] right-4 z-[1100]">
+            <button
+              onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('lavender'); setShowNotebookModal(true); }}
+              className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
+            >
+              <Plus className="w-6 h-6 text-primary-foreground" />
+            </button>
           </div>
 
           {notebooks.length === 0 && (
