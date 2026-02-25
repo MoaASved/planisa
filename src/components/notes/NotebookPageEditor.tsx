@@ -87,13 +87,31 @@ const PAGE_COLORS: { hex: string; value: PastelColor }[] = [
   { hex: '#E0DCD1', value: 'stone' },
 ];
 
+const calculateEndTime = (start: string): string => {
+  const [h, m] = start.split(':').map(Number);
+  const endH = Math.min(h + 1, 23);
+  const endMin = h + 1 > 23 ? 59 : m;
+  return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
+};
+
 export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEditorProps) {
   const { addNotebookPage, updateNotebookPage, notebookPages } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
   
   const [title, setTitle] = useState(page?.title || '');
-  const [date, setDate] = useState<Date>(new Date());
+  const [date, setDate] = useState<Date>(page?.date ? new Date(page.date) : new Date());
+  const [time, setTime] = useState<string | undefined>(page?.time);
+  const [endTime, setEndTime] = useState<string | undefined>(page?.endTime);
+  const endTimeManuallySet = useRef(false);
   const [showInCalendar, setShowInCalendar] = useState(page?.showInCalendar || false);
+
+  // Auto-calculate endTime when it's missing and start time exists
+  useEffect(() => {
+    if (showInCalendar && time && !endTime && !endTimeManuallySet.current) {
+      setEndTime(calculateEndTime(time));
+    }
+  }, [showInCalendar, time, endTime]);
+
   const [hideDate, setHideDate] = useState(page?.hideDate || false);
   const [selectedColor, setSelectedColor] = useState<PastelColor | undefined>(page?.color);
   
@@ -110,26 +128,16 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: {
-          levels: [1, 2],
-        },
+        heading: { levels: [1, 2] },
       }),
       Highlight.configure({
         multicolor: true,
-        HTMLAttributes: {
-          class: 'highlight',
-        },
+        HTMLAttributes: { class: 'highlight' },
       }),
       TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-      Placeholder.configure({
-        placeholder: 'Start writing...',
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
+      TaskItem.configure({ nested: true }),
+      Placeholder.configure({ placeholder: 'Start writing...' }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
       DraggableImage,
       VoiceNoteExtension,
     ],
@@ -157,6 +165,9 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         showInCalendar,
         hideDate,
         color: selectedColor,
+        date,
+        time: showInCalendar ? time : undefined,
+        endTime: showInCalendar && time ? endTime : undefined,
       });
     } else {
       addNotebookPage({
@@ -168,6 +179,9 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         showInCalendar,
         hideDate,
         color: selectedColor,
+        date,
+        time: showInCalendar ? time : undefined,
+        endTime: showInCalendar && time ? endTime : undefined,
       });
     }
     onClose();
@@ -205,7 +219,6 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -236,21 +249,10 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
   // Toolbar button component - identical to NoteEditor
   const ToolbarBtn = ({
-    onClick, 
-    active, 
-    disabled,
-    children, 
-    className,
-    destructive,
-    preventFocusLoss = false,
+    onClick, active, disabled, children, className, destructive, preventFocusLoss = false,
   }: { 
-    onClick: () => void; 
-    active?: boolean;
-    disabled?: boolean;
-    children: React.ReactNode;
-    className?: string;
-    destructive?: boolean;
-    preventFocusLoss?: boolean;
+    onClick: () => void; active?: boolean; disabled?: boolean;
+    children: React.ReactNode; className?: string; destructive?: boolean; preventFocusLoss?: boolean;
   }) => (
     <button
       onClick={onClick}
@@ -273,9 +275,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const onResize = () => {
-      setViewportOffset(vv.offsetTop);
-    };
+    const onResize = () => { setViewportOffset(vv.offsetTop); };
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onResize);
     return () => {
@@ -285,9 +285,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   }, []);
 
   return (
-    <div 
-      className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
-    >
+    <div className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in">
       {/* Fixed Floating Toolbar - identical to NoteEditor */}
       <div 
         className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]"
@@ -298,21 +296,12 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
             <div className="flex items-center justify-between px-2 py-1.5 gap-2">
               {/* Left group: Undo/Redo */}
               <div className="flex items-center gap-0.5">
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().undo().run()}
-                  disabled={!editor?.can().undo()}
-                  preventFocusLoss
-                >
+                <ToolbarBtn onClick={() => editor?.chain().focus().undo().run()} disabled={!editor?.can().undo()} preventFocusLoss>
                   <Undo2 className="w-4 h-4" />
                 </ToolbarBtn>
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().redo().run()}
-                  disabled={!editor?.can().redo()}
-                  preventFocusLoss
-                >
+                <ToolbarBtn onClick={() => editor?.chain().focus().redo().run()} disabled={!editor?.can().redo()} preventFocusLoss>
                   <Redo2 className="w-4 h-4" />
                 </ToolbarBtn>
-                
                 <div className="w-px h-4 bg-border mx-1" />
               </div>
 
@@ -352,18 +341,10 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleBold().run()}
-                  active={editor?.isActive('bold')}
-                  preventFocusLoss
-                >
+                <ToolbarBtn onClick={() => editor?.chain().focus().toggleBold().run()} active={editor?.isActive('bold')} preventFocusLoss>
                   <Bold className="w-4 h-4" />
                 </ToolbarBtn>
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  active={editor?.isActive('italic')}
-                  preventFocusLoss
-                >
+                <ToolbarBtn onClick={() => editor?.chain().focus().toggleItalic().run()} active={editor?.isActive('italic')} preventFocusLoss>
                   <Italic className="w-4 h-4" />
                 </ToolbarBtn>
               </div>
@@ -509,7 +490,6 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
               <span className="text-sm text-foreground">Page color</span>
             </div>
             <div className="flex gap-2 flex-wrap">
-              {/* No color (white) option */}
               <button
                 onClick={() => setSelectedColor(undefined)}
                 className={cn(
@@ -550,9 +530,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 <CalendarComponent
                   mode="single"
                   selected={date}
-                  onSelect={(d) => {
-                    if (d) setDate(d);
-                  }}
+                  onSelect={(d) => { if (d) setDate(d); }}
                   initialFocus
                   className="p-3 pointer-events-auto"
                 />
@@ -567,20 +545,87 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
               <span className="text-sm text-foreground">Show in calendar</span>
             </div>
             <button
-              onClick={() => setShowInCalendar(!showInCalendar)}
+              onClick={() => {
+                const newValue = !showInCalendar;
+                setShowInCalendar(newValue);
+                if (!newValue) {
+                  setTime(undefined);
+                  setEndTime(undefined);
+                }
+              }}
               className={cn(
                 'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
                 showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
               )}
             >
-              <span 
-                className={cn(
-                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
-                )}
-              />
+              <span className={cn(
+                'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
+              )} />
             </button>
           </div>
+
+          {/* Start time picker - only shown when showInCalendar is enabled */}
+          {showInCalendar && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-foreground">Time</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={time || ''}
+                  onChange={(e) => {
+                    const val = e.target.value || undefined;
+                    setTime(val);
+                    if (!endTimeManuallySet.current && val) {
+                      setEndTime(calculateEndTime(val));
+                    }
+                  }}
+                  className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                />
+                {time && (
+                  <button 
+                    onClick={() => {
+                      setTime(undefined);
+                      setEndTime(undefined);
+                    }}
+                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* End time picker - only shown when start time exists */}
+          {showInCalendar && time && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-foreground">End time</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={endTime || ''}
+                  onChange={(e) => {
+                    endTimeManuallySet.current = true;
+                    setEndTime(e.target.value || undefined);
+                  }}
+                  min={time}
+                  className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                />
+                {endTime && (
+                  <button 
+                    onClick={() => {
+                      endTimeManuallySet.current = false;
+                      setEndTime(undefined);
+                    }}
+                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Hide date toggle */}
           <div className="flex items-center justify-between">
@@ -595,12 +640,10 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                 hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
               )}
             >
-              <span 
-                className={cn(
-                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
-                )}
-              />
+              <span className={cn(
+                'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
+              )} />
             </button>
           </div>
         </div>
