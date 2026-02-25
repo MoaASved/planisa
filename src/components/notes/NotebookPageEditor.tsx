@@ -1,26 +1,39 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, Eye, EyeOff, Settings, Trash2, ChevronDown, ChevronUp, Bold, Italic, List, ListOrdered, CheckSquare, Highlighter, AlignLeft, AlignCenter, AlignRight, Image as ImageIcon, Mic, Plus, Undo2, Redo2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Highlight from '@tiptap/extension-highlight';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import Highlight from '@tiptap/extension-highlight';
 import TextAlign from '@tiptap/extension-text-align';
 import { DraggableImage } from './DraggableImage';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { useAppStore } from '@/store/useAppStore';
-import { NotebookPage, NoteType, PastelColor, Notebook } from '@/types';
-import { useUndoableDelete } from '@/hooks/useUndoableDelete';
-import { format } from 'date-fns';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Switch } from '@/components/ui/switch';
-import { pastelColors } from '@/lib/colors';
-import { compressImage } from '@/lib/mediaUtils';
-import { VoiceRecordingModal } from './VoiceRecordingModal';
-import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
+import { 
+  ArrowLeft, 
+  Trash2,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  CheckSquare,
+  Highlighter,
+  Calendar,
+  EyeOff,
+  Settings,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Mic,
+  Plus,
+  Undo2,
+  Redo2,
+  Check,
+  Palette
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +41,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import { useAppStore } from '@/store/useAppStore';
+import { NotebookPage, NoteType, PastelColor, Notebook } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useUndoableDelete } from '@/hooks/useUndoableDelete';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { compressImage } from '@/lib/mediaUtils';
+import { VoiceRecordingModal } from './VoiceRecordingModal';
+import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
 
 interface NotebookPageEditorProps {
   notebook: Notebook;
@@ -35,18 +57,55 @@ interface NotebookPageEditorProps {
   onClose: () => void;
 }
 
+// Color map for highlight styling
+const colorHslMap: Record<PastelColor, string> = {
+  coral: 'hsl(123, 10%, 51%)',
+  peach: 'hsl(53, 24%, 69%)',
+  amber: 'hsl(195, 29%, 53%)',
+  yellow: 'hsl(196, 27%, 87%)',
+  mint: 'hsl(20, 96%, 75%)',
+  teal: 'hsl(33, 96%, 76%)',
+  sky: 'hsl(1, 64%, 75%)',
+  lavender: 'hsl(344, 48%, 67%)',
+  rose: 'hsl(283, 18%, 57%)',
+  gray: 'hsl(34, 19%, 58%)',
+  stone: 'hsl(44, 16%, 85%)',
+};
+
+// Page color palette
+const PAGE_COLORS: { hex: string; value: PastelColor }[] = [
+  { hex: '#768E78', value: 'coral' },
+  { hex: '#C6C09C', value: 'peach' },
+  { hex: '#6398A9', value: 'amber' },
+  { hex: '#D5E3E8', value: 'yellow' },
+  { hex: '#FCAC83', value: 'mint' },
+  { hex: '#FCC88A', value: 'teal' },
+  { hex: '#E79897', value: 'sky' },
+  { hex: '#F2C4CE', value: 'lavender' },
+  { hex: '#9B7FA6', value: 'rose' },
+  { hex: '#A89880', value: 'gray' },
+  { hex: '#E0DCD1', value: 'stone' },
+];
+
 export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEditorProps) {
   const { addNotebookPage, updateNotebookPage, notebookPages } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
   
   const [title, setTitle] = useState(page?.title || '');
+  const [date, setDate] = useState<Date>(new Date());
   const [showInCalendar, setShowInCalendar] = useState(page?.showInCalendar || false);
   const [hideDate, setHideDate] = useState(page?.hideDate || false);
-  const [showToolbar, setShowToolbar] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedColor, setSelectedColor] = useState<PastelColor | undefined>(page?.color);
+  
+  const [showMetadata, setShowMetadata] = useState(false);
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
+  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  // Force re-render on editor transactions so undo/redo buttons update
+  const [, forceUpdate] = useState(0);
 
   const editor = useEditor({
     extensions: [
@@ -55,15 +114,18 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
           levels: [1, 2],
         },
       }),
-      Placeholder.configure({
-        placeholder: 'Start writing...',
+      Highlight.configure({
+        multicolor: true,
+        HTMLAttributes: {
+          class: 'highlight',
+        },
       }),
       TaskList,
       TaskItem.configure({
         nested: true,
       }),
-      Highlight.configure({
-        multicolor: true,
+      Placeholder.configure({
+        placeholder: 'Start writing...',
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
@@ -74,14 +136,16 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     content: page?.content || '',
     editorProps: {
       attributes: {
-        class: 'tiptap-editor outline-none min-h-[300px] leading-snug',
+        class: 'tiptap-editor prose prose-sm min-h-[300px] outline-none max-w-none',
       },
       scrollThreshold: 0,
       scrollMargin: 0,
     },
+    onTransaction: () => {
+      forceUpdate(n => n + 1);
+    },
   });
 
-  // Save on close
   const handleSave = () => {
     const content = editor?.getHTML() || '';
     const pagesInNotebook = notebookPages.filter(p => p.notebookId === notebook.id);
@@ -116,28 +180,27 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     onClose();
   };
 
+  const handleHighlight = (highlightColor: PastelColor) => {
+    editor?.chain().focus().toggleHighlight({ color: colorHslMap[highlightColor] }).run();
+    setShowHighlightPicker(false);
+  };
+
   const cycleAlignment = () => {
-    if (!editor) return;
-    const current = editor.getAttributes('paragraph').textAlign || 'left';
-    const next = current === 'left' ? 'center' : current === 'center' ? 'right' : 'left';
-    editor.chain().focus().setTextAlign(next).run();
+    const next = textAlign === 'left' ? 'center' : textAlign === 'center' ? 'right' : 'left';
+    setTextAlign(next);
+    editor?.chain().focus().setTextAlign(next).run();
   };
 
-  const getCurrentAlignment = () => {
-    if (!editor) return 'left';
-    return editor.getAttributes('paragraph').textAlign || 'left';
+  const getAlignmentIcon = () => {
+    switch (textAlign) {
+      case 'center': return AlignCenter;
+      case 'right': return AlignRight;
+      default: return AlignLeft;
+    }
   };
 
-  const getAlignIcon = () => {
-    const align = getCurrentAlignment();
-    if (align === 'center') return AlignCenter;
-    if (align === 'right') return AlignRight;
-    return AlignLeft;
-  };
+  const AlignIcon = getAlignmentIcon();
 
-  const AlignIcon = getAlignIcon();
-
-  // Handle image upload with size warning
   const handleAddImage = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -148,13 +211,10 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       if (file) {
         try {
           const compressedBase64 = await compressImage(file);
-          
-          // Warn if image is large (> 500KB)
           const MAX_IMAGE_SIZE = 500 * 1024;
           if (compressedBase64.length > MAX_IMAGE_SIZE) {
             toast.warning('Image is large and may affect performance');
           }
-          
           editor?.chain().focus().insertContent({
             type: 'image',
             attrs: { src: compressedBase64 },
@@ -165,28 +225,48 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         }
       }
     };
-    
     input.click();
   };
 
-  // Handle voice recording complete
   const handleVoiceRecordingComplete = (audioData: string, duration: number) => {
     if (editor) {
       insertVoiceNote(editor, audioData, duration);
     }
   };
 
-  // Set CSS variable for note color
-  useEffect(() => {
-    if (selectedColor) {
-      document.documentElement.style.setProperty('--note-color', `hsl(var(--pastel-${selectedColor}))`);
-    } else {
-      document.documentElement.style.removeProperty('--note-color');
-    }
-    return () => {
-      document.documentElement.style.removeProperty('--note-color');
-    };
-  }, [selectedColor]);
+  // Toolbar button component - identical to NoteEditor
+  const ToolbarBtn = ({
+    onClick, 
+    active, 
+    disabled,
+    children, 
+    className,
+    destructive,
+    preventFocusLoss = false,
+  }: { 
+    onClick: () => void; 
+    active?: boolean;
+    disabled?: boolean;
+    children: React.ReactNode;
+    className?: string;
+    destructive?: boolean;
+    preventFocusLoss?: boolean;
+  }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseDown={preventFocusLoss ? (e) => e.preventDefault() : undefined}
+      className={cn(
+        'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+        disabled && 'opacity-30 cursor-not-allowed active:scale-100',
+        active ? 'bg-primary/15 text-primary font-semibold shadow-sm' : 'text-muted-foreground hover:bg-black/5',
+        destructive && 'hover:bg-destructive/10 text-destructive',
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
 
   // Track visual viewport offset for mobile keyboard
   const [viewportOffset, setViewportOffset] = useState(0);
@@ -205,42 +285,39 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-background z-[1100] flex flex-col">
-      {/* Floating Toolbar - fixed, centered */}
+    <div 
+      className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
+    >
+      {/* Fixed Floating Toolbar - identical to NoteEditor */}
       <div 
         className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]"
-        style={{ top: `${60 + viewportOffset}px` }}
+        style={{ top: `${12 + viewportOffset}px` }}
       >
-        {showToolbar && (
-          <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)] px-2 py-2 animate-fade-in">
-            <div className="flex items-center justify-between gap-2">
+        {toolbarCollapsed ? null : (
+          <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
+            <div className="flex items-center justify-between px-2 py-1.5 gap-2">
               {/* Left group: Undo/Redo */}
               <div className="flex items-center gap-0.5">
-                <button
+                <ToolbarBtn 
                   onClick={() => editor?.chain().focus().undo().run()}
                   disabled={!editor?.can().undo()}
-                  className={cn(
-                    'p-2 rounded-lg transition-all active:scale-90',
-                    !editor?.can().undo() && 'opacity-30 cursor-not-allowed active:scale-100',
-                    'hover:bg-secondary/50'
-                  )}
+                  preventFocusLoss
                 >
                   <Undo2 className="w-4 h-4" />
-                </button>
-                <button
+                </ToolbarBtn>
+                <ToolbarBtn 
                   onClick={() => editor?.chain().focus().redo().run()}
                   disabled={!editor?.can().redo()}
-                  className={cn(
-                    'p-2 rounded-lg transition-all active:scale-90',
-                    !editor?.can().redo() && 'opacity-30 cursor-not-allowed active:scale-100',
-                    'hover:bg-secondary/50'
-                  )}
+                  preventFocusLoss
                 >
                   <Redo2 className="w-4 h-4" />
-                </button>
+                </ToolbarBtn>
                 
                 <div className="w-px h-4 bg-border mx-1" />
-                
+              </div>
+
+              {/* Center group: Format dropdown + Bold + Italic */}
+              <div className="flex items-center gap-0.5">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
@@ -248,7 +325,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                       <ChevronDown className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[140px]">
+                  <DropdownMenuContent align="center" className="min-w-[140px] z-[1300]">
                     <DropdownMenuItem 
                       onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                       className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
@@ -275,21 +352,23 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <button
+                <ToolbarBtn 
                   onClick={() => editor?.chain().focus().toggleBold().run()}
-                  className={cn('p-2 rounded-lg transition-colors', editor?.isActive('bold') ? 'bg-secondary' : 'hover:bg-secondary/50')}
+                  active={editor?.isActive('bold')}
+                  preventFocusLoss
                 >
                   <Bold className="w-4 h-4" />
-                </button>
-                <button
+                </ToolbarBtn>
+                <ToolbarBtn 
                   onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  className={cn('p-2 rounded-lg transition-colors', editor?.isActive('italic') ? 'bg-secondary' : 'hover:bg-secondary/50')}
+                  active={editor?.isActive('italic')}
+                  preventFocusLoss
                 >
                   <Italic className="w-4 h-4" />
-                </button>
+                </ToolbarBtn>
               </div>
 
-              {/* Right group */}
+              {/* Right group: Insert dropdown + Settings + Delete + Collapse */}
               <div className="flex items-center gap-0.5">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -298,7 +377,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                       <ChevronDown className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[160px]">
+                  <DropdownMenuContent align="end" className="min-w-[160px] z-[1300]">
                     <DropdownMenuItem 
                       onClick={() => editor?.chain().focus().toggleBulletList().run()}
                       className={cn(editor?.isActive('bulletList') && 'bg-secondary')}
@@ -330,176 +409,202 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
                       <span>Voice note</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => editor?.chain().focus().toggleHighlight().run()}>
+                    <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
                       <Highlighter className="w-4 h-4 mr-2" />
                       <span>Highlight</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <button
-                  onClick={() => setShowSettings(!showSettings)}
-                  className={cn('p-2 rounded-lg transition-colors', showSettings ? 'bg-secondary' : 'hover:bg-secondary/50')}
-                >
+                <ToolbarBtn onClick={() => setShowMetadata(!showMetadata)} active={showMetadata}>
                   <Settings className="w-4 h-4" />
-                </button>
+                </ToolbarBtn>
+                
                 {page && (
-                  <button
-                    onClick={handleDelete}
-                    className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
-                  >
+                  <ToolbarBtn onClick={handleDelete} destructive>
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </ToolbarBtn>
                 )}
+                
+                <button
+                  onClick={() => setToolbarCollapsed(true)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-colors"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Toolbar toggle tab */}
-        <div className="flex justify-center pt-1">
-          <button
-            onClick={() => setShowToolbar(!showToolbar)}
-            className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
-          >
-            {showToolbar ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-        </div>
+        {/* Toolbar toggle tab - only when collapsed */}
+        {toolbarCollapsed && (
+          <div className="flex justify-center pt-1">
+            <button
+              onClick={() => setToolbarCollapsed(false)}
+              className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-auto" onClick={() => showSettings && setShowSettings(false)}>
-        {/* Back arrow + spacer */}
-        <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto px-4 pb-10">
+        {/* Spacer for floating toolbar */}
+        <div className={toolbarCollapsed ? 'h-10' : 'h-16'} />
+
+        {/* Header - Back arrow */}
+        <div className="flex items-center py-2">
           <button 
             onClick={handleSave}
-            className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
+            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Spacer for floating toolbar */}
-        <div className={showToolbar ? 'h-14' : 'h-8'} />
-
-        {/* Date - centered */}
+        {/* Date - left-aligned */}
         {!hideDate && (
-          <div className="text-center px-4 mb-1">
-            <Popover>
+          <div className="pb-1">
+            <span className="text-sm font-medium text-muted-foreground">
+              {format(date, 'MMMM d, yyyy')}
+            </span>
+          </div>
+        )}
+
+        {/* Title input - left-aligned */}
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onFocus={(e) => e.target.scrollIntoView = () => {}}
+          className="w-full text-2xl font-bold bg-transparent border-0 outline-none text-foreground mb-4"
+          placeholder="Title"
+        />
+        
+        {/* TipTap Editor */}
+        <EditorContent editor={editor} className="tiptap-content" />
+      </div>
+
+      {/* Click-outside overlay to close metadata */}
+      {showMetadata && !datePickerOpen && (
+        <div 
+          className="fixed inset-0 z-[1150]" 
+          onClick={() => setShowMetadata(false)} 
+        />
+      )}
+
+      {/* Metadata Section (popup from settings button) */}
+      {showMetadata && (
+        <div 
+          className="fixed left-4 right-4 top-16 border border-white/20 bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-[1200] shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Page color picker */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Palette className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Page color</span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {/* No color (white) option */}
+              <button
+                onClick={() => setSelectedColor(undefined)}
+                className={cn(
+                  'w-[34px] h-[34px] rounded-full border-2 transition-all flex items-center justify-center',
+                  !selectedColor ? 'border-foreground scale-110' : 'border-border'
+                )}
+                style={{ background: 'white' }}
+              >
+                {!selectedColor && <Check className="w-3.5 h-3.5 text-foreground" />}
+              </button>
+              {PAGE_COLORS.map(colorObj => (
+                <button
+                  key={colorObj.value}
+                  onClick={() => setSelectedColor(colorObj.value)}
+                  className={cn(
+                    'w-[34px] h-[34px] rounded-full border-2 transition-all flex items-center justify-center',
+                    selectedColor === colorObj.value ? 'border-foreground scale-110' : 'border-transparent'
+                  )}
+                  style={{ background: colorObj.hex }}
+                >
+                  {selectedColor === colorObj.value && <Check className="w-3.5 h-3.5 text-white" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date picker */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-foreground">Date</span>
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
-                <button className={cn(
-                  'text-sm font-medium',
-                  selectedColor ? `text-[hsl(var(--pastel-${selectedColor}))]` : 'text-muted-foreground'
-                )}>
-                  {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : format(new Date(), 'MMMM d, yyyy')}
+                <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
+                  <Calendar className="w-4 h-4" />
+                  {format(date, 'MMM d, yyyy')}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="center">
+              <PopoverContent className="w-auto p-0 z-[9999]" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
                 <CalendarComponent
                   mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  selected={date}
+                  onSelect={(d) => {
+                    if (d) setDate(d);
+                  }}
                   initialFocus
+                  className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
           </div>
-        )}
 
-        {/* Settings popup */}
-        {showSettings && (
-          <div 
-            className="mx-4 mb-4 p-4 bg-card rounded-2xl border border-border animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Color</label>
-                <div className="flex gap-2 flex-wrap">
-                  <button
-                    onClick={() => setSelectedColor(undefined)}
-                    className={cn(
-                      'w-8 h-8 rounded-full border-2 transition-all',
-                      !selectedColor ? 'border-foreground scale-110' : 'border-border'
-                    )}
-                    style={{ background: 'white' }}
-                  />
-                  {pastelColors.map(colorObj => (
-                    <button
-                      key={colorObj.value}
-                      onClick={() => setSelectedColor(colorObj.value)}
-                      className={cn(
-                        'w-8 h-8 rounded-full border-2 transition-all',
-                        selectedColor === colorObj.value ? 'border-foreground scale-110' : 'border-transparent'
-                      )}
-                      style={{ background: `hsl(var(--pastel-${colorObj.value}))` }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Show in Calendar</span>
-                </div>
-                <button
-                  onClick={() => setShowInCalendar(!showInCalendar)}
-                  className={cn(
-                    'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                    showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                  )}
-                >
-                  <span 
-                    className={cn(
-                      'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                      showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
-                    )}
-                  />
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {hideDate ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
-                  <span className="text-sm">Hide Date</span>
-                </div>
-                <button
-                  onClick={() => setHideDate(!hideDate)}
-                  className={cn(
-                    'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                    hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                  )}
-                >
-                  <span 
-                    className={cn(
-                      'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                      hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
-                    )}
-                  />
-                </button>
-              </div>
+          {/* Show in calendar toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Show in calendar</span>
             </div>
+            <button
+              onClick={() => setShowInCalendar(!showInCalendar)}
+              className={cn(
+                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+              )}
+            >
+              <span 
+                className={cn(
+                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
+                )}
+              />
+            </button>
           </div>
-        )}
-
-        {/* Editor content */}
-        <div className="px-4 pb-4">
-          <div className="bg-secondary/20 rounded-2xl p-4 min-h-full">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              onFocus={(e) => e.target.scrollIntoView = () => {}}
-              placeholder="Title"
-              className="w-full text-2xl font-bold bg-transparent border-0 outline-none mb-4 placeholder:text-muted-foreground/50"
-            />
-            <div className="tiptap-content">
-              <EditorContent editor={editor} />
+          
+          {/* Hide date toggle */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <EyeOff className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Hide Date</span>
             </div>
+            <button
+              onClick={() => setHideDate(!hideDate)}
+              className={cn(
+                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+              )}
+            >
+              <span 
+                className={cn(
+                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
+                  hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
+                )}
+              />
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Voice Recording Modal */}
       <VoiceRecordingModal
