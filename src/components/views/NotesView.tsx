@@ -367,14 +367,12 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   <NotebookCard 
                     notebook={notebook} 
                     onClick={() => setSelectedNotebook(notebook)}
-                    onLongPress={() => handleNotebookLongPress(notebook)}
                     onEdit={() => setEditModalNotebook(notebook)}
                   />
                 ) : (
                   <NotebookListCard 
                     notebook={notebook} 
                     onClick={() => setSelectedNotebook(notebook)}
-                    onLongPress={() => handleNotebookLongPress(notebook)}
                     onEdit={() => setEditModalNotebook(notebook)}
                   />
                 )}
