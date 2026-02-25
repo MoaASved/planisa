@@ -410,8 +410,12 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
         {showNotebookModal && (
           <>
-            <div className="fixed inset-0 glass-overlay z-40" onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} />
-            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet glass-modal animate-slide-up">
+            <div 
+              className="fixed inset-0 z-[1100] animate-fade-in"
+              style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+              onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} 
+            />
+            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-48px)] max-w-sm z-[1200] bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
                 <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
