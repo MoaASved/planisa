@@ -1,32 +1,12 @@
 
 
 ## Problem
+Sticky note-editorn använder `/60` (60% opacity) på bakgrundsfärgen, vilket gör den genomskinlig när den öppnas från kalendern.
 
-When a sticky note is clicked in the calendar, the flow is:
-1. `handleItemClick` sets `editingNote` → opens `CalendarNoteModal` (generic preview — wrong)
-2. Clicking "Open" in that modal opens `NoteEditor` (regular editor — also wrong)
+## Lösning
+Ändra `getStickyBgClass` i `StickyNoteEditor.tsx` — byt alla `/60` till full opacitet (ta bort `/60`).
 
-Sticky notes are never routed to `StickyNoteEditor`.
+### Fil: `src/components/notes/StickyNoteEditor.tsx`
 
-## Solution
-
-Modify `CalendarView.tsx` to detect sticky notes (`note.type === 'sticky'`) and open them directly in `StickyNoteEditor` instead of going through the `CalendarNoteModal` preview.
-
-### File: `src/components/views/CalendarView.tsx`
-
-1. **Import `StickyNoteEditor`**
-
-2. **Add state**: `editingStickyNote` (separate from `editingNote`) to track when a sticky note should be shown
-
-3. **Update `handleItemClick`**: When a note is clicked, check `note.type`:
-   - If `'sticky'` → set `editingStickyNote` (skip CalendarNoteModal entirely)
-   - If `'note'` → keep current behavior (CalendarNoteModal preview)
-
-4. **Update `handleOpenFullNoteEditor`**: Same check — if sticky, open StickyNoteEditor; if regular, open NoteEditor
-
-5. **Render `StickyNoteEditor`** as a full-screen overlay when `editingStickyNote` is set, alongside existing modals
-
-### No other files need changes
-
-The `StickyNoteEditor` already accepts an optional `note` prop and renders as a full-screen overlay with the correct sticky note styling and color.
+Uppdatera `getStickyBgClass`-funktionen: ändra alla `bg-pastel-X/60` till `bg-pastel-X` (12 ställen, inklusive default-värdet och fallback).
 
