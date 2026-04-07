@@ -10,6 +10,7 @@ import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
 import { CalendarTaskModal } from '@/components/modals/CalendarTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
+import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 
 type SimpleView = 'month' | 'weekday';
 
@@ -25,6 +26,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editingStickyNote, setEditingStickyNote] = useState<Note | null>(null);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
 
   // Filter notes to only show those with showInCalendar enabled
@@ -115,17 +117,28 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     } else if (type === 'task') {
       setEditingTask(item as Task);
     } else {
-      setEditingNote(item as Note);
+      const note = item as Note;
+      if (note.type === 'sticky') {
+        setEditingStickyNote(note);
+      } else {
+        setEditingNote(note);
+      }
     }
   };
 
   const handleOpenFullNoteEditor = (note: Note) => {
-    setEditingNote(note);
-    setShowNoteEditor(true);
+    if (note.type === 'sticky') {
+      setEditingNote(null);
+      setEditingStickyNote(note);
+    } else {
+      setEditingNote(note);
+      setShowNoteEditor(true);
+    }
   };
 
   const handleCloseNoteModal = () => {
     setEditingNote(null);
+    setEditingStickyNote(null);
     setShowNoteEditor(false);
   };
 
@@ -239,6 +252,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         <NoteEditor
           note={editingNote}
           onClose={handleCloseNoteModal}
+        />
+      )}
+      
+      {editingStickyNote && (
+        <StickyNoteEditor
+          note={editingStickyNote}
+          onClose={() => setEditingStickyNote(null)}
         />
       )}
     </div>
