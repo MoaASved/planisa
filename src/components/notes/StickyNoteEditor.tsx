@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { X, Calendar as CalendarIcon, Folder, Star, Trash2 } from 'lucide-react';
@@ -49,6 +49,23 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar || false);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const [time, setTime] = useState<string | undefined>(note?.time);
+  const [endTime, setEndTime] = useState<string | undefined>(note?.endTime);
+  const endTimeManuallySet = useRef(false);
+
+  const calculateEndTime = (startTime: string): string => {
+    const [h, m] = startTime.split(':').map(Number);
+    const endH = Math.min(h + 1, 23);
+    const endM = h >= 23 ? 59 : m;
+    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+  };
+
+  const handleTimeChange = (val: string) => {
+    setTime(val);
+    if (!endTimeManuallySet.current) {
+      setEndTime(calculateEndTime(val));
+    }
+  };
 
   const handleSave = () => {
     const noteData = {
@@ -61,6 +78,8 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
       tags: [],
       isPinned,
       showInCalendar,
+      time: showInCalendar ? time : undefined,
+      endTime: showInCalendar ? endTime : undefined,
       hideFromAllNotes: false,
     };
 
@@ -196,12 +215,29 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
                   </label>
                 </div>
                 {showInCalendar && (
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(d) => d && setDate(d)}
-                    className="p-3 pointer-events-auto"
-                  />
+                  <>
+                    <div className="flex items-center gap-2 px-3 pb-3">
+                      <input
+                        type="time"
+                        value={time || ''}
+                        onChange={(e) => handleTimeChange(e.target.value)}
+                        className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                      />
+                      <span className="text-muted-foreground text-sm">–</span>
+                      <input
+                        type="time"
+                        value={endTime || ''}
+                        onChange={(e) => { setEndTime(e.target.value); endTimeManuallySet.current = true; }}
+                        className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                      />
+                    </div>
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={(d) => d && setDate(d)}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </>
                 )}
               </PopoverContent>
             </Popover>
