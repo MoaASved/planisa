@@ -50,6 +50,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { compressImage } from '@/lib/mediaUtils';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
 import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
+import { pastelColors } from '@/lib/colors';
 
 interface NotebookPageEditorProps {
   notebook: Notebook;
