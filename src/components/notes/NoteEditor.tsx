@@ -470,6 +470,9 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                     <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
                       <Highlighter className="w-4 h-4 mr-2" />
                       <span>Highlight</span>
+                      {activeHighlightColor && (
+                        <span className="ml-auto w-3 h-3 rounded-full" style={{ background: colorHslMap[activeHighlightColor] }} />
+                      )}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
