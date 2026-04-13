@@ -105,6 +105,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
