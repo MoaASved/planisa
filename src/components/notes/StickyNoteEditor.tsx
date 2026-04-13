@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { X, Calendar as CalendarIcon, Folder, Star, Trash2 } from 'lucide-react';
@@ -52,6 +52,18 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
   const [time, setTime] = useState<string | undefined>(note?.time);
   const [endTime, setEndTime] = useState<string | undefined>(note?.endTime);
   const endTimeManuallySet = useRef(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const handler = () => {
+      const keyboardHeight = window.innerHeight - vv.height;
+      setKeyboardOffset(keyboardHeight > 50 ? keyboardHeight : 0);
+    };
+    vv.addEventListener('resize', handler);
+    return () => vv.removeEventListener('resize', handler);
+  }, []);
 
   const calculateEndTime = (startTime: string): string => {
     const [h, m] = startTime.split(':').map(Number);
@@ -116,11 +128,17 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
       {/* Sticky Note Modal */}
       <div 
         className={cn(
-          'fixed left-4 right-4 top-1/2 -translate-y-1/2 z-[1200] rounded-3xl p-6 shadow-xl',
+          'fixed left-4 right-4 z-[1200] rounded-3xl p-6 shadow-xl',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           getStickyBgClass(color)
         )}
-        style={{ maxHeight: '70vh' }}
+        style={{
+          maxHeight: '70vh',
+          top: keyboardOffset > 0
+            ? `calc((100vh - ${keyboardOffset}px) / 2)`
+            : '50%',
+          transform: 'translateY(-50%)',
+        }}
       >
         {/* Top actions */}
         <div className="flex items-center justify-between mb-4">
@@ -152,7 +170,7 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
             'placeholder:text-foreground/40 text-foreground/90',
             'min-h-[150px] max-h-[300px]'
           )}
-          autoFocus
+          
         />
 
         {/* Bottom actions */}
