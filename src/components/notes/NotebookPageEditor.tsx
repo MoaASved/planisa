@@ -196,9 +196,33 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   };
 
   const handleHighlight = (highlightColor: PastelColor) => {
-    editor?.chain().focus().toggleHighlight({ color: colorHslMap[highlightColor] }).run();
+    const hasSelection = editor && !editor.state.selection.empty;
+    if (hasSelection) {
+      editor?.chain().focus().setHighlight({ color: colorHslMap[highlightColor] }).run();
+      setActiveHighlightColor(null);
+    } else {
+      setActiveHighlightColor(highlightColor);
+    }
     setShowHighlightPicker(false);
   };
+
+  const handleRemoveHighlight = () => {
+    editor?.chain().focus().unsetHighlight().run();
+    setActiveHighlightColor(null);
+    setShowHighlightPicker(false);
+  };
+
+  // Highlight pen mode: auto-apply on selection
+  useEffect(() => {
+    if (!editor || !activeHighlightColor) return;
+    const handler = ({ editor: e }: { editor: typeof editor }) => {
+      if (e && !e.state.selection.empty) {
+        e.chain().setHighlight({ color: colorHslMap[activeHighlightColor] }).run();
+      }
+    };
+    editor.on('selectionUpdate', handler as any);
+    return () => { editor.off('selectionUpdate', handler as any); };
+  }, [editor, activeHighlightColor]);
 
   const cycleAlignment = () => {
     const next = textAlign === 'left' ? 'center' : textAlign === 'center' ? 'right' : 'left';
