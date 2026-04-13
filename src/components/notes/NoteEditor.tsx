@@ -105,6 +105,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
@@ -195,9 +196,35 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   };
 
   const handleHighlight = (highlightColor: PastelColor) => {
-    editor?.chain().focus().toggleHighlight({ color: colorHslMap[highlightColor] }).run();
+    const hasSelection = editor && !editor.state.selection.empty;
+    if (hasSelection) {
+      // Apply highlight to current selection
+      editor?.chain().focus().setHighlight({ color: colorHslMap[highlightColor] }).run();
+      setActiveHighlightColor(null);
+    } else {
+      // Activate highlight pen mode
+      setActiveHighlightColor(highlightColor);
+    }
     setShowHighlightPicker(false);
   };
+
+  const handleRemoveHighlight = () => {
+    editor?.chain().focus().unsetHighlight().run();
+    setActiveHighlightColor(null);
+    setShowHighlightPicker(false);
+  };
+
+  // Highlight pen mode: auto-apply on selection
+  useEffect(() => {
+    if (!editor || !activeHighlightColor) return;
+    const handler = ({ editor: e }: { editor: typeof editor }) => {
+      if (e && !e.state.selection.empty) {
+        e.chain().setHighlight({ color: colorHslMap[activeHighlightColor] }).run();
+      }
+    };
+    editor.on('selectionUpdate', handler as any);
+    return () => { editor.off('selectionUpdate', handler as any); };
+  }, [editor, activeHighlightColor]);
 
   const cycleAlignment = () => {
     const next = textAlign === 'left' ? 'center' : textAlign === 'center' ? 'right' : 'left';
@@ -443,6 +470,9 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                     <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
                       <Highlighter className="w-4 h-4 mr-2" />
                       <span>Highlight</span>
+                      {activeHighlightColor && (
+                        <span className="ml-auto w-3 h-3 rounded-full" style={{ background: colorHslMap[activeHighlightColor] }} />
+                      )}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -481,7 +511,42 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         )}
       </div>
 
-      {/* Scrollable content area */}
+      {/* Highlight color picker panel */}
+      {showHighlightPicker && (
+        <>
+          <div className="fixed inset-0 z-[1260]" onClick={() => setShowHighlightPicker(false)} />
+          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300]" style={{ top: `${60 + viewportOffset}px` }}>
+            <div className="bg-background rounded-2xl shadow-lg p-3 border border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <Highlighter className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Highlight</span>
+                {activeHighlightColor && (
+                  <span className="text-xs text-primary ml-auto">Pen mode active</span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {pastelColors.map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => handleHighlight(c.value)}
+                    className={cn(
+                      'w-8 h-8 rounded-full transition-all',
+                      activeHighlightColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                    )}
+                    style={{ background: colorHslMap[c.value] }}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={handleRemoveHighlight}
+                className="mt-2 w-full text-sm text-muted-foreground hover:text-foreground py-1.5 rounded-xl hover:bg-secondary transition-colors"
+              >
+                Remove highlight
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       <div className="flex-1 overflow-y-auto px-4 pb-10">
         {/* Spacer for floating toolbar */}
         <div className={toolbarCollapsed ? 'h-10' : 'h-16'} />
