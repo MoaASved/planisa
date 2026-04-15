@@ -68,6 +68,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [showNotebookActions, setShowNotebookActions] = useState(false);
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [editModalNotebook, setEditModalNotebook] = useState<Notebook | null>(null);
+  const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
 
   // Scroll to top when editor closes
   useEffect(() => {
@@ -507,9 +508,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
           <div className={cn(
             layoutMode === 'grid' 
-              ? 'grid grid-cols-3 gap-4' 
+              ? 'grid grid-cols-2 gap-4 p-4' 
               : 'space-y-3'
-          )}>
+          )} style={{ margin: layoutMode === 'grid' ? '-16px' : undefined }}>
             {folders.map((folder, index) => {
               const count = notes.filter(n => n.folder === folder.name).length;
               return (
@@ -519,58 +520,17 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   style={{ animationDelay: `${index * 40}ms` }}
                 >
                   {layoutMode === 'grid' ? (
-                    <button
+                    <FolderGridCard
+                      folder={folder}
                       onClick={() => setSelectedFolder(folder)}
-                      className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30"
-                    >
-                      {/* macOS style folder icon */}
-                      <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2">
-                        <path 
-                          d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
-                          fill={`hsl(var(--pastel-${folder.color}))`}
-                          opacity="0.9"
-                        />
-                        <path 
-                          d="M4 16 L76 16 L76 60 C76 62 74 64 72 64 L8 64 C6 64 4 62 4 60 L4 16 Z" 
-                          fill={`hsl(var(--pastel-${folder.color}))`}
-                        />
-                      </svg>
-                      <span className="text-sm font-medium text-center truncate max-w-[80px]">
-                        {folder.name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {count} {count === 1 ? 'item' : 'items'}
-                      </span>
-                    </button>
+                      onEdit={() => setEditModalFolder(folder)}
+                    />
                   ) : (
                     <FolderListCard folder={folder} count={count} onClick={() => setSelectedFolder(folder)} />
                   )}
                 </div>
               );
             })}
-
-            {/* Add folder button - adapts to layout */}
-            {layoutMode === 'grid' ? (
-              <button
-                onClick={() => setShowFolderModal(true)}
-                className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 border-2 border-dashed border-muted-foreground/20"
-              >
-                <div className="w-16 h-14 mb-2 flex items-center justify-center">
-                  <Plus className="w-8 h-8 text-muted-foreground/50" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">New Folder</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowFolderModal(true)}
-                className="w-full flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-muted-foreground/20 transition-all active:scale-[0.98] hover:bg-secondary/30"
-              >
-                <div className="w-12 h-10 rounded-lg flex items-center justify-center bg-secondary/30">
-                  <Plus className="w-6 h-6 text-muted-foreground/50" />
-                </div>
-                <span className="font-medium text-muted-foreground">New Folder</span>
-              </button>
-            )}
           </div>
 
           {/* No folder section - adapts to layout */}
