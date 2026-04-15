@@ -55,18 +55,6 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
                 Select Folder
               </p>
 
-              {/* No folder */}
-              <button
-                onClick={() => onSelectFolder(undefined)}
-                className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 transition-colors',
-                  !selectedFolder ? 'bg-primary/10' : 'hover:bg-secondary'
-                )}
-              >
-                <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-                <span className="flex-1 text-left text-sm font-medium text-foreground">No folder</span>
-                {!selectedFolder && <Check className="w-4 h-4 text-primary" />}
-              </button>
 
               {/* Folders */}
               {folders.map((folder) => (

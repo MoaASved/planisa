@@ -533,30 +533,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             })}
           </div>
 
-          {/* No folder section - adapts to layout */}
-          {(() => {
-            const noFolderNotes = notes.filter(n => !n.folder);
-            if (noFolderNotes.length === 0) return null;
-            const noFolderObj = { id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder;
-            return (
-              <div className="mt-6 pt-4 border-t border-border/50">
-                {layoutMode === 'grid' ? (
-                  <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
-                    <FolderGridCard
-                      folder={noFolderObj}
-                      onClick={() => setSelectedFolder(noFolderObj)}
-                    />
-                  </div>
-                ) : (
-                  <FolderListCard 
-                    folder={noFolderObj}
-                    count={noFolderNotes.length}
-                    onClick={() => setSelectedFolder(noFolderObj)}
-                  />
-                )}
-              </div>
-            );
-          })()}
 
           {folders.length === 0 && (
             <div className="text-center py-12">
