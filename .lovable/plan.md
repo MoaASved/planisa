@@ -1,50 +1,44 @@
 
 
-## Finjustera mappformen — realistisk mapp med papper
+## Fix FolderGridCard — symmetriska hörn och textplacering
 
 ### Problem
-Nuvarande mappkort är för höga (stående) med en liten centrerad flik som inte ser ut som en riktig mapp.
+- Höger nedre hörn har en böjd linje (Q-kurva mot y=48) som skiljer sig från vänster nedre hörn
+- Texten sitter för nära mappens underkant
 
-### Lösning
-Skriv om SVG-formen i `FolderGridCard.tsx` för en realistisk mappillusion:
+### Ändringar i `src/components/notes/FolderGridCard.tsx`
 
-**Ny form och proportioner:**
-- Ändra SVG viewBox till liggande format (~200×150) istället för nuvarande 200×260
-- Mappen blir bredare och lägre — mer som ett liggande A4-kuvert/mapp
-- Ungefär samma storlek som sticky notes i gridet
+**1. Fixa höger nedre hörn**
+Nuvarande path har asymmetri — höger sida går `Q 200 150, 200 48` (kurva upp till y=48) medan vänster har `Q 0 150, 8 150` (liten rundning). Ändra pathen så att höger nedre hörn har samma rundning som vänster:
 
-**Realistisk flik:**
-- Fliken placeras i **övre vänstra** hörnet (inte centrerad)
-- Rundade hörn, naturlig trapezform
-
-**Papper som sticker upp:**
-- 2–3 vita/ljusa rektanglar sticker upp ovanför mappens överkant, lite sneda/förskjutna
-- Skapar illusionen att det ligger dokument i mappen
-- Papperskanterna har en minimal skugga
-
-**Resterande design behålls:**
-- Färgad bakgrund från `folder.color`
-- Mörkare gradient i botten
-- Mappnamn + "X items" nere till vänster (vit text)
-- Tre-punktsmeny (⋯) nere till höger
-- `active:scale-95`, `drop-shadow`
-
-### Ungefärlig form
-```text
-     ┌────┐
-     │tab │   ╱─────╲  ← papper som sticker upp
-┌────┘    └──╱───────╲──┐
-│                       │
-│  Folder name      ⋯  │
-└───────────────────────┘
+```
+L 192 150          ← rakt ner till botten-höger
+Q 200 150, 200 142 ← samma rundning som vänster
 ```
 
-### Fil som ändras
-`src/components/notes/FolderGridCard.tsx` — hela SVG-strukturen skrivs om.
+Uppdaterad path:
+```
+M 8 40
+Q 0 40, 0 48
+L 0 142
+Q 0 150, 8 150
+L 192 150
+Q 200 150, 200 142
+L 200 40
+Q 200 32, 192 32
+L 80 32
+Q 74 32, 72 26
+L 68 14
+Q 66 8, 60 8
+L 16 8
+Q 8 8, 8 16
+Z
+```
 
-### Teknisk approach
-- SVG viewBox: `0 0 200 150`
-- Papper: 2–3 `<rect>` med `fill="white"` och `opacity="0.7"`, placerade ovanför mappkroppen, lätt roterade (`transform="rotate(-2)"` etc.)
-- Mappform: `<path>` med flik i övre vänster, rundade hörn via Q-kurvor
-- Gradient overlay i botten för textläsbarhet
+**2. Flytta upp texten**
+- Folder name: `y="128"` → `y="122"`
+- Item count: `y="143"` → `y="136"`
+
+### Fil som ändras
+Bara `src/components/notes/FolderGridCard.tsx`.
 
