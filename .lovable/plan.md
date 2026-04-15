@@ -1,44 +1,19 @@
 
 
-## Fix FolderGridCard — symmetriska hörn och textplacering
+## Ta bort "No Folder" från Folders-vy och FolderPickerSheet
 
-### Problem
-- Höger nedre hörn har en böjd linje (Q-kurva mot y=48) som skiljer sig från vänster nedre hörn
-- Texten sitter för nära mappens underkant
+### Vad ändras
 
-### Ändringar i `src/components/notes/FolderGridCard.tsx`
+**1. `src/components/views/NotesView.tsx`**
+- Ta bort hela "No folder section" (rad ~536–560) — den grå pseudo-mappen som samlar anteckningar utan folder.
 
-**1. Fixa höger nedre hörn**
-Nuvarande path har asymmetri — höger sida går `Q 200 150, 200 48` (kurva upp till y=48) medan vänster har `Q 0 150, 8 150` (liten rundning). Ändra pathen så att höger nedre hörn har samma rundning som vänster:
+**2. `src/components/notes/FolderPickerSheet.tsx`**
+- Ta bort "No folder"-knappen (rad ~58–69) — alternativet att välja "No folder" i folder-väljaren.
+- Anteckningar utan folder visas bara i "All Notes"-listan, precis som du vill.
 
-```
-L 192 150          ← rakt ner till botten-höger
-Q 200 150, 200 142 ← samma rundning som vänster
-```
+### Vad behålls
+- Man kan fortfarande skapa anteckningar utan att välja en folder — de hamnar bara inte under Folders-fliken.
+- Folder-väljaren visar bara befintliga mappar + "New folder"-knappen.
 
-Uppdaterad path:
-```
-M 8 40
-Q 0 40, 0 48
-L 0 142
-Q 0 150, 8 150
-L 192 150
-Q 200 150, 200 142
-L 200 40
-Q 200 32, 192 32
-L 80 32
-Q 74 32, 72 26
-L 68 14
-Q 66 8, 60 8
-L 16 8
-Q 8 8, 8 16
-Z
-```
-
-**2. Flytta upp texten**
-- Folder name: `y="128"` → `y="122"`
-- Item count: `y="143"` → `y="136"`
-
-### Fil som ändras
-Bara `src/components/notes/FolderGridCard.tsx`.
+### Två filer ändras, inga nya filer.
 
