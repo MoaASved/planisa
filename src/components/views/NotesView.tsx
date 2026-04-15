@@ -24,6 +24,8 @@ import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 import { NotebookCard } from '@/components/notes/NotebookCard';
 import { NotebookListCard } from '@/components/notes/NotebookListCard';
 import { FolderListCard } from '@/components/notes/FolderListCard';
+import { FolderGridCard } from '@/components/notes/FolderGridCard';
+import { FolderEditModal } from '@/components/notes/FolderEditModal';
 import { NotebookView } from '@/components/notes/NotebookView';
 import { NotebookActionSheet } from '@/components/notes/NotebookActionSheet';
 import { NotebookEditModal } from '@/components/notes/NotebookEditModal';
