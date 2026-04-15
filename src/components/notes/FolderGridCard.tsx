@@ -28,7 +28,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
               L 0 142
               Q 0 150, 8 150
               L 192 150
-              Q 200 150, 200 48
+              Q 200 150, 200 142
               L 200 40
               Q 200 32, 192 32
               L 80 32
@@ -66,12 +66,12 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
         />
 
         {/* Folder name */}
-        <text x="12" y="128" fill="white" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
+        <text x="12" y="122" fill="white" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
           {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
         </text>
 
         {/* Item count */}
-        <text x="12" y="143" fill="rgba(255,255,255,0.75)" fontSize="11" fontFamily="system-ui, sans-serif">
+        <text x="12" y="136" fill="rgba(255,255,255,0.75)" fontSize="11" fontFamily="system-ui, sans-serif">
           {count} {count === 1 ? 'item' : 'items'}
         </text>
       </svg>
