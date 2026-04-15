@@ -537,54 +537,78 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           {(() => {
             const noFolderNotes = notes.filter(n => !n.folder);
             if (noFolderNotes.length === 0) return null;
+            const noFolderObj = { id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder;
             return (
               <div className="mt-6 pt-4 border-t border-border/50">
                 {layoutMode === 'grid' ? (
-                  <button
-                    onClick={() => setSelectedFolder({ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder)}
-                    className="flex flex-col items-center p-3 rounded-xl transition-all active:scale-95 hover:bg-secondary/30 opacity-60"
-                  >
-                    <svg viewBox="0 0 80 64" className="w-16 h-14 mb-2 opacity-50">
-                      <path 
-                        d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z" 
-                        fill="hsl(var(--muted-foreground))"
-                        opacity="0.3"
-                      />
-                    </svg>
-                    <span className="text-sm font-medium text-muted-foreground">No Folder</span>
-                    <span className="text-xs text-muted-foreground/70">{noFolderNotes.length} items</span>
-                  </button>
+                  <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
+                    <FolderGridCard
+                      folder={noFolderObj}
+                      onClick={() => setSelectedFolder(noFolderObj)}
+                    />
+                  </div>
                 ) : (
                   <FolderListCard 
-                    folder={{ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder}
+                    folder={noFolderObj}
                     count={noFolderNotes.length}
-                    onClick={() => setSelectedFolder({ id: '__no_folder__', name: 'No Folder', color: 'gray' } as Folder)}
+                    onClick={() => setSelectedFolder(noFolderObj)}
                   />
                 )}
               </div>
             );
           })()}
+
+          {folders.length === 0 && (
+            <div className="text-center py-12">
+              <FolderOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-muted-foreground">No folders yet</p>
+            </div>
+          )}
+        </div>
+
+        {/* FAB for creating new folder */}
+        <div className="fixed bottom-[120px] right-4 z-[1100]">
+          <button
+            onClick={() => setShowFolderModal(true)}
+            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
+          >
+            <Plus className="w-6 h-6 text-primary-foreground" />
+          </button>
         </div>
 
         {showFolderModal && (
           <>
-            <div className="fixed inset-0 glass-overlay z-40" onClick={() => setShowFolderModal(false)} />
-            <div className="fixed inset-x-4 bottom-0 z-50 flow-bottom-sheet glass-modal animate-slide-up">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">New Folder</h3>
-                <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">
-                  <X className="w-5 h-5 text-muted-foreground" />
-                </button>
+            <div 
+              className="fixed inset-0 z-[1100] animate-fade-in"
+              style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+              onClick={() => setShowFolderModal(false)} 
+            />
+            <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
+              <div className="bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">New Folder</h3>
+                  <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">
+                    <X className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </div>
+                <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Folder name" className="flow-input mb-4" />
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {pastelColors.map((c) => (
+                    <button key={c.value} onClick={() => setNewFolderColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
+                  ))}
+                </div>
+                <button onClick={handleCreateFolder} className="w-full flow-button-primary">Create Folder</button>
               </div>
-              <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Folder name" className="flow-input mb-4" />
-              <div className="flex flex-wrap gap-2 mb-4">
-                {pastelColors.map((c) => (
-                  <button key={c.value} onClick={() => setNewFolderColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
-                ))}
-              </div>
-              <button onClick={handleCreateFolder} className="w-full flow-button-primary">Create Folder</button>
             </div>
           </>
+        )}
+
+        {/* Folder Edit Modal */}
+        {editModalFolder && (
+          <FolderEditModal
+            folder={editModalFolder}
+            onClose={() => setEditModalFolder(null)}
+          />
         )}
 
       </div>
