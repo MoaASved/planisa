@@ -17,72 +17,68 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
     <button
       onClick={onClick}
       className="w-full transition-all active:scale-95 relative"
-      style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))' }}
+      style={{ filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.18))' }}
     >
-      <svg viewBox="0 0 200 260" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 150" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id={`grad-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
-          </linearGradient>
           <clipPath id={`clip-${folder.id}`}>
             <path d="
-              M 0 32
-              Q 0 24, 8 24
-              L 50 24
-              Q 56 24, 58 18
-              L 64 6
-              Q 66 0, 72 0
-              L 88 0
-              Q 94 0, 96 6
-              L 102 18
-              Q 104 24, 110 24
-              L 192 24
-              Q 200 24, 200 32
-              L 200 252
-              Q 200 260, 192 260
-              L 8 260
-              Q 0 260, 0 252
+              M 8 40
+              Q 0 40, 0 48
+              L 0 142
+              Q 0 150, 8 150
+              L 192 150
+              Q 200 150, 200 48
+              L 200 40
+              Q 200 32, 192 32
+              L 80 32
+              Q 74 32, 72 26
+              L 68 14
+              Q 66 8, 60 8
+              L 16 8
+              Q 8 8, 8 16
               Z
             " />
           </clipPath>
+          <linearGradient id={`grad-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+          </linearGradient>
         </defs>
+
+        {/* Papers sticking out */}
+        <rect x="55" y="20" width="120" height="100" rx="3" fill="white" opacity="0.55" transform="rotate(2, 115, 70)" />
+        <rect x="50" y="22" width="115" height="98" rx="3" fill="white" opacity="0.7" transform="rotate(-1.5, 107, 71)" />
+        <rect x="60" y="18" width="110" height="102" rx="3" fill="white" opacity="0.45" transform="rotate(3.5, 115, 69)" />
 
         {/* Folder body */}
         <rect
-          x="0" y="0" width="200" height="260"
+          x="0" y="0" width="200" height="150"
           clipPath={`url(#clip-${folder.id})`}
           fill={color}
         />
 
         {/* Bottom gradient overlay */}
         <rect
-          x="0" y="160" width="200" height="100"
+          x="0" y="80" width="200" height="70"
           clipPath={`url(#clip-${folder.id})`}
-          fill="url(#grad-overlay)"
-          style={{ opacity: 1 }}
+          fill={`url(#grad-${folder.id})`}
         />
-        <defs>
-          <linearGradient id="grad-overlay" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
-          </linearGradient>
-        </defs>
 
         {/* Folder name */}
-        <text x="14" y="232" fill="white" fontWeight="700" fontSize="15" fontFamily="system-ui, sans-serif">
-          {folder.name.length > 16 ? folder.name.slice(0, 15) + '…' : folder.name}
+        <text x="12" y="128" fill="white" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
+          {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
         </text>
 
         {/* Item count */}
-        <text x="14" y="248" fill="rgba(255,255,255,0.75)" fontSize="12" fontFamily="system-ui, sans-serif">
+        <text x="12" y="143" fill="rgba(255,255,255,0.75)" fontSize="11" fontFamily="system-ui, sans-serif">
           {count} {count === 1 ? 'item' : 'items'}
         </text>
       </svg>
 
       {/* Three-dot menu bottom-right */}
       <div
-        className="absolute bottom-3 right-3 z-10 p-1"
+        className="absolute bottom-2 right-2 z-10 p-1"
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
         style={{ cursor: 'pointer' }}
       >
