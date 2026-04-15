@@ -1,7 +1,6 @@
 import { MoreHorizontal } from 'lucide-react';
 import { Folder } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface FolderGridCardProps {
   folder: Folder;
@@ -12,58 +11,83 @@ interface FolderGridCardProps {
 export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps) {
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
+  const color = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
 
   return (
     <button
       onClick={onClick}
-      className="w-full rounded-[14px] overflow-hidden transition-all active:scale-95 relative"
-      style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}
+      className="w-full transition-all active:scale-95 relative"
+      style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.15))' }}
     >
-      <AspectRatio ratio={1 / 1.4}>
-        <div
-          className="absolute inset-0"
-          style={{ backgroundColor: `hsl(var(--pastel-${folder.color}, 160 30% 65%))` }}
+      <svg viewBox="0 0 200 260" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id={`grad-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
+          </linearGradient>
+          <clipPath id={`clip-${folder.id}`}>
+            <path d="
+              M 0 32
+              Q 0 24, 8 24
+              L 50 24
+              Q 56 24, 58 18
+              L 64 6
+              Q 66 0, 72 0
+              L 88 0
+              Q 94 0, 96 6
+              L 102 18
+              Q 104 24, 110 24
+              L 192 24
+              Q 200 24, 200 32
+              L 200 252
+              Q 200 260, 192 260
+              L 8 260
+              Q 0 260, 0 252
+              Z
+            " />
+          </clipPath>
+        </defs>
+
+        {/* Folder body */}
+        <rect
+          x="0" y="0" width="200" height="260"
+          clipPath={`url(#clip-${folder.id})`}
+          fill={color}
         />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to bottom, transparent 65%, rgba(0,0,0,0.35) 100%)',
-          }}
+
+        {/* Bottom gradient overlay */}
+        <rect
+          x="0" y="160" width="200" height="100"
+          clipPath={`url(#clip-${folder.id})`}
+          fill="url(#grad-overlay)"
+          style={{ opacity: 1 }}
         />
+        <defs>
+          <linearGradient id="grad-overlay" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+          </linearGradient>
+        </defs>
 
-        {/* Folder icon top-left */}
-        <div className="absolute top-3 left-3">
-          <svg viewBox="0 0 80 64" className="w-10 h-8" style={{ opacity: 0.5 }}>
-            <path
-              d="M4 12 L4 60 C4 62 6 64 8 64 L72 64 C74 64 76 62 76 60 L76 16 C76 14 74 12 72 12 L36 12 L32 6 C31 4 29 4 28 4 L8 4 C6 4 4 6 4 8 L4 12 Z"
-              fill="rgba(255,255,255,0.7)"
-            />
-            <path
-              d="M4 16 L76 16 L76 60 C76 62 74 64 72 64 L8 64 C6 64 4 62 4 60 L4 16 Z"
-              fill="rgba(255,255,255,0.9)"
-            />
-          </svg>
-        </div>
+        {/* Folder name */}
+        <text x="14" y="232" fill="white" fontWeight="700" fontSize="15" fontFamily="system-ui, sans-serif">
+          {folder.name.length > 16 ? folder.name.slice(0, 15) + '…' : folder.name}
+        </text>
 
-        {/* Three-dot menu top-right */}
-        <div
-          className="absolute top-2 right-2 z-10 p-1"
-          onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
-          style={{ cursor: 'pointer' }}
-        >
-          <MoreHorizontal className="w-5 h-5" style={{ color: '#fff' }} />
-        </div>
+        {/* Item count */}
+        <text x="14" y="248" fill="rgba(255,255,255,0.75)" fontSize="12" fontFamily="system-ui, sans-serif">
+          {count} {count === 1 ? 'item' : 'items'}
+        </text>
+      </svg>
 
-        {/* Name + count bottom-left */}
-        <div className="absolute bottom-0 left-0 p-3 text-left">
-          <h4 className="font-bold text-[15px] leading-tight" style={{ color: '#fff' }}>
-            {folder.name}
-          </h4>
-          <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>
-            {count} {count === 1 ? 'item' : 'items'}
-          </p>
-        </div>
-      </AspectRatio>
+      {/* Three-dot menu bottom-right */}
+      <div
+        className="absolute bottom-3 right-3 z-10 p-1"
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
+        style={{ cursor: 'pointer' }}
+      >
+        <MoreHorizontal className="w-5 h-5" style={{ color: '#fff' }} />
+      </div>
     </button>
   );
 }
