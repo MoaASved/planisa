@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Star, Calendar as CalIcon, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react';
 import { isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
