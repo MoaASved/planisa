@@ -317,12 +317,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
       {/* Right controls */}
       <div className="flex-1 flex justify-end gap-2">
-        <button
-          onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
-        </button>
+        {(viewTab === 'notes' || viewTab === 'sticky') && (
+          <button
+            onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
+          </button>
+        )}
         <button
           onClick={() => setShowSearch(!showSearch)}
           className={cn(
@@ -355,30 +357,18 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className={cn(
-            layoutMode === 'grid' 
-              ? 'grid grid-cols-2 gap-4 p-4' 
-              : 'space-y-2 px-4'
-          )} style={{ margin: layoutMode === 'grid' ? '-16px' : undefined }}>
+          <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
             {notebooks.map((notebook, index) => (
               <div 
                 key={notebook.id} 
                 className="stagger-item" 
                 style={{ animationDelay: `${index * 40}ms` }}
               >
-                {layoutMode === 'grid' ? (
-                  <NotebookCard 
-                    notebook={notebook} 
-                    onClick={() => setSelectedNotebook(notebook)}
-                    onEdit={() => setEditModalNotebook(notebook)}
-                  />
-                ) : (
-                  <NotebookListCard 
-                    notebook={notebook} 
-                    onClick={() => setSelectedNotebook(notebook)}
-                    onEdit={() => setEditModalNotebook(notebook)}
-                  />
-                )}
+                <NotebookCard 
+                  notebook={notebook} 
+                  onClick={() => setSelectedNotebook(notebook)}
+                  onEdit={() => setEditModalNotebook(notebook)}
+                />
               </div>
             ))}
           </div>
@@ -506,31 +496,20 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className={cn(
-            layoutMode === 'grid' 
-              ? 'grid grid-cols-2 gap-4 p-4' 
-              : 'space-y-3'
-          )} style={{ margin: layoutMode === 'grid' ? '-16px' : undefined }}>
-            {folders.map((folder, index) => {
-              const count = notes.filter(n => n.folder === folder.name).length;
-              return (
-                <div 
-                  key={folder.id} 
-                  className="stagger-item" 
-                  style={{ animationDelay: `${index * 40}ms` }}
-                >
-                  {layoutMode === 'grid' ? (
-                    <FolderGridCard
-                      folder={folder}
-                      onClick={() => setSelectedFolder(folder)}
-                      onEdit={() => setEditModalFolder(folder)}
-                    />
-                  ) : (
-                    <FolderListCard folder={folder} count={count} onClick={() => setSelectedFolder(folder)} />
-                  )}
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
+            {folders.map((folder, index) => (
+              <div 
+                key={folder.id} 
+                className="stagger-item" 
+                style={{ animationDelay: `${index * 40}ms` }}
+              >
+                <FolderGridCard
+                  folder={folder}
+                  onClick={() => setSelectedFolder(folder)}
+                  onEdit={() => setEditModalFolder(folder)}
+                />
+              </div>
+            ))}
           </div>
 
 
