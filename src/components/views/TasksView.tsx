@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Calendar as CalIcon, ChevronDown, ChevronRight } from 'lucide-react';
+import { Star, Calendar as CalIcon, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react';
 import { isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -7,7 +7,7 @@ import { Task, TaskCategory } from '@/types';
 import { TaskRow } from '../tasks/TaskRow';
 import { CategoryCard } from '../tasks/CategoryCard';
 import { CategoryDetailView } from '../tasks/CategoryDetailView';
-import { InlineTaskInput } from '../tasks/InlineTaskInput';
+import { InlineTaskInput, InlineTaskInputMode } from '../tasks/InlineTaskInput';
 
 type TabType = 'tasks' | 'categories';
 
@@ -18,7 +18,6 @@ interface TasksViewProps {
 
 const VISIBLE_COUNT = 3;
 
-/** Section with up to 3 vertical rows + horizontal swipe carousel for the rest */
 function TaskSection({
   title,
   icon,
@@ -26,6 +25,10 @@ function TaskSection({
   toggleTask,
   emptyText,
   showOverdue,
+  inputMode,
+  isAdding,
+  onToggleAdd,
+  onTaskCreated,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -33,6 +36,10 @@ function TaskSection({
   toggleTask: (id: string) => void;
   emptyText: string;
   showOverdue?: boolean;
+  inputMode: InlineTaskInputMode;
+  isAdding: boolean;
+  onToggleAdd: () => void;
+  onTaskCreated: () => void;
 }) {
   const visible = tasks.slice(0, VISIBLE_COUNT);
   const overflow = tasks.slice(VISIBLE_COUNT);
@@ -44,16 +51,40 @@ function TaskSection({
           {icon}
           <h2 className="text-sm font-semibold text-foreground tracking-tight">{title}</h2>
         </div>
-        {tasks.length > 0 && (
-          <span className="text-xs text-muted-foreground">{tasks.length}</span>
-        )}
+        <div className="flex items-center gap-2">
+          {tasks.length > 0 && (
+            <span className="text-xs text-muted-foreground">{tasks.length}</span>
+          )}
+          <button
+            onClick={onToggleAdd}
+            aria-label={`Add to ${title}`}
+            className={cn(
+              'w-7 h-7 rounded-full flex items-center justify-center transition-all',
+              'hover:bg-muted active:scale-95',
+              isAdding && 'bg-primary/10 text-primary rotate-45',
+            )}
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {tasks.length === 0 ? (
+      {isAdding && (
+        <div className="stagger-item">
+          <InlineTaskInput
+            mode={inputMode}
+            autoFocus
+            onTaskCreated={onTaskCreated}
+            onDismiss={onToggleAdd}
+          />
+        </div>
+      )}
+
+      {tasks.length === 0 && !isAdding ? (
         <div className="flow-card-flat flex items-center justify-center py-6">
           <p className="text-sm text-muted-foreground">{emptyText}</p>
         </div>
-      ) : (
+      ) : tasks.length > 0 ? (
         <>
           <div className="space-y-2">
             {visible.map((task) => (
@@ -71,10 +102,7 @@ function TaskSection({
             <div className="-mx-4 px-4 overflow-x-auto scrollbar-none snap-x snap-mandatory">
               <div className="flex gap-2 pb-1">
                 {overflow.map((task) => (
-                  <div
-                    key={task.id}
-                    className="snap-start shrink-0 w-[78%]"
-                  >
+                  <div key={task.id} className="snap-start shrink-0 w-[78%]">
                     <TaskRow
                       task={task}
                       onToggle={() => toggleTask(task.id)}
@@ -87,7 +115,7 @@ function TaskSection({
             </div>
           )}
         </>
-      )}
+      ) : null}
     </section>
   );
 }
@@ -99,11 +127,16 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
   const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
   const [showCompleted, setShowCompleted] = useState(false);
 
-  useEffect(() => {
-    if (isCreatingNewTask) setActiveTab('tasks');
-  }, [isCreatingNewTask]);
+  const [addingSection, setAddingSection] = useState<InlineTaskInputMode | null>(null);
 
-  // Search filter helper
+  useEffect(() => {
+    if (isCreatingNewTask) {
+      setActiveTab('tasks');
+      setAddingSection('uncategorized');
+      onCreatingTaskComplete?.();
+    }
+  }, [isCreatingNewTask, onCreatingTaskComplete]);
+
   const matchesSearch = (t: Task) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
@@ -112,24 +145,25 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
 
   const visibleTasks = tasks.filter((t) => !t.hidden && matchesSearch(t));
 
-  // Today: tasks with date == today AND not completed
-  // Overdue: tasks with date < today AND not completed → also surface in Today
   const todayMidnight = new Date().setHours(0, 0, 0, 0);
-  const todayTasks = visibleTasks
-    .filter((t) => !t.completed && t.date && isToday(new Date(t.date)));
-  const overdueTasks = visibleTasks
-    .filter((t) => !t.completed && t.date && new Date(t.date).setHours(0, 0, 0, 0) < todayMidnight);
+  const todayTasks = visibleTasks.filter(
+    (t) => !t.completed && t.date && isToday(new Date(t.date)),
+  );
+  const overdueTasks = visibleTasks.filter(
+    (t) => !t.completed && t.date && new Date(t.date).setHours(0, 0, 0, 0) < todayMidnight,
+  );
   const todayCombined = [...overdueTasks, ...todayTasks];
 
-  // Priority: any non-'none' priority, regardless of date
   const priorityTasks = visibleTasks.filter((t) => t.priority !== 'none' && !t.completed);
 
-  // Completed today (collapsible)
+  const uncategorizedTasks = visibleTasks.filter(
+    (t) => !t.completed && !t.date && t.priority === 'none' && !t.category,
+  );
+
   const completedToday = visibleTasks.filter(
     (t) => t.completed && t.date && isToday(new Date(t.date)),
   );
 
-  // Category detail view
   if (selectedCategory) {
     const categoryTasks = visibleTasks.filter((t) => t.category === selectedCategory.name);
     return (
@@ -141,6 +175,10 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
       />
     );
   }
+
+  const toggleAdd = (mode: InlineTaskInputMode) => {
+    setAddingSection((cur) => (cur === mode ? null : mode));
+  };
 
   return (
     <div className="min-h-screen pb-24">
@@ -161,7 +199,6 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
           ))}
         </div>
 
-        {/* TASKS TAB — dashboard */}
         {activeTab === 'tasks' && (
           <div className="space-y-5">
             <TaskSection
@@ -171,6 +208,10 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
               toggleTask={toggleTask}
               emptyText="Nothing scheduled today"
               showOverdue
+              inputMode="today"
+              isAdding={addingSection === 'today'}
+              onToggleAdd={() => toggleAdd('today')}
+              onTaskCreated={() => {}}
             />
 
             <TaskSection
@@ -179,16 +220,48 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
               tasks={priorityTasks}
               toggleTask={toggleTask}
               emptyText="No priority tasks"
+              inputMode="priority"
+              isAdding={addingSection === 'priority'}
+              onToggleAdd={() => toggleAdd('priority')}
+              onTaskCreated={() => {}}
             />
 
-            {/* Completed (collapsible) */}
+            {(uncategorizedTasks.length > 0 || addingSection === 'uncategorized') && (
+              <TaskSection
+                title="Tasks without category"
+                icon={<Inbox className="w-4 h-4 text-muted-foreground" />}
+                tasks={uncategorizedTasks}
+                toggleTask={toggleTask}
+                emptyText="No uncategorized tasks"
+                inputMode="uncategorized"
+                isAdding={addingSection === 'uncategorized'}
+                onToggleAdd={() => toggleAdd('uncategorized')}
+                onTaskCreated={() => {}}
+              />
+            )}
+
+            {/* Hidden trigger so users can always reach uncategorized add */}
+            {uncategorizedTasks.length === 0 && addingSection !== 'uncategorized' && (
+              <button
+                onClick={() => toggleAdd('uncategorized')}
+                className="w-full flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add uncategorized task</span>
+              </button>
+            )}
+
             {completedToday.length > 0 && (
               <section className="space-y-2">
                 <button
                   onClick={() => setShowCompleted((v) => !v)}
                   className="flex items-center gap-2 px-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showCompleted ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  {showCompleted ? (
+                    <ChevronDown className="w-4 h-4" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4" />
+                  )}
                   <span>Completed</span>
                   <span className="text-xs">({completedToday.length})</span>
                 </button>
@@ -205,24 +278,19 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
                 )}
               </section>
             )}
-
-            {/* Quick add */}
-            <div className="pt-1">
-              <InlineTaskInput
-                autoFocus={isCreatingNewTask}
-                onTaskCreated={() => onCreatingTaskComplete?.()}
-              />
-            </div>
           </div>
         )}
 
-        {/* LISTS TAB */}
         {activeTab === 'categories' && (
           <div className="grid grid-cols-2 gap-3">
             {taskCategories.map((category, index) => {
               const taskCount = visibleTasks.filter((t) => t.category === category.name).length;
               return (
-                <div key={category.id} className="stagger-item" style={{ animationDelay: `${index * 50}ms` }}>
+                <div
+                  key={category.id}
+                  className="stagger-item"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <CategoryCard
                     category={category}
                     taskCount={taskCount}
