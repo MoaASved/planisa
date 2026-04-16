@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Task, TaskCategory } from '@/types';
-import { SwipeableTaskCard } from './SwipeableTaskCard';
+import { TaskRow } from './TaskRow';
 import { InlineTaskInput } from './InlineTaskInput';
 
 interface CategoryDetailViewProps {
@@ -41,7 +41,7 @@ export function CategoryDetailView({
       {/* Task list */}
       <div className="px-4 space-y-2">
         {tasks.map((task) => (
-          <SwipeableTaskCard
+          <TaskRow
             key={task.id}
             task={task}
             onToggle={() => onToggleTask(task.id)}
