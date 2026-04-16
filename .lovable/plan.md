@@ -1,36 +1,41 @@
 
 
-## Behåll identisk layout på alla 4 flikar
+## Fix & redesign task creation flow
 
 ### Problem
-När toggle-knappen tas bort helt från DOM på Folders/Notebooks "hoppar" search-ikonen och övriga element flyttas. Designen ska vara visuellt identisk.
+`InlineTaskInput` creates tasks with no date, no priority, no category → task doesn't match Today/Priority/any List filter → vanishes. There's also no per-section "+ Add" affordance.
 
-### Lösning
-I `src/components/views/NotesView.tsx` (rad 320–327): istället för att villkorligt rendera knappen, rendera alltid en platshållare med samma storlek (`w-8 h-8`) på Folders/Notebooks så att layouten förblir identisk.
+### Solution
 
-**Före:**
-```tsx
-{(viewTab === 'notes' || viewTab === 'sticky') && (
-  <button onClick={...}>...</button>
-)}
-```
+**1. Extend `InlineTaskInput` with a `mode` prop** (`src/components/tasks/InlineTaskInput.tsx`)
+- `mode: 'today' | 'priority' | 'uncategorized'` controls what gets stamped on creation:
+  - `today` → `date: new Date()`
+  - `priority` → `priority: 'high'`
+  - `uncategorized` → no date, no priority, empty category (lands in "Tasks without category")
+- Add placeholder per mode: "Write a task...", "Important task...", "Add a task..."
+- Keep blur-to-save and Enter-to-save behavior.
 
-**Efter:**
-```tsx
-{(viewTab === 'notes' || viewTab === 'sticky') ? (
-  <button onClick={() => setLayoutMode(...)} className="w-8 h-8 ...">
-    {layoutMode === 'list' ? <LayoutGrid/> : <LayoutList/>}
-  </button>
-) : (
-  <div className="w-8 h-8" aria-hidden="true" />
-)}
-```
+**2. Inline "+ Add" toggle in section headers** (`src/components/views/TasksView.tsx`)
+- Modify `TaskSection` to accept an optional `onAdd` callback + `isAdding` state.
+- Header right side: `count` + `+` button. Tapping `+` reveals an inline `InlineTaskInput` directly under the header.
+- Tap again (or blur with empty) closes it.
 
-### Resultat
-- Folders och Notebooks: tomt utrymme där toggle-ikonen brukar vara (search-ikonen stannar i samma position).
-- Notes och Sticky: oförändrat.
-- Spacing, tab-rad och search-ikonens position blir identiska över alla 4 flikar.
+**3. Add "Tasks without category" section** under Today and Priority
+- Filter: `!t.completed && !t.date && t.priority === 'none' && !t.category`
+- Same `TaskSection` component, with its own inline add (mode `uncategorized`).
+- Empty state: hide section entirely if no tasks AND not currently adding (to keep first view tidy).
 
-### En fil ändras
-`src/components/views/NotesView.tsx` (rad 320–327).
+**4. Wire `isCreatingNewTask` (from FAB Quick Create)** to open the "Tasks without category" inline input by default — guarantees the task is visible immediately wherever the user creates it.
+
+**5. Bottom `InlineTaskInput` removed** — replaced by per-section inline inputs. No more orphan tasks.
+
+### Files changed
+- `src/components/tasks/InlineTaskInput.tsx` — add `mode` prop, stamp date/priority on create.
+- `src/components/views/TasksView.tsx` — header `+` per section, add "Tasks without category" section, remove bottom input, route FAB creation to uncategorized.
+
+### Result
+- Tap `+` in TODAY → input appears, save → task instantly visible in Today (has today's date).
+- Tap `+` in PRIORITY → input appears, save → task instantly visible in Priority (priority=high).
+- Tap `+` in TASKS WITHOUT CATEGORY (or via global FAB) → task instantly visible there.
+- No task can ever disappear after creation.
 
