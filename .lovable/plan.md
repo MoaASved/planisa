@@ -1,22 +1,29 @@
 
 
-## Fixa folder-ikonens färg i detaljvyn
+## Ta bort list view för Folders & Notebooks
 
 ### Problem
-Folder-ikonen i detaljvyn använder en dynamisk Tailwind-klass (`text-[hsl(var(--pastel-${selectedFolder.color}))]`) som kan misslyckas med JIT-kompilering. Notebook-vyn använder istället inline `style` som alltid fungerar.
+Layout-toggle (grid/list) syns på alla 4 flikar. Användaren vill bara behålla den för Notes & Sticky — Folders och Notebooks ska alltid vara grid.
 
-### Lösning
-I `src/components/views/NotesView.tsx`, rad 271 — ändra från Tailwind-klass till inline `style`, precis som NotebookView gör:
+### Ändring i `src/components/views/NotesView.tsx`
 
-**Före:**
+**1. Dölj toggle-knappen på Folders & Notebooks (rad 319–325)**
+Wrappa toggle-knappen i ett villkor:
 ```tsx
-<FolderOpen className={`w-5 h-5 text-[hsl(var(--pastel-${selectedFolder.color}))]`} />
+{(viewTab === 'notes' || viewTab === 'sticky') && (
+  <button onClick={() => setLayoutMode(...)}>...</button>
+)}
 ```
 
-**Efter:**
-```tsx
-<FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}))` }} />
-```
+**2. Tvinga grid-rendering i Folders & Notebooks**
+- Notebooks-sektionen (~rad 370–380): rendera alltid `NotebookCard` (grid), aldrig `NotebookListCard`.
+- Folders-sektionen (~rad 525–530): rendera alltid `FolderGridCard`, aldrig `FolderListCard`.
 
-### En rad ändras i en fil.
+Detta gör att även om `layoutMode` råkar vara `'list'` (från tidigare val på Notes-fliken) så visas Folders/Notebooks alltid i grid.
+
+### Inga filer tas bort
+`FolderListCard.tsx` och `NotebookListCard.tsx` ligger kvar (oanvända, men inga andra referenser ska brytas). Vill du att jag städar bort dem helt också?
+
+### En fil ändras
+`src/components/views/NotesView.tsx`
 
