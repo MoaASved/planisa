@@ -1,29 +1,36 @@
 
 
-## Ta bort list view för Folders & Notebooks
+## Behåll identisk layout på alla 4 flikar
 
 ### Problem
-Layout-toggle (grid/list) syns på alla 4 flikar. Användaren vill bara behålla den för Notes & Sticky — Folders och Notebooks ska alltid vara grid.
+När toggle-knappen tas bort helt från DOM på Folders/Notebooks "hoppar" search-ikonen och övriga element flyttas. Designen ska vara visuellt identisk.
 
-### Ändring i `src/components/views/NotesView.tsx`
+### Lösning
+I `src/components/views/NotesView.tsx` (rad 320–327): istället för att villkorligt rendera knappen, rendera alltid en platshållare med samma storlek (`w-8 h-8`) på Folders/Notebooks så att layouten förblir identisk.
 
-**1. Dölj toggle-knappen på Folders & Notebooks (rad 319–325)**
-Wrappa toggle-knappen i ett villkor:
+**Före:**
 ```tsx
 {(viewTab === 'notes' || viewTab === 'sticky') && (
-  <button onClick={() => setLayoutMode(...)}>...</button>
+  <button onClick={...}>...</button>
 )}
 ```
 
-**2. Tvinga grid-rendering i Folders & Notebooks**
-- Notebooks-sektionen (~rad 370–380): rendera alltid `NotebookCard` (grid), aldrig `NotebookListCard`.
-- Folders-sektionen (~rad 525–530): rendera alltid `FolderGridCard`, aldrig `FolderListCard`.
+**Efter:**
+```tsx
+{(viewTab === 'notes' || viewTab === 'sticky') ? (
+  <button onClick={() => setLayoutMode(...)} className="w-8 h-8 ...">
+    {layoutMode === 'list' ? <LayoutGrid/> : <LayoutList/>}
+  </button>
+) : (
+  <div className="w-8 h-8" aria-hidden="true" />
+)}
+```
 
-Detta gör att även om `layoutMode` råkar vara `'list'` (från tidigare val på Notes-fliken) så visas Folders/Notebooks alltid i grid.
-
-### Inga filer tas bort
-`FolderListCard.tsx` och `NotebookListCard.tsx` ligger kvar (oanvända, men inga andra referenser ska brytas). Vill du att jag städar bort dem helt också?
+### Resultat
+- Folders och Notebooks: tomt utrymme där toggle-ikonen brukar vara (search-ikonen stannar i samma position).
+- Notes och Sticky: oförändrat.
+- Spacing, tab-rad och search-ikonens position blir identiska över alla 4 flikar.
 
 ### En fil ändras
-`src/components/views/NotesView.tsx`
+`src/components/views/NotesView.tsx` (rad 320–327).
 
