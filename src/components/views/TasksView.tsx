@@ -41,8 +41,20 @@ function TaskSection({
   onToggleAdd: () => void;
   onTaskCreated: () => void;
 }) {
-  const visible = tasks.slice(0, VISIBLE_COUNT);
-  const overflow = tasks.slice(VISIBLE_COUNT);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeColumn, setActiveColumn] = useState(0);
+
+  const columns: Task[][] = [];
+  for (let i = 0; i < tasks.length; i += VISIBLE_COUNT) {
+    columns.push(tasks.slice(i, i + VISIBLE_COUNT));
+  }
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    if (idx !== activeColumn) setActiveColumn(idx);
+  };
 
   return (
     <section className="space-y-2">
