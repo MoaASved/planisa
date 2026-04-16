@@ -317,13 +317,15 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
       {/* Right controls */}
       <div className="flex-1 flex justify-end gap-2">
-        {(viewTab === 'notes' || viewTab === 'sticky') && (
+        {(viewTab === 'notes' || viewTab === 'sticky') ? (
           <button
             onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           >
             {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
           </button>
+        ) : (
+          <div className="w-8 h-8" aria-hidden="true" />
         )}
         <button
           onClick={() => setShowSearch(!showSearch)}
