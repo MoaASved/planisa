@@ -98,33 +98,57 @@ function TaskSection({
         </div>
       ) : tasks.length > 0 ? (
         <>
-          <div className="space-y-2">
-            {visible.map((task) => (
-              <div key={task.id} className="stagger-item">
-                <TaskRow
-                  task={task}
-                  onToggle={() => toggleTask(task.id)}
-                  showOverdue={showOverdue}
-                />
+          {columns.length === 1 ? (
+            <div className="space-y-2">
+              {columns[0].map((task) => (
+                <div key={task.id} className="stagger-item">
+                  <TaskRow
+                    task={task}
+                    onToggle={() => toggleTask(task.id)}
+                    showOverdue={showOverdue}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="-mx-4 px-4 overflow-x-auto scrollbar-none snap-x snap-mandatory"
+              >
+                <div className="flex gap-3">
+                  {columns.map((col, colIdx) => (
+                    <div
+                      key={colIdx}
+                      className="snap-start shrink-0 w-full space-y-2"
+                      style={{ width: 'calc(100vw - 2rem)' }}
+                    >
+                      {col.map((task) => (
+                        <div key={task.id} className="stagger-item">
+                          <TaskRow
+                            task={task}
+                            onToggle={() => toggleTask(task.id)}
+                            showOverdue={showOverdue}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-
-          {overflow.length > 0 && (
-            <div className="-mx-4 px-4 overflow-x-auto scrollbar-none snap-x snap-mandatory">
-              <div className="flex gap-2 pb-1">
-                {overflow.map((task) => (
-                  <div key={task.id} className="snap-start shrink-0 w-[78%]">
-                    <TaskRow
-                      task={task}
-                      onToggle={() => toggleTask(task.id)}
-                      showOverdue={showOverdue}
-                      compact
-                    />
-                  </div>
+              <div className="flex justify-center gap-1.5 pt-1">
+                {columns.map((_, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      'h-1.5 rounded-full transition-all',
+                      i === activeColumn ? 'w-4 bg-foreground/60' : 'w-1.5 bg-foreground/20',
+                    )}
+                  />
                 ))}
               </div>
-            </div>
+            </>
           )}
         </>
       ) : null}
