@@ -1,52 +1,36 @@
 
 
-## Fix Date popover: dölj tidsfält tills man vill ha tid + fungerande nollställning
+## Fix: Stable Date popover position + remove native time "Clear"
 
 ### Problem
-1. När man öppnar Date-popovern visas tidsfälten direkt ovanför kalendern. Användaren vill bara se kalendern först.
-2. Det finns ingen separat "nollställ tid"-knapp — bara "Clear date" som rensar allt. Att tömma time-fältet manuellt funkar inte tillförlitligt på native picker.
+1. **Popover hoppar:** Date-popovern är anchored till date-pillen. När man väljer datum växer pillen från `📅 Date` (~60px) till `📅 Apr 22 ✕` (~110px), vilket Radix kompenserar för genom att flytta hela popovern. Mycket förvirrande.
+2. **Native "Clear"-knapp i tidsväljaren:** På vissa webbläsare/mobiler visar `<input type="time">` en inbyggd "nollställ"-knapp i scroll-pickern. Den behövs inte — vi har redan ✕-knappen bredvid time-fälten.
 
 ### Lösning (`src/components/tasks/AddTaskModal.tsx`)
 
-**A. Visa kalendern först, tid on-demand**
-- Ny lokal state `showTimeFields` (boolean), default `false`.
-- När popovern öppnas och task saknar tid → `showTimeFields = false`. Om task redan har `time` → `true`.
-- Överst i popovern (när `!showTimeFields`): en kompakt knapp `+ Add time` (klocka-ikon + text), full bredd, `bg-secondary/60`, rounded-lg.
-- När man trycker `+ Add time`: `showTimeFields = true` → de två tidsfälten fadar in ovanför kalendern (nuvarande layout).
-- När `showTimeFields = true` och tid är satt: visa en liten `✕` (nollställ-tid)-knapp till höger om end-tid-fältet. Klick → `setTime('')`, `setEndTime('')`, `endTimeManual.current = false`, `setShowTimeFields(false)`. Datum behålls.
+**A. Stabil popover-position via PopoverAnchor**
+- Importera `PopoverAnchor` från `@/components/ui/popover` (Radix-export — verifiera att den re-exporteras; annars importera direkt från `@radix-ui/react-popover`).
+- Wrap hela ikon-raden (`px-5 pb-3 flex...`) eller skapa en osynlig anchor-div med fast bredd som popovern fäster vid istället för pillen.
+- Sätt `<PopoverAnchor>` på ett stabilt element (t.ex. själva ikon-raden), behåll `<PopoverTrigger>` på pillen för klick-interaktionen.
+- Popovern öppnas alltid på samma plats oavsett om pillen är `Date` eller `Apr 22 · 14:00–14:30`.
+- Lägg `sideOffset={8}` och `align="start"` med lite `alignOffset` så den hamnar luftigt under raden, ej i kanten på skärmen.
+- Sätt `collisionPadding={16}` så Radix håller ≥16px från viewport-kanten = luftigt på mobil 390px-bredd.
 
-**B. Bottenknapp-logik**
-- Behåll "Clear date" längst ner — men den rensar nu **både datum och tid** (som idag) och stänger popovern. Tydlig avsikt: "ta bort hela datumvalet".
-- Den nya `✕`-knappen vid tidsfälten = nollställ bara tid.
-
-**C. Layout i popovern**
-
+**B. Dölj native "Clear" i `<input type="time">`**
+- Lägg en CSS-regel i `src/index.css` som döljer Webkit/Edge native clear-knappen:
+```css
+input[type="time"]::-webkit-clear-button,
+input[type="time"]::-webkit-inner-spin-button { display: none; -webkit-appearance: none; }
 ```
-┌────────────────────────┐
-│ [ + Add time         ] │  ← när ingen tid
-│                        │
-│   April 2026   < >     │
-│   M T W T F S S        │
-│   ...                  │
-│                        │
-│   Clear date           │  ← bara om datum valt
-└────────────────────────┘
-
-efter tap på + Add time:
-┌────────────────────────┐
-│ [09:00] – [09:30]  ✕  │  ← ✕ rensar bara tid
-│                        │
-│   April 2026   < >     │
-│   ...                  │
-└────────────────────────┘
-```
+- Detta påverkar alla time-inputs i appen — vi har redan vår egen ✕ vid time-fälten i AddTaskModal samt liknande i sticky notes, så det är konsekvent.
 
 ### Resultat
-- Renare första intryck: bara kalender + "+ Add time".
-- Användaren kan välja bara datum utan att tids-UI är i vägen.
-- Tydlig separation: ✕ vid tidsfält rensar tid; "Clear date" rensar allt.
-- Ingen ändring i save-logik, calendar sync eller andra filer.
+- Popovern står still som ett berg när man väljer datum — endast pillen byter utseende.
+- Bra avstånd från skärmkanten (≥16px), känns luftigt.
+- Native "Clear" i tidsväljaren försvinner, ✕-knappen är enda nollställning.
 
-### Fil
-- `src/components/tasks/AddTaskModal.tsx` (rader ~34, ~51-82, ~356-417)
+### Filer
+- `src/components/tasks/AddTaskModal.tsx` — wrap PopoverAnchor, lägg `collisionPadding` + `sideOffset` på `PopoverContent`.
+- `src/index.css` — globalt dölja native clear på time-inputs.
+- `src/components/ui/popover.tsx` — verifiera/lägg till `PopoverAnchor`-export om den saknas.
 
