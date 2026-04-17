@@ -1,28 +1,39 @@
 
-## Två fixar i Tasks-vyn
+## Större färgcirkel för pinnade listor (matcha Priority/Today)
 
-### Problem 1: Pinnade listor visar `ListChecks`-ikon
-Pinnade vanliga listor i Smart List-rutnätet renderas med `ListChecks`-ikonen i en färgad cirkel. Användaren vill att vanliga pinnade listor bara ska visa en färgad cirkel (samma färgcirkel som i `MyListRow` nedanför) — INTE en ikon. Priority/Today behåller sina ikoner.
-
-### Problem 2: "Pin a list / Long-press a list to pin"-platshållarna ser stökiga ut
-När inga listor är pinnade visas två tomma `SmartListCard`-platshållare med text. Användaren vill att tomma slots försvinner helt — Priority + Today står kvar och My Lists hamnar närmare.
+### Problem
+Pinnade listors prick (3.5×3.5px i en 9×9 slot) ser för liten och felplacerad ut jämfört med Priority/Today som har en 9×9 färgad cirkel med ikon.
 
 ### Lösning
+I `src/components/tasks/SmartListCard.tsx` — när `dotOnly` är aktivt, rendera samma `w-9 h-9 rounded-full`-cirkel som Priority/Today använder, men helfylld i pastellfärgen utan ikon.
 
-**A. `SmartListCard.tsx`** — gör `icon` valfri och stöd "dot only"-läge:
-- Ändra `icon: LucideIcon` → `icon?: LucideIcon`
-- Lägg till valfri prop `dotOnly?: boolean`
-- I render: om `dotOnly` ELLER ingen `icon`, visa en mindre fylld färgcirkel (`w-3.5 h-3.5 rounded-full bg-pastel-{color}`) i stället för ikon-cirkeln (`w-9 h-9` containern). Layout/höjd behålls genom att cirkeln sitter i samma flex-slot.
+Ersätt nuvarande:
+```tsx
+{showDot ? (
+  <div className={cn('w-3.5 h-3.5 rounded-full', colors.dot)} />
+) : (
+  <div className={cn('w-9 h-9 rounded-full ...', colors.bg)}>
+    {Icon && <Icon ... />}
+  </div>
+)}
+```
 
-**B. `TasksView.tsx`**
-- Pinnade slots: rendera `SmartListCard` med `dotOnly` (utan `icon`-prop) — bara färgcirkel + namn + count.
-- Ta bort tomma platshållarna helt: ändra `pinnedSlots` → bara `pinned` (filtrera ut nulls). Rutnätet blir `grid-cols-2`; om bara Priority+Today finns → en rad, om 1 pin → 3 kort, om 2 pins → 2 rader. Inget "Pin a list"-kort.
+Med:
+```tsx
+{showDot ? (
+  <div className={cn('w-9 h-9 rounded-full', colors.dot)} />
+) : (
+  <div className={cn('w-9 h-9 rounded-full flex items-center justify-center', colors.bg)}>
+    {Icon && <Icon className={cn('w-[18px] h-[18px]', colors.text)} />}
+  </div>
+)}
+```
+
+Yttre `w-9 h-9`-flex-slotten behålls → exakt samma placering som Priority/Today.
 
 ### Resultat
-- Pinnade listor visar färgad prick (matchar `MyListRow`).
-- Inga stökiga platshållare när inget är pinnat — My Lists hamnar närmare.
-- Priority/Today oförändrade.
+- Pinnade listor får en stor, helfärgad cirkel i samma storlek och position som Priority/Today.
+- Mer balanserad visuell rytm i 2×2-rutnätet.
 
-### Filer
+### Fil
 - `src/components/tasks/SmartListCard.tsx`
-- `src/components/views/TasksView.tsx`
