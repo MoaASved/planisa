@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { format } from 'date-fns';
-import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
@@ -33,6 +33,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
   const [showSubInput, setShowSubInput] = useState(false);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [listPopoverOpen, setListPopoverOpen] = useState(false);
+  const [showTimeFields, setShowTimeFields] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -58,6 +59,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       setTime(editing.time ?? '');
       setEndTime(editing.endTime ?? '');
       endTimeManual.current = !!editing.endTime;
+      setShowTimeFields(!!editing.time);
       setPriority(editing.priority !== 'none');
       const cat = taskCategories.find((c) => c.name === editing.category);
       setListId(cat?.id ?? '');
@@ -73,6 +75,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       setPriority(false);
       setListId(defaultListId ?? taskCategories[0]?.id ?? '');
       setSubs([]);
+      setShowTimeFields(false);
     }
     setNewSub('');
     setShowSubInput(false);
@@ -358,29 +361,51 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
                 className="w-auto p-3 rounded-2xl"
                 style={{ zIndex: 10000 }}
               >
-                {/* Time fields */}
-                <div className="flex items-center gap-2 mb-3">
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => handleTimeChange(e.target.value)}
-                    className={cn(
-                      'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
-                      !time && 'text-muted-foreground/60',
-                    )}
-                  />
-                  <span className="text-muted-foreground text-sm">–</span>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => handleEndTimeChange(e.target.value)}
-                    disabled={!time}
-                    className={cn(
-                      'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all disabled:opacity-50',
-                      !endTime && 'text-muted-foreground/60',
-                    )}
-                  />
-                </div>
+                {/* Time: on-demand */}
+                {!showTimeFields ? (
+                  <button
+                    onClick={() => setShowTimeFields(true)}
+                    className="w-full mb-3 h-9 rounded-lg bg-secondary/60 hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 text-sm text-muted-foreground"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Add time</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 mb-3 animate-fade-in">
+                    <input
+                      type="time"
+                      value={time}
+                      onChange={(e) => handleTimeChange(e.target.value)}
+                      autoFocus
+                      className={cn(
+                        'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
+                        !time && 'text-muted-foreground/60',
+                      )}
+                    />
+                    <span className="text-muted-foreground text-sm">–</span>
+                    <input
+                      type="time"
+                      value={endTime}
+                      onChange={(e) => handleEndTimeChange(e.target.value)}
+                      className={cn(
+                        'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
+                        !endTime && 'text-muted-foreground/60',
+                      )}
+                    />
+                    <button
+                      onClick={() => {
+                        setTime('');
+                        setEndTime('');
+                        endTimeManual.current = false;
+                        setShowTimeFields(false);
+                      }}
+                      className="w-7 h-7 rounded-full bg-secondary hover:bg-destructive/10 hover:text-destructive flex items-center justify-center text-muted-foreground transition-colors shrink-0"
+                      aria-label="Clear time"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
 
                 {/* Calendar */}
                 <Calendar
