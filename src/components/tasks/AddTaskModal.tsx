@@ -432,6 +432,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
                       setTime('');
                       setEndTime('');
                       endTimeManual.current = false;
+                      setShowTimeFields(false);
                       setDatePopoverOpen(false);
                     }}
                     className="w-full mt-2 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
