@@ -1,62 +1,84 @@
 
 
-## Fix Edit Task: clickable date/time + 30-min default + calendar sync
+## Kompakt Edit Task — iOS Reminders + Sticky Note-stil
 
-### Diagnos
+### Mål
+Riv ut den långa fält-listan i `AddTaskModal` och ersätt med en ren, kompakt modal: titel + add-on-demand note/subtask, och en ikon-rad i botten där varje ikon expanderar till en pill med valt värde.
 
-1. **Date/Time inte klickbara i AddTaskModal (edit-läge):** Raderna är layout-strukturerade som `[ikon] [label] [input flex-1 text-right]`. Native `<input type="date|time">` på mobil triggas bara när man tappar själva input-zonen — ikonen/labeln är inte kopplade så stora delar av raden gör ingenting. Inputten har dessutom inget tydligt "tap target".
-2. **30-min default saknas:** När man väljer tid fylls inte `endTime` i automatiskt → tasks visas bara som punkter i timeline, inte som block.
-3. **Kalender-sync:** Tasks med datum visas redan i kalendern (`CalendarItemList` filtrerar på `t.date` och placerar `untimedTasks` överst, `timedTasks` i timeline). Den fungerar — men eftersom `endTime` aldrig sätts blir block 0-min höga. Fixas via punkt 2.
-
-### Lösning
-
-**Fil 1: `src/components/tasks/AddTaskModal.tsx`**
-
-A. **Gör hela Date/Time-raden klickbar:**
-- Wrappa hela raden i en `<label>` så tap på ikon eller label fokuserar den dolda inputten.
-- Ge inputten `w-full text-left` istället för `flex-1 text-right`, och lägg en visuell "value pill" till höger som placeholder när tom.
-- Lägg `cursor-pointer` på label, `pointer-events-none` på ikoner.
-- Lägg `relative` + `inset-0` absolut input som täcker hela raden (vanlig iOS-trick) så hela ytan triggar pickern.
-
-B. **Auto 30-min default endTime:**
-- Lägg till `endTime` state.
-- I `useEffect` (edit): `setEndTime(editing.endTime ?? '')`.
-- När user ändrar `time`: om `endTime` är tomt eller var auto-satt → sätt `endTime = time + 30 min` via en helper `addMinutes(time, 30)`.
-- Spar `endTime` i payload.
-- Om user manuellt ändrar `endTime` → markera `endTimeManual.current = true` så vi inte skriver över.
-- Om user tömmer tid → töm också `endTime`.
-
-C. **Lägg till End time-fält:**
-- Ny rad under "Time" som dyker upp endast när `time` är satt: samma stil, label "Ends".
-- Använder native `<input type="time">` (per memory-regel).
-
-**Fil 2: ingen ändring i kalendern behövs** — `CalendarItemList` läser redan `t.time` och `t.endTime` och placerar tasks korrekt:
-- `untimedTasks` (date utan time) → överst i "all-day"-sektion ✅
-- `timedTasks` (date + time) → i timeline med höjd från `time` → `endTime` ✅
-
-D. **Live sync:** `updateTask` i store triggar redan re-render i kalendern via Zustand subscription — när date/time/endTime/title ändras uppdateras kalendern direkt. Ingen extra kod krävs.
-
-E. **Ta bort datum:** `date` blir `undefined` → task försvinner från kalenderns dagsvy automatiskt (filtret kräver `t.date`).
-
-F. **Ta bort tid (men behåll datum):** `time` & `endTime` blir `undefined` → task hamnar i `untimedTasks` (top of day all-day-sektion) automatiskt.
-
-### Layout-skiss för Date-rad (ny)
+### Ny layout
 
 ```
-┌─────────────────────────────────────┐
-│ 📅  Date              Tue, Apr 22 ▸ │  ← hela raden klickbar (label)
-└─────────────────────────────────────┘   native picker öppnas på tap
+┌─────────────────────────────────┐
+│                            ✕   │
+│                                 │
+│  Task title_                    │  ← stor, fokuserad
+│                                 │
+│  + Add note                     │  ← klickbar tills man fyller
+│  + Add subtask                  │
+│                                 │
+│  ─────────────────────────────  │
+│  📋 Work   ⭐   📅 Apr 22 14:00│  ← ikon→pill rad
+│                                 │
+│           [  Save  ]      🗑    │
+└─────────────────────────────────┘
 ```
+
+### Beteenden
+
+**1. Note & Subtask — on demand**
+- Visa bara `+ Add note` och `+ Add subtask` initialt.
+- Tap på `+ Add note` → liten textarea fadar in, autofocus.
+- Tap på `+ Add subtask` → en rad med `•` + input fadar in. När man trycker Enter på en subtask läggs nästa till automatiskt; tomt + Enter stänger.
+- Om note tomt vid save → tas bort (visas som `+ Add note` igen nästa gång).
+
+**2. Ikon-rad i botten — pill-expansion**
+Tre ikoner i botten med horisontell scroll om de växer:
+
+- **📋 List** — alltid synlig som pill med listans färgcirkel + namn (default är vald lista). Tap → kompakt popover med listval (samma stil som FolderPickerSheet).
+- **⭐ Priority** — ikon-toggle. När aktiv: gul fyllning, ingen extra text.
+- **📅 Date** — börjar som ren ikon. Tap → öppnar **inline picker-popover** (se nedan). När datum valt blir det en pill: `Apr 22` eller `Apr 22 · 14:00–14:30`. Tap på pill öppnar samma picker. Långt tryck eller liten ✕ inuti pillen rensar.
+
+**3. Date/Time picker (matchar Sticky Note-mönstret)**
+Popover som öppnas under date-ikonen:
+
+```
+┌────────────────────────┐
+│ ┌──────┐  –  ┌──────┐  │  ← två ljusgrå time-fält
+│ │ --:--│     │ --:--│  │     blir aktiva vid tap
+│ └──────┘     └──────┘  │     (auto +30 min på end)
+│                        │
+│   [  Apr 2026   < > ]  │  ← månadsvy
+│   M T W T F S S        │
+│   1 2 3 4 5 6 7        │
+│   ...                  │
+│                        │
+│        Clear date      │
+└────────────────────────┘
+```
+
+- Time-fälten är ljusgrå (`bg-secondary/50 text-muted-foreground`) tills tap → använder native `<input type="time">` (per memory-regel).
+- När start-tid sätts → end-tid auto +30 min (samma `addMinutes`-helper som finns).
+- Manuell ändring av end-tid markeras som "manual" så auto-räkning inte skriver över.
+- Tömma start-tid → tömmer end-tid också.
+- Datum först → bara datum sparas. Tid lägger till tid på det datumet.
+
+**4. Live-sync till kalender**
+Befintlig `updateTask` i Zustand triggar redan re-render — ingen ny sync-kod behövs. Behåll all-day-placering vid endast datum, timeline-block vid datum+tid.
+
+### Tekniska filer
+
+- **`src/components/tasks/AddTaskModal.tsx`** — full rewrite av layouten:
+  - Ta bort de 6 staplade `bg-secondary`-rader (List/Date/Time/Ends/Priority).
+  - Ny ikon-rad i botten med pill-expansion-logik.
+  - State för `showNote` / `showSubtaskInput` (på demand).
+  - Inkapsla date/time-picker i en lokal `<DateTimePopover>`-komponent (eller inline med shadcn `Popover` + `Calendar`).
+  - Behåll all befintlig save-logik, payload-struktur, `endTimeManual`-ref och `addMinutes`-helper.
+
+- Ingen ändring i `useAppStore`, `CalendarView` eller `TaskCell`.
 
 ### Resultat
-
-- Tap var som helst på Date/Time-raden öppnar native picker — inga z-index-problem.
-- När tid väljs: `endTime` auto-fylls till `time + 30min`, syns direkt som extra rad.
-- User kan justera `endTime` manuellt.
-- Task med `date` only → överst i kalenderdagen.
-- Task med `date + time` → i timeline med 30-min default block.
-- Live: alla ändringar reflekteras direkt i kalender via befintlig Zustand-store.
-
-### Filer
-- `src/components/tasks/AddTaskModal.tsx` — gör Date/Time-rader fullt klickbara, lägg till `endTime` state + auto-30min, lägg till End time-fält.
+- Renare initial vy: bara titel + två + Add-rader.
+- Ikon-rad gör tunga val tillgängliga utan att ta plats.
+- Date/time fungerar exakt som sticky notes → konsekvent i hela appen.
+- Snabbare, modernare, mer iOS Reminders-likt.
 
