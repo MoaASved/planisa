@@ -1,349 +1,193 @@
-import { useState, useEffect, useRef } from 'react';
-import { Star, Calendar as CalIcon, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { isToday } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { Star, Calendar as CalIcon, Plus, ListChecks } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, TaskCategory } from '@/types';
-import { TaskRow } from '../tasks/TaskRow';
-import { CategoryCard } from '../tasks/CategoryCard';
-import { CategoryDetailView } from '../tasks/CategoryDetailView';
-import { InlineTaskInput, InlineTaskInputMode } from '../tasks/InlineTaskInput';
-
-type TabType = 'tasks' | 'categories';
+import { SmartListCard } from '../tasks/SmartListCard';
+import { MyListRow } from '../tasks/MyListRow';
+import { ListDetailView } from '../tasks/ListDetailView';
+import { CreateListModal } from '../tasks/CreateListModal';
+import { AddTaskModal } from '../tasks/AddTaskModal';
 
 interface TasksViewProps {
   isCreatingNewTask?: boolean;
   onCreatingTaskComplete?: () => void;
 }
 
-const VISIBLE_COUNT = 3;
-
-function TaskSection({
-  title,
-  icon,
-  tasks,
-  toggleTask,
-  emptyText,
-  showOverdue,
-  inputMode,
-  isAdding,
-  onToggleAdd,
-  onTaskCreated,
-}: {
-  title: string;
-  icon: React.ReactNode;
-  tasks: Task[];
-  toggleTask: (id: string) => void;
-  emptyText: string;
-  showOverdue?: boolean;
-  inputMode: InlineTaskInputMode;
-  isAdding: boolean;
-  onToggleAdd: () => void;
-  onTaskCreated: () => void;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeColumn, setActiveColumn] = useState(0);
-
-  const columns: Task[][] = [];
-  for (let i = 0; i < tasks.length; i += VISIBLE_COUNT) {
-    columns.push(tasks.slice(i, i + VISIBLE_COUNT));
-  }
-
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const idx = Math.round(el.scrollLeft / el.clientWidth);
-    if (idx !== activeColumn) setActiveColumn(idx);
-  };
-
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
-          {icon}
-          <h2 className="text-sm font-semibold text-foreground tracking-tight">{title}</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          {tasks.length > 0 && (
-            <span className="text-xs text-muted-foreground">{tasks.length}</span>
-          )}
-          <button
-            onClick={onToggleAdd}
-            aria-label={`Add to ${title}`}
-            className={cn(
-              'w-7 h-7 rounded-full flex items-center justify-center transition-all',
-              'hover:bg-muted active:scale-95',
-              isAdding && 'bg-primary/10 text-primary rotate-45',
-            )}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {isAdding && (
-        <div className="stagger-item">
-          <InlineTaskInput
-            mode={inputMode}
-            autoFocus
-            onTaskCreated={onTaskCreated}
-            onDismiss={onToggleAdd}
-          />
-        </div>
-      )}
-
-      {tasks.length === 0 && !isAdding ? (
-        <div className="flow-card-flat flex items-center justify-center py-6">
-          <p className="text-sm text-muted-foreground">{emptyText}</p>
-        </div>
-      ) : tasks.length > 0 ? (
-        <>
-          {columns.length === 1 ? (
-            <div className="space-y-2">
-              {columns[0].map((task) => (
-                <div key={task.id} className="stagger-item">
-                  <TaskRow
-                    task={task}
-                    onToggle={() => toggleTask(task.id)}
-                    showOverdue={showOverdue}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <div
-                ref={scrollRef}
-                onScroll={handleScroll}
-                className="-mx-4 px-4 overflow-x-auto scrollbar-none snap-x snap-mandatory"
-              >
-                <div className="flex gap-3">
-                  {columns.map((col, colIdx) => (
-                    <div
-                      key={colIdx}
-                      className="snap-start shrink-0 w-full space-y-2"
-                      style={{ width: 'calc(100vw - 2rem)' }}
-                    >
-                      {col.map((task) => (
-                        <div key={task.id} className="stagger-item">
-                          <TaskRow
-                            task={task}
-                            onToggle={() => toggleTask(task.id)}
-                            showOverdue={showOverdue}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-center gap-1.5 pt-1">
-                {columns.map((_, i) => (
-                  <span
-                    key={i}
-                    className={cn(
-                      'h-1.5 rounded-full transition-all',
-                      i === activeColumn ? 'w-4 bg-foreground/60' : 'w-1.5 bg-foreground/20',
-                    )}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </>
-      ) : null}
-    </section>
-  );
-}
+type SmartView = 'priority' | 'today' | null;
 
 export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksViewProps) {
-  const { tasks, toggleTask, searchQuery, taskCategories } = useAppStore();
+  const { tasks, taskCategories, searchQuery } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<TabType>('tasks');
-  const [selectedCategory, setSelectedCategory] = useState<TaskCategory | null>(null);
-  const [showCompleted, setShowCompleted] = useState(false);
-
-  const [addingSection, setAddingSection] = useState<InlineTaskInputMode | null>(null);
+  const [selectedList, setSelectedList] = useState<TaskCategory | null>(null);
+  const [smartView, setSmartView] = useState<SmartView>(null);
+  const [showCreateList, setShowCreateList] = useState(false);
+  const [showAddTask, setShowAddTask] = useState(false);
 
   useEffect(() => {
     if (isCreatingNewTask) {
-      setActiveTab('tasks');
-      setAddingSection('uncategorized');
+      setShowAddTask(true);
       onCreatingTaskComplete?.();
     }
   }, [isCreatingNewTask, onCreatingTaskComplete]);
 
-  const matchesSearch = (t: Task) => {
+  const matches = (t: Task) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
-    return t.title.toLowerCase().includes(q) || t.category.toLowerCase().includes(q);
+    return t.title.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q);
   };
 
-  const visibleTasks = tasks.filter((t) => !t.hidden && matchesSearch(t));
+  const visible = tasks.filter((t) => !t.hidden && matches(t));
+  const incomplete = visible.filter((t) => !t.completed);
 
-  const todayMidnight = new Date().setHours(0, 0, 0, 0);
-  const todayTasks = visibleTasks.filter(
-    (t) => !t.completed && t.date && isToday(new Date(t.date)),
-  );
-  const overdueTasks = visibleTasks.filter(
-    (t) => !t.completed && t.date && new Date(t.date).setHours(0, 0, 0, 0) < todayMidnight,
-  );
-  const todayCombined = [...overdueTasks, ...todayTasks];
+  const todayCount = incomplete.filter(
+    (t) => t.date && (isToday(new Date(t.date)) || new Date(t.date) < new Date()),
+  ).length;
+  const priorityCount = incomplete.filter((t) => t.priority !== 'none').length;
 
-  const priorityTasks = visibleTasks.filter((t) => t.priority !== 'none' && !t.completed);
+  const pinned = taskCategories.filter((c) => c.pinned).slice(0, 2);
+  const pinnedSlots: (TaskCategory | null)[] = [pinned[0] ?? null, pinned[1] ?? null];
 
-  const uncategorizedTasks = visibleTasks.filter(
-    (t) => !t.completed && !t.date && t.priority === 'none' && !t.category,
+  const myLists = [...taskCategories].sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0),
   );
 
-  const completedToday = visibleTasks.filter(
-    (t) => t.completed && t.date && isToday(new Date(t.date)),
-  );
-
-  if (selectedCategory) {
-    const categoryTasks = visibleTasks.filter((t) => t.category === selectedCategory.name);
+  // ── List detail view
+  if (selectedList) {
+    const listTasks = visible.filter((t) => t.category === selectedList.name);
     return (
-      <CategoryDetailView
-        category={selectedCategory}
-        tasks={categoryTasks}
-        onBack={() => setSelectedCategory(null)}
-        onToggleTask={toggleTask}
+      <ListDetailView
+        category={selectedList}
+        tasks={listTasks}
+        onBack={() => setSelectedList(null)}
       />
     );
   }
 
-  const toggleAdd = (mode: InlineTaskInputMode) => {
-    setAddingSection((cur) => (cur === mode ? null : mode));
-  };
+  // ── Smart list virtual category
+  if (smartView) {
+    const virtual: TaskCategory =
+      smartView === 'priority'
+        ? { id: '__priority', name: 'Priority', color: 'amber' }
+        : { id: '__today', name: 'Today', color: 'sky' };
+
+    const filtered =
+      smartView === 'priority'
+        ? visible.filter((t) => t.priority !== 'none')
+        : visible.filter(
+            (t) =>
+              t.date && (isToday(new Date(t.date)) || new Date(t.date) < new Date()),
+          );
+
+    return (
+      <ListDetailView
+        category={virtual}
+        tasks={filtered}
+        onBack={() => setSmartView(null)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="px-4 py-4">
-        {/* Tabs */}
-        <div className="flow-segment mb-4">
-          {(['tasks', 'categories'] as TabType[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={cn(
-                'flow-segment-item capitalize',
-                activeTab === tab && 'flow-segment-item-active',
+      <div className="px-4 pt-3 pb-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5 px-1">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Tasks</h1>
+          <button
+            onClick={() => setShowAddTask(true)}
+            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-transform"
+            aria-label="New task"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Smart Lists 2x2 */}
+        <div className="grid grid-cols-2 gap-3 mb-7">
+          <div className="stagger-item">
+            <SmartListCard
+              title="Priority"
+              count={priorityCount}
+              icon={Star}
+              color="amber-warm"
+              onClick={() => setSmartView('priority')}
+            />
+          </div>
+          <div className="stagger-item">
+            <SmartListCard
+              title="Today"
+              count={todayCount}
+              icon={CalIcon}
+              color="sky"
+              onClick={() => setSmartView('today')}
+            />
+          </div>
+          {pinnedSlots.map((slot, i) => (
+            <div key={i} className="stagger-item">
+              {slot ? (
+                <SmartListCard
+                  title={slot.name}
+                  count={incomplete.filter((t) => t.category === slot.name).length}
+                  icon={ListChecks}
+                  color={slot.color}
+                  onClick={() => setSelectedList(slot)}
+                />
+              ) : (
+                <SmartListCard
+                  title="Pin a list"
+                  count={0}
+                  icon={Plus}
+                  color="stone"
+                  empty
+                  emptyLabel="Long-press a list to pin"
+                  onClick={() => {}}
+                />
               )}
-            >
-              {tab === 'categories' ? 'Lists' : 'Tasks'}
-            </button>
+            </div>
           ))}
         </div>
 
-        {activeTab === 'tasks' && (
-          <div className="space-y-5">
-            <TaskSection
-              title="Today"
-              icon={<CalIcon className="w-4 h-4 text-primary" />}
-              tasks={todayCombined}
-              toggleTask={toggleTask}
-              emptyText="Nothing scheduled today"
-              showOverdue
-              inputMode="today"
-              isAdding={addingSection === 'today'}
-              onToggleAdd={() => toggleAdd('today')}
-              onTaskCreated={() => {}}
-            />
+        {/* My Lists */}
+        <div className="flex items-center justify-between mb-2.5 px-1">
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            My Lists
+          </h2>
+          <button
+            onClick={() => setShowCreateList(true)}
+            className="text-xs font-medium text-primary hover:opacity-70 flex items-center gap-1"
+          >
+            <Plus className="w-3.5 h-3.5" /> New list
+          </button>
+        </div>
 
-            <TaskSection
-              title="Priority"
-              icon={<Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
-              tasks={priorityTasks}
-              toggleTask={toggleTask}
-              emptyText="No priority tasks"
-              inputMode="priority"
-              isAdding={addingSection === 'priority'}
-              onToggleAdd={() => toggleAdd('priority')}
-              onTaskCreated={() => {}}
-            />
-
-            {(uncategorizedTasks.length > 0 || addingSection === 'uncategorized') && (
-              <TaskSection
-                title="Tasks without category"
-                icon={<Inbox className="w-4 h-4 text-muted-foreground" />}
-                tasks={uncategorizedTasks}
-                toggleTask={toggleTask}
-                emptyText="No uncategorized tasks"
-                inputMode="uncategorized"
-                isAdding={addingSection === 'uncategorized'}
-                onToggleAdd={() => toggleAdd('uncategorized')}
-                onTaskCreated={() => {}}
+        <div className="space-y-2">
+          {myLists.map((cat, idx) => (
+            <div key={cat.id} className="stagger-item" style={{ animationDelay: `${idx * 30}ms` }}>
+              <MyListRow
+                category={cat}
+                count={incomplete.filter((t) => t.category === cat.name).length}
+                onClick={() => setSelectedList(cat)}
               />
-            )}
+            </div>
+          ))}
 
-            {/* Hidden trigger so users can always reach uncategorized add */}
-            {uncategorizedTasks.length === 0 && addingSection !== 'uncategorized' && (
+          {myLists.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-sm text-muted-foreground mb-3">No lists yet</p>
               <button
-                onClick={() => toggleAdd('uncategorized')}
-                className="w-full flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowCreateList(true)}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Add uncategorized task</span>
+                Create your first list
               </button>
-            )}
-
-            {completedToday.length > 0 && (
-              <section className="space-y-2">
-                <button
-                  onClick={() => setShowCompleted((v) => !v)}
-                  className="flex items-center gap-2 px-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showCompleted ? (
-                    <ChevronDown className="w-4 h-4" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4" />
-                  )}
-                  <span>Completed</span>
-                  <span className="text-xs">({completedToday.length})</span>
-                </button>
-                {showCompleted && (
-                  <div className="space-y-2">
-                    {completedToday.map((task) => (
-                      <TaskRow
-                        key={task.id}
-                        task={task}
-                        onToggle={() => toggleTask(task.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'categories' && (
-          <div className="grid grid-cols-2 gap-3">
-            {taskCategories.map((category, index) => {
-              const taskCount = visibleTasks.filter((t) => t.category === category.name).length;
-              return (
-                <div
-                  key={category.id}
-                  className="stagger-item"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <CategoryCard
-                    category={category}
-                    taskCount={taskCount}
-                    onClick={() => setSelectedCategory(category)}
-                  />
-                </div>
-              );
-            })}
-
-            {taskCategories.length === 0 && (
-              <div className="col-span-2 flex flex-col items-center justify-center py-16 text-center">
-                <p className="text-sm text-muted-foreground">No lists yet</p>
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
+
+      <CreateListModal isOpen={showCreateList} onClose={() => setShowCreateList(false)} />
+      <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} />
     </div>
   );
 }

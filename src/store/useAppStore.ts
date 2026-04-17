@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, PastelColor, Notebook, NotebookPage } from '@/types';
+import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, PastelColor, Notebook, NotebookPage, TaskSection } from '@/types';
 import { addDays, startOfToday } from 'date-fns';
 
 interface AppState {
@@ -52,6 +52,14 @@ interface AppState {
   addTaskCategory: (category: Omit<TaskCategory, 'id'>) => void;
   updateTaskCategory: (id: string, updates: Partial<TaskCategory>) => void;
   deleteTaskCategory: (id: string) => void;
+  pinTaskCategory: (id: string) => void;
+  unpinTaskCategory: (id: string) => void;
+
+  // Task Sections (sub-groupings inside lists)
+  taskSections: TaskSection[];
+  addTaskSection: (section: Omit<TaskSection, 'id'>) => void;
+  updateTaskSection: (id: string, updates: Partial<TaskSection>) => void;
+  deleteTaskSection: (id: string) => void;
 
   // Event Categories (independent)
   eventCategories: EventCategory[];
@@ -78,11 +86,11 @@ const today = startOfToday();
 
 // Initial Task Categories
 const initialTaskCategories: TaskCategory[] = [
-  { id: 't1', name: 'Work', color: 'sky' },
-  { id: 't2', name: 'Personal', color: 'mint' },
-  { id: 't3', name: 'Health', color: 'coral' },
-  { id: 't4', name: 'Shopping', color: 'amber' },
-  { id: 't5', name: 'Learning', color: 'lavender' },
+  { id: 't1', name: 'Work', color: 'sky', sortMode: 'manual', pinned: true },
+  { id: 't2', name: 'Personal', color: 'mint', sortMode: 'manual', pinned: true },
+  { id: 't3', name: 'Health', color: 'coral', sortMode: 'manual' },
+  { id: 't4', name: 'Shopping', color: 'amber', sortMode: 'manual' },
+  { id: 't5', name: 'Learning', color: 'lavender', sortMode: 'manual' },
 ];
 
 // Initial Event Categories
@@ -400,6 +408,38 @@ export const useAppStore = create<AppState>()(
       deleteTaskCategory: (id) =>
         set((state) => ({
           taskCategories: state.taskCategories.filter((c) => c.id !== id),
+        })),
+      pinTaskCategory: (id) =>
+        set((state) => {
+          const pinnedCount = state.taskCategories.filter((c) => c.pinned).length;
+          if (pinnedCount >= 2) return state;
+          return {
+            taskCategories: state.taskCategories.map((c) =>
+              c.id === id ? { ...c, pinned: true } : c,
+            ),
+          };
+        }),
+      unpinTaskCategory: (id) =>
+        set((state) => ({
+          taskCategories: state.taskCategories.map((c) =>
+            c.id === id ? { ...c, pinned: false } : c,
+          ),
+        })),
+
+      // Task Sections
+      taskSections: [] as TaskSection[],
+      addTaskSection: (section) =>
+        set((state) => ({
+          taskSections: [...state.taskSections, { ...section, id: generateId() }],
+        })),
+      updateTaskSection: (id, updates) =>
+        set((state) => ({
+          taskSections: state.taskSections.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+        })),
+      deleteTaskSection: (id) =>
+        set((state) => ({
+          taskSections: state.taskSections.filter((s) => s.id !== id),
+          tasks: state.tasks.map((t) => (t.sectionId === id ? { ...t, sectionId: undefined } : t)),
         })),
 
       // Event Categories

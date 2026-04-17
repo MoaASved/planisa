@@ -27,8 +27,19 @@ export interface Task {
   color: PastelColor;
   subtasks: Subtask[];
   notes?: string;
+  note?: string;
   priority: Priority;
   createdAt: Date;
+  order?: number;
+  sectionId?: string;
+}
+
+export interface TaskSection {
+  id: string;
+  listId: string;
+  name: string;
+  order: number;
+  collapsed?: boolean;
 }
 
 export interface Subtask {
@@ -73,6 +84,9 @@ export interface TaskCategory {
   id: string;
   name: string;
   color: PastelColor;
+  pinned?: boolean;
+  sortMode?: 'manual' | 'date' | 'created';
+  order?: number;
 }
 
 export interface EventCategory {
