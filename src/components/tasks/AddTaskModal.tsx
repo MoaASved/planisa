@@ -5,7 +5,7 @@ import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clo
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { getColorDotClass } from '@/lib/colors';
 
