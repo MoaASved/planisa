@@ -5,11 +5,12 @@ import { PastelColor } from '@/types';
 interface SmartListCardProps {
   title: string;
   count: number;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   color: PastelColor | 'amber-warm' | 'primary';
   onClick: () => void;
   empty?: boolean;
   emptyLabel?: string;
+  dotOnly?: boolean;
 }
 
 const colorMap: Record<string, { bg: string; text: string }> = {
@@ -36,8 +37,10 @@ export function SmartListCard({
   onClick,
   empty,
   emptyLabel,
+  dotOnly,
 }: SmartListCardProps) {
   const colors = colorMap[color] ?? colorMap.primary;
+  const showDot = dotOnly || !Icon;
 
   return (
     <button
@@ -50,13 +53,14 @@ export function SmartListCard({
       )}
     >
       <div className="flex items-start justify-between mb-3">
-        <div
-          className={cn(
-            'w-9 h-9 rounded-full flex items-center justify-center',
-            colors.bg,
+        <div className="w-9 h-9 flex items-center justify-center">
+          {showDot ? (
+            <div className={cn('w-3.5 h-3.5 rounded-full', colors.bg.replace('/20', '').replace('/25', '').replace('/30', '').replace('/40', ''))} />
+          ) : (
+            <div className={cn('w-9 h-9 rounded-full flex items-center justify-center', colors.bg)}>
+              {Icon && <Icon className={cn('w-[18px] h-[18px]', colors.text)} />}
+            </div>
           )}
-        >
-          <Icon className={cn('w-[18px] h-[18px]', colors.text)} />
         </div>
         {!empty && (
           <span className="text-2xl font-semibold text-foreground tabular-nums leading-none">
