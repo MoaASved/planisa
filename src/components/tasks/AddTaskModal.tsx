@@ -7,7 +7,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { getColorHex } from '@/lib/colors';
+import { getColorDotClass } from '@/lib/colors';
 
 interface AddTaskModalProps {
   isOpen: boolean;
