@@ -94,6 +94,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       note: note.trim() || undefined,
       date: date ? new Date(date) : undefined,
       time: time || undefined,
+      endTime: time ? (endTime || addMinutes(time, 30)) : undefined,
       category: cat?.name ?? '',
       color: cat?.color ?? 'gray',
       subtasks: subs,
