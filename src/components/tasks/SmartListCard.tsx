@@ -55,7 +55,7 @@ export function SmartListCard({
       <div className="flex items-start justify-between mb-3">
         <div className="w-9 h-9 flex items-center justify-center">
           {showDot ? (
-            <div className={cn('w-3.5 h-3.5 rounded-full', colors.dot)} />
+            <div className={cn('w-9 h-9 rounded-full', colors.dot)} />
           ) : (
             <div className={cn('w-9 h-9 rounded-full flex items-center justify-center', colors.bg)}>
               {Icon && <Icon className={cn('w-[18px] h-[18px]', colors.text)} />}
