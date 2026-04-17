@@ -10,6 +10,13 @@ input[type="date"] {
   cursor: pointer;
 }
 
+/* Hide native clear/spin buttons on time inputs — we use custom ✕ buttons */
+input[type="time"]::-webkit-clear-button,
+input[type="time"]::-webkit-inner-spin-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
