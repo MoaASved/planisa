@@ -205,28 +205,51 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
             </div>
 
             {/* Date */}
-            <div className="bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Date</span>
+            <label className="relative bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2 cursor-pointer">
+              <Calendar className="w-4 h-4 text-muted-foreground pointer-events-none" />
+              <span className="text-xs font-medium text-muted-foreground pointer-events-none">Date</span>
+              <span className="ml-auto text-sm text-foreground pointer-events-none">
+                {date ? format(new Date(date + 'T00:00:00'), 'EEE, MMM d') : 'None'}
+              </span>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground text-right"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            </div>
+            </label>
 
             {/* Time */}
-            <div className="bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Time</span>
+            <label className="relative bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2 cursor-pointer">
+              <Clock className="w-4 h-4 text-muted-foreground pointer-events-none" />
+              <span className="text-xs font-medium text-muted-foreground pointer-events-none">Time</span>
+              <span className="ml-auto text-sm text-foreground pointer-events-none">
+                {time || 'None'}
+              </span>
               <input
                 type="time"
                 value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground text-right"
+                onChange={(e) => handleTimeChange(e.target.value)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-            </div>
+            </label>
+
+            {/* Ends */}
+            {time && (
+              <label className="relative bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2 cursor-pointer animate-fade-in">
+                <Clock className="w-4 h-4 text-muted-foreground pointer-events-none" />
+                <span className="text-xs font-medium text-muted-foreground pointer-events-none">Ends</span>
+                <span className="ml-auto text-sm text-foreground pointer-events-none">
+                  {endTime || addMinutes(time, 30)}
+                </span>
+                <input
+                  type="time"
+                  value={endTime || addMinutes(time, 30)}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </label>
+            )}
 
             {/* Priority */}
             <button
