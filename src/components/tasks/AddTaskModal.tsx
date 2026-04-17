@@ -20,11 +20,22 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
   const [note, setNote] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [priority, setPriority] = useState(false);
   const [listId, setListId] = useState<string>('');
   const [subs, setSubs] = useState<Subtask[]>([]);
   const [newSub, setNewSub] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const endTimeManual = useRef(false);
+
+  const addMinutes = (t: string, mins: number): string => {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    const total = h * 60 + m + mins;
+    const nh = Math.min(Math.floor(total / 60), 23);
+    const nm = total % 60;
+    return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -33,6 +44,8 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       setNote(editing.note ?? '');
       setDate(editing.date ? new Date(editing.date).toISOString().slice(0, 10) : '');
       setTime(editing.time ?? '');
+      setEndTime(editing.endTime ?? '');
+      endTimeManual.current = !!editing.endTime;
       setPriority(editing.priority !== 'none');
       const cat = taskCategories.find((c) => c.name === editing.category);
       setListId(cat?.id ?? '');
@@ -42,6 +55,8 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       setNote('');
       setDate('');
       setTime('');
+      setEndTime('');
+      endTimeManual.current = false;
       setPriority(false);
       setListId(defaultListId ?? taskCategories[0]?.id ?? '');
       setSubs([]);
@@ -49,6 +64,23 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
     setNewSub('');
     setTimeout(() => inputRef.current?.focus(), 80);
   }, [isOpen, editing, defaultListId, taskCategories]);
+
+  const handleTimeChange = (newTime: string) => {
+    setTime(newTime);
+    if (!newTime) {
+      setEndTime('');
+      endTimeManual.current = false;
+      return;
+    }
+    if (!endTimeManual.current || !endTime) {
+      setEndTime(addMinutes(newTime, 30));
+    }
+  };
+
+  const handleEndTimeChange = (v: string) => {
+    endTimeManual.current = true;
+    setEndTime(v);
+  };
 
   if (!isOpen) return null;
 
