@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { isToday } from 'date-fns';
-import { Star, Calendar as CalIcon, Plus, ListChecks } from 'lucide-react';
+import { Star, Calendar as CalIcon, Plus } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, TaskCategory } from '@/types';
 import { SmartListCard } from '../tasks/SmartListCard';
