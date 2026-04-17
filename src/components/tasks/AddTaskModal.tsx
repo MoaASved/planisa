@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { format } from 'date-fns';
-import { X, Calendar, Clock, Star, Plus, Trash2 } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { getColorHex } from '@/lib/colors';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -19,6 +22,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
 
   const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
+  const [showNote, setShowNote] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -26,7 +30,13 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
   const [listId, setListId] = useState<string>('');
   const [subs, setSubs] = useState<Subtask[]>([]);
   const [newSub, setNewSub] = useState('');
+  const [showSubInput, setShowSubInput] = useState(false);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [listPopoverOpen, setListPopoverOpen] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
+  const subInputRef = useRef<HTMLInputElement>(null);
   const endTimeManual = useRef(false);
 
   const addMinutes = (t: string, mins: number): string => {
@@ -43,6 +53,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
     if (editing) {
       setTitle(editing.title);
       setNote(editing.note ?? '');
+      setShowNote(!!editing.note);
       setDate(editing.date ? new Date(editing.date).toISOString().slice(0, 10) : '');
       setTime(editing.time ?? '');
       setEndTime(editing.endTime ?? '');
@@ -54,6 +65,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
     } else {
       setTitle('');
       setNote('');
+      setShowNote(false);
       setDate('');
       setTime('');
       setEndTime('');
@@ -63,6 +75,9 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       setSubs([]);
     }
     setNewSub('');
+    setShowSubInput(false);
+    setDatePopoverOpen(false);
+    setListPopoverOpen(false);
     setTimeout(() => inputRef.current?.focus(), 80);
   }, [isOpen, editing, defaultListId, taskCategories]);
 
@@ -111,10 +126,25 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
 
   const addSub = () => {
     const t = newSub.trim();
-    if (!t) return;
+    if (!t) {
+      setShowSubInput(false);
+      return;
+    }
     setSubs([...subs, { id: `s-${Date.now()}`, title: t, completed: false }]);
     setNewSub('');
+    setTimeout(() => subInputRef.current?.focus(), 30);
   };
+
+  const selectedList = taskCategories.find((c) => c.id === listId);
+  const dateLabel = (() => {
+    if (!date) return null;
+    const d = new Date(date + 'T00:00:00');
+    const base = format(d, 'MMM d');
+    if (time) {
+      return `${base} · ${time}${endTime ? `–${endTime}` : ''}`;
+    }
+    return base;
+  })();
 
   return ReactDOM.createPortal(
     <>
@@ -131,10 +161,8 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
           className="w-full max-w-sm bg-card rounded-3xl shadow-2xl animate-spring-pop my-auto"
           style={{ pointerEvents: 'auto' }}
         >
-          <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="text-lg font-semibold text-foreground">
-              {editing ? 'Edit task' : 'New task'}
-            </h2>
+          {/* Header */}
+          <div className="flex items-center justify-end px-4 pt-4">
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
@@ -143,141 +171,259 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
             </button>
           </div>
 
-          <div className="px-5 pb-3 space-y-3 max-h-[70vh] overflow-y-auto">
+          {/* Body */}
+          <div className="px-5 pb-2 space-y-2.5 max-h-[65vh] overflow-y-auto">
             <input
               ref={inputRef}
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="What do you need to do?"
-              className="w-full bg-transparent border-0 outline-none text-[17px] font-medium text-foreground placeholder:text-muted-foreground/60"
+              placeholder="Task title"
+              className="w-full bg-transparent border-0 outline-none text-[20px] font-semibold text-foreground placeholder:text-muted-foreground/50"
             />
 
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Note"
-              rows={2}
-              className="w-full bg-secondary rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 resize-none"
-            />
+            {/* Note */}
+            {showNote ? (
+              <textarea
+                ref={noteRef}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                onBlur={() => !note.trim() && setShowNote(false)}
+                placeholder="Note"
+                rows={2}
+                autoFocus
+                className="w-full bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 resize-none animate-fade-in"
+              />
+            ) : (
+              <button
+                onClick={() => {
+                  setShowNote(true);
+                  setTimeout(() => noteRef.current?.focus(), 30);
+                }}
+                className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors"
+              >
+                + Add note
+              </button>
+            )}
 
-            {/* Subtasks */}
-            <div className="space-y-1.5">
-              {subs.map((s) => (
-                <div key={s.id} className="flex items-center gap-2 px-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                  <span className="flex-1 text-sm text-foreground">{s.title}</span>
-                  <button
-                    onClick={() => setSubs(subs.filter((x) => x.id !== s.id))}
-                    className="text-muted-foreground/50 hover:text-destructive"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-              <div className="flex items-center gap-2 px-2">
-                <Plus className="w-3.5 h-3.5 text-muted-foreground/50" />
+            {/* Subtasks list */}
+            {subs.length > 0 && (
+              <div className="space-y-1 pt-1">
+                {subs.map((s) => (
+                  <div key={s.id} className="flex items-center gap-2 group animate-fade-in">
+                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+                    <span className="flex-1 text-sm text-foreground">{s.title}</span>
+                    <button
+                      onClick={() => setSubs(subs.filter((x) => x.id !== s.id))}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground/50 hover:text-destructive transition-opacity"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Subtask input or trigger */}
+            {showSubInput ? (
+              <div className="flex items-center gap-2 animate-fade-in">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
                 <input
+                  ref={subInputRef}
                   type="text"
                   value={newSub}
                   onChange={(e) => setNewSub(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSub())}
-                  placeholder="Add subtask"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addSub();
+                    }
+                  }}
+                  onBlur={() => {
+                    if (!newSub.trim()) setShowSubInput(false);
+                  }}
+                  autoFocus
+                  placeholder="Subtask"
                   className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/50"
                 />
               </div>
-            </div>
-
-            {/* List */}
-            <div className="bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">List</span>
-              <select
-                value={listId}
-                onChange={(e) => setListId(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-sm font-medium text-foreground text-right"
+            ) : (
+              <button
+                onClick={() => setShowSubInput(true)}
+                className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors block"
               >
-                <option value="">No list</option>
-                {taskCategories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Date */}
-            <label className="relative bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2 cursor-pointer">
-              <Calendar className="w-4 h-4 text-muted-foreground pointer-events-none" />
-              <span className="text-xs font-medium text-muted-foreground pointer-events-none">Date</span>
-              <span className="ml-auto text-sm text-foreground pointer-events-none">
-                {date ? format(new Date(date + 'T00:00:00'), 'EEE, MMM d') : 'None'}
-              </span>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-            </label>
-
-            {/* Time */}
-            <label className="relative bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2 cursor-pointer">
-              <Clock className="w-4 h-4 text-muted-foreground pointer-events-none" />
-              <span className="text-xs font-medium text-muted-foreground pointer-events-none">Time</span>
-              <span className="ml-auto text-sm text-foreground pointer-events-none">
-                {time || 'None'}
-              </span>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => handleTimeChange(e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-            </label>
-
-            {/* Ends */}
-            {time && (
-              <label className="relative bg-secondary rounded-xl px-3.5 py-2.5 flex items-center gap-2 cursor-pointer animate-fade-in">
-                <Clock className="w-4 h-4 text-muted-foreground pointer-events-none" />
-                <span className="text-xs font-medium text-muted-foreground pointer-events-none">Ends</span>
-                <span className="ml-auto text-sm text-foreground pointer-events-none">
-                  {endTime || addMinutes(time, 30)}
-                </span>
-                <input
-                  type="time"
-                  value={endTime || addMinutes(time, 30)}
-                  onChange={(e) => handleEndTimeChange(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </label>
+                + Add subtask
+              </button>
             )}
+          </div>
+
+          {/* Divider */}
+          <div className="mx-5 my-3 h-px bg-border" />
+
+          {/* Icon / pill row */}
+          <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
+            {/* List pill */}
+            <Popover open={listPopoverOpen} onOpenChange={setListPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors">
+                  {selectedList ? (
+                    <>
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: getColorHex(selectedList.color) }}
+                      />
+                      <span className="text-xs font-medium text-foreground">{selectedList.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ListChecks className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">List</span>
+                    </>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-56 p-1.5 rounded-2xl"
+                style={{ zIndex: 10000 }}
+              >
+                <div className="max-h-64 overflow-y-auto">
+                  {taskCategories.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setListId(c.id);
+                        setListPopoverOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-secondary transition-colors"
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ background: getColorHex(c.color) }}
+                      />
+                      <span className="flex-1 text-left text-sm text-foreground">{c.name}</span>
+                      {listId === c.id && <Check className="w-4 h-4 text-primary" />}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* Priority */}
             <button
               onClick={() => setPriority(!priority)}
               className={cn(
-                'w-full rounded-xl px-3.5 py-2.5 flex items-center gap-2 transition-colors',
-                priority ? 'bg-amber-500/15' : 'bg-secondary',
+                'flex items-center justify-center h-8 w-8 rounded-full transition-colors',
+                priority ? 'bg-amber-500/15' : 'bg-secondary hover:bg-secondary/70',
               )}
             >
               <Star
                 className={cn(
-                  'w-4 h-4',
+                  'w-3.5 h-3.5',
                   priority ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground',
                 )}
               />
-              <span
-                className={cn(
-                  'text-sm font-medium',
-                  priority ? 'text-amber-700 dark:text-amber-400' : 'text-foreground',
-                )}
-              >
-                Priority
-              </span>
             </button>
+
+            {/* Date pill */}
+            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    'flex items-center gap-1.5 h-8 px-2.5 rounded-full transition-colors',
+                    date ? 'bg-primary/10 text-primary' : 'bg-secondary hover:bg-secondary/70',
+                  )}
+                >
+                  <CalendarIcon className={cn('w-3.5 h-3.5', date ? 'text-primary' : 'text-muted-foreground')} />
+                  {dateLabel ? (
+                    <>
+                      <span className="text-xs font-medium">{dateLabel}</span>
+                      <span
+                        role="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDate('');
+                          setTime('');
+                          setEndTime('');
+                          endTimeManual.current = false;
+                        }}
+                        className="ml-0.5 -mr-0.5 w-4 h-4 rounded-full hover:bg-primary/20 flex items-center justify-center"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-medium text-muted-foreground">Date</span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-auto p-3 rounded-2xl"
+                style={{ zIndex: 10000 }}
+              >
+                {/* Time fields */}
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => handleTimeChange(e.target.value)}
+                    className={cn(
+                      'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
+                      !time && 'text-muted-foreground/60',
+                    )}
+                  />
+                  <span className="text-muted-foreground text-sm">–</span>
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => handleEndTimeChange(e.target.value)}
+                    disabled={!time}
+                    className={cn(
+                      'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all disabled:opacity-50',
+                      !endTime && 'text-muted-foreground/60',
+                    )}
+                  />
+                </div>
+
+                {/* Calendar */}
+                <Calendar
+                  mode="single"
+                  weekStartsOn={1}
+                  selected={date ? new Date(date + 'T00:00:00') : undefined}
+                  onSelect={(d) => {
+                    if (!d) {
+                      setDate('');
+                      return;
+                    }
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    setDate(`${yyyy}-${mm}-${dd}`);
+                  }}
+                  className={cn('p-0 pointer-events-auto')}
+                />
+
+                {date && (
+                  <button
+                    onClick={() => {
+                      setDate('');
+                      setTime('');
+                      setEndTime('');
+                      endTimeManual.current = false;
+                      setDatePopoverOpen(false);
+                    }}
+                    className="w-full mt-2 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
+                  >
+                    Clear date
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
           </div>
 
-          <div className="p-5 pt-3 flex items-center gap-2">
+          {/* Footer actions */}
+          <div className="px-5 pb-5 pt-1 flex items-center gap-2">
             {editing && (
               <button
                 onClick={() => {
