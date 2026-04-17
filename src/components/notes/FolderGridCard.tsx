@@ -17,7 +17,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
     <button
       onClick={onClick}
       className="w-full transition-all active:scale-95 relative"
-      style={{ filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.18))' }}
+      style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.06)) drop-shadow(0 8px 24px rgba(0,0,0,0.10))' }}
     >
       <svg viewBox="0 0 200 150" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -42,7 +42,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
           </clipPath>
           <linearGradient id={`grad-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.35)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.18)" />
           </linearGradient>
         </defs>
 
@@ -60,7 +60,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
 
         {/* Bottom gradient overlay */}
         <rect
-          x="0" y="80" width="200" height="70"
+          x="0" y="60" width="200" height="90"
           clipPath={`url(#clip-${folder.id})`}
           fill={`url(#grad-${folder.id})`}
         />
