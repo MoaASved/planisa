@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -169,7 +169,13 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
 
         {/* Title */}
         <div className="px-5 pb-3 flex items-center gap-3">
-          <span className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${category.color}`)} />
+          {category.id === '__priority' ? (
+            <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
+          ) : category.id === '__today' ? (
+            <CalendarIcon className="w-5 h-5 text-sky-500" />
+          ) : (
+            <span className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${category.color}`)} />
+          )}
           <h1 className="text-2xl font-bold text-foreground tracking-tight">{category.name}</h1>
           <span className="ml-auto text-sm text-muted-foreground">{incomplete.length}</span>
         </div>
