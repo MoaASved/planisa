@@ -46,7 +46,6 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
   const priorityCount = incomplete.filter((t) => t.priority !== 'none').length;
 
   const pinned = taskCategories.filter((c) => c.pinned).slice(0, 2);
-  const pinnedSlots: (TaskCategory | null)[] = [pinned[0] ?? null, pinned[1] ?? null];
 
   const myLists = [...taskCategories].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0),
@@ -123,27 +122,15 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
               onClick={() => setSmartView('today')}
             />
           </div>
-          {pinnedSlots.map((slot, i) => (
-            <div key={i} className="stagger-item">
-              {slot ? (
-                <SmartListCard
-                  title={slot.name}
-                  count={incomplete.filter((t) => t.category === slot.name).length}
-                  icon={ListChecks}
-                  color={slot.color}
-                  onClick={() => setSelectedList(slot)}
-                />
-              ) : (
-                <SmartListCard
-                  title="Pin a list"
-                  count={0}
-                  icon={Plus}
-                  color="stone"
-                  empty
-                  emptyLabel="Long-press a list to pin"
-                  onClick={() => {}}
-                />
-              )}
+          {pinned.map((slot) => (
+            <div key={slot.id} className="stagger-item">
+              <SmartListCard
+                title={slot.name}
+                count={incomplete.filter((t) => t.category === slot.name).length}
+                color={slot.color}
+                dotOnly
+                onClick={() => setSelectedList(slot)}
+              />
             </div>
           ))}
         </div>
