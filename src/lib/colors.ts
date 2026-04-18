@@ -19,7 +19,7 @@ export const getColorClass = (color: PastelColor): string => {
 };
 
 export const getColorBgClass = (color: PastelColor): string => {
-  return `bg-pastel-${color}/20`;
+  return `bg-pastel-${color}`;
 };
 
 export const getColorTextClass = (color: PastelColor): string => {
@@ -33,19 +33,19 @@ export const getBadgeClass = (color: PastelColor): string => {
 // Static color mapping for card backgrounds (40% opacity for sheer, calm appearance) - Tailwind JIT compatible
 export const getColorCardClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral/40',
-    peach: 'bg-pastel-peach/40',
-    amber: 'bg-pastel-amber/40',
-    yellow: 'bg-pastel-yellow/40',
-    mint: 'bg-pastel-mint/40',
-    teal: 'bg-pastel-teal/40',
-    sky: 'bg-pastel-sky/40',
-    lavender: 'bg-pastel-lavender/40',
-    rose: 'bg-pastel-rose/40',
-    gray: 'bg-pastel-gray/40',
-    stone: 'bg-pastel-stone/40',
+    coral: 'bg-pastel-coral',
+    peach: 'bg-pastel-peach',
+    amber: 'bg-pastel-amber',
+    yellow: 'bg-pastel-yellow',
+    mint: 'bg-pastel-mint',
+    teal: 'bg-pastel-teal',
+    sky: 'bg-pastel-sky',
+    lavender: 'bg-pastel-lavender',
+    rose: 'bg-pastel-rose',
+    gray: 'bg-pastel-gray',
+    stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-sky/40';
+  return colorMap[color] || 'bg-pastel-sky';
 };
 
 // Static color mapping for dot indicators (full opacity) - Tailwind JIT compatible
@@ -69,17 +69,17 @@ export const getColorDotClass = (color: PastelColor): string => {
 // Static color mapping for avatar backgrounds (30% opacity) - Tailwind JIT compatible
 export const getAvatarBgClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral/30',
-    peach: 'bg-pastel-peach/30',
-    amber: 'bg-pastel-amber/30',
-    yellow: 'bg-pastel-yellow/30',
-    mint: 'bg-pastel-mint/30',
-    teal: 'bg-pastel-teal/30',
-    sky: 'bg-pastel-sky/30',
-    lavender: 'bg-pastel-lavender/30',
-    rose: 'bg-pastel-rose/30',
-    gray: 'bg-pastel-gray/30',
-    stone: 'bg-pastel-stone/30',
+    coral: 'bg-pastel-coral',
+    peach: 'bg-pastel-peach',
+    amber: 'bg-pastel-amber',
+    yellow: 'bg-pastel-yellow',
+    mint: 'bg-pastel-mint',
+    teal: 'bg-pastel-teal',
+    sky: 'bg-pastel-sky',
+    lavender: 'bg-pastel-lavender',
+    rose: 'bg-pastel-rose',
+    gray: 'bg-pastel-gray',
+    stone: 'bg-pastel-stone',
   };
   return colorMap[color] || 'bg-secondary';
 };

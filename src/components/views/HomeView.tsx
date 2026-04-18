@@ -124,7 +124,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
             {todayEvents.length > 0 ? (
               <div className="space-y-2">
                 {todayEvents.map((event) => (
-                  <div key={event.id} className={cn('p-3 rounded-xl border-l-4', `bg-pastel-${event.color}/20 border-pastel-${event.color}`)}>
+                  <div key={event.id} className={cn('p-3 rounded-xl border-l-4', `bg-pastel-${event.color} border-pastel-${event.color}-accent`)}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm text-foreground">{event.title}</span>
                       {event.startTime && (

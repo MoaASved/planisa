@@ -20,7 +20,7 @@ export function FolderListCard({ folder, count, onClick }: FolderListCardProps) 
       {/* Folder icon */}
       <div className={cn(
         'w-12 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
-        `bg-[hsl(var(--pastel-${folder.color})/0.3)]`
+        `bg-[hsl(var(--pastel-${folder.color}))]`
       )}>
         <FolderOpen className={cn('w-6 h-6', `text-[hsl(var(--pastel-${folder.color}))]`)} />
       </div>

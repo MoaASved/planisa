@@ -303,8 +303,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-sky/20 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-pastel-sky" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-sky flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-pastel-sky-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Calendar Categories</p>
@@ -355,8 +355,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-mint/20 flex items-center justify-center">
-                    <CheckSquare className="w-5 h-5 text-pastel-mint" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-mint flex items-center justify-center">
+                    <CheckSquare className="w-5 h-5 text-pastel-mint-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Tasks Lists</p>
@@ -407,8 +407,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-lavender/20 flex items-center justify-center">
-                    <Folder className="w-5 h-5 text-pastel-lavender" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-lavender flex items-center justify-center">
+                    <Folder className="w-5 h-5 text-pastel-lavender-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Notes Folders</p>
@@ -459,8 +459,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-coral/20 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-pastel-coral" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-coral flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-pastel-coral-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Notebooks</p>

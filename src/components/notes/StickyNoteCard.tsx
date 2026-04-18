@@ -10,21 +10,21 @@ interface StickyNoteCardProps {
 }
 
 const getStickyBgClass = (color?: PastelColor): string => {
-  if (!color) return 'bg-pastel-yellow/60';
+  if (!color) return 'bg-pastel-yellow';
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral/60',
-    peach: 'bg-pastel-peach/60',
-    amber: 'bg-pastel-amber/60',
-    yellow: 'bg-pastel-yellow/60',
-    mint: 'bg-pastel-mint/60',
-    teal: 'bg-pastel-teal/60',
-    sky: 'bg-pastel-sky/60',
-    lavender: 'bg-pastel-lavender/60',
-    rose: 'bg-pastel-rose/60',
-    gray: 'bg-pastel-gray/60',
-    stone: 'bg-pastel-stone/60',
+    coral: 'bg-pastel-coral',
+    peach: 'bg-pastel-peach',
+    amber: 'bg-pastel-amber',
+    yellow: 'bg-pastel-yellow',
+    mint: 'bg-pastel-mint',
+    teal: 'bg-pastel-teal',
+    sky: 'bg-pastel-sky',
+    lavender: 'bg-pastel-lavender',
+    rose: 'bg-pastel-rose',
+    gray: 'bg-pastel-gray',
+    stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-yellow/60';
+  return colorMap[color] || 'bg-pastel-yellow';
 };
 
 // Get random rotation for sticky note effect
