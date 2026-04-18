@@ -136,6 +136,31 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-accent-foreground: 210 20% 90%;
     --sidebar-border: 220 15% 18%;
     --sidebar-ring: 0 0% 95%;
+
+    /* Pastel palette - in dark mode, accent IS the primary palette */
+    --pastel-coral: 119 11% 51%;
+    --pastel-peach: 51 31% 69%;
+    --pastel-amber: 194 28% 53%;
+    --pastel-yellow: 197 31% 87%;
+    --pastel-mint: 21 97% 75%;
+    --pastel-teal: 36 99% 76%;
+    --pastel-sky: 353 49% 56%;
+    --pastel-lavender: 350 75% 85%;
+    --pastel-rose: 286 18% 57%;
+    --pastel-gray: 33 19% 58%;
+    --pastel-stone: 40 21% 84%;
+
+    --pastel-coral-accent: 119 11% 51%;
+    --pastel-peach-accent: 51 31% 69%;
+    --pastel-amber-accent: 194 28% 53%;
+    --pastel-yellow-accent: 197 31% 87%;
+    --pastel-mint-accent: 21 97% 75%;
+    --pastel-teal-accent: 36 99% 76%;
+    --pastel-sky-accent: 353 49% 56%;
+    --pastel-lavender-accent: 350 75% 85%;
+    --pastel-rose-accent: 286 18% 57%;
+    --pastel-gray-accent: 33 19% 58%;
+    --pastel-stone-accent: 40 21% 84%;
   }
 }
 
