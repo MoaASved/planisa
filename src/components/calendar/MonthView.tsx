@@ -157,7 +157,7 @@ export function MonthView({
                             key={`t-${j}`} 
                             className={cn(
                               'w-[5px] h-[5px] rounded-full',
-                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(task, 'task'))
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getAccentDotClass(getItemColor(task, 'task'))
                             )} 
                           />
                         ))}
