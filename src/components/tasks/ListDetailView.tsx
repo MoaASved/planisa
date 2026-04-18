@@ -279,9 +279,27 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       {/* Content */}
       <div className="px-4 pt-2 space-y-2">
         {/* Main (no section) tasks */}
-        {mainTasks.map((task) => (
-          <TaskCell key={task.id} task={task} onClick={() => setEditingTaskId(task.id)} />
-        ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd(mainTasks.map((t) => t.id))}
+        >
+          <SortableContext
+            items={mainTasks.map((t) => t.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {mainTasks.map((task) => (
+                <SortableTaskCell
+                  key={task.id}
+                  task={task}
+                  onClick={() => setEditingTaskId(task.id)}
+                  draggable={sortMode === 'manual'}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {adding === 'main' && (
           <InlineNewTaskRow
@@ -361,9 +379,27 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
               )}
               {!collapsed && (
                 <div className="space-y-2 mt-1">
-                  {sTasks.map((task) => (
-                    <TaskCell key={task.id} task={task} onClick={() => setEditingTaskId(task.id)} />
-                  ))}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd(sTasks.map((t) => t.id))}
+                  >
+                    <SortableContext
+                      items={sTasks.map((t) => t.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {sTasks.map((task) => (
+                          <SortableTaskCell
+                            key={task.id}
+                            task={task}
+                            onClick={() => setEditingTaskId(task.id)}
+                            draggable={sortMode === 'manual'}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                   {adding === section.id && (
                     <InlineNewTaskRow
                       onSubmit={(t) => handleCreate(t, section.id)}
