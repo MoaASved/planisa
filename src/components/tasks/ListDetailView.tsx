@@ -233,7 +233,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
 
         {/* Sections */}
         {sections.map((section) => {
-          const sTasks = sortTasks(incomplete.filter((t) => t.sectionId === section.id), sortMode);
+          const sTasks = sortTasks(incomplete.filter((t) => t.sectionId === section.id));
           const collapsed = section.collapsed;
           return (
             <div key={section.id} className="pt-3">
