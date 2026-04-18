@@ -278,7 +278,7 @@ input[type="time"]::-webkit-inner-spin-button {
 
   /* Typography system — unified scale across the app */
   .flow-page-title {
-    @apply text-[28px] font-semibold tracking-tight text-foreground;
+    @apply text-[25px] font-semibold tracking-tight text-foreground;
     letter-spacing: -0.02em;
   }
   .flow-section-title {
