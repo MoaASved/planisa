@@ -1,13 +1,29 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskCell } from './TaskCell';
+import { SortableTaskCell } from './SortableTaskCell';
 import { InlineNewTaskRow } from './InlineNewTaskRow';
 import { SectionHeader } from './SectionHeader';
 import { AddTaskModal } from './AddTaskModal';
 import { CreateListModal } from './CreateListModal';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 
 interface ListDetailViewProps {
   category: TaskCategory;
@@ -44,7 +60,13 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
     addTaskSection,
     deleteTaskSection,
     updateTaskSection,
+    reorderTasks,
   } = useAppStore();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const sortMode: SortMode = category.sortMode ?? 'manual';
 
@@ -85,7 +107,18 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       subtasks: [],
       priority: 'none',
       sectionId,
+      order: Date.now(),
     });
+  };
+
+  const handleDragEnd = (sectionScopeIds: string[]) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sectionScopeIds.indexOf(String(active.id));
+    const newIndex = sectionScopeIds.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    const newOrder = arrayMove(sectionScopeIds, oldIndex, newIndex);
+    reorderTasks(newOrder);
   };
 
   const addSectionAction = () => {
@@ -179,7 +212,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
         </div>
 
         {/* Title */}
-        <div className="px-5 pb-3 flex items-center gap-3">
+        <div className="px-5 pb-1 flex items-center gap-3">
           {category.id === '__priority' ? (
             <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
           ) : category.id === '__today' ? (
@@ -189,6 +222,21 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           )}
           <h1 className="flow-page-title">{category.name}</h1>
           <span className="ml-auto flow-meta tabular-nums">{incomplete.length}</span>
+        </div>
+
+        {/* Sort indicator */}
+        <div className="px-5 pb-3">
+          <button
+            onClick={() => setShowSort(true)}
+            className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowUpDown className="w-3 h-3" />
+            {sortMode === 'manual'
+              ? 'Manual order'
+              : sortMode === 'date'
+                ? 'Sorted by: Due date'
+                : 'Sorted by: Newest first'}
+          </button>
         </div>
       </div>
 
@@ -230,9 +278,27 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       {/* Content */}
       <div className="px-4 pt-2 space-y-2">
         {/* Main (no section) tasks */}
-        {mainTasks.map((task) => (
-          <TaskCell key={task.id} task={task} onClick={() => setEditingTaskId(task.id)} />
-        ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd(mainTasks.map((t) => t.id))}
+        >
+          <SortableContext
+            items={mainTasks.map((t) => t.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {mainTasks.map((task) => (
+                <SortableTaskCell
+                  key={task.id}
+                  task={task}
+                  onClick={() => setEditingTaskId(task.id)}
+                  draggable={sortMode === 'manual'}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {adding === 'main' && (
           <InlineNewTaskRow
@@ -312,9 +378,27 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
               )}
               {!collapsed && (
                 <div className="space-y-2 mt-1">
-                  {sTasks.map((task) => (
-                    <TaskCell key={task.id} task={task} onClick={() => setEditingTaskId(task.id)} />
-                  ))}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd(sTasks.map((t) => t.id))}
+                  >
+                    <SortableContext
+                      items={sTasks.map((t) => t.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {sTasks.map((task) => (
+                          <SortableTaskCell
+                            key={task.id}
+                            task={task}
+                            onClick={() => setEditingTaskId(task.id)}
+                            draggable={sortMode === 'manual'}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                   {adding === section.id && (
                     <InlineNewTaskRow
                       onSubmit={(t) => handleCreate(t, section.id)}
