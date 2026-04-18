@@ -1,72 +1,56 @@
 
+## Replace light-mode pastel palette with 11 new colors
 
-## Light Mode visuell polish: skuggor, djup, ytor
+### New palette (Light Mode only)
+| Slot (token name kept) | New name | Hex | HSL |
+|---|---|---|---|
+| `--pastel-coral` | Fern | #D8E8C0 | 84 44% 83% |
+| `--pastel-peach` | Pistachio | #C8DEC4 | 113 28% 82% |
+| `--pastel-amber` | Lagune | #C4DCEA | 203 47% 84% |
+| `--pastel-yellow` | Sky | #D2E6F4 | 206 62% 89% |
+| `--pastel-mint` | Peach | #F2D8C8 | 22 65% 87% |
+| `--pastel-teal` | Honey | #EEE0BE | 44 64% 84% |
+| `--pastel-sky` | Peony | #E0C8D4 | 327 32% 83% |
+| `--pastel-lavender` | Rose | #F0D4D8 | 351 53% 88% |
+| `--pastel-rose` | Plum | #D8CCE0 | 273 25% 84% |
+| `--pastel-gray` | Taupe | #D8D0C4 | 36 24% 81% |
+| `--pastel-stone` | Stone | #D8D8D0 | 60 12% 83% |
 
-### Diagnos
-1. **Folder-skuggor i Notes** — `FolderGridCard` använder `filter: drop-shadow(...) drop-shadow(...)` på en SVG med transform `rotate()` på inner-papers + clipPath. Dubbla drop-shadows på SVG ger ojämn rendering, särskilt under scroll (varje element skuggas separat istället för silhuetten). Detta är boven.
-2. **Skarp linje under scroll** — `NotebookListCard` har en `4px` färg-stripe via en `8px wide` div med `borderRadius: '4px 0 0 4px'` inuti `overflow-hidden` parent — på vissa skärmar kan kanten ge en hårlinje. Mer troligt: `border border-border` på `bg-card` + Tailwind shadow rendering ger 1px gränslinje i kontrast med bakgrunden vid scroll. Även sticky note `rotate-1/-rotate-2` skapar transformerade kanter.
-3. **Stone försvinner** — `--pastel-stone: 40 18% 91%` (#ECE9E2) ligger nästan på `--background: 30 20% 98%` (#FBF9F6). Skillnad ~7% lightness — för lite. Folder är dessutom enbart fyllning utan border.
-4. **Inkonsekventa skuggor** — minst 5 olika skuggsystem i bruk: `--shadow-soft/card/elevated`, `shadow-md/lg/xl/2xl`, inline `boxShadow`, `filter: drop-shadow`.
+Token slots are preserved (`coral, peach, amber, yellow, mint, teal, sky, lavender, rose, gray, stone`) so all existing `bg-pastel-*` classes keep working — only the underlying HSL values change. The `pastelColors` array in `src/lib/colors.ts` already has these labels in the correct order.
 
-### Lösning
+### Changes
 
-**1. Förfina shadow-tokens (`src/index.css`)** — sänk opacity, varmare ton, en konsekvent elevation-skala:
-```css
---shadow-soft:     0 1px 2px 0 hsl(30 10% 10% / 0.04);
---shadow-card:     0 1px 2px 0 hsl(30 10% 10% / 0.04), 0 4px 12px -4px hsl(30 10% 10% / 0.06);
---shadow-elevated: 0 2px 4px -1px hsl(30 10% 10% / 0.05), 0 12px 24px -6px hsl(30 10% 10% / 0.10);
---shadow-nav:      0 8px 24px -6px hsl(30 10% 10% / 0.12);
-```
+**1. `src/index.css`** — update only the `:root` (Light Mode) `--pastel-*` HSL values to the 11 new colors above. Dark mode `.dark` block stays untouched. Accent variants (`--pastel-*-accent`) stay untouched (used for icons/dots elsewhere — but see #3 for task dots).
 
-**2. Justera Stone (light) för synlighet**:
-```css
---pastel-stone: 38 16% 86%;  /* från 91% → 86%, +5% mörkare för separation från bg */
-```
+**2. Global text-on-pastel rule** — add a single token `--on-pastel: 40 6% 17%;` (#2C2C2A) and ensure components rendering text/icons over pastel surfaces use `text-[#2C2C2A]` (or `text-[hsl(var(--on-pastel))]`). Audit + fix:
+- `StickyNoteCard.tsx` — preview text, date, pin icon → `#2C2C2A`
+- `NotebookCard.tsx` — title + page count currently white; switch to `#2C2C2A`
+- `FolderGridCard.tsx` — folder label
+- Calendar event cards (`CalendarItemList.tsx`, `WeekDayView.tsx`, `MonthView.tsx`) — title/time text on colored bg
+- `CreateEventModal.tsx` / `EditEventModal.tsx` color preview text
 
-**3. `FolderGridCard.tsx`** — ersätt `drop-shadow` på SVG-button med en `box-shadow` på en wrapper-div som matchar folderns silhuett (rektangulär bounding box duger visuellt, mjukare och konsekvent under scroll). Ta bort dubbel drop-shadow. Lägg till subtil 1px inner-stroke i SVG path för Stone/ljusa folders så kanten alltid syns:
-```tsx
-<button style={{}} className="...">
-  <div style={{ filter: 'drop-shadow(0 6px 14px rgba(20,18,15,0.10))' }}>
-    <svg>... <path stroke="rgba(0,0,0,0.06)" strokeWidth="1" fill={color} /> ...</svg>
-  </div>
-</button>
-```
-En enda drop-shadow på wrapper, inte två. Lägg till `stroke` på huvud-rect/path för edge-definition.
+**3. Task list dots** — per spec, the colored dot is **fill only, no text**. Currently `MyListRow.tsx` and `ListDetailView.tsx` use `bg-pastel-${color}-accent` (dark accent). Switch the dot fills to the new light pastel: `bg-pastel-${color}` so they match the unified palette. Accent variants stay available for other usages but task list dots now use the light fill.
 
-**4. `StickyNoteCard.tsx`** — ta bort `rotate-1/-rotate-2/rotate-2` random rotation (orsakar skarpa kanter mot bakgrund vid scroll och känns inte "premium/Apple"). Behåll bara en mycket subtil skugga via `--shadow-card`. Byt `shadow-md hover:shadow-lg` → `shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)]`.
+**4. Color picker UI** — `src/lib/colors.ts` `pastelColors` array order is already: Fern, Pistachio, Lagune, Sky, Peach, Honey, Peony, Rose, Plum (currently labeled "Soft Plum"), Taupe (currently "Warm Taupe"), Stone. Update labels to exactly: `Fern, Pistachio, Lagune, Sky, Peach, Honey, Peony, Rose, Plum, Taupe, Stone`. No reordering needed. Pickers (`ColorPickerSheet.tsx`, `CreateListModal.tsx`, `CategoryEditDrawer.tsx`, `FolderEditModal.tsx`, `NotebookEditModal.tsx`) consume this array — they auto-update.
 
-**5. `NotebookListCard.tsx`** — byt inline `boxShadow: '0 2px 8px rgba(0,0,0,0.07)'` → `var(--shadow-card)`. Ta bort `border-radius: '4px 0 0 4px'` på inner-stripe (parent har redan `overflow-hidden` + `rounded-[14px]`, dubbel rounding kan ge artifakt).
+**5. Notebook cover gradient overlay** — `NotebookCard.tsx` currently overlays a dark gradient + white text. Remove the dark gradient overlay and switch text to `#2C2C2A` so notebook covers show the pure new color with dark text per the global rule.
 
-**6. `NotebookCard.tsx`** — `boxShadow: '0 4px 16px rgba(0,0,0,0.12)'` → `var(--shadow-elevated)`.
+**6. Untouched**
+- App background `#F5F3F0` (`--background`)
+- Navbar `#1C1C1E` (nav pill)
+- Dark mode (`.dark` block + all `--pastel-*-accent` tokens)
+- Structural tokens (border, card, muted, primary, etc.)
 
-**7. `NoteCard` i `NotesView.tsx`** — `shadow-sm hover:shadow-md` → `shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)]`. För Stone-bakgrunder lägg till `border border-black/[0.04]` så kanten finns kvar.
-
-**8. Globalt scroll-artifakt-fix (`src/index.css`)** — lägg till:
-```css
-html, body { overflow-x: hidden; }
-* { -webkit-tap-highlight-color: transparent; }
-.sticky-note-card, .flow-card, .flow-widget { transform: translateZ(0); backface-visibility: hidden; }
-```
-Force GPU layer eliminerar 1px sub-pixel seams under scroll.
-
-**9. FAB & nav-skuggor** — `flow-fab` använder `--shadow-elevated` (uppdateras automatiskt). `flow-nav-floating` skugga sänks något:
-```css
-box-shadow: 0 6px 24px -6px rgba(0,0,0,0.25), 0 2px 6px -2px rgba(0,0,0,0.15);
-```
-
-**10. Modal/sheet-skuggor** — `bg-card rounded-[20px] shadow-xl` (i modaler) → `shadow-[var(--shadow-elevated)]` för konsekvens.
-
-### Filer som ändras
-- `src/index.css` — shadow tokens, Stone justering, GPU-layer utility, nav skugga
-- `src/components/notes/FolderGridCard.tsx` — singel drop-shadow + 1px stroke
-- `src/components/notes/StickyNoteCard.tsx` — ta bort rotation, använd shadow tokens
-- `src/components/notes/NotebookCard.tsx` — använd shadow tokens
-- `src/components/notes/NotebookListCard.tsx` — shadow tokens, fix stripe border-radius
-- `src/components/notes/FolderListCard.tsx` — shadow tokens
-- `src/components/views/NotesView.tsx` — NoteCard shadows, modal shadows
-
-### Lämnas orört
-- Pastellfärger (utöver Stone) — användaren har redan godkänt dem
-- `shadow-2xl` i kontextuella popovers (TaskRow) — de är intentionella floating menus
-- Dark mode skuggor
-
+### Files
+- `src/index.css` — 11 HSL value updates in `:root`, add `--on-pastel`
+- `src/lib/colors.ts` — relabel 11 entries
+- `src/components/notes/StickyNoteCard.tsx` — text color → #2C2C2A
+- `src/components/notes/NotebookCard.tsx` — remove dark overlay, text → #2C2C2A
+- `src/components/notes/FolderGridCard.tsx` — label color → #2C2C2A
+- `src/components/calendar/CalendarItemList.tsx` — event text → #2C2C2A
+- `src/components/calendar/WeekDayView.tsx` — event text → #2C2C2A
+- `src/components/calendar/MonthView.tsx` — event text → #2C2C2A (if applicable)
+- `src/components/modals/CreateEventModal.tsx`, `EditEventModal.tsx` — preview text
+- `src/components/tasks/MyListRow.tsx` — dot uses `bg-pastel-${color}` (light fill)
+- `src/components/tasks/ListDetailView.tsx` — dot uses `bg-pastel-${color}` (light fill)
+- `mem://design/pastel-color-palette-v2`, `mem://index.md` — update names + new hex values
