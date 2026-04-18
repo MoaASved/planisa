@@ -299,7 +299,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
                           }}
                           className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-secondary transition-colors"
                         >
-                          <span className={cn('w-2.5 h-2.5 rounded-full', getColorDotClass(c.color))} />
+                          <span className={cn('w-2.5 h-2.5 rounded-full', getAccentDotClass(c.color))} />
                           <span className="flex-1 text-left text-sm text-foreground">{c.name}</span>
                           {listId === c.id && <Check className="w-4 h-4 text-primary" />}
                         </button>
