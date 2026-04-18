@@ -1,11 +1,15 @@
 
-## Ändra list-cirkeln till accent-färg
+## Justera Fern (Light) — dovare, ljusare, varmare
 
-### Problem
-I `ListDetailView.tsx` rad 188 använder cirkeln bredvid list-titeln `bg-pastel-${category.color}` (Light-färgen). Den blir för svag mot vit bakgrund.
+### Nuläge
+`--pastel-coral: 110 18% 64%` = `#AABBAA` (Fern Light). Lite för mättad och kall-grön.
 
-### Lösning
-Byt till accent-varianten: `bg-pastel-${category.color}-accent` — samma mönster som vi redan använder i `MyListRow.tsx`.
+### Förslag
+Sänk saturation, höj lightness något, skifta hue mot varmare (gulare grön):
+- Före: `110 18% 64%` (#AABBAA)
+- Efter: `95 14% 74%` (~#BFC7B3)
+
+Ger en mjukare, ljusare salviegrön med varm underton. Accent-varianten (Dark Fern `#768F77`) lämnas oförändrad.
 
 ### Fil
-- `src/components/tasks/ListDetailView.tsx` rad 188 — `bg-pastel-${category.color}` → `bg-pastel-${category.color}-accent`
+- `src/index.css` — `:root` raden `--pastel-coral` → `95 14% 74%`
