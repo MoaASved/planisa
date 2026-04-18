@@ -1,22 +1,23 @@
 
 
-## Plan: Stäng tre-prickar-menyn vid klick utanför
+## Plan: Outside-klick stänger endast menyn (blockera andra klick)
 
 ### Problem
-Inne i en lista (`ListDetailView`), när man öppnat menyn via tre prickar uppe till höger, kan den för närvarande inte stängas genom att klicka utanför. Endast klick på själva tre-prickar-knappen stänger den.
+När menyn (tre prickar) är öppen i `ListDetailView` och användaren klickar utanför för att stänga den, triggas även det underliggande elementet (t.ex. en task öppnas, en knapp aktiveras). Det blir rörigt.
 
 ### Lösning
-- Lägg till outside-click-detektering i `ListDetailView.tsx` för menyn
-- Klick på samma tre-prickar-knapp → toggle (öppnar/stänger) som idag
-- Klick var som helst utanför menyn och knappen → stäng menyn
-- Klick inuti menyn (t.ex. på menyalternativ) → fungerar som vanligt
+När menyn är öppen ska första outside-klick **endast** stänga menyn — inget annat ska reagera.
 
-### Implementation
-- `useRef` på menyns container + på trigger-knappen
-- `useEffect` med `document.addEventListener('mousedown')` när menyn är öppen
-- Om klicket inte är inom menyn ELLER trigger-knappen → sätt `menuOpen` till `false`
-- Cleanup vid unmount/close
+### Implementation i `src/components/tasks/ListDetailView.tsx`
+- Byt nuvarande `mousedown`/`touchstart`-listeners (som låter eventet fortsätta till target) mot en **capture-fas** listener på `document` för `pointerdown` (eller `mousedown` + `touchstart` i capture)
+- I handlern: om target ligger utanför både menyn och triggerknappen:
+  - `e.preventDefault()`
+  - `e.stopPropagation()` + `e.stopImmediatePropagation()`
+  - `setShowMenu(false)`
+- Capture-fas + stopPropagation hindrar att klicket når underliggande element
+- För att även blockera den efterföljande `click`-eventet (som följer mousedown/touch) lägger vi till en engångs-`click` capture-listener som också preventDefault + stopPropagation, sedan tar bort sig själv
+- Cleanup vid menystängning/unmount
 
 ### Fil
-- `src/components/tasks/ListDetailView.tsx`
+- `src/components/tasks/ListDetailView.tsx` (endast useEffect-blocket för outside-click uppdateras)
 
