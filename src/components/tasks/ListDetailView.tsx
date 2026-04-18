@@ -1,13 +1,29 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskCell } from './TaskCell';
+import { SortableTaskCell } from './SortableTaskCell';
 import { InlineNewTaskRow } from './InlineNewTaskRow';
 import { SectionHeader } from './SectionHeader';
 import { AddTaskModal } from './AddTaskModal';
 import { CreateListModal } from './CreateListModal';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 
 interface ListDetailViewProps {
   category: TaskCategory;
@@ -44,7 +60,14 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
     addTaskSection,
     deleteTaskSection,
     updateTaskSection,
+    reorderTasks,
+    tasks: allTasks,
   } = useAppStore();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const sortMode: SortMode = category.sortMode ?? 'manual';
 
