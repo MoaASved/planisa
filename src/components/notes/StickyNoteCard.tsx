@@ -27,12 +27,6 @@ const getStickyBgClass = (color?: PastelColor): string => {
   return colorMap[color] || 'bg-pastel-yellow';
 };
 
-// Get random rotation for sticky note effect
-const getRotation = (id: string): string => {
-  const hash = id.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-  const rotations = ['-rotate-1', 'rotate-1', '-rotate-2', 'rotate-2', 'rotate-0'];
-  return rotations[hash % rotations.length];
-};
 
 export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardProps) {
   const getPreview = (content: string) => {
