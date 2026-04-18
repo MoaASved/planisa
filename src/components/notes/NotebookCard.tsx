@@ -23,7 +23,7 @@ export function NotebookCard({ notebook, onClick, onEdit }: NotebookCardProps) {
         <div
           className="absolute inset-0"
           style={{
-            background: `linear-gradient(to bottom, hsl(var(--pastel-${notebook.color}, 160 30% 65%)) 0%, color-mix(in srgb, hsl(var(--pastel-${notebook.color}, 160 30% 65%)) 83%, black) 100%)`,
+            background: `linear-gradient(to bottom, color-mix(in srgb, hsl(var(--pastel-${notebook.color}, 160 30% 65%)) 55%, white) 0%, hsl(var(--pastel-${notebook.color}, 160 30% 65%)) 100%)`,
           }}
         />
 
