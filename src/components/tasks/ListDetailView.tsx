@@ -108,7 +108,18 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       subtasks: [],
       priority: 'none',
       sectionId,
+      order: Date.now(),
     });
+  };
+
+  const handleDragEnd = (sectionScopeIds: string[]) => (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sectionScopeIds.indexOf(String(active.id));
+    const newIndex = sectionScopeIds.indexOf(String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    const newOrder = arrayMove(sectionScopeIds, oldIndex, newIndex);
+    reorderTasks(newOrder);
   };
 
   const addSectionAction = () => {
