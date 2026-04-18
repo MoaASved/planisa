@@ -124,3 +124,66 @@ export const getColorStripeClass = (color: PastelColor): string => {
 export const getColorVar = (color: PastelColor): string => {
   return `hsl(var(--pastel-${color}))`;
 };
+
+// ============================================================
+// ACCENT (Dark palette) helpers — for icons, dots, indicators,
+// tags, badges, thin elements, and active states even in Light Mode.
+// Light surfaces stay soft; details get crisp dark accents.
+// ============================================================
+
+export const getAccentDotClass = (color: PastelColor): string => {
+  const map: Record<PastelColor, string> = {
+    coral: 'bg-pastel-coral-accent',
+    peach: 'bg-pastel-peach-accent',
+    amber: 'bg-pastel-amber-accent',
+    yellow: 'bg-pastel-yellow-accent',
+    mint: 'bg-pastel-mint-accent',
+    teal: 'bg-pastel-teal-accent',
+    sky: 'bg-pastel-sky-accent',
+    lavender: 'bg-pastel-lavender-accent',
+    rose: 'bg-pastel-rose-accent',
+    gray: 'bg-pastel-gray-accent',
+    stone: 'bg-pastel-stone-accent',
+  };
+  return map[color] || 'bg-pastel-sky-accent';
+};
+
+export const getAccentTextClass = (color: PastelColor): string => {
+  const map: Record<PastelColor, string> = {
+    coral: 'text-pastel-coral-accent',
+    peach: 'text-pastel-peach-accent',
+    amber: 'text-pastel-amber-accent',
+    yellow: 'text-pastel-yellow-accent',
+    mint: 'text-pastel-mint-accent',
+    teal: 'text-pastel-teal-accent',
+    sky: 'text-pastel-sky-accent',
+    lavender: 'text-pastel-lavender-accent',
+    rose: 'text-pastel-rose-accent',
+    gray: 'text-pastel-gray-accent',
+    stone: 'text-pastel-stone-accent',
+  };
+  return map[color] || 'text-pastel-sky-accent';
+};
+
+export const getAccentBorderClass = (color: PastelColor): string => {
+  const map: Record<PastelColor, string> = {
+    coral: 'border-pastel-coral-accent',
+    peach: 'border-pastel-peach-accent',
+    amber: 'border-pastel-amber-accent',
+    yellow: 'border-pastel-yellow-accent',
+    mint: 'border-pastel-mint-accent',
+    teal: 'border-pastel-teal-accent',
+    sky: 'border-pastel-sky-accent',
+    lavender: 'border-pastel-lavender-accent',
+    rose: 'border-pastel-rose-accent',
+    gray: 'border-pastel-gray-accent',
+    stone: 'border-pastel-stone-accent',
+  };
+  return map[color] || 'border-pastel-sky-accent';
+};
+
+export const getAccentBgClass = (color: PastelColor): string => getAccentDotClass(color);
+
+export const getAccentVar = (color: PastelColor): string => {
+  return `hsl(var(--pastel-${color}-accent))`;
+};
