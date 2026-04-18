@@ -13,7 +13,7 @@ import {
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorDotClass, getAccentDotClass } from '@/lib/colors';
+import { getColorDotClass } from '@/lib/colors';
 import { CalendarItemList } from './CalendarItemList';
 
 interface MonthViewProps {
@@ -148,7 +148,7 @@ export function MonthView({
                             key={j} 
                             className={cn(
                               'w-[5px] h-[5px] rounded-full',
-                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getAccentDotClass(getItemColor(event, 'event'))
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(event, 'event'))
                             )} 
                           />
                         ))}
@@ -157,7 +157,7 @@ export function MonthView({
                             key={`t-${j}`} 
                             className={cn(
                               'w-[5px] h-[5px] rounded-full',
-                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getAccentDotClass(getItemColor(task, 'task'))
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(task, 'task'))
                             )} 
                           />
                         ))}
@@ -166,7 +166,7 @@ export function MonthView({
                             key={`n-${j}`} 
                             className={cn(
                               'w-[5px] h-[5px] rounded-full',
-                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getAccentDotClass(getNoteColor(note))
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
                             )} 
                           />
                         ))}
