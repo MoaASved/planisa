@@ -54,7 +54,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --radius: 1rem;
 
     /* Pastel palette - LIGHT (soft surfaces) */
-    --pastel-coral: 110 18% 64%;     /* Fern #AABBAA */
+    --pastel-coral: 95 14% 74%;      /* Fern (light, warm sage) */
     --pastel-peach: 50 26% 80%;      /* Pistachio #D9D6C1 */
     --pastel-amber: 194 26% 70%;     /* Lagune #9FBFC8 */
     --pastel-yellow: 197 33% 95%;    /* Sky #EDF4F6 */
