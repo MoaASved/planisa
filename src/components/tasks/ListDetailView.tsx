@@ -247,17 +247,69 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           const collapsed = section.collapsed;
           return (
             <div key={section.id} className="pt-3">
-              <SectionHeader
-                name={section.name}
-                count={sTasks.length}
-                collapsed={!!collapsed}
-                onToggle={() => updateTaskSection(section.id, { collapsed: !collapsed })}
-                onMenu={() => {
-                  if (window.confirm(`Delete section "${section.name}"?`)) {
-                    deleteTaskSection(section.id);
-                  }
-                }}
-              />
+              {renamingSectionId === section.id ? (
+                <div className="flex items-center gap-2 px-1 pt-3 pb-1.5">
+                  <input
+                    autoFocus
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={commitRename}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') commitRename();
+                      if (e.key === 'Escape') {
+                        setRenamingSectionId(null);
+                        setRenameValue('');
+                      }
+                    }}
+                    className="flex-1 bg-secondary rounded-lg px-3 py-2 text-[16px] font-semibold tracking-tight outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              ) : (
+                <div className="relative">
+                  <SectionHeader
+                    name={section.name}
+                    count={sTasks.length}
+                    collapsed={!!collapsed}
+                    onToggle={() => updateTaskSection(section.id, { collapsed: !collapsed })}
+                    onMenu={() => setSectionMenuId(sectionMenuId === section.id ? null : section.id)}
+                  />
+                  {sectionMenuId === section.id && (
+                    <>
+                      <div
+                        className="fixed inset-0"
+                        style={{ zIndex: 40 }}
+                        onClick={() => setSectionMenuId(null)}
+                      />
+                      <div
+                        className="absolute right-0 top-full mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-44"
+                        style={{ zIndex: 50 }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => {
+                            setRenameValue(section.name);
+                            setRenamingSectionId(section.id);
+                            setSectionMenuId(null);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                        >
+                          <Pencil className="w-4 h-4 text-muted-foreground" /> Rename
+                        </button>
+                        <div className="h-px bg-border/40" />
+                        <button
+                          onClick={() => {
+                            deleteTaskSection(section.id);
+                            setSectionMenuId(null);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 text-left"
+                        >
+                          <Trash2 className="w-4 h-4" /> Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               {!collapsed && (
                 <div className="space-y-2 mt-1">
                   {sTasks.map((task) => (
