@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { forwardRef } from 'react';
 
 interface SectionHeaderProps {
   name: string;
@@ -7,9 +8,10 @@ interface SectionHeaderProps {
   collapsed: boolean;
   onToggle: () => void;
   onMenu?: () => void;
+  menuTriggerRef?: React.Ref<HTMLButtonElement>;
 }
 
-export function SectionHeader({ name, count, collapsed, onToggle, onMenu }: SectionHeaderProps) {
+export function SectionHeader({ name, count, collapsed, onToggle, onMenu, menuTriggerRef }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-1.5 px-1 pt-3 pb-1.5">
       <button
@@ -26,6 +28,7 @@ export function SectionHeader({ name, count, collapsed, onToggle, onMenu }: Sect
       </button>
       {onMenu && (
         <button
+          ref={menuTriggerRef}
           onClick={onMenu}
           className="ml-auto p-1 -mr-1 text-muted-foreground/60 hover:text-foreground rounded-md hover:bg-secondary"
         >
