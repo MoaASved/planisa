@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
@@ -62,6 +62,28 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
   const [sectionMenuId, setSectionMenuId] = useState<string | null>(null);
   const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!showMenu) return;
+    const handle = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (
+        menuRef.current?.contains(target) ||
+        menuTriggerRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setShowMenu(false);
+    };
+    document.addEventListener('mousedown', handle);
+    document.addEventListener('touchstart', handle);
+    return () => {
+      document.removeEventListener('mousedown', handle);
+      document.removeEventListener('touchstart', handle);
+    };
+  }, [showMenu]);
 
   const commitRename = () => {
     if (!renamingSectionId) return;
@@ -131,12 +153,14 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           </button>
           <div className="flex-1" />
           <button
+            ref={menuTriggerRef}
             onClick={() => setShowMenu((v) => !v)}
             className="w-9 h-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors relative"
           >
             <MoreHorizontal className="w-5 h-5 text-foreground" />
             {showMenu && (
               <div
+                ref={menuRef}
                 className="absolute top-full right-0 mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-52"
                 style={{ zIndex: 50 }}
                 onClick={(e) => e.stopPropagation()}
