@@ -13,8 +13,8 @@ export function FolderListCard({ folder, count, onClick }: FolderListCardProps) 
     <button
       onClick={onClick}
       className={cn(
-        'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border',
-        'transition-all duration-200 active:scale-[0.98] hover:shadow-md group'
+        'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-black/[0.04]',
+        'transition-all duration-200 active:scale-[0.98] shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] group'
       )}
     >
       {/* Folder icon */}

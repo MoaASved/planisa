@@ -17,7 +17,7 @@ export function NotebookCard({ notebook, onClick, onEdit }: NotebookCardProps) {
     <button
       onClick={onClick}
       className="w-full rounded-[14px] overflow-hidden transition-all active:scale-95 relative"
-      style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}
+      style={{ boxShadow: 'var(--shadow-elevated)' }}
     >
       <AspectRatio ratio={1 / 1.4}>
         <div

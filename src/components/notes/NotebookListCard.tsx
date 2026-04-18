@@ -19,7 +19,7 @@ export function NotebookListCard({ notebook, onClick, onEdit }: NotebookListCard
       style={{
         height: 72,
         backgroundColor: '#fff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       <div
@@ -27,7 +27,6 @@ export function NotebookListCard({ notebook, onClick, onEdit }: NotebookListCard
         style={{
           width: 8,
           backgroundColor: `hsl(var(--pastel-${notebook.color}, 160 30% 65%))`,
-          borderRadius: '4px 0 0 4px',
         }}
       />
       <div className="flex-1 min-w-0 text-left pl-4">
