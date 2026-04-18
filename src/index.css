@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global scroll-artifact prevention */
+html, body { overflow-x: hidden; }
+* { -webkit-tap-highlight-color: transparent; }
+.sticky-note-card, .flow-card, .flow-widget, .flow-note-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 /* Ensure native time/date pickers work inside backdrop-filter containers */
 input[type="time"],
 input[type="date"] {
@@ -64,7 +73,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-lavender: 350 75% 91%;  /* Rose #F8D7DD */
     --pastel-rose: 281 24% 70%;      /* Plum #B8A0C2 */
     --pastel-gray: 33 22% 74%;       /* Taupe #C9BEB0 */
-    --pastel-stone: 40 18% 91%;      /* Stone #ECE9E2 */
+    --pastel-stone: 38 16% 86%;      /* Stone (darkened for separation from bg) */
 
     /* Pastel palette - DARK ACCENT (icons, dots, indicators in light mode) */
     --pastel-coral-accent: 119 11% 51%;    /* Fern #768F77 */
@@ -79,10 +88,10 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-gray-accent: 33 19% 58%;      /* Taupe #A89780 */
     --pastel-stone-accent: 40 21% 84%;     /* Stone #DEDAD1 */
     
-    --shadow-soft: 0 1px 3px 0 hsl(30 10% 10% / 0.04), 0 1px 2px -1px hsl(30 10% 10% / 0.04);
-    --shadow-card: 0 4px 6px -1px hsl(30 10% 10% / 0.05), 0 2px 4px -2px hsl(30 10% 10% / 0.05);
-    --shadow-elevated: 0 10px 15px -3px hsl(30 10% 10% / 0.08), 0 4px 6px -4px hsl(30 10% 10% / 0.08);
-    --shadow-nav: 0 -2px 20px -4px hsl(30 10% 10% / 0.08);
+    --shadow-soft: 0 1px 2px 0 hsl(30 10% 10% / 0.04);
+    --shadow-card: 0 1px 2px 0 hsl(30 10% 10% / 0.04), 0 4px 12px -4px hsl(30 10% 10% / 0.06);
+    --shadow-elevated: 0 2px 4px -1px hsl(30 10% 10% / 0.05), 0 12px 24px -6px hsl(30 10% 10% / 0.10);
+    --shadow-nav: 0 8px 24px -6px hsl(30 10% 10% / 0.12);
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 30 10% 10%;
@@ -239,7 +248,7 @@ input[type="time"]::-webkit-inner-spin-button {
     border-radius: 9999px;
     z-index: 1000;
     background: #1C1C1E;
-    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 24px -6px rgba(0, 0, 0, 0.25), 0 2px 6px -2px rgba(0, 0, 0, 0.15);
   }
 
   @media (max-width: 768px) {

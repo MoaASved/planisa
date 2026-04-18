@@ -197,7 +197,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     // Only sticky notes get color
     const cardBgClass = isSticky && note.color
       ? `bg-[hsl(var(--pastel-${note.color}))]`
-      : 'bg-card border border-border';
+      : 'bg-card border border-black/[0.04]';
     
     return (
       <button
@@ -206,7 +206,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           'text-left group transition-all duration-200 w-full rounded-2xl p-4',
           cardBgClass,
           isGrid && 'min-h-[140px]',
-          'shadow-sm hover:shadow-md active:scale-[0.98]'
+          'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
         )}
       >
         <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
@@ -401,7 +401,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} 
             />
             <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
-              <div className="bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
+              <div className="bg-card rounded-[20px] p-6 animate-scale-in" style={{ boxShadow: 'var(--shadow-elevated)' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
                   <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
@@ -541,7 +541,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               onClick={() => setShowFolderModal(false)} 
             />
             <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
-              <div className="bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
+              <div className="bg-card rounded-[20px] p-6 animate-scale-in" style={{ boxShadow: 'var(--shadow-elevated)' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">New Folder</h3>
                   <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">

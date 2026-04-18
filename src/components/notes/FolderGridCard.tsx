@@ -17,9 +17,9 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
     <button
       onClick={onClick}
       className="w-full transition-all active:scale-95 relative"
-      style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.06)) drop-shadow(0 8px 24px rgba(0,0,0,0.10))' }}
+      style={{ filter: 'drop-shadow(0 6px 14px rgba(20,18,15,0.10))' }}
     >
-      <svg viewBox="0 0 200 150" className="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <clipPath id={`clip-${folder.id}`}>
             <path d="
@@ -51,11 +51,12 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
         <rect x="50" y="22" width="115" height="98" rx="3" fill="white" opacity="0.7" transform="rotate(-1.5, 107, 71)" />
         <rect x="60" y="18" width="110" height="102" rx="3" fill="white" opacity="0.45" transform="rotate(3.5, 115, 69)" />
 
-        {/* Folder body */}
-        <rect
-          x="0" y="0" width="200" height="150"
-          clipPath={`url(#clip-${folder.id})`}
+        {/* Folder body with subtle stroke for edge definition */}
+        <path
+          d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z"
           fill={color}
+          stroke="rgba(0,0,0,0.06)"
+          strokeWidth="1"
         />
 
         {/* Bottom gradient overlay */}
