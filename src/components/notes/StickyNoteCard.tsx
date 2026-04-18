@@ -34,15 +34,27 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
     return plainText.slice(0, 80) + (plainText.length > 80 ? '...' : '');
   };
 
+  // Deterministic subtle rotation between -2deg and +2deg based on note id
+  const rotation = (() => {
+    let hash = 0;
+    for (let i = 0; i < note.id.length; i++) {
+      hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
+    }
+    return (((hash % 400) + 400) % 400) / 100 - 2;
+  })();
+
   return (
     <button
       onClick={onClick}
+      style={{
+        transform: `rotate(${rotation.toFixed(2)}deg)`,
+        boxShadow: '2px 3px 8px rgba(0,0,0,0.08)',
+      }}
       className={cn(
         'sticky-note-card text-left group transition-all duration-200 w-full rounded-2xl p-4 relative overflow-hidden',
         getStickyBgClass(note.color),
         isGrid ? 'min-h-[120px]' : 'min-h-[80px]',
-        'shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] hover:scale-[1.02]',
-        'active:scale-[0.98]'
+        'hover:scale-[1.02] active:scale-[0.98]'
       )}
     >
       {/* Folded corner effect */}
