@@ -167,29 +167,45 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
           </button>
         </div>
 
-        <div className="space-y-2">
-          {myLists.map((cat, idx) => (
-            <div key={cat.id} className="stagger-item" style={{ animationDelay: `${idx * 30}ms` }}>
-              <MyListRow
-                category={cat}
-                count={incomplete.filter((t) => t.category === cat.name).length}
-                onClick={() => setSelectedList(cat)}
-              />
-            </div>
-          ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={(e: DragEndEvent) => {
+            const { active, over } = e;
+            if (!over || active.id === over.id) return;
+            const ids = myLists.map((c) => c.id);
+            const oldIndex = ids.indexOf(String(active.id));
+            const newIndex = ids.indexOf(String(over.id));
+            if (oldIndex < 0 || newIndex < 0) return;
+            reorderTaskCategories(arrayMove(ids, oldIndex, newIndex));
+          }}
+        >
+          <SortableContext items={myLists.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {myLists.map((cat, idx) => (
+                <div key={cat.id} className="stagger-item" style={{ animationDelay: `${idx * 30}ms` }}>
+                  <SortableMyListRow
+                    category={cat}
+                    count={incomplete.filter((t) => t.category === cat.name).length}
+                    onClick={() => setSelectedList(cat)}
+                  />
+                </div>
+              ))}
 
-          {myLists.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-muted-foreground mb-3">No lists yet</p>
-              <button
-                onClick={() => setShowCreateList(true)}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium"
-              >
-                Create your first list
-              </button>
+              {myLists.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-sm text-muted-foreground mb-3">No lists yet</p>
+                  <button
+                    onClick={() => setShowCreateList(true)}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium"
+                  >
+                    Create your first list
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       <CreateListModal isOpen={showCreateList} onClose={() => setShowCreateList(false)} />
