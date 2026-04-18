@@ -41,7 +41,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
   const [showAddTask, setShowAddTask] = useState(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 

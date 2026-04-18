@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -31,28 +31,13 @@ interface ListDetailViewProps {
   onBack: () => void;
 }
 
-type SortMode = 'manual' | 'date' | 'created';
-
-function sortTasks(tasks: Task[], mode: SortMode): Task[] {
-  const arr = [...tasks];
-  if (mode === 'date') {
-    arr.sort((a, b) => {
-      const ad = a.date ? new Date(a.date).getTime() : Infinity;
-      const bd = b.date ? new Date(b.date).getTime() : Infinity;
-      return ad - bd;
-    });
-  } else if (mode === 'created') {
-    arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  } else {
-    arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  }
-  return arr;
+function sortTasks(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
 export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps) {
   const {
     addTask,
-    updateTaskCategory,
     deleteTaskCategory,
     pinTaskCategory,
     unpinTaskCategory,
@@ -64,17 +49,14 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
   } = useAppStore();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  const sortMode: SortMode = category.sortMode ?? 'manual';
 
   const [adding, setAdding] = useState<string | null>(null); // sectionId or 'main' or 'new-section'
   const [newSectionName, setNewSectionName] = useState('');
   const [showCompleted, setShowCompleted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showSort, setShowSort] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingList, setEditingList] = useState(false);
   const [sectionMenuId, setSectionMenuId] = useState<string | null>(null);
@@ -96,7 +78,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
 
   const incomplete = tasks.filter((t) => !t.completed);
   const completed = tasks.filter((t) => t.completed);
-  const mainTasks = sortTasks(incomplete.filter((t) => !t.sectionId), sortMode);
+  const mainTasks = sortTasks(incomplete.filter((t) => !t.sectionId));
 
   const handleCreate = (title: string, sectionId?: string) => {
     addTask({
@@ -186,15 +168,6 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                     </>
                   )}
                 </button>
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    setShowSort(true);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
-                >
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" /> Sort: {sortMode}
-                </button>
                 <div className="h-px bg-border/40" />
                 <button
                   onClick={() => {
@@ -224,56 +197,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           <span className="ml-auto flow-meta tabular-nums">{incomplete.length}</span>
         </div>
 
-        {/* Sort indicator */}
-        <div className="px-5 pb-3">
-          <button
-            onClick={() => setShowSort(true)}
-            className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowUpDown className="w-3 h-3" />
-            {sortMode === 'manual'
-              ? 'Manual order'
-              : sortMode === 'date'
-                ? 'Sorted by: Due date'
-                : 'Sorted by: Newest first'}
-          </button>
-        </div>
       </div>
-
-      {/* Sort sheet (simple inline) */}
-      {showSort && (
-        <div
-          className="fixed inset-0 bg-foreground/20 backdrop-blur-[4px] flex items-end justify-center px-4 pb-32"
-          style={{ zIndex: 9999 }}
-          onClick={() => setShowSort(false)}
-        >
-          <div
-            className="w-full max-w-sm bg-card rounded-3xl p-2 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="flow-label px-4 py-2">
-              Sort by
-            </p>
-            {([
-              ['manual', 'Manual'],
-              ['date', 'Due date'],
-              ['created', 'Newest first'],
-            ] as [SortMode, string][]).map(([m, label]) => (
-              <button
-                key={m}
-                onClick={() => {
-                  updateTaskCategory(category.id, { sortMode: m });
-                  setShowSort(false);
-                }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl hover:bg-secondary text-left"
-              >
-                <span className="flex-1">{label}</span>
-                {sortMode === m && <Check className="w-4 h-4 text-primary" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Content */}
       <div className="px-4 pt-2 space-y-2">
@@ -293,7 +217,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                   key={task.id}
                   task={task}
                   onClick={() => setEditingTaskId(task.id)}
-                  draggable={sortMode === 'manual'}
+                
                 />
               ))}
             </div>
@@ -309,7 +233,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
 
         {/* Sections */}
         {sections.map((section) => {
-          const sTasks = sortTasks(incomplete.filter((t) => t.sectionId === section.id), sortMode);
+          const sTasks = sortTasks(incomplete.filter((t) => t.sectionId === section.id));
           const collapsed = section.collapsed;
           return (
             <div key={section.id} className="pt-3">
@@ -393,7 +317,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                             key={task.id}
                             task={task}
                             onClick={() => setEditingTaskId(task.id)}
-                            draggable={sortMode === 'manual'}
+                            
                           />
                         ))}
                       </div>
