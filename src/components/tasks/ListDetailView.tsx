@@ -67,21 +67,33 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
 
   useEffect(() => {
     if (!showMenu) return;
-    const handle = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node;
-      if (
-        menuRef.current?.contains(target) ||
-        menuTriggerRef.current?.contains(target)
-      ) {
-        return;
+
+    const isInside = (target: Node | null) =>
+      !!target &&
+      (menuRef.current?.contains(target) ||
+        menuTriggerRef.current?.contains(target));
+
+    const swallow = (e: Event) => {
+      const target = e.target as Node | null;
+      if (isInside(target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      (e as any).stopImmediatePropagation?.();
+      if (e.type === 'pointerdown' || e.type === 'mousedown' || e.type === 'touchstart') {
+        setShowMenu(false);
       }
-      setShowMenu(false);
     };
-    document.addEventListener('mousedown', handle);
-    document.addEventListener('touchstart', handle);
+
+    document.addEventListener('pointerdown', swallow, true);
+    document.addEventListener('mousedown', swallow, true);
+    document.addEventListener('touchstart', swallow, true);
+    document.addEventListener('click', swallow, true);
+
     return () => {
-      document.removeEventListener('mousedown', handle);
-      document.removeEventListener('touchstart', handle);
+      document.removeEventListener('pointerdown', swallow, true);
+      document.removeEventListener('mousedown', swallow, true);
+      document.removeEventListener('touchstart', swallow, true);
+      document.removeEventListener('click', swallow, true);
     };
   }, [showMenu]);
 
