@@ -12,7 +12,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
   const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
-  const darkerColor = `color-mix(in srgb, ${baseColor} 83%, black)`;
+  const lighterColor = `color-mix(in srgb, ${baseColor} 55%, white)`;
 
   return (
     <button
@@ -23,8 +23,8 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
       <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id={`fill-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={baseColor} />
-            <stop offset="100%" stopColor={darkerColor} />
+            <stop offset="0%" stopColor={lighterColor} />
+            <stop offset="100%" stopColor={baseColor} />
           </linearGradient>
         </defs>
 
