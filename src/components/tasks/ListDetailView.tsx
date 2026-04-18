@@ -202,7 +202,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
         </div>
 
         {/* Title */}
-        <div className="px-5 pb-3 flex items-center gap-3">
+        <div className="px-5 pb-1 flex items-center gap-3">
           {category.id === '__priority' ? (
             <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
           ) : category.id === '__today' ? (
@@ -212,6 +212,21 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           )}
           <h1 className="flow-page-title">{category.name}</h1>
           <span className="ml-auto flow-meta tabular-nums">{incomplete.length}</span>
+        </div>
+
+        {/* Sort indicator */}
+        <div className="px-5 pb-3">
+          <button
+            onClick={() => setShowSort(true)}
+            className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowUpDown className="w-3 h-3" />
+            {sortMode === 'manual'
+              ? 'Manual order'
+              : sortMode === 'date'
+                ? 'Sorted by: Due date'
+                : 'Sorted by: Newest first'}
+          </button>
         </div>
       </div>
 
