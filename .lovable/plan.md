@@ -1,28 +1,21 @@
 
 
-## Plan: Outside-click-blockering på sektionernas tre-prickar-meny
+## Plan: Fixa outside-click på huvudmeny i ListDetailView
 
-### Problem
-Sektionsmenyn (tre prickar bredvid sektionsnamn i `ListDetailView`) använder en enkel `fixed inset-0` overlay som stänger menyn vid klick — men klicket går igenom till underliggande element och kan trigga taps på tasks/knappar.
+### Root cause
+I `useEffect` för `showMenu`: när användaren klickar utanför, kör `pointerdown`-handlern `setShowMenu(false)`. React re-renderar → effektens cleanup körs → alla capture-listeners tas bort **innan** browserns efterföljande `click`-event hinner firas. Click-eventet går då obehindrat genom till task-elementet under och triggar det (öppnar task-detaljmodal).
 
 ### Lösning
-Återanvänd samma capture-fas-mönster som huvudmenyn (tre prickar uppe till höger):
-- Outside-klick stänger **endast** menyn
-- Blockerar `pointerdown`, `mousedown`, `touchstart`, `click` i capture-fas
-- Klick på samma sektions-knapp togglar (öppna/stäng)
-- Klick inuti menyn fungerar som vanligt
+Skjut upp `setShowMenu(false)` så att click-eventet hinner blockeras först:
+- I `swallow`: blockera eventet (preventDefault + stopPropagation + stopImmediatePropagation) som idag
+- Stäng menyn via `setTimeout(() => setShowMenu(false), 0)` istället för synkront — då hinner click-eventet (samma tick) passera capture-listenern och blockeras innan effekten cleanas
+- Alternativt: håll en lokal `closedRef` så listeners förblir aktiva tills också click-eventet för samma sekvens har swallowats, sedan stäng
 
-### Implementation i `src/components/tasks/ListDetailView.tsx`
-- Ta bort nuvarande `fixed inset-0`-overlay för sektionsmenyn
-- Lägg till två refs per öppen meny: en map/ref för menycontainer och triggerknapp för aktiv `sectionMenuId`
-  - Enklast: `sectionMenuRef` + `sectionMenuTriggerRef` (bara en kan vara öppen åt gången)
-- Lägg till `useEffect` som speglar huvudmenyns logik men reagerar på `sectionMenuId` istället för `showMenu`
-  - `swallow`-funktion identisk i beteende: preventDefault + stopPropagation + stopImmediatePropagation utanför, `setSectionMenuId(null)` på pointer/mouse/touch down
-- Skicka `triggerRef` ner till `SectionHeader` så den kan binda ref på sin tre-prickar-knapp
-  - Lägg till valfri `menuTriggerRef?: React.Ref<HTMLButtonElement>` prop i `SectionHeader.tsx`
-- Bind `sectionMenuRef` på den absoluta meny-`div`:en i `ListDetailView`
+Enklare och säkrare: `setTimeout(..., 0)` på state-uppdateringen.
 
-### Filer
-- `src/components/tasks/ListDetailView.tsx`
-- `src/components/tasks/SectionHeader.tsx` (lägg till `menuTriggerRef` prop)
+### Tillämpa samma fix på sektionsmenyns useEffect
+Samma race condition existerar även där — fixa båda.
+
+### Fil
+- `src/components/tasks/ListDetailView.tsx` — uppdatera båda `useEffect`-blocken (rader 70-100 och 102-132)
 
