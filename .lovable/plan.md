@@ -1,26 +1,33 @@
 
-## Större Smart List-titlar + Title Case-sektioner
+## Lägg till "Rename" på sektioner i list-detalj
 
-### Problem 1: Smart List-titlar för små
-"Priority", "Today" och pinnade lists-namn är `text-[13px] font-medium` — mindre än My Lists-rubrikerna nedanför (`flow-card-title` = 15px medium). Hierarkin känns omvänd.
+### Nuläge
+I `ListDetailView.tsx` triggar `onMenu` på `SectionHeader` direkt en `window.confirm` för radering. Ingen möjlighet att byta namn.
 
-### Lösning 1
-I `SmartListCard.tsx` ändra titel från `text-[13px] font-medium` → `text-[16px] font-semibold tracking-tight`. Då blir de tydligt större än My List-raderna (15px medium) men fortfarande lugnare än page title (22px).
+### Lösning
+Ersätt direkt-radering med en liten popover-meny (samma stil som list-menyn högst upp i `ListDetailView` — `bg-card rounded-2xl shadow-2xl border border-border/40`) med två val:
+- **Rename** (Pencil-ikon) → växlar sektionen till inline-edit-läge
+- **Delete** (Trash2-ikon, destructive färg) → raderar direkt (enligt memory: ingen confirm-toast)
 
-### Problem 2: Sektionsrubriker inne i list-detalj är ALL CAPS
-`flow-section-count`-klassen i `index.css` använder förmodligen `uppercase` på namnet, eller så sätts det någon annanstans. Behöver verifieras — men SectionHeader använder redan `flow-section-title` som enligt vår design ska vara Title Case (15px semibold).
+### Inline rename
+När "Rename" väljs ersätts `SectionHeader`-titeln av ett input-fält (samma stil som "new section"-inputen längre ner — `bg-secondary rounded-lg px-3 py-2 text-[16px] font-semibold tracking-tight`). Enter/blur sparar via `updateTaskSection(id, { name })`. Escape avbryter.
 
-Behöver kolla `flow-section-title`/`flow-section-count`-definitionen i `index.css`. Om `text-transform: uppercase` finns där → ta bort.
+### Implementation
+**`ListDetailView.tsx`**
+- Ny state: `sectionMenuId: string | null` och `renamingSectionId: string | null` + `renameValue: string`.
+- Byt `onMenu`-handlern på `SectionHeader` till att öppna popover istället för confirm.
+- Rendera popover-menyn absolut-positionerad nära knappen (samma mönster som list-menyn).
+- När `renamingSectionId === section.id` → rendera input istället för `SectionHeader`.
+- Klick utanför popover stänger den (overlay eller onClick på bakgrund).
 
-### Lösning 2
-- Säkerställ att `.flow-section-title` INTE har `uppercase`.
-- Öka storleken specifikt för sektionsrubriker inne i listor till `text-[16px] font-semibold tracking-tight` så de står ut tydligt utan att vara skrikiga.
-- Behåll Title Case (visas som inputen är skriven).
-- Counten bredvid: `text-[13px] font-normal text-muted-foreground/60`.
+**`SectionHeader.tsx`**
+- Ingen ändring behövs — `onMenu`-callbacken hanteras av parent.
 
-Eftersom `.flow-section-title` används på fler ställen (My Lists-rubrik m.fl.) gör vi detta på `SectionHeader`-komponenten direkt med inline-klasser istället för att ändra den globala klassen — så My Lists-rubriken förblir 15px.
+### Design-konsistens
+- Popover: matchar list-menyn (samma rounded-2xl, shadow, border, padding).
+- Ikoner: `Pencil` 4x4 muted för rename, `Trash2` 4x4 destructive för delete.
+- Ingen confirm-dialog för radering (per memory `no-deletion-confirmation-toast`).
+- Input-stil för rename matchar befintlig "new section"-input för konsistens.
 
 ### Filer
-- `src/components/tasks/SmartListCard.tsx` — titel 16px semibold
-- `src/components/tasks/SectionHeader.tsx` — använd lokala 16px semibold + säkerställ ingen uppercase
-- `src/index.css` — verifiera och ev. ta bort `text-transform: uppercase` från `.flow-section-title` om den finns där
+- `src/components/tasks/ListDetailView.tsx` — popover-meny + inline rename-state
