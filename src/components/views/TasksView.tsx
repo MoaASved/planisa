@@ -5,9 +5,25 @@ import { useAppStore } from '@/store/useAppStore';
 import { Task, TaskCategory } from '@/types';
 import { SmartListCard } from '../tasks/SmartListCard';
 import { MyListRow } from '../tasks/MyListRow';
+import { SortableMyListRow } from '../tasks/SortableMyListRow';
 import { ListDetailView } from '../tasks/ListDetailView';
 import { CreateListModal } from '../tasks/CreateListModal';
 import { AddTaskModal } from '../tasks/AddTaskModal';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
 
 interface TasksViewProps {
   isCreatingNewTask?: boolean;
@@ -17,12 +33,17 @@ interface TasksViewProps {
 type SmartView = 'priority' | 'today' | null;
 
 export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksViewProps) {
-  const { tasks, taskCategories, searchQuery } = useAppStore();
+  const { tasks, taskCategories, searchQuery, reorderTaskCategories } = useAppStore();
 
   const [selectedList, setSelectedList] = useState<TaskCategory | null>(null);
   const [smartView, setSmartView] = useState<SmartView>(null);
   const [showCreateList, setShowCreateList] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   useEffect(() => {
     if (isCreatingNewTask) {
