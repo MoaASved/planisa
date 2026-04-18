@@ -166,7 +166,7 @@ export function MonthView({
                             key={`n-${j}`} 
                             className={cn(
                               'w-[5px] h-[5px] rounded-full',
-                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
+                              isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getAccentDotClass(getNoteColor(note))
                             )} 
                           />
                         ))}
