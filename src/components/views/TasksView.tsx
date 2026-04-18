@@ -4,7 +4,7 @@ import { Star, Calendar as CalIcon, Plus } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, TaskCategory } from '@/types';
 import { SmartListCard } from '../tasks/SmartListCard';
-import { MyListRow } from '../tasks/MyListRow';
+
 import { SortableMyListRow } from '../tasks/SortableMyListRow';
 import { ListDetailView } from '../tasks/ListDetailView';
 import { CreateListModal } from '../tasks/CreateListModal';
