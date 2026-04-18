@@ -82,7 +82,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       e.stopPropagation();
       (e as any).stopImmediatePropagation?.();
       if (e.type === 'pointerdown' || e.type === 'mousedown' || e.type === 'touchstart') {
-        setShowMenu(false);
+        setTimeout(() => setShowMenu(false), 0);
       }
     };
 
@@ -114,7 +114,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       e.stopPropagation();
       (e as any).stopImmediatePropagation?.();
       if (e.type === 'pointerdown' || e.type === 'mousedown' || e.type === 'touchstart') {
-        setSectionMenuId(null);
+        setTimeout(() => setSectionMenuId(null), 0);
       }
     };
 
