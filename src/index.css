@@ -53,18 +53,31 @@ input[type="time"]::-webkit-inner-spin-button {
 
     --radius: 1rem;
 
-    /* Pastel color palette - 10 options */
-    --pastel-coral: 123 10% 51%;
-    --pastel-peach: 53 24% 69%;
-    --pastel-amber: 195 29% 53%;
-    --pastel-yellow: 196 27% 87%;
-    --pastel-mint: 20 96% 75%;
-    --pastel-teal: 33 96% 76%;
-    --pastel-sky: 354 43% 57%;
-    --pastel-lavender: 347 70% 86%;
-    --pastel-rose: 283 18% 57%;
-    --pastel-gray: 34 19% 58%;
-    --pastel-stone: 44 16% 85%;
+    /* Pastel palette - LIGHT (soft surfaces) */
+    --pastel-coral: 110 18% 64%;     /* Fern #AABBAA */
+    --pastel-peach: 50 26% 80%;      /* Pistachio #D9D6C1 */
+    --pastel-amber: 194 26% 70%;     /* Lagune #9FBFC8 */
+    --pastel-yellow: 197 33% 95%;    /* Sky #EDF4F6 */
+    --pastel-mint: 22 100% 86%;      /* Peach #FFD0B6 */
+    --pastel-teal: 36 100% 86%;      /* Honey #FFE1B9 */
+    --pastel-sky: 354 60% 68%;       /* Peony #DE7E89 */
+    --pastel-lavender: 350 75% 91%;  /* Rose #F8D7DD */
+    --pastel-rose: 281 24% 70%;      /* Plum #B8A0C2 */
+    --pastel-gray: 33 22% 74%;       /* Taupe #C9BEB0 */
+    --pastel-stone: 40 18% 91%;      /* Stone #ECE9E2 */
+
+    /* Pastel palette - DARK ACCENT (icons, dots, indicators in light mode) */
+    --pastel-coral-accent: 119 11% 51%;    /* Fern #768F77 */
+    --pastel-peach-accent: 51 31% 69%;     /* Pistachio #C3BE9D */
+    --pastel-amber-accent: 194 28% 53%;    /* Lagune #6599AA */
+    --pastel-yellow-accent: 197 31% 87%;   /* Sky #D5E2E7 */
+    --pastel-mint-accent: 21 97% 75%;      /* Peach #FDAB82 */
+    --pastel-teal-accent: 36 99% 76%;      /* Honey #FEC987 */
+    --pastel-sky-accent: 353 49% 56%;      /* Peony #C45A66 */
+    --pastel-lavender-accent: 350 75% 85%; /* Rose #F2BEC8 */
+    --pastel-rose-accent: 286 18% 57%;     /* Plum #9A7FA5 */
+    --pastel-gray-accent: 33 19% 58%;      /* Taupe #A89780 */
+    --pastel-stone-accent: 40 21% 84%;     /* Stone #DEDAD1 */
     
     --shadow-soft: 0 1px 3px 0 hsl(30 10% 10% / 0.04), 0 1px 2px -1px hsl(30 10% 10% / 0.04);
     --shadow-card: 0 4px 6px -1px hsl(30 10% 10% / 0.05), 0 2px 4px -2px hsl(30 10% 10% / 0.05);
@@ -123,6 +136,31 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-accent-foreground: 210 20% 90%;
     --sidebar-border: 220 15% 18%;
     --sidebar-ring: 0 0% 95%;
+
+    /* Pastel palette - in dark mode, accent IS the primary palette */
+    --pastel-coral: 119 11% 51%;
+    --pastel-peach: 51 31% 69%;
+    --pastel-amber: 194 28% 53%;
+    --pastel-yellow: 197 31% 87%;
+    --pastel-mint: 21 97% 75%;
+    --pastel-teal: 36 99% 76%;
+    --pastel-sky: 353 49% 56%;
+    --pastel-lavender: 350 75% 85%;
+    --pastel-rose: 286 18% 57%;
+    --pastel-gray: 33 19% 58%;
+    --pastel-stone: 40 21% 84%;
+
+    --pastel-coral-accent: 119 11% 51%;
+    --pastel-peach-accent: 51 31% 69%;
+    --pastel-amber-accent: 194 28% 53%;
+    --pastel-yellow-accent: 197 31% 87%;
+    --pastel-mint-accent: 21 97% 75%;
+    --pastel-teal-accent: 36 99% 76%;
+    --pastel-sky-accent: 353 49% 56%;
+    --pastel-lavender-accent: 350 75% 85%;
+    --pastel-rose-accent: 286 18% 57%;
+    --pastel-gray-accent: 33 19% 58%;
+    --pastel-stone-accent: 40 21% 84%;
   }
 }
 
