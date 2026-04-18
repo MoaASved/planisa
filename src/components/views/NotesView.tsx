@@ -268,7 +268,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}))` }} />
+          <FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}-accent))` }} />
           <h1 className="flow-page-title">{selectedFolder.name}</h1>
         </div>
 
