@@ -276,6 +276,38 @@ input[type="time"]::-webkit-inner-spin-button {
     box-shadow: 0 -10px 40px -10px hsl(220 20% 10% / 0.15);
   }
 
+  /* Typography system — unified scale across the app */
+  .flow-page-title {
+    @apply text-[28px] font-semibold tracking-tight text-foreground;
+    letter-spacing: -0.02em;
+  }
+  .flow-section-title {
+    @apply text-[15px] font-semibold tracking-tight text-foreground;
+    letter-spacing: -0.01em;
+  }
+  .flow-section-count {
+    @apply text-[13px] font-normal text-muted-foreground/70 tabular-nums;
+  }
+  .flow-card-title {
+    @apply text-[15px] font-medium tracking-tight text-foreground;
+  }
+  .flow-modal-title {
+    @apply text-[17px] font-semibold tracking-tight text-foreground;
+  }
+  .flow-body {
+    @apply text-[15px] font-normal leading-snug text-foreground;
+  }
+  .flow-meta {
+    @apply text-[13px] font-normal text-muted-foreground;
+  }
+  .flow-meta-sm {
+    @apply text-[12px] font-normal text-muted-foreground/70;
+  }
+  .flow-label {
+    @apply text-[12px] font-medium text-muted-foreground;
+    letter-spacing: 0.01em;
+  }
+
   /* Segmented Control */
   .flow-segment {
     @apply flex bg-secondary rounded-xl p-1;
