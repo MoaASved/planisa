@@ -13,7 +13,7 @@ import {
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorDotClass } from '@/lib/colors';
+import { getColorDotClass, getAccentDotClass } from '@/lib/colors';
 import { CalendarItemList } from './CalendarItemList';
 
 interface MonthViewProps {
