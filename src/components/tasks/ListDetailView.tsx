@@ -185,7 +185,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           ) : category.id === '__today' ? (
             <CalendarIcon className="w-5 h-5 text-pastel-sky" />
           ) : (
-            <span className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${category.color}-accent`)} />
+            <span className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${category.color}`)} />
           )}
           <h1 className="flow-page-title">{category.name}</h1>
           <span className="ml-auto flow-meta tabular-nums">{incomplete.length}</span>

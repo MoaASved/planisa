@@ -67,12 +67,12 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
         />
 
         {/* Folder name */}
-        <text x="12" y="122" fill="white" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
+        <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
           {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
         </text>
 
         {/* Item count */}
-        <text x="12" y="136" fill="rgba(255,255,255,0.75)" fontSize="11" fontFamily="system-ui, sans-serif">
+        <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif">
           {count} {count === 1 ? 'item' : 'items'}
         </text>
       </svg>
@@ -83,7 +83,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
         style={{ cursor: 'pointer' }}
       >
-        <MoreHorizontal className="w-5 h-5" style={{ color: '#fff' }} />
+        <MoreHorizontal className="w-5 h-5" style={{ color: '#2C2C2A' }} />
       </div>
     </button>
   );

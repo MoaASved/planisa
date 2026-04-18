@@ -329,7 +329,7 @@ export function CalendarItemList({
           onClick={() => onItemClick(task, 'task')}
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
-            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative text-[#2C2C2A]',
             task.completed ? 'bg-secondary' : getColorCardClass(color),
             compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
             fillHeight && 'h-full',
@@ -341,7 +341,7 @@ export function CalendarItemList({
             className={cn(
               'rounded-full border-2 flex items-center justify-center flex-shrink-0',
               compact ? 'w-4 h-4' : 'w-5 h-5',
-              task.completed ? 'bg-primary border-primary' : 'border-foreground/40'
+              task.completed ? 'bg-primary border-primary' : 'border-[#2C2C2A]/40'
             )}
           >
             {task.completed && <Check className={cn(compact ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-primary-foreground')} />}
@@ -356,13 +356,13 @@ export function CalendarItemList({
                 {task.title}
               </span>
               {task.subtasks.length > 0 && (
-                <span className={cn('text-muted-foreground flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')}>
+                <span className={cn('text-[#2C2C2A]/60 flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')}>
                   {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
                 </span>
               )}
             </div>
             {showTime && time && (
-              <span className="text-xs text-foreground/60">
+              <span className="text-xs text-[#2C2C2A]/70">
                 {time}{endTime && ` - ${endTime}`}
               </span>
             )}
@@ -381,7 +381,7 @@ export function CalendarItemList({
           onClick={() => onItemClick(event, 'event')}
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
-            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden text-[#2C2C2A]',
             getColorCardClass(color),
             compact ? 'p-2.5' : 'p-3.5',
             showTimelineIndicator && 'pl-4',
@@ -402,7 +402,7 @@ export function CalendarItemList({
             {event.title}
           </span>
           {showTime && time && (
-            <span className="text-xs text-foreground/45 font-light mt-0.5 block">
+            <span className="text-xs text-[#2C2C2A]/60 font-light mt-0.5 block">
               {time}{endTime && ` - ${endTime}`}
             </span>
           )}
@@ -420,18 +420,18 @@ export function CalendarItemList({
         onClick={() => onItemClick(note, 'note')}
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
-          'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
+          'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
           getColorCardClass(color),
           compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
           fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
         )}
       >
-        <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-foreground/60 flex-shrink-0 mt-0.5')} />
+        <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{note.title || 'Untitled'}</span>
           {showTime && time && (
-            <span className="text-xs text-foreground/60">
+            <span className="text-xs text-[#2C2C2A]/70">
               {time}{endTime && ` - ${endTime}`}
             </span>
           )}

@@ -1,7 +1,7 @@
 import { PastelColor } from '@/types';
 
 export const pastelColors: { value: PastelColor; label: string; class: string }[] = [
-  { value: 'coral', label: 'Fern Green', class: 'bg-pastel-coral' },
+  { value: 'coral', label: 'Fern', class: 'bg-pastel-coral' },
   { value: 'peach', label: 'Pistachio', class: 'bg-pastel-peach' },
   { value: 'amber', label: 'Lagune', class: 'bg-pastel-amber' },
   { value: 'yellow', label: 'Sky', class: 'bg-pastel-yellow' },
@@ -9,8 +9,8 @@ export const pastelColors: { value: PastelColor; label: string; class: string }[
   { value: 'teal', label: 'Honey', class: 'bg-pastel-teal' },
   { value: 'sky', label: 'Peony', class: 'bg-pastel-sky' },
   { value: 'lavender', label: 'Rose', class: 'bg-pastel-lavender' },
-  { value: 'rose', label: 'Soft Plum', class: 'bg-pastel-rose' },
-  { value: 'gray', label: 'Warm Taupe', class: 'bg-pastel-gray' },
+  { value: 'rose', label: 'Plum', class: 'bg-pastel-rose' },
+  { value: 'gray', label: 'Taupe', class: 'bg-pastel-gray' },
   { value: 'stone', label: 'Stone', class: 'bg-pastel-stone' },
 ];
 

@@ -19,7 +19,7 @@ export function MyListRow({ category, count, onClick }: MyListRowProps) {
         'hover:shadow-[0_2px_6px_rgba(0,0,0,0.05)] active:scale-[0.99] transition-all',
       )}
     >
-      <span className={cn('w-3 h-3 rounded-full flex-shrink-0', `bg-pastel-${category.color}-accent`)} />
+      <span className={cn('w-3 h-3 rounded-full flex-shrink-0', `bg-pastel-${category.color}`)} />
       <span className="flex-1 text-left flow-card-title truncate">
         {category.name}
       </span>

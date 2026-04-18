@@ -24,17 +24,11 @@ export function NotebookCard({ notebook, onClick, onEdit }: NotebookCardProps) {
           className="absolute inset-0"
           style={{ backgroundColor: `hsl(var(--pastel-${notebook.color}, 160 30% 65%))` }}
         />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to bottom, transparent 65%, rgba(0,0,0,0.35) 100%)',
-          }}
-        />
         <div className="absolute bottom-0 left-0 p-3 text-left">
-          <h4 className="font-bold text-[15px] leading-tight" style={{ color: '#fff' }}>
+          <h4 className="font-bold text-[15px] leading-tight" style={{ color: '#2C2C2A' }}>
             {notebook.name}
           </h4>
-          <p className="text-[12px] mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>
+          <p className="text-[12px] mt-0.5" style={{ color: 'rgba(44,44,42,0.7)' }}>
             {pageCount} {pageCount === 1 ? 'page' : 'pages'}
           </p>
         </div>
@@ -43,7 +37,7 @@ export function NotebookCard({ notebook, onClick, onEdit }: NotebookCardProps) {
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
           style={{ cursor: 'pointer' }}
         >
-          <MoreHorizontal className="w-5 h-5" style={{ color: '#fff' }} />
+          <MoreHorizontal className="w-5 h-5" style={{ color: '#2C2C2A' }} />
         </div>
       </AspectRatio>
     </button>
