@@ -295,17 +295,17 @@ input[type="time"]::-webkit-inner-spin-button {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
   }
 
-  .flow-badge-coral { @apply bg-[hsl(var(--pastel-coral)/0.2)] text-[hsl(var(--pastel-coral))]; }
-  .flow-badge-peach { @apply bg-[hsl(var(--pastel-peach)/0.2)] text-[hsl(var(--pastel-peach))]; }
-  .flow-badge-amber { @apply bg-[hsl(var(--pastel-amber)/0.2)] text-[hsl(var(--pastel-amber))]; }
-  .flow-badge-yellow { @apply bg-[hsl(var(--pastel-yellow)/0.2)] text-[hsl(var(--pastel-yellow))]; }
-  .flow-badge-mint { @apply bg-[hsl(var(--pastel-mint)/0.2)] text-[hsl(var(--pastel-mint))]; }
-  .flow-badge-teal { @apply bg-[hsl(var(--pastel-teal)/0.2)] text-[hsl(var(--pastel-teal))]; }
-  .flow-badge-sky { @apply bg-[hsl(var(--pastel-sky)/0.2)] text-[hsl(var(--pastel-sky))]; }
-  .flow-badge-lavender { @apply bg-[hsl(var(--pastel-lavender)/0.2)] text-[hsl(var(--pastel-lavender))]; }
-  .flow-badge-rose { @apply bg-[hsl(var(--pastel-rose)/0.2)] text-[hsl(var(--pastel-rose))]; }
-  .flow-badge-gray { @apply bg-[hsl(var(--pastel-gray)/0.2)] text-[hsl(var(--pastel-gray))]; }
-  .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone)/0.2)] text-[hsl(var(--pastel-stone))]; }
+  .flow-badge-coral { @apply bg-[hsl(var(--pastel-coral))] text-[hsl(var(--pastel-coral-accent))]; }
+  .flow-badge-peach { @apply bg-[hsl(var(--pastel-peach))] text-[hsl(var(--pastel-peach-accent))]; }
+  .flow-badge-amber { @apply bg-[hsl(var(--pastel-amber))] text-[hsl(var(--pastel-amber-accent))]; }
+  .flow-badge-yellow { @apply bg-[hsl(var(--pastel-yellow))] text-[hsl(var(--pastel-yellow-accent))]; }
+  .flow-badge-mint { @apply bg-[hsl(var(--pastel-mint))] text-[hsl(var(--pastel-mint-accent))]; }
+  .flow-badge-teal { @apply bg-[hsl(var(--pastel-teal))] text-[hsl(var(--pastel-teal-accent))]; }
+  .flow-badge-sky { @apply bg-[hsl(var(--pastel-sky))] text-[hsl(var(--pastel-sky-accent))]; }
+  .flow-badge-lavender { @apply bg-[hsl(var(--pastel-lavender))] text-[hsl(var(--pastel-lavender-accent))]; }
+  .flow-badge-rose { @apply bg-[hsl(var(--pastel-rose))] text-[hsl(var(--pastel-rose-accent))]; }
+  .flow-badge-gray { @apply bg-[hsl(var(--pastel-gray))] text-[hsl(var(--pastel-gray-accent))]; }
+  .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone))] text-[hsl(var(--pastel-stone-accent))]; }
   .flow-badge-primary { @apply bg-primary/10 text-primary; }
 
   /* Bottom Sheet */
