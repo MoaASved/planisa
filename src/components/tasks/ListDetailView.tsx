@@ -61,7 +61,6 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
     deleteTaskSection,
     updateTaskSection,
     reorderTasks,
-    tasks: allTasks,
   } = useAppStore();
 
   const sensors = useSensors(
