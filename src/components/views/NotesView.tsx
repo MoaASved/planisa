@@ -212,14 +212,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="font-semibold text-foreground truncate">
+              <h4 className="flow-card-title truncate">
                 {note.title || 'Untitled'}
               </h4>
               {note.isPinned && (
                 <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
               )}
             </div>
-            <p className={cn('text-sm text-muted-foreground mt-1', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
+            <p className={cn('text-[13px] text-muted-foreground mt-1 leading-snug', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
               {getPreview(note.content)}
             </p>
           </div>
@@ -230,7 +230,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 {note.folder}
               </span>
             )}
-            <span className="text-xs text-muted-foreground">
+            <span className="flow-meta-sm">
               {format(new Date(note.date || note.updatedAt), 'MMM d')}
             </span>
           </div>
@@ -269,7 +269,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             <ArrowLeft className="w-5 h-5" />
           </button>
           <FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}))` }} />
-          <h1 className="font-semibold text-lg">{selectedFolder.name}</h1>
+          <h1 className="flow-page-title">{selectedFolder.name}</h1>
         </div>
 
         {/* Notes in folder */}

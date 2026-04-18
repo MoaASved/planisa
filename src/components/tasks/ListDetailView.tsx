@@ -176,8 +176,8 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
           ) : (
             <span className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${category.color}`)} />
           )}
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">{category.name}</h1>
-          <span className="ml-auto text-sm text-muted-foreground">{incomplete.length}</span>
+          <h1 className="flow-page-title">{category.name}</h1>
+          <span className="ml-auto flow-meta tabular-nums">{incomplete.length}</span>
         </div>
       </div>
 
@@ -192,7 +192,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
             className="w-full max-w-sm bg-card rounded-3xl p-2 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2">
+            <p className="flow-label px-4 py-2">
               Sort by
             </p>
             {([
@@ -288,7 +288,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                 }
               }}
               placeholder="Section name"
-              className="flex-1 bg-secondary rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wider outline-none focus:ring-2 focus:ring-primary/20"
+              className="flex-1 bg-secondary rounded-lg px-3 py-2 text-[15px] font-semibold tracking-tight outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
         )}

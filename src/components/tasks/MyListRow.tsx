@@ -20,13 +20,13 @@ export function MyListRow({ category, count, onClick }: MyListRowProps) {
       )}
     >
       <span className={cn('w-3 h-3 rounded-full flex-shrink-0', `bg-pastel-${category.color}`)} />
-      <span className="flex-1 text-left text-[15px] font-medium text-foreground truncate">
+      <span className="flex-1 text-left flow-card-title truncate">
         {category.name}
       </span>
       {category.pinned && (
         <Pin className="w-3.5 h-3.5 text-muted-foreground/60 fill-muted-foreground/30" />
       )}
-      <span className="text-sm text-muted-foreground tabular-nums">{count}</span>
+      <span className="flow-meta tabular-nums">{count}</span>
       <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
     </button>
   );

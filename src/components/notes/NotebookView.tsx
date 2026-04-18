@@ -52,7 +52,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
         </button>
         <div className="flex items-center gap-2">
           <BookOpen className="w-5 h-5" style={{ color: notebookColor }} />
-          <h1 className="text-lg" style={{ color: '#1C1C1E', fontWeight: 500 }}>{notebook.name}</h1>
+          <h1 className="flow-page-title">{notebook.name}</h1>
         </div>
       </div>
 
@@ -83,16 +83,16 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                 <div className="flex items-center gap-3 h-full">
                   <FileText className="w-5 h-5 shrink-0" style={{ color: '#C7C7CC' }} />
                   <div className="flex-1 min-w-0">
-                    <h4 className="truncate" style={{ fontWeight: 500, color: '#1C1C1E', fontSize: 16 }}>
+                    <h4 className="flow-card-title truncate">
                       {page.title}
                     </h4>
                     {preview && (
-                      <p className="truncate" style={{ color: '#8E8E93', fontSize: 13 }}>
+                      <p className="flow-meta truncate">
                         {preview}
                       </p>
                     )}
                   </div>
-                  <span className="shrink-0" style={{ color: '#C7C7CC', fontSize: 13 }}>
+                  <span className="shrink-0 flow-meta-sm">
                     Page {index + 1}
                   </span>
                 </div>

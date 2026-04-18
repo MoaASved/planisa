@@ -68,11 +68,11 @@ export function SmartListCard({
           </span>
         )}
       </div>
-      <p className="text-[13px] font-semibold text-foreground tracking-tight">
+      <p className="text-[13px] font-medium text-foreground tracking-tight">
         {title}
       </p>
       {empty && (
-        <p className="text-[11px] text-muted-foreground mt-0.5">
+        <p className="flow-meta-sm mt-0.5">
           {emptyLabel ?? 'Tap to pin a list'}
         </p>
       )}

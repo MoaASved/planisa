@@ -24,10 +24,10 @@ export function HomeView({ onNavigate }: HomeViewProps) {
       <div className="px-4 py-4">
         {/* Greeting */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="flow-page-title">
             {userName ? `Hej, ${userName}` : 'Hej'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="flow-meta mt-1">
             {format(today, 'EEEE, MMMM d')}
           </p>
         </div>
@@ -40,7 +40,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
             className="flow-widget text-left w-full"
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-muted-foreground">This Week</h3>
+              <h3 className="flow-section-title">This Week</h3>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex gap-1">
@@ -82,9 +82,9 @@ export function HomeView({ onNavigate }: HomeViewProps) {
             className="flow-widget text-left w-full"
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-muted-foreground">Today's Tasks</h3>
+              <h3 className="flow-section-title">Today's Tasks</h3>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-primary font-medium">{completedToday}/{todayTasks.length}</span>
+                <span className="text-[13px] text-primary font-medium tabular-nums">{completedToday}/{todayTasks.length}</span>
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </div>
             </div>
@@ -118,7 +118,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
             className="flow-widget text-left w-full"
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-muted-foreground">Today's Events</h3>
+              <h3 className="flow-section-title">Today's Events</h3>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
             {todayEvents.length > 0 ? (

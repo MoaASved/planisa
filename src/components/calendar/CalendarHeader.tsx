@@ -38,7 +38,7 @@ export function CalendarHeader({
         
         <button
           onClick={onMonthClick}
-          className="text-lg font-semibold text-foreground hover:opacity-70 transition-opacity min-w-[140px] text-center tracking-tight"
+          className="text-[17px] font-semibold tracking-tight text-foreground hover:opacity-70 transition-opacity min-w-[140px] text-center"
         >
           {format(currentDate, 'MMMM yyyy')}
         </button>
