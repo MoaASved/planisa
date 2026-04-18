@@ -55,6 +55,17 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
   const [showSort, setShowSort] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingList, setEditingList] = useState(false);
+  const [sectionMenuId, setSectionMenuId] = useState<string | null>(null);
+  const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  const commitRename = () => {
+    if (!renamingSectionId) return;
+    const t = renameValue.trim();
+    if (t) updateTaskSection(renamingSectionId, { name: t });
+    setRenamingSectionId(null);
+    setRenameValue('');
+  };
 
   const sections = useMemo(
     () => taskSections.filter((s) => s.listId === category.id).sort((a, b) => a.order - b.order),
