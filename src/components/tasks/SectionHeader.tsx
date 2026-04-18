@@ -21,8 +21,8 @@ export function SectionHeader({ name, count, collapsed, onToggle, onMenu }: Sect
         ) : (
           <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
         )}
-        <span className="flow-section-title">{name}</span>
-        <span className="flow-section-count ml-0.5">{count}</span>
+        <span className="text-[16px] font-semibold tracking-tight text-foreground normal-case">{name}</span>
+        <span className="text-[13px] font-normal text-muted-foreground/60 tabular-nums ml-0.5">{count}</span>
       </button>
       {onMenu && (
         <button
