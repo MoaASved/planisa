@@ -99,6 +99,38 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
     };
   }, [showMenu]);
 
+  useEffect(() => {
+    if (!sectionMenuId) return;
+
+    const isInside = (target: Node | null) =>
+      !!target &&
+      (sectionMenuRef.current?.contains(target) ||
+        sectionMenuTriggerRef.current?.contains(target));
+
+    const swallow = (e: Event) => {
+      const target = e.target as Node | null;
+      if (isInside(target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      (e as any).stopImmediatePropagation?.();
+      if (e.type === 'pointerdown' || e.type === 'mousedown' || e.type === 'touchstart') {
+        setSectionMenuId(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', swallow, true);
+    document.addEventListener('mousedown', swallow, true);
+    document.addEventListener('touchstart', swallow, true);
+    document.addEventListener('click', swallow, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', swallow, true);
+      document.removeEventListener('mousedown', swallow, true);
+      document.removeEventListener('touchstart', swallow, true);
+      document.removeEventListener('click', swallow, true);
+    };
+  }, [sectionMenuId]);
+
   const commitRename = () => {
     if (!renamingSectionId) return;
     const t = renameValue.trim();
