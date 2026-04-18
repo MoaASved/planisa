@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Check, Star, Calendar as CalendarIcon, ArrowUpDown } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -31,28 +31,13 @@ interface ListDetailViewProps {
   onBack: () => void;
 }
 
-type SortMode = 'manual' | 'date' | 'created';
-
-function sortTasks(tasks: Task[], mode: SortMode): Task[] {
-  const arr = [...tasks];
-  if (mode === 'date') {
-    arr.sort((a, b) => {
-      const ad = a.date ? new Date(a.date).getTime() : Infinity;
-      const bd = b.date ? new Date(b.date).getTime() : Infinity;
-      return ad - bd;
-    });
-  } else if (mode === 'created') {
-    arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  } else {
-    arr.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  }
-  return arr;
+function sortTasks(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
 export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps) {
   const {
     addTask,
-    updateTaskCategory,
     deleteTaskCategory,
     pinTaskCategory,
     unpinTaskCategory,
@@ -64,17 +49,14 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
   } = useAppStore();
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
-
-  const sortMode: SortMode = category.sortMode ?? 'manual';
 
   const [adding, setAdding] = useState<string | null>(null); // sectionId or 'main' or 'new-section'
   const [newSectionName, setNewSectionName] = useState('');
   const [showCompleted, setShowCompleted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showSort, setShowSort] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingList, setEditingList] = useState(false);
   const [sectionMenuId, setSectionMenuId] = useState<string | null>(null);
@@ -96,7 +78,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
 
   const incomplete = tasks.filter((t) => !t.completed);
   const completed = tasks.filter((t) => t.completed);
-  const mainTasks = sortTasks(incomplete.filter((t) => !t.sectionId), sortMode);
+  const mainTasks = sortTasks(incomplete.filter((t) => !t.sectionId));
 
   const handleCreate = (title: string, sectionId?: string) => {
     addTask({
