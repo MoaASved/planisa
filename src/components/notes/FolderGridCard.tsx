@@ -11,7 +11,8 @@ interface FolderGridCardProps {
 export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps) {
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
-  const color = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
+  const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
+  const darkerColor = `color-mix(in srgb, ${baseColor} 83%, black)`;
 
   return (
     <button
@@ -21,28 +22,9 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
     >
       <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <clipPath id={`clip-${folder.id}`}>
-            <path d="
-              M 8 40
-              Q 0 40, 0 48
-              L 0 142
-              Q 0 150, 8 150
-              L 192 150
-              Q 200 150, 200 142
-              L 200 40
-              Q 200 32, 192 32
-              L 80 32
-              Q 74 32, 72 26
-              L 68 14
-              Q 66 8, 60 8
-              L 16 8
-              Q 8 8, 8 16
-              Z
-            " />
-          </clipPath>
-          <linearGradient id={`grad-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.18)" />
+          <linearGradient id={`fill-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={baseColor} />
+            <stop offset="100%" stopColor={darkerColor} />
           </linearGradient>
         </defs>
 
@@ -51,19 +33,10 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
         <rect x="50" y="22" width="115" height="98" rx="3" fill="white" opacity="0.7" transform="rotate(-1.5, 107, 71)" />
         <rect x="60" y="18" width="110" height="102" rx="3" fill="white" opacity="0.45" transform="rotate(3.5, 115, 69)" />
 
-        {/* Folder body with subtle stroke for edge definition */}
+        {/* Folder body with soft same-color gradient */}
         <path
           d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z"
-          fill={color}
-          stroke="rgba(0,0,0,0.06)"
-          strokeWidth="1"
-        />
-
-        {/* Bottom gradient overlay */}
-        <rect
-          x="0" y="60" width="200" height="90"
-          clipPath={`url(#clip-${folder.id})`}
-          fill={`url(#grad-${folder.id})`}
+          fill={`url(#fill-${folder.id})`}
         />
 
         {/* Folder name */}
