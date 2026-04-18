@@ -273,7 +273,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
                     <button className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors">
                       {selectedList ? (
                         <>
-                          <span className={cn('w-2 h-2 rounded-full', getColorDotClass(selectedList.color))} />
+                          <span className={cn('w-2 h-2 rounded-full', getAccentDotClass(selectedList.color))} />
                           <span className="text-xs font-medium text-foreground">{selectedList.name}</span>
                         </>
                       ) : (
