@@ -62,18 +62,21 @@ input[type="time"]::-webkit-inner-spin-button {
 
     --radius: 1rem;
 
-    /* Pastel palette - LIGHT (soft surfaces) */
-    --pastel-coral: 95 14% 74%;      /* Fern (light, warm sage) */
-    --pastel-peach: 50 26% 80%;      /* Pistachio #D9D6C1 */
-    --pastel-amber: 194 26% 70%;     /* Lagune #9FBFC8 */
-    --pastel-yellow: 197 33% 95%;    /* Sky #EDF4F6 */
-    --pastel-mint: 22 100% 86%;      /* Peach #FFD0B6 */
-    --pastel-teal: 36 100% 86%;      /* Honey #FFE1B9 */
-    --pastel-sky: 354 60% 68%;       /* Peony #DE7E89 */
-    --pastel-lavender: 350 75% 91%;  /* Rose #F8D7DD */
-    --pastel-rose: 281 24% 70%;      /* Plum #B8A0C2 */
-    --pastel-gray: 33 22% 74%;       /* Taupe #C9BEB0 */
-    --pastel-stone: 38 16% 86%;      /* Stone (darkened for separation from bg) */
+    /* Pastel palette - LIGHT (soft surfaces) — 11-color unified palette */
+    --pastel-coral: 84 44% 83%;      /* Fern #D8E8C0 */
+    --pastel-peach: 113 28% 82%;     /* Pistachio #C8DEC4 */
+    --pastel-amber: 203 47% 84%;     /* Lagune #C4DCEA */
+    --pastel-yellow: 206 62% 89%;    /* Sky #D2E6F4 */
+    --pastel-mint: 22 65% 87%;       /* Peach #F2D8C8 */
+    --pastel-teal: 44 64% 84%;       /* Honey #EEE0BE */
+    --pastel-sky: 327 32% 83%;       /* Peony #E0C8D4 */
+    --pastel-lavender: 351 53% 88%;  /* Rose #F0D4D8 */
+    --pastel-rose: 273 25% 84%;      /* Plum #D8CCE0 */
+    --pastel-gray: 36 24% 81%;       /* Taupe #D8D0C4 */
+    --pastel-stone: 60 12% 83%;      /* Stone #D8D8D0 */
+
+    /* Universal text/icon color on top of pastel surfaces */
+    --on-pastel: 40 6% 17%;          /* #2C2C2A */
 
     /* Pastel palette - DARK ACCENT (icons, dots, indicators in light mode) */
     --pastel-coral-accent: 119 11% 51%;    /* Fern #768F77 */
