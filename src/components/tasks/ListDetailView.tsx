@@ -217,7 +217,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                   key={task.id}
                   task={task}
                   onClick={() => setEditingTaskId(task.id)}
-                  draggable={sortMode === 'manual'}
+                
                 />
               ))}
             </div>
@@ -317,7 +317,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                             key={task.id}
                             task={task}
                             onClick={() => setEditingTaskId(task.id)}
-                            draggable={sortMode === 'manual'}
+                            
                           />
                         ))}
                       </div>
