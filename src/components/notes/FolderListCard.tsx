@@ -27,8 +27,8 @@ export function FolderListCard({ folder, count, onClick }: FolderListCardProps) 
       
       {/* Info */}
       <div className="flex-1 min-w-0 text-left">
-        <h4 className="font-semibold text-foreground truncate">{folder.name}</h4>
-        <p className="text-sm text-muted-foreground">
+        <h4 className="flow-card-title truncate">{folder.name}</h4>
+        <p className="flow-meta">
           {count} {count === 1 ? 'item' : 'items'}
         </p>
       </div>

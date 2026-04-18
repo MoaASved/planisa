@@ -11,7 +11,7 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ name, count, collapsed, onToggle, onMenu }: SectionHeaderProps) {
   return (
-    <div className="flex items-center gap-1.5 px-1 pt-2 pb-1">
+    <div className="flex items-center gap-1.5 px-1 pt-3 pb-1.5">
       <button
         onClick={onToggle}
         className="flex items-center gap-1.5 text-foreground hover:opacity-70 transition-opacity"
@@ -21,8 +21,8 @@ export function SectionHeader({ name, count, collapsed, onToggle, onMenu }: Sect
         ) : (
           <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
         )}
-        <span className="text-xs font-semibold uppercase tracking-wider">{name}</span>
-        <span className="text-xs text-muted-foreground">{count}</span>
+        <span className="flow-section-title">{name}</span>
+        <span className="flow-section-count ml-0.5">{count}</span>
       </button>
       {onMenu && (
         <button

@@ -56,7 +56,7 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
           style={{ pointerEvents: 'auto' }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="flow-modal-title">
               {editing ? 'Edit list' : 'New list'}
             </h2>
             <button
@@ -77,7 +77,7 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
             className="w-full bg-secondary border-0 rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 mb-4"
           />
 
-          <p className="text-xs font-medium text-muted-foreground mb-2.5 px-1">Color</p>
+          <p className="flow-label mb-2.5 px-1">Color</p>
           <div className="grid grid-cols-6 gap-2.5 mb-5">
             {pastelColors.map((c) => (
               <button

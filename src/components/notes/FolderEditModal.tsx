@@ -59,7 +59,7 @@ export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
         <div className="bg-card rounded-[20px] shadow-xl p-6 animate-scale-in">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: 'hsl(var(--foreground))' }}>Edit Folder</h3>
+            <h3 className="flow-modal-title">Edit Folder</h3>
             <button onClick={onClose} className="p-2 rounded-full bg-secondary">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>

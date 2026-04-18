@@ -462,7 +462,7 @@ export function CalendarItemList({
       {/* Filter toolbar */}
       <div className="flex items-center justify-between px-5 py-4">
         {/* Date display on left */}
-        <span className="text-base font-semibold text-foreground/80">
+        <span className="flow-section-title">
           {formattedDate}
         </span>
 

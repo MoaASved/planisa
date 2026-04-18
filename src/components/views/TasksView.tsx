@@ -92,7 +92,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
       <div className="px-4 pt-3 pb-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5 px-1">
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Tasks</h1>
+          <h1 className="flow-page-title">Tasks</h1>
           <button
             onClick={() => setShowAddTask(true)}
             className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-transform"
@@ -137,12 +137,10 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
 
         {/* My Lists */}
         <div className="flex items-center justify-between mb-2.5 px-1">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            My Lists
-          </h2>
+          <h2 className="flow-section-title">My Lists</h2>
           <button
             onClick={() => setShowCreateList(true)}
-            className="text-xs font-medium text-primary hover:opacity-70 flex items-center gap-1"
+            className="text-[13px] font-medium text-primary hover:opacity-70 flex items-center gap-1"
           >
             <Plus className="w-3.5 h-3.5" /> New list
           </button>

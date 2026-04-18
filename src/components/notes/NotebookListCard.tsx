@@ -31,10 +31,10 @@ export function NotebookListCard({ notebook, onClick, onEdit }: NotebookListCard
         }}
       />
       <div className="flex-1 min-w-0 text-left pl-4">
-        <h4 className="font-bold text-[16px] leading-tight" style={{ color: '#1C1C1E' }}>
+        <h4 className="flow-card-title truncate" style={{ color: '#1C1C1E' }}>
           {notebook.name}
         </h4>
-        <p className="text-[13px] mt-0.5" style={{ color: '#8E8E93' }}>
+        <p className="flow-meta mt-0.5">
           {pageCount} {pageCount === 1 ? 'page' : 'pages'}
         </p>
       </div>
