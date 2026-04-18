@@ -1,25 +1,26 @@
 
-## Förminska page titles ytterligare
+## Större Smart List-titlar + Title Case-sektioner
 
-### Observation
-25px känns fortfarande för klumpigt på platser som "Tasks"-rubriken, notebook-namn (NotebookView) och folder-namn (NotesView när man är inne i en folder).
+### Problem 1: Smart List-titlar för små
+"Priority", "Today" och pinnade lists-namn är `text-[13px] font-medium` — mindre än My Lists-rubrikerna nedanför (`flow-card-title` = 15px medium). Hierarkin känns omvänd.
 
-### Lösning
-Minska `.flow-page-title` i `src/index.css` från `text-[25px]` → `text-[22px]`. Behåll `font-semibold`, `tracking-tight`, `letter-spacing: -0.02em`.
+### Lösning 1
+I `SmartListCard.tsx` ändra titel från `text-[13px] font-medium` → `text-[16px] font-semibold tracking-tight`. Då blir de tydligt större än My List-raderna (15px medium) men fortfarande lugnare än page title (22px).
 
-22px ger en mer återhållsam, Apple-lik känsla (jämför iOS large titles som komprimeras till ~22-24px) — fortfarande tydligt hierarkiskt över sektionsrubriker (15px) men inte längre dominant.
+### Problem 2: Sektionsrubriker inne i list-detalj är ALL CAPS
+`flow-section-count`-klassen i `index.css` använder förmodligen `uppercase` på namnet, eller så sätts det någon annanstans. Behöver verifieras — men SectionHeader använder redan `flow-section-title` som enligt vår design ska vara Title Case (15px semibold).
 
-Eftersom alla page headers använder klassen räcker det att ändra på ett ställe. Detta täcker:
-- Tasks-rubriken
-- Notes-rubriken & folder-namn
-- Notebook-namn (NotebookView)
-- Calendar månad/år
-- Home greeting
+Behöver kolla `flow-section-title`/`flow-section-count`-definitionen i `index.css`. Om `text-transform: uppercase` finns där → ta bort.
 
-### Memory
-Uppdatera `mem://design/typography-system` och Core-regeln i `mem://index.md` (25 → 22).
+### Lösning 2
+- Säkerställ att `.flow-section-title` INTE har `uppercase`.
+- Öka storleken specifikt för sektionsrubriker inne i listor till `text-[16px] font-semibold tracking-tight` så de står ut tydligt utan att vara skrikiga.
+- Behåll Title Case (visas som inputen är skriven).
+- Counten bredvid: `text-[13px] font-normal text-muted-foreground/60`.
 
-### Fil
-- `src/index.css`
-- `mem://design/typography-system`
-- `mem://index.md`
+Eftersom `.flow-section-title` används på fler ställen (My Lists-rubrik m.fl.) gör vi detta på `SectionHeader`-komponenten direkt med inline-klasser istället för att ändra den globala klassen — så My Lists-rubriken förblir 15px.
+
+### Filer
+- `src/components/tasks/SmartListCard.tsx` — titel 16px semibold
+- `src/components/tasks/SectionHeader.tsx` — använd lokala 16px semibold + säkerställ ingen uppercase
+- `src/index.css` — verifiera och ev. ta bort `text-transform: uppercase` från `.flow-section-title` om den finns där
