@@ -64,6 +64,8 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
   const [renameValue, setRenameValue] = useState('');
   const menuRef = useRef<HTMLDivElement | null>(null);
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const sectionMenuRef = useRef<HTMLDivElement | null>(null);
+  const sectionMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!showMenu) return;
@@ -298,41 +300,36 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                     collapsed={!!collapsed}
                     onToggle={() => updateTaskSection(section.id, { collapsed: !collapsed })}
                     onMenu={() => setSectionMenuId(sectionMenuId === section.id ? null : section.id)}
+                    menuTriggerRef={sectionMenuId === section.id ? sectionMenuTriggerRef : undefined}
                   />
                   {sectionMenuId === section.id && (
-                    <>
-                      <div
-                        className="fixed inset-0"
-                        style={{ zIndex: 40 }}
-                        onClick={() => setSectionMenuId(null)}
-                      />
-                      <div
-                        className="absolute right-0 top-full mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-44"
-                        style={{ zIndex: 50 }}
-                        onClick={(e) => e.stopPropagation()}
+                    <div
+                      ref={sectionMenuRef}
+                      className="absolute right-0 top-full mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-44"
+                      style={{ zIndex: 50 }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => {
+                          setRenameValue(section.name);
+                          setRenamingSectionId(section.id);
+                          setSectionMenuId(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
                       >
-                        <button
-                          onClick={() => {
-                            setRenameValue(section.name);
-                            setRenamingSectionId(section.id);
-                            setSectionMenuId(null);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
-                        >
-                          <Pencil className="w-4 h-4 text-muted-foreground" /> Rename
-                        </button>
-                        <div className="h-px bg-border/40" />
-                        <button
-                          onClick={() => {
-                            deleteTaskSection(section.id);
-                            setSectionMenuId(null);
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 text-left"
-                        >
-                          <Trash2 className="w-4 h-4" /> Delete
-                        </button>
-                      </div>
-                    </>
+                        <Pencil className="w-4 h-4 text-muted-foreground" /> Rename
+                      </button>
+                      <div className="h-px bg-border/40" />
+                      <button
+                        onClick={() => {
+                          deleteTaskSection(section.id);
+                          setSectionMenuId(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 text-left"
+                      >
+                        <Trash2 className="w-4 h-4" /> Delete
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
