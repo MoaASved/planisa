@@ -196,7 +196,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     
     // Only sticky notes get color
     const cardBgClass = isSticky && note.color
-      ? `bg-[hsl(var(--pastel-${note.color})/0.3)]`
+      ? `bg-[hsl(var(--pastel-${note.color}))]`
       : 'bg-card border border-border';
     
     return (
