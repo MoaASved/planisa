@@ -188,11 +188,13 @@ export const getAccentVar = (color: PastelColor): string => {
   return `hsl(var(--pastel-${color}-accent))`;
 };
 
-// Soft vertical gradient using the card's own color:
-// top = original pastel, bottom ~17% darker (mixed with black).
+// Soft vertical gradient using ONLY the card's own color:
+// top = lighter tint (mixed with white), bottom = full color.
+// No black, grey, or dark overlays.
 export const getColorGradient = (color: PastelColor): string => {
   const base = `hsl(var(--pastel-${color}))`;
-  const darker = `color-mix(in srgb, ${base} 83%, black)`;
-  return `linear-gradient(to bottom, ${base} 0%, ${darker} 100%)`;
+  const lighter = `color-mix(in srgb, ${base} 55%, white)`;
+  return `linear-gradient(to bottom, ${lighter} 0%, ${base} 100%)`;
 };
+
 

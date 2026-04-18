@@ -12,7 +12,7 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
   const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
-  const darkerColor = `color-mix(in srgb, ${baseColor} 83%, black)`;
+  const lighterColor = `color-mix(in srgb, ${baseColor} 55%, white)`;
 
   return (
     <button
