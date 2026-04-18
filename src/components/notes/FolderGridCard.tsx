@@ -16,8 +16,8 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
   return (
     <button
       onClick={onClick}
-      className="w-full transition-all active:scale-95 relative"
-      style={{ filter: 'drop-shadow(0 6px 14px rgba(20,18,15,0.10))' }}
+      className="w-full transition-all active:scale-95 relative rounded-[12px]"
+      style={{ boxShadow: '0px 2px 6px rgba(0,0,0,0.06)' }}
     >
       <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
         <defs>
