@@ -37,7 +37,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
     );
   }
 
-  const notebookColor = `hsl(var(--pastel-${notebook.color}))`;
+  const notebookColor = `hsl(var(--pastel-${notebook.color}-accent))`;
 
   return (
     <div className="min-h-screen pb-24">
