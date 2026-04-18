@@ -68,7 +68,7 @@ export function SmartListCard({
           </span>
         )}
       </div>
-      <p className="text-[13px] font-medium text-foreground tracking-tight">
+      <p className="text-[16px] font-semibold text-foreground tracking-tight">
         {title}
       </p>
       {empty && (
