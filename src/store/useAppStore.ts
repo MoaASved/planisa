@@ -11,6 +11,7 @@ interface AppState {
   deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
   toggleSubtask: (taskId: string, subtaskId: string) => void;
+  reorderTasks: (orderedIds: string[]) => void;
   hideTask: (id: string) => void;
   unhideTask: (id: string) => void;
   addSubtask: (taskId: string, title: string) => void;
@@ -54,6 +55,7 @@ interface AppState {
   deleteTaskCategory: (id: string) => void;
   pinTaskCategory: (id: string) => void;
   unpinTaskCategory: (id: string) => void;
+  reorderTaskCategories: (orderedIds: string[]) => void;
 
   // Task Sections (sub-groupings inside lists)
   taskSections: TaskSection[];
@@ -338,6 +340,15 @@ export const useAppStore = create<AppState>()(
               : t
           ),
         })),
+      reorderTasks: (orderedIds) =>
+        set((state) => {
+          const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
+          return {
+            tasks: state.tasks.map((t) =>
+              indexMap.has(t.id) ? { ...t, order: indexMap.get(t.id)! } : t,
+            ),
+          };
+        }),
 
       // Events
       events: initialEvents,
@@ -425,6 +436,15 @@ export const useAppStore = create<AppState>()(
             c.id === id ? { ...c, pinned: false } : c,
           ),
         })),
+      reorderTaskCategories: (orderedIds) =>
+        set((state) => {
+          const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
+          return {
+            taskCategories: state.taskCategories.map((c) =>
+              indexMap.has(c.id) ? { ...c, order: indexMap.get(c.id)! } : c,
+            ),
+          };
+        }),
 
       // Task Sections
       taskSections: [] as TaskSection[],
