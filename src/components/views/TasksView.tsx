@@ -74,7 +74,9 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
 
   // ── List detail view
   if (selectedList) {
-    const listTasks = visible.filter((t) => t.category === selectedList.name);
+    const listTasks = visible.filter(
+      (t) => t.listId === selectedList.id || (!t.listId && t.category === selectedList.name),
+    );
     return (
       <ListDetailView
         category={selectedList}
@@ -147,7 +149,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
             <div key={slot.id} className="stagger-item">
               <SmartListCard
                 title={slot.name}
-                count={incomplete.filter((t) => t.category === slot.name).length}
+                count={incomplete.filter((t) => t.listId === slot.id || (!t.listId && t.category === slot.name)).length}
                 color={slot.color}
                 dotOnly
                 onClick={() => setSelectedList(slot)}
@@ -186,7 +188,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
                 <div key={cat.id} className="stagger-item" style={{ animationDelay: `${idx * 30}ms` }}>
                   <SortableMyListRow
                     category={cat}
-                    count={incomplete.filter((t) => t.category === cat.name).length}
+                    count={incomplete.filter((t) => t.listId === cat.id || (!t.listId && t.category === cat.name)).length}
                     onClick={() => setSelectedList(cat)}
                   />
                 </div>
