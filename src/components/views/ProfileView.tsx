@@ -186,7 +186,7 @@ export function ProfileView() {
               {settings.avatarInitial || 'U'}
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Flow Planner User</h3>
+              <h3 className="font-semibold text-foreground">Planisa User</h3>
               <p className="text-sm text-muted-foreground">user@example.com</p>
               <span className="text-xs text-muted-foreground">Tap to edit profile</span>
             </div>
@@ -517,7 +517,7 @@ export function ProfileView() {
           Sign Out
         </button>
 
-        <p className="text-center text-sm text-muted-foreground">Flow Planner v1.0.0</p>
+        <p className="text-center text-sm text-muted-foreground">Planisa v1.0.0</p>
       </div>
 
       {/* Avatar Drawer */}
