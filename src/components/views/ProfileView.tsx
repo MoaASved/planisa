@@ -27,6 +27,7 @@ import {
   DrawerTitle,
   DrawerFooter,
 } from '@/components/ui/drawer';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Language = 'en' | 'sv';
 type CategorySection = 'calendar' | 'tasks' | 'notes' | 'notebooks';
@@ -57,6 +58,7 @@ export function ProfileView() {
     updateNotebook,
     deleteNotebook
   } = useAppStore();
+  const { signOut } = useAuth();
 
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -507,7 +509,10 @@ export function ProfileView() {
         </div>
 
         {/* Sign Out */}
-        <button className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-destructive/10 text-destructive font-medium">
+        <button
+          onClick={() => { void signOut(); }}
+          className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-destructive/10 text-destructive font-medium"
+        >
           <LogOut className="w-5 h-5" />
           Sign Out
         </button>
