@@ -58,6 +58,7 @@ export function ProfileView() {
     updateNotebook,
     deleteNotebook
   } = useAppStore();
+  const { signOut } = useAuth();
 
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
