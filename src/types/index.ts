@@ -32,6 +32,7 @@ export interface Task {
   createdAt: Date;
   order?: number;
   sectionId?: string;
+  listId?: string;
 }
 
 export interface TaskSection {
