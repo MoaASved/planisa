@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { SupabaseSync } from "./components/SupabaseSync";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <SupabaseSync />
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route

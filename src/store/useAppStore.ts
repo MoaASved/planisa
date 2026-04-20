@@ -1,8 +1,22 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, PastelColor, Notebook, NotebookPage, TaskSection } from '@/types';
-import { addDays, startOfToday } from 'date-fns';
+import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, Notebook, NotebookPage, TaskSection } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  rowToTask, taskToRow, subtaskToRow,
+  rowToTaskCategory, taskCategoryToRow,
+  rowToTaskSection, taskSectionToRow,
+  rowToEvent, eventToRow,
+  rowToEventCategory, eventCategoryToRow,
+  rowToNote, noteToRow,
+  rowToFolder, folderToRow,
+  rowToNotebook, notebookToRow,
+  rowToNotebookPage, notebookPageToRow,
+  newId,
+} from '@/lib/supabaseSync';
 
+// ──────────────────────────────────────────────────────────────────
+// State shape — same public surface as before
+// ──────────────────────────────────────────────────────────────────
 interface AppState {
   // Tasks
   tasks: Task[];
@@ -42,13 +56,13 @@ interface AppState {
   updateNotebookPage: (id: string, updates: Partial<NotebookPage>) => void;
   deleteNotebookPage: (id: string) => void;
 
-  // Folders (for Notes - independent)
+  // Folders
   folders: Folder[];
   addFolder: (folder: Omit<Folder, 'id'>) => void;
   updateFolder: (id: string, updates: Partial<Folder>) => void;
   deleteFolder: (id: string) => void;
 
-  // Task Categories (independent)
+  // Task Categories
   taskCategories: TaskCategory[];
   addTaskCategory: (category: Omit<TaskCategory, 'id'>) => void;
   updateTaskCategory: (id: string, updates: Partial<TaskCategory>) => void;
@@ -57,215 +71,39 @@ interface AppState {
   unpinTaskCategory: (id: string) => void;
   reorderTaskCategories: (orderedIds: string[]) => void;
 
-  // Task Sections (sub-groupings inside lists)
+  // Task Sections
   taskSections: TaskSection[];
   addTaskSection: (section: Omit<TaskSection, 'id'>) => void;
   updateTaskSection: (id: string, updates: Partial<TaskSection>) => void;
   deleteTaskSection: (id: string) => void;
 
-  // Event Categories (independent)
+  // Event Categories
   eventCategories: EventCategory[];
   addEventCategory: (category: Omit<EventCategory, 'id'>) => void;
   updateEventCategory: (id: string, updates: Partial<EventCategory>) => void;
   deleteEventCategory: (id: string) => void;
 
-  // Widgets
+  // Widgets / Settings / Search (client-only, not synced to DB yet)
   widgets: Widget[];
   updateWidgets: (widgets: Widget[]) => void;
-
-  // Settings
   settings: UserSettings;
   updateSettings: (settings: Partial<UserSettings>) => void;
-
-  // Search
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+
+  // Sync lifecycle
+  _userId: string | null;
+  _channels: any[];
+  loadAll: (userId: string) => Promise<void>;
+  subscribeAll: (userId: string) => void;
+  reset: () => void;
 }
-
-const generateId = () => Math.random().toString(36).substring(2, 15);
-
-const today = startOfToday();
-
-// Initial Task Categories
-const initialTaskCategories: TaskCategory[] = [
-  { id: 't1', name: 'Work', color: 'sky', sortMode: 'manual', pinned: true },
-  { id: 't2', name: 'Personal', color: 'mint', sortMode: 'manual', pinned: true },
-  { id: 't3', name: 'Health', color: 'coral', sortMode: 'manual' },
-  { id: 't4', name: 'Shopping', color: 'amber', sortMode: 'manual' },
-  { id: 't5', name: 'Learning', color: 'lavender', sortMode: 'manual' },
-];
-
-// Initial Event Categories
-const initialEventCategories: EventCategory[] = [
-  { id: 'e1', name: 'Meetings', color: 'sky' },
-  { id: 'e2', name: 'Personal', color: 'mint' },
-  { id: 'e3', name: 'Social', color: 'rose' },
-  { id: 'e4', name: 'Travel', color: 'teal' },
-  { id: 'e5', name: 'Deadlines', color: 'coral' },
-];
-
-// Initial Folders for Notes
-const initialFolders: Folder[] = [
-  { id: 'f1', name: 'Work', color: 'sky' },
-  { id: 'f2', name: 'Personal', color: 'mint' },
-  { id: 'f3', name: 'Ideas', color: 'lavender' },
-  { id: 'f4', name: 'Archive', color: 'gray' },
-];
-
-const initialTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Review project proposal',
-    completed: false,
-    date: today,
-    time: '10:00',
-    category: 'Work',
-    color: 'sky',
-    subtasks: [
-      { id: '1a', title: 'Check budget section', completed: true },
-      { id: '1b', title: 'Review timeline', completed: false },
-    ],
-    priority: 'high',
-    createdAt: today,
-  },
-  {
-    id: '2',
-    title: 'Grocery shopping',
-    completed: false,
-    date: today,
-    category: 'Shopping',
-    color: 'amber',
-    subtasks: [],
-    priority: 'medium',
-    createdAt: today,
-  },
-  {
-    id: '3',
-    title: 'Morning workout',
-    completed: true,
-    date: addDays(today, 1),
-    category: 'Health',
-    color: 'coral',
-    subtasks: [],
-    priority: 'low',
-    createdAt: today,
-  },
-  {
-    id: '4',
-    title: 'Prepare presentation',
-    completed: false,
-    date: addDays(today, 2),
-    time: '14:00',
-    category: 'Work',
-    color: 'sky',
-    subtasks: [
-      { id: '4a', title: 'Create outline', completed: false },
-      { id: '4b', title: 'Design slides', completed: false },
-    ],
-    priority: 'high',
-    createdAt: today,
-  },
-];
-
-const initialEvents: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Team standup',
-    date: today,
-    startTime: '09:00',
-    endTime: '09:30',
-    category: 'Meetings',
-    color: 'sky',
-    isAllDay: false,
-  },
-  {
-    id: '2',
-    title: 'Lunch with Sarah',
-    date: today,
-    startTime: '12:30',
-    endTime: '13:30',
-    category: 'Social',
-    color: 'rose',
-    isAllDay: false,
-  },
-  {
-    id: '3',
-    title: 'Product review',
-    date: addDays(today, 1),
-    startTime: '15:00',
-    endTime: '16:00',
-    category: 'Meetings',
-    color: 'sky',
-    isAllDay: false,
-  },
-];
-
-const initialNotes: Note[] = [
-  {
-    id: '1',
-    title: 'Project Ideas',
-    content: '## New App Concepts\n\n- AI-powered task management\n- Smart calendar integration\n- Voice notes feature\n\n### Priority\n1. Focus on UX\n2. Keep it minimal',
-    type: 'note',
-    folder: 'Ideas',
-    tags: [],
-    color: 'lavender',
-    createdAt: today,
-    updatedAt: today,
-    isPinned: true,
-    showInCalendar: false,
-    hideFromAllNotes: false,
-  },
-  {
-    id: '2',
-    title: 'Meeting Notes',
-    content: '**Attendees:** John, Sarah, Mike\n\n### Key Points\n- Budget approved\n- Launch target: December',
-    type: 'note',
-    folder: 'Work',
-    tags: [],
-    color: undefined,
-    createdAt: addDays(today, -2),
-    updatedAt: addDays(today, -1),
-    isPinned: false,
-    showInCalendar: true,
-    hideFromAllNotes: false,
-    date: today,
-  },
-  {
-    id: '3',
-    title: 'Book List',
-    content: '### Currently Reading\n- Atomic Habits\n\n### Up Next\n- Deep Work\n- The Psychology of Money',
-    type: 'note',
-    folder: 'Personal',
-    tags: [],
-    color: 'mint',
-    createdAt: addDays(today, -5),
-    updatedAt: addDays(today, -3),
-    isPinned: false,
-    showInCalendar: false,
-    hideFromAllNotes: false,
-  },
-  {
-    id: '4',
-    title: 'Quick reminder',
-    content: 'Remember to call mom!',
-    type: 'sticky',
-    folder: undefined,
-    tags: [],
-    color: 'yellow',
-    createdAt: today,
-    updatedAt: today,
-    isPinned: false,
-    showInCalendar: false,
-    hideFromAllNotes: false,
-  },
-];
 
 const initialWidgets: Widget[] = [
   { id: '1', type: 'calendar-week', size: 'large', position: 0 },
   { id: '2', type: 'today-tasks', size: 'small', position: 1 },
   { id: '3', type: 'highlighted-note', size: 'small', position: 2 },
 ];
-
 const initialSettings: UserSettings = {
   language: 'en',
   theme: 'light',
@@ -274,260 +112,477 @@ const initialSettings: UserSettings = {
   name: '',
 };
 
-export const useAppStore = create<AppState>()(
-  persist(
-    (set) => ({
-      // Tasks
-      tasks: initialTasks,
-      addTask: (task) =>
-        set((state) => ({
-          tasks: [...state.tasks, { ...task, id: generateId(), createdAt: new Date() }],
-        })),
-      updateTask: (id, updates) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-        })),
-      deleteTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.filter((t) => t.id !== id),
-        })),
-      toggleTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === id ? { ...t, completed: !t.completed } : t
-          ),
-        })),
-      toggleSubtask: (taskId, subtaskId) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  subtasks: t.subtasks.map((s) =>
-                    s.id === subtaskId ? { ...s, completed: !s.completed } : s
-                  ),
+// Helper: log+swallow Supabase errors so optimistic UI never breaks.
+const swallow = (label: string) => (res: any) => {
+  if (res?.error) console.error(`[supabase:${label}]`, res.error);
+  return res;
+};
+
+// Upsert by id helper used after most mutations
+const upsert = <T extends { id: string }>(arr: T[], item: T): T[] => {
+  const i = arr.findIndex((x) => x.id === item.id);
+  if (i === -1) return [...arr, item];
+  const copy = arr.slice();
+  copy[i] = item;
+  return copy;
+};
+
+export const useAppStore = create<AppState>()((set, get) => {
+  const uid = () => get()._userId;
+
+  return {
+    // ──────────────────── State (initially empty) ────────────────────
+    tasks: [],
+    events: [],
+    notes: [],
+    notebooks: [],
+    notebookPages: [],
+    folders: [],
+    taskCategories: [],
+    taskSections: [],
+    eventCategories: [],
+
+    widgets: initialWidgets,
+    settings: initialSettings,
+    searchQuery: '',
+    _userId: null,
+    _channels: [],
+
+    // ─────────────────────────── TASKS ───────────────────────────
+    addTask: (task) => {
+      const id = newId();
+      const createdAt = new Date();
+      const newTask: Task = { ...task, id, createdAt, subtasks: task.subtasks ?? [] };
+      set((s) => ({ tasks: [...s.tasks, newTask] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('tasks') as any).insert(taskToRow({ ...newTask }, userId)).then(swallow('addTask'));
+      // persist subtasks if any
+      if (newTask.subtasks?.length) {
+        const rows = newTask.subtasks.map((s, i) => subtaskToRow(s, id, userId, i));
+        (supabase.from('subtasks') as any).insert(rows).then(swallow('addTask.subtasks'));
+      }
+    },
+    updateTask: (id, updates) => {
+      set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)) }));
+      const userId = uid(); if (!userId) return;
+      const { subtasks, ...rest } = updates as any;
+      const row = taskToRow(rest, userId);
+      delete row.user_id; // don't change ownership
+      (supabase.from('tasks') as any).update(row).eq('id', id).then(swallow('updateTask'));
+    },
+    deleteTask: (id) => {
+      set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }));
+      (supabase.from('tasks') as any).delete().eq('id', id).then(swallow('deleteTask'));
+    },
+    toggleTask: (id) => {
+      const task = get().tasks.find((t) => t.id === id);
+      if (!task) return;
+      const completed = !task.completed;
+      set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed } : t)) }));
+      (supabase.from('tasks') as any).update({ completed }).eq('id', id).then(swallow('toggleTask'));
+    },
+    toggleSubtask: (taskId, subtaskId) => {
+      const task = get().tasks.find((t) => t.id === taskId);
+      const sub = task?.subtasks.find((s) => s.id === subtaskId);
+      if (!task || !sub) return;
+      const completed = !sub.completed;
+      set((s) => ({
+        tasks: s.tasks.map((t) =>
+          t.id === taskId
+            ? { ...t, subtasks: t.subtasks.map((x) => (x.id === subtaskId ? { ...x, completed } : x)) }
+            : t,
+        ),
+      }));
+      (supabase.from('subtasks') as any).update({ completed }).eq('id', subtaskId).then(swallow('toggleSubtask'));
+    },
+    hideTask: (id) => {
+      set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, hidden: true } : t)) }));
+      (supabase.from('tasks') as any).update({ hidden: true }).eq('id', id).then(swallow('hideTask'));
+    },
+    unhideTask: (id) => {
+      set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, hidden: false } : t)) }));
+      (supabase.from('tasks') as any).update({ hidden: false }).eq('id', id).then(swallow('unhideTask'));
+    },
+    addSubtask: (taskId, title) => {
+      const userId = uid();
+      const subId = newId();
+      set((s) => ({
+        tasks: s.tasks.map((t) =>
+          t.id === taskId ? { ...t, subtasks: [...t.subtasks, { id: subId, title, completed: false }] } : t,
+        ),
+      }));
+      if (!userId) return;
+      const order = (get().tasks.find((t) => t.id === taskId)?.subtasks.length ?? 1) - 1;
+      (supabase.from('subtasks') as any)
+        .insert(subtaskToRow({ id: subId, title, completed: false }, taskId, userId, order))
+        .then(swallow('addSubtask'));
+    },
+    removeSubtask: (taskId, subtaskId) => {
+      set((s) => ({
+        tasks: s.tasks.map((t) =>
+          t.id === taskId ? { ...t, subtasks: t.subtasks.filter((x) => x.id !== subtaskId) } : t,
+        ),
+      }));
+      (supabase.from('subtasks') as any).delete().eq('id', subtaskId).then(swallow('removeSubtask'));
+    },
+    reorderTasks: (orderedIds) => {
+      const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
+      set((s) => ({
+        tasks: s.tasks.map((t) => (indexMap.has(t.id) ? { ...t, order: indexMap.get(t.id)! } : t)),
+      }));
+      // Persist orders
+      orderedIds.forEach((id, i) => {
+        (supabase.from('tasks') as any).update({ order_index: i }).eq('id', id).then(swallow('reorderTasks'));
+      });
+    },
+
+    // ─────────────────────────── EVENTS ───────────────────────────
+    addEvent: (event) => {
+      const id = newId();
+      const newEvent: CalendarEvent = { ...event, id };
+      set((s) => ({ events: [...s.events, newEvent] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('events') as any).insert(eventToRow(newEvent, userId)).then(swallow('addEvent'));
+    },
+    updateEvent: (id, updates) => {
+      set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...updates } : e)) }));
+      const userId = uid(); if (!userId) return;
+      const row = eventToRow(updates, userId); delete row.user_id;
+      (supabase.from('events') as any).update(row).eq('id', id).then(swallow('updateEvent'));
+    },
+    deleteEvent: (id) => {
+      set((s) => ({ events: s.events.filter((e) => e.id !== id) }));
+      (supabase.from('events') as any).delete().eq('id', id).then(swallow('deleteEvent'));
+    },
+
+    // ─────────────────────────── NOTES ───────────────────────────
+    addNote: (note) => {
+      const id = newId();
+      const now = new Date();
+      const newNote: Note = { ...note, id, createdAt: now, updatedAt: now };
+      set((s) => ({ notes: [...s.notes, newNote] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('notes') as any).insert(noteToRow(newNote, userId)).then(swallow('addNote'));
+    },
+    updateNote: (id, updates) => {
+      const updatedAt = new Date();
+      set((s) => ({ notes: s.notes.map((n) => (n.id === id ? { ...n, ...updates, updatedAt } : n)) }));
+      const userId = uid(); if (!userId) return;
+      const row = noteToRow(updates, userId); delete row.user_id;
+      (supabase.from('notes') as any).update(row).eq('id', id).then(swallow('updateNote'));
+    },
+    deleteNote: (id) => {
+      set((s) => ({ notes: s.notes.filter((n) => n.id !== id) }));
+      (supabase.from('notes') as any).delete().eq('id', id).then(swallow('deleteNote'));
+    },
+    togglePinNote: (id) => {
+      const note = get().notes.find((n) => n.id === id);
+      if (!note) return;
+      const isPinned = !note.isPinned;
+      set((s) => ({ notes: s.notes.map((n) => (n.id === id ? { ...n, isPinned } : n)) }));
+      (supabase.from('notes') as any).update({ pinned: isPinned }).eq('id', id).then(swallow('togglePinNote'));
+    },
+
+    // ─────────────────────────── FOLDERS ───────────────────────────
+    addFolder: (folder) => {
+      const id = newId();
+      const newF: Folder = { ...folder, id };
+      set((s) => ({ folders: [...s.folders, newF] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('note_folders') as any).insert(folderToRow(newF, userId)).then(swallow('addFolder'));
+    },
+    updateFolder: (id, updates) => {
+      set((s) => ({ folders: s.folders.map((f) => (f.id === id ? { ...f, ...updates } : f)) }));
+      const userId = uid(); if (!userId) return;
+      const row = folderToRow(updates, userId); delete row.user_id;
+      (supabase.from('note_folders') as any).update(row).eq('id', id).then(swallow('updateFolder'));
+    },
+    deleteFolder: (id) => {
+      set((s) => ({ folders: s.folders.filter((f) => f.id !== id) }));
+      (supabase.from('note_folders') as any).delete().eq('id', id).then(swallow('deleteFolder'));
+    },
+
+    // ─────────────────────────── TASK CATEGORIES (lists) ───────────────────────────
+    addTaskCategory: (category) => {
+      const id = newId();
+      const newC: TaskCategory = { ...category, id };
+      set((s) => ({ taskCategories: [...s.taskCategories, newC] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('task_lists') as any).insert(taskCategoryToRow(newC, userId)).then(swallow('addTaskCategory'));
+    },
+    updateTaskCategory: (id, updates) => {
+      set((s) => ({ taskCategories: s.taskCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)) }));
+      const userId = uid(); if (!userId) return;
+      const row = taskCategoryToRow(updates, userId); delete row.user_id;
+      (supabase.from('task_lists') as any).update(row).eq('id', id).then(swallow('updateTaskCategory'));
+    },
+    deleteTaskCategory: (id) => {
+      set((s) => ({ taskCategories: s.taskCategories.filter((c) => c.id !== id) }));
+      (supabase.from('task_lists') as any).delete().eq('id', id).then(swallow('deleteTaskCategory'));
+    },
+    pinTaskCategory: (id) => {
+      const pinnedCount = get().taskCategories.filter((c) => c.pinned).length;
+      if (pinnedCount >= 2) return;
+      set((s) => ({ taskCategories: s.taskCategories.map((c) => (c.id === id ? { ...c, pinned: true } : c)) }));
+      (supabase.from('task_lists') as any).update({ pinned: true }).eq('id', id).then(swallow('pinTaskCategory'));
+    },
+    unpinTaskCategory: (id) => {
+      set((s) => ({ taskCategories: s.taskCategories.map((c) => (c.id === id ? { ...c, pinned: false } : c)) }));
+      (supabase.from('task_lists') as any).update({ pinned: false }).eq('id', id).then(swallow('unpinTaskCategory'));
+    },
+    reorderTaskCategories: (orderedIds) => {
+      const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
+      set((s) => ({
+        taskCategories: s.taskCategories.map((c) =>
+          indexMap.has(c.id) ? { ...c, order: indexMap.get(c.id)! } : c,
+        ),
+      }));
+      orderedIds.forEach((id, i) => {
+        (supabase.from('task_lists') as any).update({ order_index: i }).eq('id', id).then(swallow('reorderTaskCategories'));
+      });
+    },
+
+    // ─────────────────────────── TASK SECTIONS ───────────────────────────
+    addTaskSection: (section) => {
+      const id = newId();
+      const newS: TaskSection = { ...section, id };
+      set((s) => ({ taskSections: [...s.taskSections, newS] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('task_sections') as any).insert(taskSectionToRow(newS, userId)).then(swallow('addTaskSection'));
+    },
+    updateTaskSection: (id, updates) => {
+      set((s) => ({ taskSections: s.taskSections.map((x) => (x.id === id ? { ...x, ...updates } : x)) }));
+      const userId = uid(); if (!userId) return;
+      const row = taskSectionToRow(updates, userId); delete row.user_id;
+      (supabase.from('task_sections') as any).update(row).eq('id', id).then(swallow('updateTaskSection'));
+    },
+    deleteTaskSection: (id) => {
+      set((s) => ({
+        taskSections: s.taskSections.filter((x) => x.id !== id),
+        tasks: s.tasks.map((t) => (t.sectionId === id ? { ...t, sectionId: undefined } : t)),
+      }));
+      (supabase.from('task_sections') as any).delete().eq('id', id).then(swallow('deleteTaskSection'));
+      (supabase.from('tasks') as any).update({ section_id: null }).eq('section_id', id).then(swallow('deleteTaskSection.unset'));
+    },
+
+    // ─────────────────────────── EVENT CATEGORIES ───────────────────────────
+    addEventCategory: (category) => {
+      const id = newId();
+      const newC: EventCategory = { ...category, id };
+      set((s) => ({ eventCategories: [...s.eventCategories, newC] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('calendar_categories') as any).insert(eventCategoryToRow(newC, userId)).then(swallow('addEventCategory'));
+    },
+    updateEventCategory: (id, updates) => {
+      set((s) => ({ eventCategories: s.eventCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)) }));
+      const userId = uid(); if (!userId) return;
+      const row = eventCategoryToRow(updates, userId); delete row.user_id;
+      (supabase.from('calendar_categories') as any).update(row).eq('id', id).then(swallow('updateEventCategory'));
+    },
+    deleteEventCategory: (id) => {
+      set((s) => ({ eventCategories: s.eventCategories.filter((c) => c.id !== id) }));
+      (supabase.from('calendar_categories') as any).delete().eq('id', id).then(swallow('deleteEventCategory'));
+    },
+
+    // ─────────────────────────── NOTEBOOKS ───────────────────────────
+    addNotebook: (notebook) => {
+      const id = newId();
+      const newN: Notebook = { ...notebook, id, createdAt: new Date() };
+      set((s) => ({ notebooks: [...s.notebooks, newN] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('notebooks') as any).insert(notebookToRow(newN, userId)).then(swallow('addNotebook'));
+    },
+    updateNotebook: (id, updates) => {
+      set((s) => ({ notebooks: s.notebooks.map((n) => (n.id === id ? { ...n, ...updates } : n)) }));
+      const userId = uid(); if (!userId) return;
+      const row = notebookToRow(updates, userId); delete row.user_id;
+      (supabase.from('notebooks') as any).update(row).eq('id', id).then(swallow('updateNotebook'));
+    },
+    deleteNotebook: (id) => {
+      set((s) => ({
+        notebooks: s.notebooks.filter((n) => n.id !== id),
+        notebookPages: s.notebookPages.filter((p) => p.notebookId !== id),
+      }));
+      (supabase.from('notebooks') as any).delete().eq('id', id).then(swallow('deleteNotebook'));
+    },
+
+    // ─────────────────────────── NOTEBOOK PAGES ───────────────────────────
+    addNotebookPage: (page) => {
+      const id = newId();
+      const now = new Date();
+      const newP: NotebookPage = { ...page, id, createdAt: now, updatedAt: now };
+      set((s) => ({ notebookPages: [...s.notebookPages, newP] }));
+      const userId = uid(); if (!userId) return;
+      (supabase.from('notebook_pages') as any).insert(notebookPageToRow(newP, userId)).then(swallow('addNotebookPage'));
+    },
+    updateNotebookPage: (id, updates) => {
+      const updatedAt = new Date();
+      set((s) => ({ notebookPages: s.notebookPages.map((p) => (p.id === id ? { ...p, ...updates, updatedAt } : p)) }));
+      const userId = uid(); if (!userId) return;
+      const row = notebookPageToRow(updates, userId); delete row.user_id;
+      (supabase.from('notebook_pages') as any).update(row).eq('id', id).then(swallow('updateNotebookPage'));
+    },
+    deleteNotebookPage: (id) => {
+      set((s) => ({ notebookPages: s.notebookPages.filter((p) => p.id !== id) }));
+      (supabase.from('notebook_pages') as any).delete().eq('id', id).then(swallow('deleteNotebookPage'));
+    },
+
+    // ─────────────────────────── Client-only ───────────────────────────
+    updateWidgets: (widgets) => set({ widgets }),
+    updateSettings: (newSettings) => set((s) => ({ settings: { ...s.settings, ...newSettings } })),
+    setSearchQuery: (query) => set({ searchQuery: query }),
+
+    // ─────────────────────────── SYNC LIFECYCLE ───────────────────────────
+    loadAll: async (userId: string) => {
+      set({ _userId: userId });
+      const tables = [
+        'tasks', 'subtasks', 'task_lists', 'task_sections',
+        'events', 'calendar_categories',
+        'notes', 'note_folders',
+        'notebooks', 'notebook_pages',
+      ];
+      const results = await Promise.all(
+        tables.map((t) => (supabase.from(t as any) as any).select('*').eq('user_id', userId)),
+      );
+      const [tasksR, subsR, listsR, sectionsR, eventsR, calCatsR, notesR, foldersR, notebooksR, pagesR] = results;
+      const subs = subsR.data ?? [];
+      set({
+        tasks: (tasksR.data ?? []).map((r: any) => rowToTask(r, subs)),
+        taskCategories: (listsR.data ?? []).map(rowToTaskCategory),
+        taskSections: (sectionsR.data ?? []).map(rowToTaskSection),
+        events: (eventsR.data ?? []).map(rowToEvent),
+        eventCategories: (calCatsR.data ?? []).map(rowToEventCategory),
+        notes: (notesR.data ?? []).map(rowToNote),
+        folders: (foldersR.data ?? []).map(rowToFolder),
+        notebooks: (notebooksR.data ?? []).map(rowToNotebook),
+        notebookPages: (pagesR.data ?? []).map(rowToNotebookPage),
+      });
+    },
+
+    subscribeAll: (userId: string) => {
+      // tear down old channels
+      get()._channels.forEach((ch) => supabase.removeChannel(ch));
+
+      const handlers: Array<{ table: string; apply: (payload: any) => void }> = [
+        {
+          table: 'tasks',
+          apply: (p) => {
+            const subs = []; // realtime task updates won't include subtasks; UI state already has them locally
+            if (p.eventType === 'DELETE') {
+              set((s) => ({ tasks: s.tasks.filter((t) => t.id !== p.old.id) }));
+            } else {
+              const existing = get().tasks.find((t) => t.id === p.new.id);
+              const merged = rowToTask(p.new, []);
+              merged.subtasks = existing?.subtasks ?? [];
+              set((s) => ({ tasks: upsert(s.tasks, merged) }));
+            }
+          },
+        },
+        {
+          table: 'subtasks',
+          apply: (p) => {
+            const taskId = p.new?.task_id ?? p.old?.task_id;
+            if (!taskId) return;
+            set((s) => ({
+              tasks: s.tasks.map((t) => {
+                if (t.id !== taskId) return t;
+                if (p.eventType === 'DELETE') {
+                  return { ...t, subtasks: t.subtasks.filter((x) => x.id !== p.old.id) };
                 }
-              : t
-          ),
-        })),
-      hideTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) => (t.id === id ? { ...t, hidden: true } : t)),
-        })),
-      unhideTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) => (t.id === id ? { ...t, hidden: false } : t)),
-        })),
-      addSubtask: (taskId, title) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === taskId
-              ? {
-                  ...t,
-                  subtasks: [
-                    ...t.subtasks,
-                    { id: `sub-${Date.now()}`, title, completed: false },
-                  ],
-                }
-              : t
-          ),
-        })),
-      removeSubtask: (taskId, subtaskId) =>
-        set((state) => ({
-          tasks: state.tasks.map((t) =>
-            t.id === taskId
-              ? { ...t, subtasks: t.subtasks.filter((s) => s.id !== subtaskId) }
-              : t
-          ),
-        })),
-      reorderTasks: (orderedIds) =>
-        set((state) => {
-          const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
-          return {
-            tasks: state.tasks.map((t) =>
-              indexMap.has(t.id) ? { ...t, order: indexMap.get(t.id)! } : t,
-            ),
-          };
-        }),
+                const sub = { id: p.new.id, title: p.new.title, completed: !!p.new.completed };
+                const i = t.subtasks.findIndex((x) => x.id === sub.id);
+                const next = i === -1 ? [...t.subtasks, sub] : t.subtasks.map((x, idx) => (idx === i ? sub : x));
+                return { ...t, subtasks: next };
+              }),
+            }));
+          },
+        },
+        {
+          table: 'task_lists',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ taskCategories: s.taskCategories.filter((c) => c.id !== p.old.id) }));
+            set((s) => ({ taskCategories: upsert(s.taskCategories, rowToTaskCategory(p.new)) }));
+          },
+        },
+        {
+          table: 'task_sections',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ taskSections: s.taskSections.filter((x) => x.id !== p.old.id) }));
+            set((s) => ({ taskSections: upsert(s.taskSections, rowToTaskSection(p.new)) }));
+          },
+        },
+        {
+          table: 'events',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ events: s.events.filter((e) => e.id !== p.old.id) }));
+            set((s) => ({ events: upsert(s.events, rowToEvent(p.new)) }));
+          },
+        },
+        {
+          table: 'calendar_categories',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ eventCategories: s.eventCategories.filter((c) => c.id !== p.old.id) }));
+            set((s) => ({ eventCategories: upsert(s.eventCategories, rowToEventCategory(p.new)) }));
+          },
+        },
+        {
+          table: 'notes',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ notes: s.notes.filter((n) => n.id !== p.old.id) }));
+            set((s) => ({ notes: upsert(s.notes, rowToNote(p.new)) }));
+          },
+        },
+        {
+          table: 'note_folders',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ folders: s.folders.filter((f) => f.id !== p.old.id) }));
+            set((s) => ({ folders: upsert(s.folders, rowToFolder(p.new)) }));
+          },
+        },
+        {
+          table: 'notebooks',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ notebooks: s.notebooks.filter((n) => n.id !== p.old.id) }));
+            set((s) => ({ notebooks: upsert(s.notebooks, rowToNotebook(p.new)) }));
+          },
+        },
+        {
+          table: 'notebook_pages',
+          apply: (p) => {
+            if (p.eventType === 'DELETE') return set((s) => ({ notebookPages: s.notebookPages.filter((x) => x.id !== p.old.id) }));
+            set((s) => ({ notebookPages: upsert(s.notebookPages, rowToNotebookPage(p.new)) }));
+          },
+        },
+      ];
 
-      // Events
-      events: initialEvents,
-      addEvent: (event) =>
-        set((state) => ({
-          events: [...state.events, { ...event, id: generateId() }],
-        })),
-      updateEvent: (id, updates) =>
-        set((state) => ({
-          events: state.events.map((e) => (e.id === id ? { ...e, ...updates } : e)),
-        })),
-      deleteEvent: (id) =>
-        set((state) => ({
-          events: state.events.filter((e) => e.id !== id),
-        })),
+      const channels = handlers.map(({ table, apply }) =>
+        supabase
+          .channel(`realtime-${table}`)
+          .on('postgres_changes' as any,
+            { event: '*', schema: 'public', table, filter: `user_id=eq.${userId}` },
+            apply,
+          )
+          .subscribe(),
+      );
 
-      // Notes
-      notes: initialNotes,
-      addNote: (note) =>
-        set((state) => ({
-          notes: [
-            ...state.notes,
-            { ...note, id: generateId(), createdAt: new Date(), updatedAt: new Date() },
-          ],
-        })),
-      updateNote: (id, updates) =>
-        set((state) => ({
-          notes: state.notes.map((n) =>
-            n.id === id ? { ...n, ...updates, updatedAt: new Date() } : n
-          ),
-        })),
-      deleteNote: (id) =>
-        set((state) => ({
-          notes: state.notes.filter((n) => n.id !== id),
-        })),
-      togglePinNote: (id) =>
-        set((state) => ({
-          notes: state.notes.map((n) =>
-            n.id === id ? { ...n, isPinned: !n.isPinned } : n
-          ),
-        })),
+      set({ _channels: channels });
+    },
 
-      // Folders (for Notes)
-      folders: initialFolders,
-      addFolder: (folder) =>
-        set((state) => ({
-          folders: [...state.folders, { ...folder, id: generateId() }],
-        })),
-      updateFolder: (id, updates) =>
-        set((state) => ({
-          folders: state.folders.map((f) => (f.id === id ? { ...f, ...updates } : f)),
-        })),
-      deleteFolder: (id) =>
-        set((state) => ({
-          folders: state.folders.filter((f) => f.id !== id),
-        })),
-
-      // Task Categories
-      taskCategories: initialTaskCategories,
-      addTaskCategory: (category) =>
-        set((state) => ({
-          taskCategories: [...state.taskCategories, { ...category, id: generateId() }],
-        })),
-      updateTaskCategory: (id, updates) =>
-        set((state) => ({
-          taskCategories: state.taskCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-        })),
-      deleteTaskCategory: (id) =>
-        set((state) => ({
-          taskCategories: state.taskCategories.filter((c) => c.id !== id),
-        })),
-      pinTaskCategory: (id) =>
-        set((state) => {
-          const pinnedCount = state.taskCategories.filter((c) => c.pinned).length;
-          if (pinnedCount >= 2) return state;
-          return {
-            taskCategories: state.taskCategories.map((c) =>
-              c.id === id ? { ...c, pinned: true } : c,
-            ),
-          };
-        }),
-      unpinTaskCategory: (id) =>
-        set((state) => ({
-          taskCategories: state.taskCategories.map((c) =>
-            c.id === id ? { ...c, pinned: false } : c,
-          ),
-        })),
-      reorderTaskCategories: (orderedIds) =>
-        set((state) => {
-          const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
-          return {
-            taskCategories: state.taskCategories.map((c) =>
-              indexMap.has(c.id) ? { ...c, order: indexMap.get(c.id)! } : c,
-            ),
-          };
-        }),
-
-      // Task Sections
-      taskSections: [] as TaskSection[],
-      addTaskSection: (section) =>
-        set((state) => ({
-          taskSections: [...state.taskSections, { ...section, id: generateId() }],
-        })),
-      updateTaskSection: (id, updates) =>
-        set((state) => ({
-          taskSections: state.taskSections.map((s) => (s.id === id ? { ...s, ...updates } : s)),
-        })),
-      deleteTaskSection: (id) =>
-        set((state) => ({
-          taskSections: state.taskSections.filter((s) => s.id !== id),
-          tasks: state.tasks.map((t) => (t.sectionId === id ? { ...t, sectionId: undefined } : t)),
-        })),
-
-      // Event Categories
-      eventCategories: initialEventCategories,
-      addEventCategory: (category) =>
-        set((state) => ({
-          eventCategories: [...state.eventCategories, { ...category, id: generateId() }],
-        })),
-      updateEventCategory: (id, updates) =>
-        set((state) => ({
-          eventCategories: state.eventCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-        })),
-      deleteEventCategory: (id) =>
-        set((state) => ({
-          eventCategories: state.eventCategories.filter((c) => c.id !== id),
-        })),
-
-      // Notebooks
-      notebooks: [] as Notebook[],
-      addNotebook: (notebook) =>
-        set((state) => ({
-          notebooks: [...state.notebooks, { ...notebook, id: generateId(), createdAt: new Date() }],
-        })),
-      updateNotebook: (id, updates) =>
-        set((state) => ({
-          notebooks: state.notebooks.map((n) => (n.id === id ? { ...n, ...updates } : n)),
-        })),
-      deleteNotebook: (id) =>
-        set((state) => ({
-          notebooks: state.notebooks.filter((n) => n.id !== id),
-          // Also delete all pages in this notebook
-          notebookPages: state.notebookPages.filter((p) => p.notebookId !== id),
-        })),
-
-      // Notebook Pages
-      notebookPages: [] as NotebookPage[],
-      addNotebookPage: (page) =>
-        set((state) => ({
-          notebookPages: [...state.notebookPages, { ...page, id: generateId(), createdAt: new Date(), updatedAt: new Date() }],
-        })),
-      updateNotebookPage: (id, updates) =>
-        set((state) => ({
-          notebookPages: state.notebookPages.map((p) =>
-            p.id === id ? { ...p, ...updates, updatedAt: new Date() } : p
-          ),
-        })),
-      deleteNotebookPage: (id) =>
-        set((state) => ({
-          notebookPages: state.notebookPages.filter((p) => p.id !== id),
-        })),
-
-      // Widgets
-      widgets: initialWidgets,
-      updateWidgets: (widgets) => set({ widgets }),
-
-      // Settings
-      settings: initialSettings,
-      updateSettings: (newSettings) =>
-        set((state) => ({
-          settings: { ...state.settings, ...newSettings },
-        })),
-
-      // Search
-      searchQuery: '',
-      setSearchQuery: (query) => set({ searchQuery: query }),
-    }),
-    {
-      name: 'flow-planner-storage',
-    }
-  )
-);
+    reset: () => {
+      get()._channels.forEach((ch) => supabase.removeChannel(ch));
+      set({
+        _userId: null,
+        _channels: [],
+        tasks: [],
+        events: [],
+        notes: [],
+        notebooks: [],
+        notebookPages: [],
+        folders: [],
+        taskCategories: [],
+        taskSections: [],
+        eventCategories: [],
+      });
+    },
+  };
+});
