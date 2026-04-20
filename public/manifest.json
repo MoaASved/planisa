@@ -1,0 +1,25 @@
+{
+  "name": "Planisa",
+  "short_name": "Planisa",
+  "description": "Combine Calendar, Tasks, and Notes in one unified productivity system.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#faf9f7",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "lang": "en",
+  "dir": "ltr"
+}
