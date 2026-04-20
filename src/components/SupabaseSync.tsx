@@ -7,21 +7,25 @@ import { useAppStore } from '@/store/useAppStore';
  * changes. Resets the store on logout.
  */
 export function SupabaseSync() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const loadAll = useAppStore((s) => s.loadAll);
   const subscribeAll = useAppStore((s) => s.subscribeAll);
   const reset = useAppStore((s) => s.reset);
 
   useEffect(() => {
+    if (loading) return;
+
     if (!user) {
       reset();
       return;
     }
+
     loadAll(user.id).then(() => subscribeAll(user.id));
+
     return () => {
       // channels are torn down by the next subscribeAll/reset
     };
-  }, [user, loadAll, subscribeAll, reset]);
+  }, [user, loading, loadAll, subscribeAll, reset]);
 
   return null;
 }
