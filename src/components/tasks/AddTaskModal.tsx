@@ -118,6 +118,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       color: cat?.color ?? 'gray',
       subtasks: subs,
       priority: priority ? 'high' : 'none',
+      listId: cat?.id,
     };
     if (editing) {
       updateTask(editing.id, payload);
