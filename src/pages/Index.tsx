@@ -66,6 +66,7 @@ const Index = () => {
   }, [activeTab]);
 
   const handlePlusClick = () => {
+    if (isRestricted) return;
     setShowQuickCreate(!showQuickCreate);
   };
 
