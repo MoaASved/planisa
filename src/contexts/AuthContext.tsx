@@ -44,8 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUserRecord = async (uid: string) => {
-    const { data } = await supabase.from('users' as any).select('*').eq('id', uid).maybeSingle();
-    setUserRecord((data as UserRecord) ?? null);
+    const { data } = await (supabase.from('users' as any).select('*').eq('id', uid).maybeSingle() as any);
+    setUserRecord((data as UserRecord | null) ?? null);
   };
 
   useEffect(() => {
