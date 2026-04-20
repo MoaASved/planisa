@@ -518,6 +518,41 @@ input[type="time"]::-webkit-inner-spin-button {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
+
+  /* Safe area inset utilities — apply on top of any existing padding */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  /* Combined: safe-area-top + extra offset baked in */
+  .pt-safe-4 {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  }
+  .pt-safe-2 {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  }
+  .mt-safe {
+    margin-top: env(safe-area-inset-top, 0px);
+  }
+  .h-safe-top {
+    height: env(safe-area-inset-top, 0px);
+  }
+  .min-h-screen-safe {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 }
 
 @keyframes fadeUp {
