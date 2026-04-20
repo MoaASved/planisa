@@ -517,7 +517,7 @@ export function ProfileView() {
           Sign Out
         </button>
 
-        <p className="text-center text-sm text-muted-foreground">Flow Planner v1.0.0</p>
+        <p className="text-center text-sm text-muted-foreground">Planisa v1.0.0</p>
       </div>
 
       {/* Avatar Drawer */}
