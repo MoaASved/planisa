@@ -158,7 +158,8 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       priority: 'none',
       sectionId,
       listId: category.id,
-      order: Date.now(),
+      // Seconds-since-epoch fits in int4; large enough to keep insertion order monotonic
+      order: Math.floor(Date.now() / 1000),
     });
   };
 
