@@ -170,32 +170,37 @@ export const useAppStore = create<AppState>()((set, get) => {
       const createdAt = new Date();
       const newTask: Task = { ...task, id, createdAt, subtasks: task.subtasks ?? [] };
       set((s) => ({ tasks: [...s.tasks, newTask] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('tasks') as any).insert(taskToRow({ ...newTask }, userId)).then(swallow('addTask'));
-      // persist subtasks if any
-      if (newTask.subtasks?.length) {
-        const rows = newTask.subtasks.map((s, i) => subtaskToRow(s, id, userId, i));
-        (supabase.from('subtasks') as any).insert(rows).then(swallow('addTask.subtasks'));
-      }
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('tasks') as any).insert(taskToRow(newTask, userId)).then(swallow('addTask'));
+        if (newTask.subtasks?.length) {
+          const rows = newTask.subtasks.map((s, i) => subtaskToRow(s, id, userId, i));
+          (supabase.from('subtasks') as any).insert(rows).then(swallow('addTask.subtasks'));
+        }
+      });
     },
     updateTask: (id, updates) => {
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)) }));
-      const userId = uid(); if (!userId) return;
-      const { subtasks, ...rest } = updates as any;
-      const row = taskToRow(rest, userId);
-      delete row.user_id; // don't change ownership
-      (supabase.from('tasks') as any).update(row).eq('id', id).then(swallow('updateTask'));
+      queueOrRun(uid(), (userId) => {
+        const { subtasks, ...rest } = updates as any;
+        const row = taskToRow(rest, userId);
+        delete row.user_id;
+        (supabase.from('tasks') as any).update(row).eq('id', id).then(swallow('updateTask'));
+      });
     },
     deleteTask: (id) => {
       set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }));
-      (supabase.from('tasks') as any).delete().eq('id', id).then(swallow('deleteTask'));
+      queueOrRun(uid(), () => {
+        (supabase.from('tasks') as any).delete().eq('id', id).then(swallow('deleteTask'));
+      });
     },
     toggleTask: (id) => {
       const task = get().tasks.find((t) => t.id === id);
       if (!task) return;
       const completed = !task.completed;
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed } : t)) }));
-      (supabase.from('tasks') as any).update({ completed }).eq('id', id).then(swallow('toggleTask'));
+      queueOrRun(uid(), () => {
+        (supabase.from('tasks') as any).update({ completed }).eq('id', id).then(swallow('toggleTask'));
+      });
     },
     toggleSubtask: (taskId, subtaskId) => {
       const task = get().tasks.find((t) => t.id === taskId);
@@ -209,29 +214,35 @@ export const useAppStore = create<AppState>()((set, get) => {
             : t,
         ),
       }));
-      (supabase.from('subtasks') as any).update({ completed }).eq('id', subtaskId).then(swallow('toggleSubtask'));
+      queueOrRun(uid(), () => {
+        (supabase.from('subtasks') as any).update({ completed }).eq('id', subtaskId).then(swallow('toggleSubtask'));
+      });
     },
     hideTask: (id) => {
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, hidden: true } : t)) }));
-      (supabase.from('tasks') as any).update({ hidden: true }).eq('id', id).then(swallow('hideTask'));
+      queueOrRun(uid(), () => {
+        (supabase.from('tasks') as any).update({ hidden: true }).eq('id', id).then(swallow('hideTask'));
+      });
     },
     unhideTask: (id) => {
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, hidden: false } : t)) }));
-      (supabase.from('tasks') as any).update({ hidden: false }).eq('id', id).then(swallow('unhideTask'));
+      queueOrRun(uid(), () => {
+        (supabase.from('tasks') as any).update({ hidden: false }).eq('id', id).then(swallow('unhideTask'));
+      });
     },
     addSubtask: (taskId, title) => {
-      const userId = uid();
       const subId = newId();
       set((s) => ({
         tasks: s.tasks.map((t) =>
           t.id === taskId ? { ...t, subtasks: [...t.subtasks, { id: subId, title, completed: false }] } : t,
         ),
       }));
-      if (!userId) return;
       const order = (get().tasks.find((t) => t.id === taskId)?.subtasks.length ?? 1) - 1;
-      (supabase.from('subtasks') as any)
-        .insert(subtaskToRow({ id: subId, title, completed: false }, taskId, userId, order))
-        .then(swallow('addSubtask'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('subtasks') as any)
+          .insert(subtaskToRow({ id: subId, title, completed: false }, taskId, userId, order))
+          .then(swallow('addSubtask'));
+      });
     },
     removeSubtask: (taskId, subtaskId) => {
       set((s) => ({
@@ -239,16 +250,19 @@ export const useAppStore = create<AppState>()((set, get) => {
           t.id === taskId ? { ...t, subtasks: t.subtasks.filter((x) => x.id !== subtaskId) } : t,
         ),
       }));
-      (supabase.from('subtasks') as any).delete().eq('id', subtaskId).then(swallow('removeSubtask'));
+      queueOrRun(uid(), () => {
+        (supabase.from('subtasks') as any).delete().eq('id', subtaskId).then(swallow('removeSubtask'));
+      });
     },
     reorderTasks: (orderedIds) => {
       const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
       set((s) => ({
         tasks: s.tasks.map((t) => (indexMap.has(t.id) ? { ...t, order: indexMap.get(t.id)! } : t)),
       }));
-      // Persist orders
-      orderedIds.forEach((id, i) => {
-        (supabase.from('tasks') as any).update({ order_index: i }).eq('id', id).then(swallow('reorderTasks'));
+      queueOrRun(uid(), () => {
+        orderedIds.forEach((id, i) => {
+          (supabase.from('tasks') as any).update({ order_index: i }).eq('id', id).then(swallow('reorderTasks'));
+        });
       });
     },
 
