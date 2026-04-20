@@ -465,6 +465,7 @@ export const useAppStore = create<AppState>()((set, get) => {
     // ─────────────────────────── SYNC LIFECYCLE ───────────────────────────
     loadAll: async (userId: string) => {
       set({ _userId: userId });
+      flushPending(userId);
       const tables = [
         'tasks', 'subtasks', 'task_lists', 'task_sections',
         'events', 'calendar_categories',
