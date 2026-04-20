@@ -114,8 +114,24 @@ const initialSettings: UserSettings = {
 
 // Helper: log+swallow Supabase errors so optimistic UI never breaks.
 const swallow = (label: string) => (res: any) => {
-  if (res?.error) console.error(`[supabase:${label}]`, res.error);
+  if (res?.error) {
+    // eslint-disable-next-line no-console
+    console.error(`[supabase:${label}]`, res.error.message ?? res.error, res.error);
+  }
   return res;
+};
+
+// Pending writes queue — flushed when _userId becomes available.
+const pendingWrites: Array<(uid: string) => void> = [];
+const queueOrRun = (uid: string | null, fn: (uid: string) => void) => {
+  if (uid) fn(uid);
+  else pendingWrites.push(fn);
+};
+const flushPending = (uid: string) => {
+  while (pendingWrites.length) {
+    const fn = pendingWrites.shift()!;
+    try { fn(uid); } catch (e) { console.error('[supabase:flushPending]', e); }
+  }
 };
 
 // Upsert by id helper used after most mutations
