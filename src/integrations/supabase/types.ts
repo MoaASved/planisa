@@ -14,6 +14,330 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendar_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          all_day: boolean
+          category_id: string | null
+          color: string | null
+          created_at: string
+          description: string | null
+          end_time: string | null
+          id: string
+          start_time: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          all_day?: boolean
+          category_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          all_day?: boolean
+          category_id?: string | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          start_time?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notebook_pages: {
+        Row: {
+          content: string | null
+          created_at: string
+          end_time: string | null
+          event_date: string | null
+          hide_date: boolean
+          id: string
+          notebook_id: string
+          order_index: number
+          show_in_calendar: boolean
+          start_time: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          end_time?: string | null
+          event_date?: string | null
+          hide_date?: boolean
+          id?: string
+          notebook_id: string
+          order_index?: number
+          show_in_calendar?: boolean
+          start_time?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          end_time?: string | null
+          event_date?: string | null
+          hide_date?: boolean
+          id?: string
+          notebook_id?: string
+          order_index?: number
+          show_in_calendar?: boolean
+          start_time?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notebook_pages_notebook_id_fkey"
+            columns: ["notebook_id"]
+            isOneToOne: false
+            referencedRelation: "notebooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notebooks: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notes: {
+        Row: {
+          color: string | null
+          content: string | null
+          created_at: string
+          end_time: string | null
+          event_date: string | null
+          folder_id: string | null
+          hide_date: boolean
+          id: string
+          is_sticky: boolean
+          pinned: boolean
+          show_in_calendar: boolean
+          start_time: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          end_time?: string | null
+          event_date?: string | null
+          folder_id?: string | null
+          hide_date?: boolean
+          id?: string
+          is_sticky?: boolean
+          pinned?: boolean
+          show_in_calendar?: boolean
+          start_time?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          content?: string | null
+          created_at?: string
+          end_time?: string | null
+          event_date?: string | null
+          folder_id?: string | null
+          hide_date?: boolean
+          id?: string
+          is_sticky?: boolean
+          pinned?: boolean
+          show_in_calendar?: boolean
+          start_time?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "note_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_lists: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          due_date: string | null
+          end_time: string | null
+          id: string
+          list_id: string | null
+          note: string | null
+          order_index: number
+          parent_task_id: string | null
+          priority: string | null
+          start_time: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          due_date?: string | null
+          end_time?: string | null
+          id?: string
+          list_id?: string | null
+          note?: string | null
+          order_index?: number
+          parent_task_id?: string | null
+          priority?: string | null
+          start_time?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          due_date?: string | null
+          end_time?: string | null
+          id?: string
+          list_id?: string | null
+          note?: string | null
+          order_index?: number
+          parent_task_id?: string | null
+          priority?: string | null
+          start_time?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "task_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
