@@ -241,7 +241,7 @@ input[type="time"]::-webkit-inner-spin-button {
   /* Navigation - Floating Dark Pill */
   .flow-nav-floating {
     position: fixed;
-    bottom: 40px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -256,7 +256,7 @@ input[type="time"]::-webkit-inner-spin-button {
 
   @media (max-width: 768px) {
     .flow-nav-floating {
-      bottom: 48px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
     }
   }
 
