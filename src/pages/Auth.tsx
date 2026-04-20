@@ -48,7 +48,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center px-4 bg-background pt-safe pb-safe px-safe">
       <div className="w-full max-w-sm bg-card rounded-3xl shadow-sm border border-border/40 p-8">
         <h1 className="flow-page-title text-center mb-1">
           {mode === 'signup' ? 'Create account' : 'Welcome back'}
