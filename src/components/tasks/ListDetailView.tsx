@@ -157,6 +157,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
       subtasks: [],
       priority: 'none',
       sectionId,
+      listId: category.id,
       order: Date.now(),
     });
   };
