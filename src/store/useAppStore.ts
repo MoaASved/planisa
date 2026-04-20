@@ -121,11 +121,29 @@ const swallow = (label: string) => (res: any) => {
   return res;
 };
 
-// Pending writes queue — flushed when _userId becomes available.
+// Pending writes queue — flushed when auth/user id becomes available.
 const pendingWrites: Array<(uid: string) => void> = [];
-const queueOrRun = (uid: string | null, fn: (uid: string) => void) => {
-  if (uid) fn(uid);
-  else pendingWrites.push(fn);
+const queueOrRun = (storedUserId: string | null, fn: (uid: string) => void) => {
+  if (storedUserId) {
+    fn(storedUserId);
+    return;
+  }
+
+  void supabase.auth.getUser().then(({ data, error }) => {
+    if (error) {
+      console.error('[supabase:auth.getUser]', error.message ?? error, error);
+      pendingWrites.push(fn);
+      return;
+    }
+
+    if (data.user?.id) {
+      fn(data.user.id);
+      return;
+    }
+
+    console.warn('[supabase:queueOrRun] No authenticated user yet, queuing write');
+    pendingWrites.push(fn);
+  });
 };
 const flushPending = (uid: string) => {
   while (pendingWrites.length) {
@@ -171,7 +189,32 @@ export const useAppStore = create<AppState>()((set, get) => {
       const newTask: Task = { ...task, id, createdAt, subtasks: task.subtasks ?? [] };
       set((s) => ({ tasks: [...s.tasks, newTask] }));
       queueOrRun(uid(), (userId) => {
-        (supabase.from('tasks') as any).insert(taskToRow(newTask, userId)).then(swallow('addTask'));
+        const payload = taskToRow(newTask, userId);
+        console.log('[supabase:addTask] insert payload', {
+          userId,
+          taskId: newTask.id,
+          listId: newTask.listId ?? null,
+          category: newTask.category,
+          payload,
+        });
+        (supabase.from('tasks') as any)
+          .insert(payload)
+          .select()
+          .single()
+          .then((res: any) => {
+            if (res?.error) {
+              console.error('[supabase:addTask] insert failed', {
+                userId,
+                taskId: newTask.id,
+                listId: newTask.listId ?? null,
+                payload,
+                error: res.error,
+              });
+            } else {
+              console.log('[supabase:addTask] insert success', res.data);
+            }
+            return swallow('addTask')(res);
+          });
         if (newTask.subtasks?.length) {
           const rows = newTask.subtasks.map((s, i) => subtaskToRow(s, id, userId, i));
           (supabase.from('subtasks') as any).insert(rows).then(swallow('addTask.subtasks'));
