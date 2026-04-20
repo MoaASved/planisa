@@ -26,7 +26,7 @@ export function CalendarHeader({
   onTodayClick,
 }: CalendarHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-background">
+    <div className="flex items-center justify-between px-4 py-3 bg-background pt-safe-2 px-safe">
       {/* Month navigation */}
       <div className="flex items-center gap-1">
         <button
