@@ -10,9 +10,10 @@ import TextAlign from '@tiptap/extension-text-align';
 import { DraggableImage } from './DraggableImage';
 import { toast } from 'sonner';
 import { 
-  ArrowLeft, 
-  Folder, 
-  Pin, 
+  ArrowLeft,
+  Folder,
+  FolderPlus,
+  Pin,
   Trash2,
   Bold,
   Italic,
@@ -32,7 +33,8 @@ import {
   Mic,
   Plus,
   Undo2,
-  Redo2
+  Redo2,
+  Check
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -103,7 +105,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [hideDate, setHideDate] = useState(note?.hideDate || false);
   
   const [showFolderPicker, setShowFolderPicker] = useState(false);
-  const [showMetadata, setShowMetadata] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
@@ -371,9 +372,41 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
                   <Pin className="w-4 h-4" />
                 </ToolbarBtn>
-                <ToolbarBtn onClick={() => setShowFolderPicker(true)} active={!!folder}>
-                  <Folder className="w-4 h-4" />
-                </ToolbarBtn>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      className={cn(
+                        'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+                        folder ? 'bg-primary/15 text-primary shadow-sm' : 'text-muted-foreground hover:bg-black/5'
+                      )}
+                    >
+                      <Folder className="w-4 h-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="min-w-[160px] z-[1300]">
+                    {folder && (
+                      <>
+                        <DropdownMenuItem onClick={() => setFolder(undefined)}>
+                          <span className="text-muted-foreground">No folder</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {folders.map((f) => (
+                      <DropdownMenuItem key={f.id} onClick={() => setFolder(f.name)} className={cn(folder === f.name && 'bg-secondary')}>
+                        <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
+                        <span>{f.name}</span>
+                        {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setShowFolderPicker(true)}>
+                      <FolderPlus className="w-4 h-4 mr-2" />
+                      <span>New folder</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Center group: Format dropdown + Bold + Italic */}
@@ -381,7 +414,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 {/* Format dropdown (Aa) */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                    <button onMouseDown={(e) => e.preventDefault()} className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
                       <span className="text-sm font-medium">Aa</span>
                       <ChevronDown className="w-3 h-3" />
                     </button>
@@ -481,9 +514,144 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <ToolbarBtn onClick={() => setShowMetadata(!showMetadata)} active={showMetadata}>
-                  <Settings className="w-4 h-4" />
-                </ToolbarBtn>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      className="p-1.5 rounded-lg transition-all duration-150 active:scale-90 text-muted-foreground hover:bg-black/5"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="top"
+                    align="end"
+                    className="w-72 p-4 space-y-3 z-[1300]"
+                    onCloseAutoFocus={(e) => e.preventDefault()}
+                  >
+                    {/* Date picker */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-foreground">Date</span>
+                      <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                        <PopoverTrigger asChild>
+                          <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
+                            <Calendar className="w-4 h-4" />
+                            {format(date, 'MMM d, yyyy')}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-[9999]" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                          <CalendarComponent
+                            mode="single"
+                            selected={date}
+                            onSelect={(d) => { if (d) setDate(d); }}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Show in calendar toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">Show in calendar</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newValue = !showInCalendar;
+                          setShowInCalendar(newValue);
+                          if (!newValue) { setTime(undefined); setEndTime(undefined); }
+                        }}
+                        className={cn(
+                          'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                          showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                        )}
+                      >
+                        <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                      </button>
+                    </div>
+
+                    {/* Time picker */}
+                    {showInCalendar && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground">Time</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={time || ''}
+                            onChange={(e) => {
+                              const val = e.target.value || undefined;
+                              setTime(val);
+                              if (!endTimeManuallySet.current && val) setEndTime(calculateEndTime(val));
+                            }}
+                            className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                          />
+                          {time && (
+                            <button onClick={() => { setTime(undefined); setEndTime(undefined); }} className="p-1 rounded-lg hover:bg-secondary transition-colors">
+                              <EyeOff className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* End time picker */}
+                    {showInCalendar && time && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground">End time</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="time"
+                            value={endTime || ''}
+                            onChange={(e) => { endTimeManuallySet.current = true; setEndTime(e.target.value || undefined); }}
+                            min={time}
+                            className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                          />
+                          {endTime && (
+                            <button onClick={() => { endTimeManuallySet.current = false; setEndTime(undefined); }} className="p-1 rounded-lg hover:bg-secondary transition-colors">
+                              <EyeOff className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hide from All Notes toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">Hide from All Notes</span>
+                      </div>
+                      <button
+                        onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
+                        className={cn(
+                          'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                          hideFromAllNotes ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                        )}
+                      >
+                        <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', hideFromAllNotes ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                      </button>
+                    </div>
+
+                    {/* Hide date toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm text-foreground">Hide Date</span>
+                      </div>
+                      <button
+                        onClick={() => setHideDate(!hideDate)}
+                        className={cn(
+                          'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                          hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                        )}
+                      >
+                        <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', hideDate ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 
                 {note && (
                   <ToolbarBtn onClick={handleDelete} destructive>
@@ -554,8 +722,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       <div className="flex-1 overflow-y-auto px-4 pb-24">
 
         {/* Header - Back arrow */}
-        <div className="flex items-center pt-1 pb-2">
-          <button 
+        <div className="flex items-center pt-12 pb-4">
+          <button
             onClick={handleSave}
             className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
           >
@@ -590,181 +758,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         {/* TipTap Editor */}
         <EditorContent editor={editor} className="tiptap-content" />
       </div>
-
-      {/* Click-outside overlay to close metadata */}
-      {showMetadata && !datePickerOpen && (
-        <div 
-          className="fixed inset-0 z-[1150]" 
-          onClick={() => setShowMetadata(false)} 
-        />
-      )}
-
-      {/* Metadata Section (popup from settings button) */}
-      {showMetadata && (
-        <div 
-          className="fixed left-4 right-4 top-16 border border-white/20 bg-white/95 backdrop-blur-xl rounded-2xl px-4 py-4 space-y-3 z-[1200] shadow-lg animate-in fade-in-0 slide-in-from-top-2 duration-200"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Date picker */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-foreground">Date</span>
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
-                  <Calendar className="w-4 h-4" />
-                  {format(date, 'MMM d, yyyy')}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[9999]" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-                <CalendarComponent
-                  mode="single"
-                  selected={date}
-                  onSelect={(d) => {
-                    if (d) setDate(d);
-                  }}
-                  initialFocus
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          {/* Show in calendar toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-foreground">Show in calendar</span>
-            </div>
-            <button
-              onClick={() => {
-                const newValue = !showInCalendar;
-                setShowInCalendar(newValue);
-                if (!newValue) {
-                  setTime(undefined);
-                  setEndTime(undefined);
-                }
-              }}
-              className={cn(
-                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-              )}
-            >
-              <span 
-                className={cn(
-                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30'
-                )}
-              />
-            </button>
-          </div>
-          
-          {/* Start time picker - only shown when showInCalendar is enabled */}
-          {showInCalendar && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-foreground">Time</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="time"
-                  value={time || ''}
-                  onChange={(e) => {
-                    const val = e.target.value || undefined;
-                    setTime(val);
-                    if (!endTimeManuallySet.current && val) {
-                      setEndTime(calculateEndTime(val));
-                    }
-                  }}
-                  className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
-                />
-                {time && (
-                  <button 
-                    onClick={() => {
-                      setTime(undefined);
-                      setEndTime(undefined);
-                    }}
-                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
-                  >
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* End time picker - only shown when start time exists */}
-          {showInCalendar && time && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-foreground">End time</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="time"
-                  value={endTime || ''}
-                  onChange={(e) => {
-                    endTimeManuallySet.current = true;
-                    setEndTime(e.target.value || undefined);
-                  }}
-                  min={time}
-                  className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
-                />
-                {endTime && (
-                  <button 
-                    onClick={() => {
-                      endTimeManuallySet.current = false;
-                      setEndTime(undefined);
-                    }}
-                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
-                  >
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* Hide from all notes toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <EyeOff className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-foreground">Hide from All Notes</span>
-            </div>
-            <button
-              onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
-              className={cn(
-                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                hideFromAllNotes ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-              )}
-            >
-              <span 
-                className={cn(
-                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  hideFromAllNotes ? 'bg-primary' : 'bg-muted-foreground/30'
-                )}
-              />
-            </button>
-          </div>
-          
-          {/* Hide date toggle */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <EyeOff className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-foreground">Hide Date</span>
-            </div>
-            <button
-              onClick={() => setHideDate(!hideDate)}
-              className={cn(
-                'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-              )}
-            >
-              <span 
-                className={cn(
-                  'w-5 h-5 rounded-full transition-all duration-200 shadow-sm',
-                  hideDate ? 'bg-primary' : 'bg-muted-foreground/30'
-                )}
-              />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Folder Picker Sheet */}
       <FolderPickerSheet
