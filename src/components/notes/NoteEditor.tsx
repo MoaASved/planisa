@@ -334,7 +334,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     };
   }, []);
   // Pixels from bottom of layout viewport to sit just above keyboard (or screen bottom)
-  const toolbarBottom = window.innerHeight - viewportHeight - viewportOffset + 8;
+  const toolbarBottom = window.innerHeight - viewportHeight - viewportOffset + 26;
 
   return (
     <div 
@@ -554,7 +554,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       <div className="flex-1 overflow-y-auto px-4 pb-24">
 
         {/* Header - Back arrow */}
-        <div className="flex items-center py-2">
+        <div className="flex items-center pt-1 pb-2">
           <button 
             onClick={handleSave}
             className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
