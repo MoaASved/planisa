@@ -316,13 +316,15 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     </button>
   );
 
-  // Track visual viewport offset for mobile keyboard
+  // Track visual viewport for mobile keyboard positioning
   const [viewportOffset, setViewportOffset] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     const onResize = () => {
       setViewportOffset(vv.offsetTop);
+      setViewportHeight(vv.height);
     };
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onResize);
@@ -331,15 +333,17 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       vv.removeEventListener('scroll', onResize);
     };
   }, []);
+  // Pixels from bottom of layout viewport to sit just above keyboard (or screen bottom)
+  const toolbarBottom = window.innerHeight - viewportHeight - viewportOffset + 8;
 
   return (
     <div 
       className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
     >
       {/* Fixed Floating Toolbar */}
-      <div 
+      <div
         className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]"
-        style={{ top: `${12 + viewportOffset}px` }}
+        style={{ bottom: `${toolbarBottom}px` }}
       >
         {toolbarCollapsed ? null : (
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
@@ -515,7 +519,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {showHighlightPicker && (
         <>
           <div className="fixed inset-0 z-[1260]" onClick={() => setShowHighlightPicker(false)} />
-          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300]" style={{ top: `${60 + viewportOffset}px` }}>
+          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300]" style={{ bottom: `${toolbarBottom + 56}px` }}>
             <div className="bg-background rounded-2xl shadow-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Highlighter className="w-4 h-4 text-muted-foreground" />
@@ -547,9 +551,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           </div>
         </>
       )}
-      <div className="flex-1 overflow-y-auto px-4 pb-10">
-        {/* Spacer for floating toolbar */}
-        <div className={toolbarCollapsed ? 'h-10' : 'h-16'} />
+      <div className="flex-1 overflow-y-auto px-4 pb-24">
 
         {/* Header - Back arrow */}
         <div className="flex items-center py-2">
