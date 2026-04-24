@@ -156,6 +156,34 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     },
   });
 
+  // Prevent the iOS keyboard from opening when tapping a task-list checkbox.
+  useEffect(() => {
+    if (!editor) return;
+    const dom = editor.view.dom;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (t instanceof HTMLInputElement && t.type === 'checkbox') {
+        e.preventDefault();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const t = e.target as HTMLElement;
+      if (!(t instanceof HTMLInputElement) || t.type !== 'checkbox') return;
+      e.preventDefault();
+      t.checked = !t.checked;
+      t.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    dom.addEventListener('mousedown', onMouseDown, true);
+    dom.addEventListener('touchend', onTouchEnd, { capture: true, passive: false });
+    return () => {
+      dom.removeEventListener('mousedown', onMouseDown, true);
+      dom.removeEventListener('touchend', onTouchEnd, true);
+    };
+  }, [editor]);
+
   const handleSave = () => {
     const content = editor?.getHTML() || '';
     const pagesInNotebook = notebookPages.filter(p => p.notebookId === notebook.id);

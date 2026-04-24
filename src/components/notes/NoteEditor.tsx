@@ -46,7 +46,6 @@ import {
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
-import { FolderPickerSheet } from './FolderPickerSheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -76,7 +75,7 @@ const colorHslMap: Record<PastelColor, string> = {
 };
 
 export function NoteEditor({ note, onClose }: NoteEditorProps) {
-  const { addNote, updateNote, togglePinNote, folders } = useAppStore();
+  const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
   
   const [title, setTitle] = useState(note?.title || '');
@@ -104,7 +103,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [hideFromAllNotes, setHideFromAllNotes] = useState(note?.hideFromAllNotes || false);
   const [hideDate, setHideDate] = useState(note?.hideDate || false);
   
-  const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const [showInlineFolderCreate, setShowInlineFolderCreate] = useState(false);
+  const [folderPopoverOpen, setFolderPopoverOpen] = useState(false);
+  const [inlineFolderName, setInlineFolderName] = useState('');
+  const [inlineFolderColor, setInlineFolderColor] = useState<PastelColor>('sky');
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
   const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
@@ -154,6 +156,52 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       forceUpdate(n => n + 1);
     },
   });
+
+  const handleCreateInlineFolder = () => {
+    if (inlineFolderName.trim()) {
+      addFolder({ name: inlineFolderName.trim(), color: inlineFolderColor });
+      setFolder(inlineFolderName.trim());
+      setInlineFolderName('');
+      setInlineFolderColor('sky');
+      setShowInlineFolderCreate(false);
+      setFolderPopoverOpen(false);
+    }
+  };
+
+  // Prevent the iOS keyboard from opening when the user taps a task-list checkbox.
+  // Strategy:
+  //   mousedown (capture) — prevents focus on desktop & synthesized touch events.
+  //   touchend  (capture) — earlier iOS hook; preventDefault stops the focus chain
+  //                         before the synthesized click; we then flip the checkbox
+  //                         state and dispatch 'change' so TipTap's own handler runs.
+  useEffect(() => {
+    if (!editor) return;
+    const dom = editor.view.dom;
+
+    const onMouseDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (t instanceof HTMLInputElement && t.type === 'checkbox') {
+        e.preventDefault();
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const t = e.target as HTMLElement;
+      if (!(t instanceof HTMLInputElement) || t.type !== 'checkbox') return;
+      e.preventDefault(); // Block focus / keyboard on iOS
+      // Flip the visual state and fire 'change' so TipTap's NodeView handler
+      // receives it and updates the document without the editor gaining focus.
+      t.checked = !t.checked;
+      t.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    dom.addEventListener('mousedown', onMouseDown, true);
+    dom.addEventListener('touchend', onTouchEnd, { capture: true, passive: false });
+    return () => {
+      dom.removeEventListener('mousedown', onMouseDown, true);
+      dom.removeEventListener('touchend', onTouchEnd, true);
+    };
+  }, [editor]);
 
   const handleSave = () => {
     const noteData = {
@@ -242,7 +290,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   };
 
   const AlignIcon = getAlignmentIcon();
-  const selectedFolder = folders.find(f => f.name === folder);
 
   // Handle image upload with size warning
   const handleAddImage = () => {
@@ -317,15 +364,30 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     </button>
   );
 
-  // Track visual viewport for mobile keyboard positioning
+  // Track visual viewport so toolbar stays above the iOS keyboard
   const [viewportOffset, setViewportOffset] = useState(0);
-  const [viewportHeight, setViewportHeight] = useState(() => window.innerHeight);
+  // Initialise from visualViewport so we get the correct value even before the
+  // first resize event (avoids a flash on iOS when Safari chrome changes height)
+  const [viewportHeight, setViewportHeight] = useState(
+    () => window.visualViewport?.height ?? window.innerHeight
+  );
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     const onResize = () => {
       setViewportOffset(vv.offsetTop);
       setViewportHeight(vv.height);
+      // After the next paint (when padding has been applied) scroll the
+      // cursor back into view so it is never hidden behind the keyboard.
+      requestAnimationFrame(() => {
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) return;
+        const node = sel.getRangeAt(0).startContainer;
+        const el = (node.nodeType === Node.TEXT_NODE
+          ? (node as Text).parentElement
+          : node) as Element | null;
+        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      });
     };
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onResize);
@@ -334,8 +396,14 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       vv.removeEventListener('scroll', onResize);
     };
   }, []);
-  // Pixels from bottom of layout viewport to sit just above keyboard (or screen bottom)
-  const toolbarBottom = window.innerHeight - viewportHeight - viewportOffset + 26;
+
+  // How many px of screen are obscured by the keyboard right now
+  const keyboardHeight = Math.max(0, window.innerHeight - viewportHeight - viewportOffset);
+  // Toolbar sits 26 px above the keyboard (or 26 px above screen-bottom when no keyboard)
+  const toolbarBottom = keyboardHeight + 26;
+  // Content bottom-padding = keyboard + toolbar height + comfortable gap
+  // Math.max keeps at least the original pb-24 (96 px) when keyboard is closed
+  const contentPaddingBottom = Math.max(96, keyboardHeight + (toolbarCollapsed ? 34 : 56) + 20);
 
   return (
     <div 
@@ -372,8 +440,18 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
                   <Pin className="w-4 h-4" />
                 </ToolbarBtn>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <Popover
+                  open={folderPopoverOpen}
+                  onOpenChange={(open) => {
+                    setFolderPopoverOpen(open);
+                    if (!open) {
+                      setShowInlineFolderCreate(false);
+                      setInlineFolderName('');
+                      setInlineFolderColor('sky');
+                    }
+                  }}
+                >
+                  <PopoverTrigger asChild>
                     <button
                       onMouseDown={(e) => e.preventDefault()}
                       className={cn(
@@ -383,30 +461,91 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                     >
                       <Folder className="w-4 h-4" />
                     </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[160px] z-[1300]">
-                    {folder && (
-                      <>
-                        <DropdownMenuItem onClick={() => setFolder(undefined)}>
-                          <span className="text-muted-foreground">No folder</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
+                  </PopoverTrigger>
+                  <PopoverContent side="top" align="start" sideOffset={8} className="w-[200px] p-1 z-[1300]">
+                    {!showInlineFolderCreate ? (
+                      <div>
+                        {folder && (
+                          <>
+                            <button
+                              onClick={() => { setFolder(undefined); setFolderPopoverOpen(false); }}
+                              className="w-full text-left px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary rounded-md"
+                            >
+                              No folder
+                            </button>
+                            <div className="h-px bg-border my-1" />
+                          </>
+                        )}
+                        {folders.map((f) => (
+                          <button
+                            key={f.id}
+                            onClick={() => { setFolder(f.name); setFolderPopoverOpen(false); }}
+                            className={cn('w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-secondary', folder === f.name && 'bg-secondary')}
+                          >
+                            <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
+                            <span>{f.name}</span>
+                            {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
+                          </button>
+                        ))}
+                        {folders.length > 0 && <div className="h-px bg-border my-1" />}
+                        <button
+                          onClick={() => setShowInlineFolderCreate(true)}
+                          className="w-full text-left flex items-center px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary rounded-md"
+                        >
+                          <FolderPlus className="w-4 h-4 mr-2" />
+                          <span>New folder</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-2 space-y-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">New Folder</p>
+                        <input
+                          type="text"
+                          value={inlineFolderName}
+                          onChange={(e) => setInlineFolderName(e.target.value)}
+                          placeholder="Folder name"
+                          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground placeholder:text-muted-foreground"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleCreateInlineFolder();
+                            if (e.key === 'Escape') setShowInlineFolderCreate(false);
+                          }}
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          {pastelColors.map((c) => (
+                            <button
+                              key={c.value}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => setInlineFolderColor(c.value)}
+                              className={cn(
+                                'w-6 h-6 rounded-full transition-all',
+                                c.class,
+                                inlineFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                              )}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowInlineFolderCreate(false)}
+                            className="flex-1 py-2 rounded-xl bg-secondary text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCreateInlineFolder}
+                            className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                          >
+                            Create
+                          </button>
+                        </div>
+                      </div>
                     )}
-                    {folders.map((f) => (
-                      <DropdownMenuItem key={f.id} onClick={() => setFolder(f.name)} className={cn(folder === f.name && 'bg-secondary')}>
-                        <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
-                        <span>{f.name}</span>
-                        {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
-                      </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowFolderPicker(true)}>
-                      <FolderPlus className="w-4 h-4 mr-2" />
-                      <span>New folder</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Center group: Format dropdown + Bold + Italic */}
@@ -719,7 +858,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           </div>
         </>
       )}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
+      <div
+        className="flex-1 overflow-y-auto px-4"
+        style={{ paddingBottom: `${contentPaddingBottom}px` }}
+      >
 
         {/* Header - Back arrow */}
         <div className="flex items-center pt-12 pb-4">
@@ -758,17 +900,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         {/* TipTap Editor */}
         <EditorContent editor={editor} className="tiptap-content" />
       </div>
-
-      {/* Folder Picker Sheet */}
-      <FolderPickerSheet
-        isOpen={showFolderPicker}
-        onClose={() => setShowFolderPicker(false)}
-        selectedFolder={folder}
-        onSelectFolder={(f) => {
-          setFolder(f);
-          setShowFolderPicker(false);
-        }}
-      />
 
       {/* Voice Recording Modal */}
       <VoiceRecordingModal
