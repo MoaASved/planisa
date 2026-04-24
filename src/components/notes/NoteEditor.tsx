@@ -168,38 +168,53 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     }
   };
 
-  // Prevent the iOS keyboard from opening when the user taps a task-list checkbox.
-  // Strategy:
-  //   mousedown (capture) — prevents focus on desktop & synthesized touch events.
-  //   touchend  (capture) — earlier iOS hook; preventDefault stops the focus chain
-  //                         before the synthesized click; we then flip the checkbox
-  //                         state and dispatch 'change' so TipTap's own handler runs.
+  // Block keyboard-open on checkbox tap (iOS + Android).
+  // touchstart is the earliest possible interception point — focus is assigned
+  // before touchend fires on both platforms. mousedown covers desktop and the
+  // synthesized mouse events that follow a touch sequence.
+  // We walk up with closest() so nested task items are handled correctly,
+  // then toggle via a direct ProseMirror transaction (no synthetic 'change' event).
   useEffect(() => {
     if (!editor) return;
     const dom = editor.view.dom;
 
-    const onMouseDown = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (t instanceof HTMLInputElement && t.type === 'checkbox') {
-        e.preventDefault();
-      }
+    const toggleTaskItem = (li: Element) => {
+      try {
+        const pos = editor.view.posAtDOM(li, 0);
+        const $pos = editor.state.doc.resolve(pos);
+        for (let d = $pos.depth; d >= 0; d--) {
+          if ($pos.node(d).type.name === 'taskItem') {
+            const nodePos = $pos.before(d);
+            const node = $pos.node(d);
+            editor.view.dispatch(
+              editor.state.tr.setNodeMarkup(nodePos, undefined, {
+                ...node.attrs,
+                checked: !node.attrs.checked,
+              })
+            );
+            return;
+          }
+        }
+      } catch { /* posAtDOM can throw if li is not in the current doc view */ }
     };
 
-    const onTouchEnd = (e: TouchEvent) => {
-      const t = e.target as HTMLElement;
-      if (!(t instanceof HTMLInputElement) || t.type !== 'checkbox') return;
-      e.preventDefault(); // Block focus / keyboard on iOS
-      // Flip the visual state and fire 'change' so TipTap's NodeView handler
-      // receives it and updates the document without the editor gaining focus.
-      t.checked = !t.checked;
-      t.dispatchEvent(new Event('change', { bubbles: true }));
+    const handleCheckboxTap = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const li = target.closest('li[data-type="taskItem"]');
+      if (!li) return;
+      // Only intercept taps on the checkbox label area, not the text content div
+      const label = li.querySelector('label');
+      if (!label || !label.contains(target)) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      toggleTaskItem(li);
     };
 
-    dom.addEventListener('mousedown', onMouseDown, true);
-    dom.addEventListener('touchend', onTouchEnd, { capture: true, passive: false });
+    dom.addEventListener('touchstart', handleCheckboxTap, { capture: true, passive: false });
+    dom.addEventListener('mousedown', handleCheckboxTap, true);
     return () => {
-      dom.removeEventListener('mousedown', onMouseDown, true);
-      dom.removeEventListener('touchend', onTouchEnd, true);
+      dom.removeEventListener('touchstart', handleCheckboxTap, true);
+      dom.removeEventListener('mousedown', handleCheckboxTap, true);
     };
   }, [editor]);
 
@@ -364,45 +379,51 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     </button>
   );
 
-  // Track visual viewport so toolbar stays above the iOS keyboard
-  const [viewportOffset, setViewportOffset] = useState(0);
-  // Initialise from visualViewport so we get the correct value even before the
-  // first resize event (avoids a flash on iOS when Safari chrome changes height)
-  const [viewportHeight, setViewportHeight] = useState(
-    () => window.visualViewport?.height ?? window.innerHeight
-  );
+  // keyboardHeight as state so every update triggers a reactive re-render.
+  // Computed as window.innerHeight - vv.height; offsetTop is intentionally
+  // omitted — it is unreliable on iOS Safari and causes over-correction.
+  // window 'resize' is registered as an Android Chrome fallback (visualViewport
+  // fires reliably on iOS; Chrome fires window resize instead).
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const onResize = () => {
-      setViewportOffset(vv.offsetTop);
-      setViewportHeight(vv.height);
-      // After the next paint (when padding has been applied) scroll the
-      // cursor back into view so it is never hidden behind the keyboard.
-      requestAnimationFrame(() => {
-        const sel = window.getSelection();
-        if (!sel || sel.rangeCount === 0) return;
-        const node = sel.getRangeAt(0).startContainer;
-        const el = (node.nodeType === Node.TEXT_NODE
-          ? (node as Text).parentElement
-          : node) as Element | null;
-        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const update = () => {
+      const vv = window.visualViewport;
+      const next = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
+      setKeyboardHeight(prev => {
+        if (next > prev) {
+          // Keyboard just opened — scroll cursor into view after padding is applied
+          requestAnimationFrame(() => {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return;
+            const node = sel.getRangeAt(0).startContainer;
+            const el = (node.nodeType === Node.TEXT_NODE
+              ? (node as Text).parentElement
+              : node) as Element | null;
+            el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          });
+        }
+        return next;
       });
     };
-    vv.addEventListener('resize', onResize);
-    vv.addEventListener('scroll', onResize);
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener('resize', update);
+      vv.addEventListener('scroll', update);
+    }
+    window.addEventListener('resize', update);
     return () => {
-      vv.removeEventListener('resize', onResize);
-      vv.removeEventListener('scroll', onResize);
+      if (vv) {
+        vv.removeEventListener('resize', update);
+        vv.removeEventListener('scroll', update);
+      }
+      window.removeEventListener('resize', update);
     };
   }, []);
 
-  // How many px of screen are obscured by the keyboard right now
-  const keyboardHeight = Math.max(0, window.innerHeight - viewportHeight - viewportOffset);
-  // Toolbar sits 26 px above the keyboard (or 26 px above screen-bottom when no keyboard)
+  // Toolbar sits 26 px above the keyboard (or above screen-bottom when no keyboard)
   const toolbarBottom = keyboardHeight + 26;
-  // Content bottom-padding = keyboard + toolbar height + comfortable gap
-  // Math.max keeps at least the original pb-24 (96 px) when keyboard is closed
+  // Content bottom-padding: keyboard height + toolbar height + gap, min 96 px
   const contentPaddingBottom = Math.max(96, keyboardHeight + (toolbarCollapsed ? 34 : 56) + 20);
 
   return (
@@ -859,8 +880,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         </>
       )}
       <div
-        className="flex-1 overflow-y-auto px-4"
-        style={{ paddingBottom: `${contentPaddingBottom}px` }}
+        className="flex-1 px-4"
+        style={{
+          paddingBottom: `${contentPaddingBottom}px`,
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+        }}
       >
 
         {/* Header - Back arrow */}
