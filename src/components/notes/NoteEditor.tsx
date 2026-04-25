@@ -304,9 +304,12 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   return (
     <div className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in">
 
-      {/* Fixed top bar — 4 elements */}
-      <div className="fixed top-0 left-0 right-0 z-[1250] bg-white border-b border-border/50">
-        <div className="flex items-center px-2 pt-12 pb-2 gap-1">
+      {/* Fixed top bar — floating pill */}
+      <div
+        className="fixed left-4 right-4 z-[1250]"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+      >
+        <div className="bg-white rounded-full shadow-md flex items-center px-2 py-1.5 gap-1">
 
           {/* Back arrow */}
           <button
@@ -662,7 +665,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {showHighlightPicker && (
         <>
           <div className="fixed inset-0 z-[1260]" onClick={() => setShowHighlightPicker(false)} />
-          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300] top-[96px]">
+          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300] top-[120px]">
             <div className="bg-background rounded-2xl shadow-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Highlighter className="w-4 h-4 text-muted-foreground" />
@@ -694,25 +697,27 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       <div
         className="flex-1 px-5"
         style={{
-          paddingTop: '96px',
+          paddingTop: '120px',
           paddingBottom: '100px',
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
         }}
       >
-        {/* Date */}
-        {!hideDate && (
-          <p className="text-xs text-muted-foreground mb-1.5">
-            {format(date, 'MMMM d, yyyy')}
-          </p>
-        )}
-
-        {/* Folder pill */}
-        {folder && (
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary mb-3">
-            {folderObj && <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', `bg-pastel-${folderObj.color}`)} />}
-            <span className="text-xs font-medium text-muted-foreground">{folder}</span>
+        {/* Date + folder on same line */}
+        {(!hideDate || folder) && (
+          <div className="flex items-center gap-2 mb-3">
+            {!hideDate && (
+              <span className="text-xs text-muted-foreground">
+                {format(date, 'MMMM d, yyyy')}
+              </span>
+            )}
+            {folder && (
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary">
+                {folderObj && <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', `bg-pastel-${folderObj.color}`)} />}
+                <span className="text-xs font-medium text-muted-foreground">{folder}</span>
+              </div>
+            )}
           </div>
         )}
 
