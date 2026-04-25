@@ -9,7 +9,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import TextAlign from '@tiptap/extension-text-align';
 import { DraggableImage } from './DraggableImage';
 import { toast } from 'sonner';
-import { 
+import {
   ArrowLeft,
   Folder,
   FolderPlus,
@@ -28,7 +28,6 @@ import {
   AlignCenter,
   AlignRight,
   ChevronDown,
-  ChevronUp,
   Image as ImageIcon,
   Mic,
   Plus,
@@ -77,7 +76,7 @@ const colorHslMap: Record<PastelColor, string> = {
 export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
-  
+
   const [title, setTitle] = useState(note?.title || '');
   const [folder, setFolder] = useState<string | undefined>(note?.folder);
   const [date, setDate] = useState<Date>(note?.date ? new Date(note.date) : new Date());
@@ -102,14 +101,13 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   }, [showInCalendar, time, endTime]);
   const [hideFromAllNotes, setHideFromAllNotes] = useState(note?.hideFromAllNotes || false);
   const [hideDate, setHideDate] = useState(note?.hideDate || false);
-  
+
   const [showInlineFolderCreate, setShowInlineFolderCreate] = useState(false);
   const [folderPopoverOpen, setFolderPopoverOpen] = useState(false);
   const [inlineFolderName, setInlineFolderName] = useState('');
   const [inlineFolderColor, setInlineFolderColor] = useState<PastelColor>('sky');
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
-  const [toolbarCollapsed, setToolbarCollapsed] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -311,19 +309,19 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    
+
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         try {
           const compressedBase64 = await compressImage(file);
-          
+
           // Warn if image is large (> 500KB)
           const MAX_IMAGE_SIZE = 500 * 1024;
           if (compressedBase64.length > MAX_IMAGE_SIZE) {
             toast.warning('Image is large and may affect performance');
           }
-          
+
           editor?.chain().focus().insertContent({
             type: 'image',
             attrs: { src: compressedBase64 },
@@ -334,7 +332,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         }
       }
     };
-    
+
     input.click();
   };
 
@@ -347,15 +345,15 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
   // Toolbar button component - Apple-inspired with subtle animations
   const ToolbarBtn = ({
-    onClick, 
-    active, 
+    onClick,
+    active,
     disabled,
-    children, 
+    children,
     className,
     destructive,
     preventFocusLoss = false,
-  }: { 
-    onClick: () => void; 
+  }: {
+    onClick: () => void;
     active?: boolean;
     disabled?: boolean;
     children: React.ReactNode;
@@ -379,475 +377,416 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     </button>
   );
 
-  // keyboardHeight as state so every update triggers a reactive re-render.
-  // Computed as window.innerHeight - vv.height; offsetTop is intentionally
-  // omitted — it is unreliable on iOS Safari and causes over-correction.
-  // window 'resize' is registered as an Android Chrome fallback (visualViewport
-  // fires reliably on iOS; Chrome fires window resize instead).
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-  useEffect(() => {
-    const update = () => {
-      const vv = window.visualViewport;
-      const next = vv ? Math.max(0, window.innerHeight - vv.height) : 0;
-      setKeyboardHeight(prev => {
-        if (next > prev) {
-          // Keyboard just opened — scroll cursor into view after padding is applied
-          requestAnimationFrame(() => {
-            const sel = window.getSelection();
-            if (!sel || sel.rangeCount === 0) return;
-            const node = sel.getRangeAt(0).startContainer;
-            const el = (node.nodeType === Node.TEXT_NODE
-              ? (node as Text).parentElement
-              : node) as Element | null;
-            el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-          });
-        }
-        return next;
-      });
-    };
-
-    const vv = window.visualViewport;
-    if (vv) {
-      vv.addEventListener('resize', update);
-      vv.addEventListener('scroll', update);
-    }
-    window.addEventListener('resize', update);
-    return () => {
-      if (vv) {
-        vv.removeEventListener('resize', update);
-        vv.removeEventListener('scroll', update);
-      }
-      window.removeEventListener('resize', update);
-    };
-  }, []);
-
-  // Toolbar sits 26 px above the keyboard (or above screen-bottom when no keyboard)
-  const toolbarBottom = keyboardHeight + 26;
-  // Content bottom-padding: keyboard height + toolbar height + gap, min 96 px
-  const contentPaddingBottom = Math.max(96, keyboardHeight + (toolbarCollapsed ? 34 : 56) + 20);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
     >
-      {/* Fixed Floating Toolbar */}
-      <div
-        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1250]"
-        style={{ bottom: `${toolbarBottom}px` }}
-      >
-        {toolbarCollapsed ? null : (
-          <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
-            {/* Toolbar content */}
-            <div className="flex items-center justify-between px-2 py-1.5 gap-2">
-              {/* Left group: Undo/Redo + Note actions */}
-              <div className="flex items-center gap-0.5">
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().undo().run()}
-                  disabled={!editor?.can().undo()}
-                  preventFocusLoss
-                >
-                  <Undo2 className="w-4 h-4" />
-                </ToolbarBtn>
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().redo().run()}
-                  disabled={!editor?.can().redo()}
-                  preventFocusLoss
-                >
-                  <Redo2 className="w-4 h-4" />
-                </ToolbarBtn>
-                
-                <div className="w-px h-4 bg-border mx-1" />
-                
-                <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
-                  <Pin className="w-4 h-4" />
-                </ToolbarBtn>
-                <Popover
-                  open={folderPopoverOpen}
-                  onOpenChange={(open) => {
-                    setFolderPopoverOpen(open);
-                    if (!open) {
-                      setShowInlineFolderCreate(false);
-                      setInlineFolderName('');
-                      setInlineFolderColor('sky');
-                    }
-                  }}
-                >
-                  <PopoverTrigger asChild>
-                    <button
-                      onMouseDown={(e) => e.preventDefault()}
-                      className={cn(
-                        'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
-                        folder ? 'bg-primary/15 text-primary shadow-sm' : 'text-muted-foreground hover:bg-black/5'
-                      )}
-                    >
-                      <Folder className="w-4 h-4" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent side="top" align="start" sideOffset={8} className="w-[200px] p-1 z-[1300]">
-                    {!showInlineFolderCreate ? (
-                      <div>
-                        {folder && (
-                          <>
-                            <button
-                              onClick={() => { setFolder(undefined); setFolderPopoverOpen(false); }}
-                              className="w-full text-left px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary rounded-md"
-                            >
-                              No folder
-                            </button>
-                            <div className="h-px bg-border my-1" />
-                          </>
-                        )}
-                        {folders.map((f) => (
+      {/* Fixed top bar */}
+      <div className="fixed top-0 left-0 right-0 z-[1250] pt-12 px-4 pb-2">
+        <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.10)] flex items-center px-2 py-1.5 gap-2">
+          {/* Back arrow */}
+          <button
+            onClick={handleSave}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground hover:bg-black/5 active:scale-95 transition-all duration-200 shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+
+          {/* Vertical divider */}
+          <div className="w-px h-5 bg-border shrink-0" />
+
+          {/* Scrollable toolbar strip */}
+          <div
+            className="flex-1 overflow-x-auto"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+          >
+            <div className="flex items-center gap-0.5 w-max">
+              <ToolbarBtn
+                onClick={() => editor?.chain().focus().undo().run()}
+                disabled={!editor?.can().undo()}
+                preventFocusLoss
+              >
+                <Undo2 className="w-4 h-4" />
+              </ToolbarBtn>
+              <ToolbarBtn
+                onClick={() => editor?.chain().focus().redo().run()}
+                disabled={!editor?.can().redo()}
+                preventFocusLoss
+              >
+                <Redo2 className="w-4 h-4" />
+              </ToolbarBtn>
+
+              <div className="w-px h-4 bg-border mx-1 shrink-0" />
+
+              <ToolbarBtn onClick={handleTogglePin} active={isPinned}>
+                <Pin className="w-4 h-4" />
+              </ToolbarBtn>
+              <Popover
+                open={folderPopoverOpen}
+                onOpenChange={(open) => {
+                  setFolderPopoverOpen(open);
+                  if (!open) {
+                    setShowInlineFolderCreate(false);
+                    setInlineFolderName('');
+                    setInlineFolderColor('sky');
+                  }
+                }}
+              >
+                <PopoverTrigger asChild>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    className={cn(
+                      'p-1.5 rounded-lg transition-all duration-150 active:scale-90',
+                      folder ? 'bg-primary/15 text-primary shadow-sm' : 'text-muted-foreground hover:bg-black/5'
+                    )}
+                  >
+                    <Folder className="w-4 h-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent side="bottom" align="start" sideOffset={8} className="w-[200px] p-1 z-[1300]">
+                  {!showInlineFolderCreate ? (
+                    <div>
+                      {folder && (
+                        <>
                           <button
-                            key={f.id}
-                            onClick={() => { setFolder(f.name); setFolderPopoverOpen(false); }}
-                            className={cn('w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-secondary', folder === f.name && 'bg-secondary')}
+                            onClick={() => { setFolder(undefined); setFolderPopoverOpen(false); }}
+                            className="w-full text-left px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary rounded-md"
                           >
-                            <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
-                            <span>{f.name}</span>
-                            {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
+                            No folder
                           </button>
-                        ))}
-                        {folders.length > 0 && <div className="h-px bg-border my-1" />}
+                          <div className="h-px bg-border my-1" />
+                        </>
+                      )}
+                      {folders.map((f) => (
                         <button
-                          onClick={() => setShowInlineFolderCreate(true)}
-                          className="w-full text-left flex items-center px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary rounded-md"
+                          key={f.id}
+                          onClick={() => { setFolder(f.name); setFolderPopoverOpen(false); }}
+                          className={cn('w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-secondary', folder === f.name && 'bg-secondary')}
                         >
-                          <FolderPlus className="w-4 h-4 mr-2" />
-                          <span>New folder</span>
+                          <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
+                          <span>{f.name}</span>
+                          {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
+                        </button>
+                      ))}
+                      {folders.length > 0 && <div className="h-px bg-border my-1" />}
+                      <button
+                        onClick={() => setShowInlineFolderCreate(true)}
+                        className="w-full text-left flex items-center px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary rounded-md"
+                      >
+                        <FolderPlus className="w-4 h-4 mr-2" />
+                        <span>New folder</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-2 space-y-3">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">New Folder</p>
+                      <input
+                        type="text"
+                        value={inlineFolderName}
+                        onChange={(e) => setInlineFolderName(e.target.value)}
+                        placeholder="Folder name"
+                        className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground placeholder:text-muted-foreground"
+                        autoFocus
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleCreateInlineFolder();
+                          if (e.key === 'Escape') setShowInlineFolderCreate(false);
+                        }}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        {pastelColors.map((c) => (
+                          <button
+                            key={c.value}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => setInlineFolderColor(c.value)}
+                            className={cn(
+                              'w-6 h-6 rounded-full transition-all',
+                              c.class,
+                              inlineFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowInlineFolderCreate(false)}
+                          className="flex-1 py-2 rounded-xl bg-secondary text-sm font-medium text-foreground hover:bg-muted transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCreateInlineFolder}
+                          className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                        >
+                          Create
                         </button>
                       </div>
-                    ) : (
-                      <div className="p-2 space-y-3">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">New Folder</p>
-                        <input
-                          type="text"
-                          value={inlineFolderName}
-                          onChange={(e) => setInlineFolderName(e.target.value)}
-                          placeholder="Folder name"
-                          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground placeholder:text-muted-foreground"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleCreateInlineFolder();
-                            if (e.key === 'Escape') setShowInlineFolderCreate(false);
-                          }}
-                        />
-                        <div className="flex flex-wrap gap-2">
-                          {pastelColors.map((c) => (
-                            <button
-                              key={c.value}
-                              type="button"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => setInlineFolderColor(c.value)}
-                              className={cn(
-                                'w-6 h-6 rounded-full transition-all',
-                                c.class,
-                                inlineFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary'
-                              )}
-                            />
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowInlineFolderCreate(false)}
-                            className="flex-1 py-2 rounded-xl bg-secondary text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleCreateInlineFolder}
-                            className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-                          >
-                            Create
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </PopoverContent>
-                </Popover>
-              </div>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
 
-              {/* Center group: Format dropdown + Bold + Italic */}
-              <div className="flex items-center gap-0.5">
-                {/* Format dropdown (Aa) */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button onMouseDown={(e) => e.preventDefault()} className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
-                      <span className="text-sm font-medium">Aa</span>
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="min-w-[140px] z-[1300]">
-                    <DropdownMenuItem 
-                      onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                      className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
-                    >
-                      <span className="text-lg font-bold">Heading 1</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                      className={cn(editor?.isActive('heading', { level: 2 }) && 'bg-secondary')}
-                    >
-                      <span className="text-base font-semibold">Heading 2</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => editor?.chain().focus().setParagraph().run()}
-                      className={cn(editor?.isActive('paragraph') && !editor?.isActive('heading') && 'bg-secondary')}
-                    >
-                      <span className="text-sm">Body text</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={cycleAlignment}>
-                      <AlignIcon className="w-4 h-4 mr-2" />
-                      <span>Alignment</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleBold().run()}
-                  active={editor?.isActive('bold')}
-                  preventFocusLoss
-                >
-                  <Bold className="w-4 h-4" />
-                </ToolbarBtn>
-                <ToolbarBtn 
-                  onClick={() => editor?.chain().focus().toggleItalic().run()}
-                  active={editor?.isActive('italic')}
-                  preventFocusLoss
-                >
-                  <Italic className="w-4 h-4" />
-                </ToolbarBtn>
-              </div>
+              <div className="w-px h-4 bg-border mx-1 shrink-0" />
 
-              {/* Right group: Insert dropdown + Settings + Delete + Collapse */}
-              <div className="flex items-center gap-0.5">
-                {/* Insert dropdown (+) */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
-                      <Plus className="w-4 h-4" />
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[160px] z-[1300]">
-                    <DropdownMenuItem 
-                      onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                      className={cn(editor?.isActive('bulletList') && 'bg-secondary')}
-                    >
-                      <List className="w-4 h-4 mr-2" />
-                      <span>Bullet list</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                      className={cn(editor?.isActive('orderedList') && 'bg-secondary')}
-                    >
-                      <ListOrdered className="w-4 h-4 mr-2" />
-                      <span>Numbered list</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => editor?.chain().focus().toggleTaskList().run()}
-                      className={cn(editor?.isActive('taskList') && 'bg-secondary')}
-                    >
-                      <CheckSquare className="w-4 h-4 mr-2" />
-                      <span>Checklist</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleAddImage}>
-                      <ImageIcon className="w-4 h-4 mr-2" />
-                      <span>Image</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowVoiceRecorder(true)}>
-                      <Mic className="w-4 h-4 mr-2" />
-                      <span>Voice note</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
-                      <Highlighter className="w-4 h-4 mr-2" />
-                      <span>Highlight</span>
-                      {activeHighlightColor && (
-                        <span className="ml-auto w-3 h-3 rounded-full" style={{ background: colorHslMap[activeHighlightColor] }} />
-                      )}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      onMouseDown={(e) => e.preventDefault()}
-                      className="p-1.5 rounded-lg transition-all duration-150 active:scale-90 text-muted-foreground hover:bg-black/5"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="top"
-                    align="end"
-                    className="w-72 p-4 space-y-3 z-[1300]"
-                    onCloseAutoFocus={(e) => e.preventDefault()}
+              {/* Format dropdown (Aa) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button onMouseDown={(e) => e.preventDefault()} className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                    <span className="text-sm font-medium">Aa</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="min-w-[140px] z-[1300]">
+                  <DropdownMenuItem
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                    className={cn(editor?.isActive('heading', { level: 1 }) && 'bg-secondary')}
                   >
-                    {/* Date picker */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground">Date</span>
-                      <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-                        <PopoverTrigger asChild>
-                          <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
-                            <Calendar className="w-4 h-4" />
-                            {format(date, 'MMM d, yyyy')}
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 z-[9999]" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
-                          <CalendarComponent
-                            mode="single"
-                            selected={date}
-                            onSelect={(d) => { if (d) setDate(d); }}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    <span className="text-lg font-bold">Heading 1</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                    className={cn(editor?.isActive('heading', { level: 2 }) && 'bg-secondary')}
+                  >
+                    <span className="text-base font-semibold">Heading 2</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => editor?.chain().focus().setParagraph().run()}
+                    className={cn(editor?.isActive('paragraph') && !editor?.isActive('heading') && 'bg-secondary')}
+                  >
+                    <span className="text-sm">Body text</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={cycleAlignment}>
+                    <AlignIcon className="w-4 h-4 mr-2" />
+                    <span>Alignment</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                    {/* Show in calendar toggle */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">Show in calendar</span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const newValue = !showInCalendar;
-                          setShowInCalendar(newValue);
-                          if (!newValue) { setTime(undefined); setEndTime(undefined); }
-                        }}
-                        className={cn(
-                          'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                          showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                        )}
-                      >
-                        <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30')} />
-                      </button>
-                    </div>
+              <ToolbarBtn
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                active={editor?.isActive('bold')}
+                preventFocusLoss
+              >
+                <Bold className="w-4 h-4" />
+              </ToolbarBtn>
+              <ToolbarBtn
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                active={editor?.isActive('italic')}
+                preventFocusLoss
+              >
+                <Italic className="w-4 h-4" />
+              </ToolbarBtn>
 
-                    {/* Time picker */}
-                    {showInCalendar && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-foreground">Time</span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="time"
-                            value={time || ''}
-                            onChange={(e) => {
-                              const val = e.target.value || undefined;
-                              setTime(val);
-                              if (!endTimeManuallySet.current && val) setEndTime(calculateEndTime(val));
-                            }}
-                            className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
-                          />
-                          {time && (
-                            <button onClick={() => { setTime(undefined); setEndTime(undefined); }} className="p-1 rounded-lg hover:bg-secondary transition-colors">
-                              <EyeOff className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
+              <div className="w-px h-4 bg-border mx-1 shrink-0" />
+
+              {/* Insert dropdown (+) */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-0.5 px-2 py-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-all active:scale-95">
+                    <Plus className="w-4 h-4" />
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[160px] z-[1300]">
+                  <DropdownMenuItem
+                    onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                    className={cn(editor?.isActive('bulletList') && 'bg-secondary')}
+                  >
+                    <List className="w-4 h-4 mr-2" />
+                    <span>Bullet list</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                    className={cn(editor?.isActive('orderedList') && 'bg-secondary')}
+                  >
+                    <ListOrdered className="w-4 h-4 mr-2" />
+                    <span>Numbered list</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => editor?.chain().focus().toggleTaskList().run()}
+                    className={cn(editor?.isActive('taskList') && 'bg-secondary')}
+                  >
+                    <CheckSquare className="w-4 h-4 mr-2" />
+                    <span>Checklist</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleAddImage}>
+                    <ImageIcon className="w-4 h-4 mr-2" />
+                    <span>Image</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowVoiceRecorder(true)}>
+                    <Mic className="w-4 h-4 mr-2" />
+                    <span>Voice note</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
+                    <Highlighter className="w-4 h-4 mr-2" />
+                    <span>Highlight</span>
+                    {activeHighlightColor && (
+                      <span className="ml-auto w-3 h-3 rounded-full" style={{ background: colorHslMap[activeHighlightColor] }} />
                     )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-                    {/* End time picker */}
-                    {showInCalendar && time && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-foreground">End time</span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="time"
-                            value={endTime || ''}
-                            onChange={(e) => { endTimeManuallySet.current = true; setEndTime(e.target.value || undefined); }}
-                            min={time}
-                            className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
-                          />
-                          {endTime && (
-                            <button onClick={() => { endTimeManuallySet.current = false; setEndTime(undefined); }} className="p-1 rounded-lg hover:bg-secondary transition-colors">
-                              <EyeOff className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Hide from All Notes toggle */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">Hide from All Notes</span>
-                      </div>
-                      <button
-                        onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
-                        className={cn(
-                          'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                          hideFromAllNotes ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                        )}
-                      >
-                        <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', hideFromAllNotes ? 'bg-primary' : 'bg-muted-foreground/30')} />
-                      </button>
-                    </div>
-
-                    {/* Hide date toggle */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <EyeOff className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-foreground">Hide Date</span>
-                      </div>
-                      <button
-                        onClick={() => setHideDate(!hideDate)}
-                        className={cn(
-                          'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
-                          hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
-                        )}
-                      >
-                        <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', hideDate ? 'bg-primary' : 'bg-muted-foreground/30')} />
-                      </button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                
-                {note && (
-                  <ToolbarBtn onClick={handleDelete} destructive>
-                    <Trash2 className="w-4 h-4" />
-                  </ToolbarBtn>
-                )}
-                
-                <button
-                  onClick={() => setToolbarCollapsed(true)}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:bg-secondary/50 transition-colors"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="p-1.5 rounded-lg transition-all duration-150 active:scale-90 text-muted-foreground hover:bg-black/5"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="bottom"
+                  align="end"
+                  className="w-72 p-4 space-y-3 z-[1300]"
+                  onCloseAutoFocus={(e) => e.preventDefault()}
                 >
-                  <ChevronUp className="w-4 h-4" />
-                </button>
-              </div>
+                  {/* Date picker */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Date</span>
+                    <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                      <PopoverTrigger asChild>
+                        <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-sm">
+                          <Calendar className="w-4 h-4" />
+                          {format(date, 'MMM d, yyyy')}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-[9999]" align="end" onCloseAutoFocus={(e) => e.preventDefault()}>
+                        <CalendarComponent
+                          mode="single"
+                          selected={date}
+                          onSelect={(d) => { if (d) setDate(d); }}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Show in calendar toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">Show in calendar</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newValue = !showInCalendar;
+                        setShowInCalendar(newValue);
+                        if (!newValue) { setTime(undefined); setEndTime(undefined); }
+                      }}
+                      className={cn(
+                        'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                        showInCalendar ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                      )}
+                    >
+                      <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', showInCalendar ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                    </button>
+                  </div>
+
+                  {/* Time picker */}
+                  {showInCalendar && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-foreground">Time</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={time || ''}
+                          onChange={(e) => {
+                            const val = e.target.value || undefined;
+                            setTime(val);
+                            if (!endTimeManuallySet.current && val) setEndTime(calculateEndTime(val));
+                          }}
+                          className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                        />
+                        {time && (
+                          <button onClick={() => { setTime(undefined); setEndTime(undefined); }} className="p-1 rounded-lg hover:bg-secondary transition-colors">
+                            <EyeOff className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* End time picker */}
+                  {showInCalendar && time && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-foreground">End time</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={endTime || ''}
+                          onChange={(e) => { endTimeManuallySet.current = true; setEndTime(e.target.value || undefined); }}
+                          min={time}
+                          className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground"
+                        />
+                        {endTime && (
+                          <button onClick={() => { endTimeManuallySet.current = false; setEndTime(undefined); }} className="p-1 rounded-lg hover:bg-secondary transition-colors">
+                            <EyeOff className="w-4 h-4 text-muted-foreground" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hide from All Notes toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">Hide from All Notes</span>
+                    </div>
+                    <button
+                      onClick={() => setHideFromAllNotes(!hideFromAllNotes)}
+                      className={cn(
+                        'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                        hideFromAllNotes ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                      )}
+                    >
+                      <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', hideFromAllNotes ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                    </button>
+                  </div>
+
+                  {/* Hide date toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-foreground">Hide Date</span>
+                    </div>
+                    <button
+                      onClick={() => setHideDate(!hideDate)}
+                      className={cn(
+                        'w-11 h-6 rounded-full transition-all duration-200 flex items-center px-0.5',
+                        hideDate ? 'bg-primary/20 border border-primary/40 justify-end' : 'bg-secondary/50 border border-border justify-start'
+                      )}
+                    >
+                      <span className={cn('w-5 h-5 rounded-full transition-all duration-200 shadow-sm', hideDate ? 'bg-primary' : 'bg-muted-foreground/30')} />
+                    </button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {note && (
+                <ToolbarBtn onClick={handleDelete} destructive>
+                  <Trash2 className="w-4 h-4" />
+                </ToolbarBtn>
+              )}
             </div>
           </div>
-        )}
-
-        {/* Toolbar toggle tab - only when collapsed */}
-        {toolbarCollapsed && (
-          <div className="flex justify-center pt-1">
-            <button
-              onClick={() => setToolbarCollapsed(false)}
-              className="flex items-center justify-center w-10 h-6 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] text-muted-foreground hover:bg-white active:scale-95 transition-all duration-200"
-            >
-              <ChevronDown className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Highlight color picker panel */}
       {showHighlightPicker && (
         <>
           <div className="fixed inset-0 z-[1260]" onClick={() => setShowHighlightPicker(false)} />
-          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300]" style={{ bottom: `${toolbarBottom + 56}px` }}>
+          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300] top-[96px]">
             <div className="bg-background rounded-2xl shadow-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Highlighter className="w-4 h-4 text-muted-foreground" />
@@ -879,26 +818,18 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           </div>
         </>
       )}
+
+      {/* Scrollable content */}
       <div
         className="flex-1 px-4"
         style={{
-          paddingBottom: `${contentPaddingBottom}px`,
+          paddingTop: '96px',
+          paddingBottom: '96px',
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain',
         }}
       >
-
-        {/* Header - Back arrow */}
-        <div className="flex items-center pt-12 pb-4">
-          <button
-            onClick={handleSave}
-            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-foreground hover:bg-gray-50 active:scale-95 transition-all duration-200"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-        </div>
-
         {/* Date and Folder centered */}
         <div className="flex flex-col items-center pb-2">
           {!hideDate && (
@@ -922,7 +853,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           className="w-full text-2xl font-bold bg-transparent border-0 outline-none text-foreground mb-4 text-center"
           placeholder="Note title"
         />
-        
+
         {/* TipTap Editor */}
         <EditorContent editor={editor} className="tiptap-content" />
       </div>
