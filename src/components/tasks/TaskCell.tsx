@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import { Star, Calendar as CalIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ interface TaskCellProps {
   task: Task;
   onClick?: () => void;
   showListDot?: boolean;
+  highlight?: boolean;
 }
 
 function formatDate(d: Date) {
@@ -20,10 +21,17 @@ function formatDate(d: Date) {
   return format(d, 'MMM d');
 }
 
-export function TaskCell({ task, onClick, showListDot = false }: TaskCellProps) {
+export function TaskCell({ task, onClick, showListDot = false, highlight }: TaskCellProps) {
   const { toggleTask, updateTask } = useAppStore();
   const haptics = useHaptics();
+  const ref = useRef<HTMLButtonElement>(null);
   const isPriority = task.priority !== 'none';
+
+  useEffect(() => {
+    if (!highlight || !ref.current) return;
+    const t = setTimeout(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    return () => clearTimeout(t);
+  }, [highlight]);
   const today = new Date().setHours(0, 0, 0, 0);
   const isOverdue =
     !task.completed && task.date && new Date(task.date).setHours(0, 0, 0, 0) < today;
@@ -33,6 +41,7 @@ export function TaskCell({ task, onClick, showListDot = false }: TaskCellProps) 
 
   return (
     <button
+      ref={ref}
       type="button"
       onClick={onClick}
       className={cn(
@@ -40,6 +49,7 @@ export function TaskCell({ task, onClick, showListDot = false }: TaskCellProps) 
         'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.03)]',
         'hover:shadow-[0_2px_6px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]',
         'active:scale-[0.995]',
+        highlight && 'animate-task-highlight',
       )}
     >
       <div className="flex items-start gap-3">

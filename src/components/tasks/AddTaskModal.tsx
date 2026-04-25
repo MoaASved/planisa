@@ -17,7 +17,7 @@ interface AddTaskModalProps {
 }
 
 export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: AddTaskModalProps) {
-  const { addTask, updateTask, deleteTask, taskCategories, tasks } = useAppStore();
+  const { addTask, updateTask, deleteTask, toggleSubtask, taskCategories, tasks } = useAppStore();
   const editing = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : undefined;
 
   const [title, setTitle] = useState('');
@@ -30,7 +30,6 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
   const [listId, setListId] = useState<string>('');
   const [subs, setSubs] = useState<Subtask[]>([]);
   const [newSub, setNewSub] = useState('');
-  const [showSubInput, setShowSubInput] = useState(false);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [listPopoverOpen, setListPopoverOpen] = useState(false);
   const [showTimeFields, setShowTimeFields] = useState(false);
@@ -78,11 +77,11 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
       setShowTimeFields(false);
     }
     setNewSub('');
-    setShowSubInput(false);
     setDatePopoverOpen(false);
     setListPopoverOpen(false);
     setTimeout(() => inputRef.current?.focus(), 80);
-  }, [isOpen, editing, defaultListId, taskCategories]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, editingTaskId, defaultListId]);
 
   const handleTimeChange = (newTime: string) => {
     setTime(newTime);
@@ -130,10 +129,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
 
   const addSub = () => {
     const t = newSub.trim();
-    if (!t) {
-      setShowSubInput(false);
-      return;
-    }
+    if (!t) return;
     setSubs([...subs, { id: `s-${Date.now()}`, title: t, completed: false }]);
     setNewSub('');
     setTimeout(() => subInputRef.current?.focus(), 30);
@@ -215,8 +211,30 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
               <div className="space-y-1 pt-1">
                 {subs.map((s) => (
                   <div key={s.id} className="flex items-center gap-2 group animate-fade-in">
-                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                    <span className="flex-1 text-sm text-foreground">{s.title}</span>
+                    <button
+                      onClick={() => {
+                        if (editingTaskId) {
+                          toggleSubtask(editingTaskId, s.id);
+                        }
+                        setSubs(subs.map((x) => x.id === s.id ? { ...x, completed: !x.completed } : x));
+                      }}
+                      className={cn(
+                        'w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 transition-all',
+                        s.completed
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground/40 hover:border-primary',
+                      )}
+                    >
+                      {s.completed && (
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                          <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground" />
+                        </svg>
+                      )}
+                    </button>
+                    <span className={cn(
+                      'flex-1 text-sm',
+                      s.completed ? 'line-through text-muted-foreground' : 'text-foreground',
+                    )}>{s.title}</span>
                     <button
                       onClick={() => setSubs(subs.filter((x) => x.id !== s.id))}
                       className="opacity-0 group-hover:opacity-100 text-muted-foreground/50 hover:text-destructive transition-opacity"
@@ -228,37 +246,24 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
               </div>
             )}
 
-            {/* Subtask input or trigger */}
-            {showSubInput ? (
-              <div className="flex items-center gap-2 animate-fade-in">
-                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
-                <input
-                  ref={subInputRef}
-                  type="text"
-                  value={newSub}
-                  onChange={(e) => setNewSub(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addSub();
-                    }
-                  }}
-                  onBlur={() => {
-                    if (!newSub.trim()) setShowSubInput(false);
-                  }}
-                  autoFocus
-                  placeholder="Subtask"
-                  className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/50"
-                />
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowSubInput(true)}
-                className="text-sm text-muted-foreground/70 hover:text-foreground transition-colors block"
-              >
-                + Add subtask
-              </button>
-            )}
+            {/* Subtask input */}
+            <div className="flex items-center gap-2 mt-1">
+              <Plus className="w-4 h-4 text-muted-foreground shrink-0" />
+              <input
+                ref={subInputRef}
+                type="text"
+                value={newSub}
+                onChange={(e) => setNewSub(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addSub();
+                  }
+                }}
+                placeholder="Add subtask..."
+                className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-muted-foreground/50"
+              />
+            </div>
           </div>
 
           {/* Divider */}

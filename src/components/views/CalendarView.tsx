@@ -14,7 +14,7 @@ import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 
 type SimpleView = 'month' | 'weekday';
 
-export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: () => void }) {
+export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
@@ -228,9 +228,9 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         task={editingTask}
         isOpen={!!editingTask}
         onClose={() => setEditingTask(null)}
-        onOpenInTasks={() => {
+        onOpenInTasks={(task) => {
           setEditingTask(null);
-          onNavigateToTasks?.();
+          onNavigateToTasks?.(task);
         }}
       />
 

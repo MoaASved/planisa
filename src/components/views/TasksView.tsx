@@ -33,7 +33,7 @@ interface TasksViewProps {
 type SmartView = 'priority' | 'today' | null;
 
 export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksViewProps) {
-  const { tasks, taskCategories, searchQuery, reorderTaskCategories } = useAppStore();
+  const { tasks, taskCategories, searchQuery, reorderTaskCategories, highlightTaskId, setHighlightTaskId } = useAppStore();
 
   const [selectedList, setSelectedList] = useState<TaskCategory | null>(null);
   const [smartView, setSmartView] = useState<SmartView>(null);
@@ -51,6 +51,16 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
       onCreatingTaskComplete?.();
     }
   }, [isCreatingNewTask, onCreatingTaskComplete]);
+
+  useEffect(() => {
+    if (!highlightTaskId) return;
+    const task = tasks.find((t) => t.id === highlightTaskId);
+    if (!task) return;
+    const cat = taskCategories.find((c) => c.id === task.listId) ?? taskCategories.find((c) => c.name === task.category);
+    if (cat) { setSmartView(null); setSelectedList(cat); }
+    const timer = setTimeout(() => setHighlightTaskId(null), 2000);
+    return () => clearTimeout(timer);
+  }, [highlightTaskId]);
 
   const matches = (t: Task) => {
     if (!searchQuery) return true;
@@ -82,6 +92,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
         category={selectedList}
         tasks={listTasks}
         onBack={() => setSelectedList(null)}
+        highlightTaskId={highlightTaskId ?? undefined}
       />
     );
   }

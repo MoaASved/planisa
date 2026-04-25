@@ -128,6 +128,10 @@ export default {
           from: { opacity: "0", transform: "scale(0.96)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        "task-highlight": {
+          "0%": { boxShadow: "0 0 0 3px hsl(var(--primary) / 0.28), 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)" },
+          "100%": { boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -140,6 +144,7 @@ export default {
         "view-slide-left": "view-slide-left 0.3s ease-out forwards",
         "view-slide-right": "view-slide-right 0.3s ease-out forwards",
         "view-zoom-in": "view-zoom-in 0.25s ease-out forwards",
+        "task-highlight": "task-highlight 1.5s ease-out forwards",
       },
     },
   },

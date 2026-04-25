@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 interface SortableTaskCellProps {
   task: Task;
   onClick?: () => void;
+  highlight?: boolean;
 }
 
-export function SortableTaskCell({ task, onClick }: SortableTaskCellProps) {
+export function SortableTaskCell({ task, onClick, highlight }: SortableTaskCellProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -31,7 +32,7 @@ export function SortableTaskCell({ task, onClick }: SortableTaskCellProps) {
         isDragging && 'opacity-70',
       )}
     >
-      <TaskCell task={task} onClick={onClick} />
+      <TaskCell task={task} onClick={onClick} highlight={highlight} />
     </div>
   );
 }

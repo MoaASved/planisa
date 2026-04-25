@@ -29,13 +29,14 @@ interface ListDetailViewProps {
   category: TaskCategory;
   tasks: Task[];
   onBack: () => void;
+  highlightTaskId?: string;
 }
 
 function sortTasks(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
-export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps) {
+export function ListDetailView({ category, tasks, onBack, highlightTaskId }: ListDetailViewProps) {
   const {
     addTask,
     deleteTaskCategory,
@@ -144,9 +145,10 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
     [taskSections, category.id],
   );
 
+  const isVirtualList = category.id.startsWith('__');
   const incomplete = tasks.filter((t) => !t.completed);
   const completed = tasks.filter((t) => t.completed);
-  const mainTasks = sortTasks(incomplete.filter((t) => !t.sectionId));
+  const mainTasks = sortTasks(isVirtualList ? incomplete : incomplete.filter((t) => !t.sectionId));
 
   const handleCreate = (title: string, sectionId?: string) => {
     addTask({
@@ -289,7 +291,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                   key={task.id}
                   task={task}
                   onClick={() => setEditingTaskId(task.id)}
-                
+                  highlight={task.id === highlightTaskId}
                 />
               ))}
             </div>
@@ -384,7 +386,7 @@ export function ListDetailView({ category, tasks, onBack }: ListDetailViewProps)
                             key={task.id}
                             task={task}
                             onClick={() => setEditingTaskId(task.id)}
-                            
+                            highlight={task.id === highlightTaskId}
                           />
                         ))}
                       </div>

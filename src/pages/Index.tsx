@@ -17,7 +17,7 @@ const Index = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
-  const { settings } = useAppStore();
+  const { settings, setHighlightTaskId } = useAppStore();
   const { hasFullAccess, userRecord } = useAuth();
 
   // When trial/subscription doesn't grant full access, only Calendar + Profile are allowed
@@ -104,7 +104,7 @@ const Index = () => {
       case 'home':
         return <HomeView onNavigate={setActiveTab} />;
       case 'calendar':
-        return <CalendarViewComponent onDateChange={setSelectedCalendarDate} onNavigateToTasks={() => setActiveTab('tasks')} />;
+        return <CalendarViewComponent onDateChange={setSelectedCalendarDate} onNavigateToTasks={(task) => { setHighlightTaskId(task.id); setActiveTab('tasks'); }} />;
       case 'tasks':
         return (
           <TasksView 

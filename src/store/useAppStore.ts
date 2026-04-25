@@ -90,6 +90,8 @@ interface AppState {
   updateSettings: (settings: Partial<UserSettings>) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  highlightTaskId: string | null;
+  setHighlightTaskId: (id: string | null) => void;
 
   // Sync lifecycle
   _userId: string | null;
@@ -179,6 +181,7 @@ export const useAppStore = create<AppState>()((set, get) => {
     widgets: initialWidgets,
     settings: initialSettings,
     searchQuery: '',
+    highlightTaskId: null,
     _userId: null,
     _channels: [],
 
@@ -504,6 +507,7 @@ export const useAppStore = create<AppState>()((set, get) => {
     updateWidgets: (widgets) => set({ widgets }),
     updateSettings: (newSettings) => set((s) => ({ settings: { ...s.settings, ...newSettings } })),
     setSearchQuery: (query) => set({ searchQuery: query }),
+    setHighlightTaskId: (id) => set({ highlightTaskId: id }),
 
     // ─────────────────────────── SYNC LIFECYCLE ───────────────────────────
     loadAll: async (userId: string) => {
