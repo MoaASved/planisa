@@ -247,7 +247,7 @@ export function TaskRow({ task, onToggle, compact = false, showOverdue = false, 
       )}
 
       <div className="flex items-start gap-3">
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(e) => e.stopPropagation()} className="self-start">
           <AnimatedCheckbox checked={task.completed} onChange={onToggle} className="mt-0.5" />
         </div>
 

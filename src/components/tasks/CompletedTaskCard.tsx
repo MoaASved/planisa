@@ -14,7 +14,7 @@ export function CompletedTaskCard({ task, onHide, onUnhide, onDelete }: Complete
     <div className="flow-card-flat relative bg-card opacity-60 rounded-2xl">
       <div className="flex items-center justify-between">
         {/* Left: Checkbox + title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div className="w-6 h-6 rounded-lg bg-primary border-2 border-primary flex items-center justify-center">
             <Check className="w-4 h-4 text-primary-foreground" />
           </div>

@@ -326,7 +326,7 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
       <div className="flow-card-flat relative bg-card">
         <div className="flex items-start gap-3">
           {/* Checkbox — isolated */}
-          <div onClick={(e) => e.stopPropagation()}>
+          <div onClick={(e) => e.stopPropagation()} className="self-start">
             <AnimatedCheckbox
               checked={task.completed}
               onChange={onToggle}

@@ -43,7 +43,7 @@ export function TaskCell({ task, onClick, showListDot = false }: TaskCellProps) 
       )}
     >
       <div className="flex items-start gap-3">
-        <div onClick={(e) => e.stopPropagation()} className="pt-0.5">
+        <div onClick={(e) => e.stopPropagation()} className="pt-0.5 self-start">
           <AnimatedCheckbox checked={task.completed} onChange={() => toggleTask(task.id)} />
         </div>
 
