@@ -304,37 +304,40 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   return (
     <div className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in">
 
-      {/* Fixed top bar — floating pill */}
+      {/* Top bar — three floating elements */}
       <div
-        className="fixed left-4 right-4 z-[1250]"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+        className="fixed left-0 right-0 z-[1250] flex items-center"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)', pointerEvents: 'none' }}
       >
-        <div className="bg-white rounded-full shadow-md flex items-center px-2 py-1.5 gap-1">
 
-          {/* Back arrow */}
+          {/* Back arrow — round button, far left */}
           <button
             onClick={handleSave}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-foreground hover:bg-black/5 active:scale-95 transition-all shrink-0"
+            style={{ pointerEvents: 'auto' }}
+            className="ml-4 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-foreground active:scale-95 transition-all shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          {/* Undo */}
+          <div className="flex-1" />
+
+          {/* Undo — round button */}
           <button
             onClick={() => editor?.chain().focus().undo().run()}
             disabled={!editor?.can().undo()}
             onMouseDown={(e) => e.preventDefault()}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-black/5 active:scale-95 transition-all disabled:opacity-30 shrink-0"
+            style={{ pointerEvents: 'auto' }}
+            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-muted-foreground active:scale-95 transition-all disabled:opacity-30 shrink-0"
           >
             <Undo2 className="w-5 h-5" />
           </button>
 
-          <div className="flex-1" />
-
+          {/* + and ··· grouped pill — far right */}
+          <div className="flex items-center bg-white rounded-full shadow-md h-10 px-2 ml-3 mr-4 shrink-0" style={{ pointerEvents: 'auto' }}>
           {/* + insert dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-black/5 active:scale-95 transition-all shrink-0">
+              <button className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-black/5 active:scale-95 transition-all">
                 <Plus className="w-5 h-5" />
               </button>
             </DropdownMenuTrigger>
@@ -371,6 +374,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <div className="w-px h-5 bg-border mx-1" />
           {/* ··· more popover */}
           <Popover
             open={morePopoverOpen}
@@ -384,7 +388,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             }}
           >
             <PopoverTrigger asChild>
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl text-muted-foreground hover:bg-black/5 active:scale-95 transition-all shrink-0">
+              <button className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:bg-black/5 active:scale-95 transition-all">
                 <MoreHorizontal className="w-5 h-5" />
               </button>
             </PopoverTrigger>
@@ -657,9 +661,8 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
             </PopoverContent>
           </Popover>
-
-        </div>
-      </div>
+          </div>{/* end + ··· pill */}
+      </div>{/* end top bar */}
 
       {/* Highlight color picker */}
       {showHighlightPicker && (
