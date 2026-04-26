@@ -201,15 +201,9 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      const editorWasFocused = document.activeElement === dom;
       toggleTaskItem(li);
-      if (!editorWasFocused) {
-        requestAnimationFrame(() => {
-          if (document.activeElement === dom) {
-            (dom as HTMLElement).blur();
-          }
-        });
-      }
+      editor.commands.blur();
+      (document.activeElement as HTMLElement)?.blur();
     };
 
     const handleCheckboxTouchEnd = (e: Event) => {

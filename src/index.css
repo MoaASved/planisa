@@ -712,6 +712,8 @@ input[type="time"]::-webkit-inner-spin-button {
 
 .tiptap-editor ul[data-type="taskList"] li > label > input[type="checkbox"] {
   @apply w-5 h-5 rounded-full border border-foreground/50 cursor-pointer appearance-none bg-transparent;
+  pointer-events: none;
+  touch-action: none;
 }
 
 .tiptap-editor ul[data-type="taskList"] li > label > input[type="checkbox"]:checked {
