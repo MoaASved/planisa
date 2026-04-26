@@ -164,7 +164,21 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   // Block keyboard-open on checkbox tap (iOS + Android).
   useEffect(() => {
     if (!editor) return;
-    const dom = editor.view.dom;
+    const dom = editor.view.dom as HTMLElement;
+
+    // iOS focuses contenteditable at the UIKit level before JS touchstart fires,
+    // so preventDefault alone can't stop it. Instead we intercept focusin on
+    // document (fires synchronously before the keyboard animation begins) and
+    // immediately blur — the keyboard never appears.
+    let suppressFocus = false;
+
+    const onDocFocusIn = (e: FocusEvent) => {
+      if (!suppressFocus) return;
+      const t = e.target as Node;
+      if (t === dom || dom.contains(t)) {
+        dom.blur();
+      }
+    };
 
     const isCheckboxTarget = (e: Event): Element | null => {
       const target = e.target as HTMLElement;
@@ -175,27 +189,39 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       return li;
     };
 
+    const toggleTaskItem = (li: Element) => {
+      try {
+        const pos = editor.view.posAtDOM(li, 0);
+        const $pos = editor.state.doc.resolve(pos);
+        for (let d = $pos.depth; d >= 0; d--) {
+          if ($pos.node(d).type.name === 'taskItem') {
+            const nodePos = $pos.before(d);
+            const node = $pos.node(d);
+            editor.view.dispatch(
+              editor.state.tr.setNodeMarkup(nodePos, undefined, {
+                ...node.attrs,
+                checked: !node.attrs.checked,
+              })
+            );
+            return;
+          }
+        }
+      } catch { /* posAtDOM can throw */ }
+    };
+
     const handleCheckboxTap = (e: Event) => {
       const li = isCheckboxTarget(e);
       if (!li) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-
-      // Disable editing so TipTap cannot refocus after the DOM change
-      editor.setEditable(false);
-
-      // Toggle directly in the DOM — no TipTap transaction, no focus side-effects
-      const input = li.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
-      const wasChecked = li.getAttribute('data-checked') === 'true';
-      li.setAttribute('data-checked', wasChecked ? 'false' : 'true');
-      if (input) input.checked = !wasChecked;
-
-      // Re-enable editing after 100ms without calling focus
-      setTimeout(() => editor.setEditable(true), 100);
+      suppressFocus = true;
+      toggleTaskItem(li);
+      dom.blur();
+      setTimeout(() => { suppressFocus = false; }, 500);
     };
 
-    const handleCheckboxTouchEnd = (e: Event) => {
+    const blockEvent = (e: Event) => {
       const li = isCheckboxTarget(e);
       if (!li) return;
       e.preventDefault();
@@ -203,22 +229,16 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       e.stopImmediatePropagation();
     };
 
-    const handleCheckboxClick = (e: Event) => {
-      const li = isCheckboxTarget(e);
-      if (!li) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-    };
-
+    document.addEventListener('focusin', onDocFocusIn, true);
     dom.addEventListener('touchstart', handleCheckboxTap, { capture: true, passive: false });
-    dom.addEventListener('touchend', handleCheckboxTouchEnd, { capture: true, passive: false });
-    dom.addEventListener('click', handleCheckboxClick, { capture: true });
+    dom.addEventListener('touchend', blockEvent, { capture: true, passive: false });
+    dom.addEventListener('click', blockEvent, { capture: true });
     dom.addEventListener('mousedown', handleCheckboxTap, true);
     return () => {
+      document.removeEventListener('focusin', onDocFocusIn, true);
       dom.removeEventListener('touchstart', handleCheckboxTap, true);
-      dom.removeEventListener('touchend', handleCheckboxTouchEnd, true);
-      dom.removeEventListener('click', handleCheckboxClick, true);
+      dom.removeEventListener('touchend', blockEvent, true);
+      dom.removeEventListener('click', blockEvent, true);
       dom.removeEventListener('mousedown', handleCheckboxTap, true);
     };
   }, [editor]);
