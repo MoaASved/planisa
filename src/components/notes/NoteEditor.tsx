@@ -199,6 +199,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       const li = isCheckboxTarget(e);
       if (!li) return;
       e.preventDefault();
+      e.stopPropagation();
       e.stopImmediatePropagation();
       const editorWasFocused = document.activeElement === dom;
       toggleTaskItem(li);
@@ -215,15 +216,26 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       const li = isCheckboxTarget(e);
       if (!li) return;
       e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    };
+
+    const handleCheckboxClick = (e: Event) => {
+      const li = isCheckboxTarget(e);
+      if (!li) return;
+      e.preventDefault();
+      e.stopPropagation();
       e.stopImmediatePropagation();
     };
 
     dom.addEventListener('touchstart', handleCheckboxTap, { capture: true, passive: false });
     dom.addEventListener('touchend', handleCheckboxTouchEnd, { capture: true, passive: false });
+    dom.addEventListener('click', handleCheckboxClick, { capture: true });
     dom.addEventListener('mousedown', handleCheckboxTap, true);
     return () => {
       dom.removeEventListener('touchstart', handleCheckboxTap, true);
       dom.removeEventListener('touchend', handleCheckboxTouchEnd, true);
+      dom.removeEventListener('click', handleCheckboxClick, true);
       dom.removeEventListener('mousedown', handleCheckboxTap, true);
     };
   }, [editor]);
