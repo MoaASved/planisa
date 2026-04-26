@@ -112,20 +112,17 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const [, forceUpdate] = useState(0);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [viewportOffset, setViewportOffset] = useState(0);
 
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => {
-      const kh = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-      setKeyboardHeight(kh);
-    };
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
+    const onUpdate = () => setViewportOffset(vv.offsetTop);
+    vv.addEventListener('resize', onUpdate);
+    vv.addEventListener('scroll', onUpdate);
     return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
+      vv.removeEventListener('resize', onUpdate);
+      vv.removeEventListener('scroll', onUpdate);
     };
   }, []);
 
@@ -323,10 +320,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {/* Top bar — three floating elements */}
       <div
         className="fixed left-0 right-0 z-[1250] flex items-center"
-        style={keyboardHeight > 50
-          ? { bottom: `${keyboardHeight}px`, top: 'auto', pointerEvents: 'none' }
-          : { top: 'calc(env(safe-area-inset-top, 0px) + 12px)', bottom: 'auto', pointerEvents: 'none' }
-        }
+        style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 12}px)`, pointerEvents: 'none' }}
       >
 
           {/* Back arrow — round button, far left */}
