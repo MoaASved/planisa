@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addMonths, subMonths, addWeeks, subWeeks, addDays, startOfWeek } from 'date-fns';
+import { addMonths, subMonths, addWeeks, subWeeks, addDays, startOfWeek, startOfMonth } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor, Task, CalendarEvent, Note } from '@/types';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
@@ -172,10 +172,12 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const handleDayChange = (direction: 'prev' | 'next') => {
     const newDate = direction === 'prev' ? addDays(selectedDate, -1) : addDays(selectedDate, 1);
     setSelectedDate(newDate);
-    // Sync currentDate when crossing a week boundary so the header updates
+    // Sync currentDate on week boundary (week view) or month boundary (month view)
     const curWeekStart = startOfWeek(currentDate, { weekStartsOn: 1 }).getTime();
     const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 }).getTime();
-    if (curWeekStart !== newWeekStart) setCurrentDate(newDate);
+    const curMonthStart = startOfMonth(currentDate).getTime();
+    const newMonthStart = startOfMonth(newDate).getTime();
+    if (curWeekStart !== newWeekStart || curMonthStart !== newMonthStart) setCurrentDate(newDate);
   };
 
   return (
@@ -213,6 +215,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onItemClick={handleItemClick}
             onTaskToggle={handleTaskToggle}
             onMonthChange={handleMonthChange}
+            onDayChange={handleDayChange}
             onDateSelect={handleDateSelect}
           />
         ) : (

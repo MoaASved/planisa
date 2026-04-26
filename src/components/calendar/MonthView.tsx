@@ -27,6 +27,7 @@ interface MonthViewProps {
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onMonthChange: (direction: 'prev' | 'next') => void;
+  onDayChange: (direction: 'prev' | 'next') => void;
   onDateSelect: (date: Date) => void;
 }
 
@@ -41,9 +42,11 @@ export function MonthView({
   onItemClick,
   onTaskToggle,
   onMonthChange,
+  onDayChange,
   onDateSelect,
 }: MonthViewProps) {
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
+  const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
 
   // Generate calendar grid
   const monthStart = startOfMonth(currentDate);
@@ -65,38 +68,48 @@ export function MonthView({
     return { events: dayEvents, tasks: dayTasks, notes: dayNotes };
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleHeaderTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
-      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      headerTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   };
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (touchStartRef.current && e.changedTouches.length === 1) {
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
-      const deltaX = endX - touchStartRef.current.x;
-      const deltaY = endY - touchStartRef.current.y;
-
+  const handleHeaderTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (headerTouchRef.current && e.changedTouches.length === 1) {
+      const deltaX = e.changedTouches[0].clientX - headerTouchRef.current.x;
+      const deltaY = e.changedTouches[0].clientY - headerTouchRef.current.y;
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        if (deltaX > 0) {
-          onMonthChange('prev');
-        } else {
-          onMonthChange('next');
-        }
+        onMonthChange(deltaX > 0 ? 'prev' : 'next');
       }
     }
-    touchStartRef.current = null;
+    headerTouchRef.current = null;
   }, [onMonthChange]);
 
+  const handleBodyTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      bodyTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleBodyTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (bodyTouchRef.current && e.changedTouches.length === 1) {
+      const deltaX = e.changedTouches[0].clientX - bodyTouchRef.current.x;
+      const deltaY = e.changedTouches[0].clientY - bodyTouchRef.current.y;
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        onDayChange(deltaX > 0 ? 'prev' : 'next');
+      }
+    }
+    bodyTouchRef.current = null;
+  }, [onDayChange]);
+
   return (
-    <div 
-      className="animate-fade-in flex flex-col h-full overflow-x-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Calendar grid - clean white background */}
-      <div className="flex-shrink-0 px-3 pb-3 bg-background">
+    <div className="animate-fade-in flex flex-col h-full overflow-x-hidden">
+      {/* Calendar grid - swipe left/right changes the whole month */}
+      <div
+        className="flex-shrink-0 px-3 pb-3 bg-background"
+        onTouchStart={handleHeaderTouchStart}
+        onTouchEnd={handleHeaderTouchEnd}
+      >
         {/* Day headers */}
         <div className="grid grid-cols-[20px_repeat(7,1fr)] mb-1">
           <div className="text-center text-[9px] font-normal text-muted-foreground/30 py-1">v</div>
@@ -180,8 +193,12 @@ export function MonthView({
         </div>
       </div>
 
-      {/* Lower section - unified background, no divider */}
-      <div className="flex-1 flex flex-col relative bg-background">
+      {/* Lower section - swipe left/right changes one day at a time */}
+      <div
+        className="flex-1 flex flex-col relative bg-background"
+        onTouchStart={handleBodyTouchStart}
+        onTouchEnd={handleBodyTouchEnd}
+      >
         <CalendarItemList
           date={selectedDate}
           events={events}
