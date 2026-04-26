@@ -509,11 +509,7 @@ export function CalendarItemList({
         </div>
       </div>
 
-      {!hasItems ? (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-          No items for this day
-        </div>
-      ) : showTimeline ? (
+      {!hasItems ? null : showTimeline ? (
         // Timeline view - only timed items + all-day at top
         <div className="flex-1 relative overflow-hidden">
           <div ref={timelineRef} onScroll={checkTimelineScroll} className="absolute inset-0 overflow-y-auto overflow-x-hidden">
