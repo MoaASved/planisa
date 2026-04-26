@@ -8,6 +8,7 @@ import { TasksView } from '@/components/views/TasksView';
 import { NotesView } from '@/components/views/NotesView';
 import { ProfileView } from '@/components/views/ProfileView';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
+import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ const Index = () => {
   // Task creation state
   const [isCreatingNewTask, setIsCreatingNewTask] = useState(false);
   const [defaultTaskDate, setDefaultTaskDate] = useState<Date | undefined>(undefined);
+  const [showCalendarTaskCreate, setShowCalendarTaskCreate] = useState(false);
 
   // Apply theme on mount and when settings change
   useEffect(() => {
@@ -72,9 +74,13 @@ const Index = () => {
   };
 
   const handleCreateTask = () => {
-    setIsCreatingNewTask(true);
-    setDefaultTaskDate(activeTab === 'calendar' ? selectedCalendarDate : undefined);
-    setActiveTab('tasks');
+    if (activeTab === 'calendar') {
+      setShowCalendarTaskCreate(true);
+    } else {
+      setIsCreatingNewTask(true);
+      setDefaultTaskDate(undefined);
+      setActiveTab('tasks');
+    }
   };
 
   const handleCreateEvent = () => {
@@ -178,6 +184,7 @@ const Index = () => {
 
       {/* Modals */}
       <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} initialDate={selectedCalendarDate} />
+      <AddTaskModal isOpen={showCalendarTaskCreate} onClose={() => setShowCalendarTaskCreate(false)} defaultDate={selectedCalendarDate} />
     </div>
   );
 };
