@@ -8,7 +8,7 @@ import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
-import { CalendarTaskModal } from '@/components/modals/CalendarTaskModal';
+import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 
@@ -172,6 +172,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const handleDayChange = (direction: 'prev' | 'next') => {
     const newDate = direction === 'prev' ? addDays(selectedDate, -1) : addDays(selectedDate, 1);
     setSelectedDate(newDate);
+    onDateChange?.(newDate);
     // Sync currentDate on week boundary (week view) or month boundary (month view)
     const curWeekStart = startOfWeek(currentDate, { weekStartsOn: 1 }).getTime();
     const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 }).getTime();
@@ -237,13 +238,15 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
       </div>
 
       {/* Calendar Task Modal */}
-      <CalendarTaskModal
-        task={editingTask}
+      <AddTaskModal
         isOpen={!!editingTask}
+        editingTaskId={editingTask?.id}
+        defaultDate={selectedDate}
         onClose={() => setEditingTask(null)}
-        onOpenInTasks={(task) => {
+        onOpenInList={() => {
+          const task = editingTask;
           setEditingTask(null);
-          onNavigateToTasks?.(task);
+          if (task) onNavigateToTasks?.(task);
         }}
       />
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clock } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clock, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
@@ -15,9 +15,10 @@ interface AddTaskModalProps {
   defaultListId?: string;
   editingTaskId?: string;
   defaultDate?: Date;
+  onOpenInList?: () => void;
 }
 
-export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, defaultDate }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, defaultDate, onOpenInList }: AddTaskModalProps) {
   const { addTask, updateTask, deleteTask, toggleSubtask, taskCategories, tasks } = useAppStore();
   const editing = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : undefined;
 
@@ -34,6 +35,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [listPopoverOpen, setListPopoverOpen] = useState(false);
   const [showTimeFields, setShowTimeFields] = useState(false);
+  const [timeShortcutPopoverOpen, setTimeShortcutPopoverOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -367,7 +369,13 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                 {defaultDate && !date && (
                   <button
                     type="button"
-                    onClick={() => setDate(defaultDate.toISOString().slice(0, 10))}
+                    onClick={() => {
+                      const d = defaultDate;
+                      const yyyy = d.getFullYear();
+                      const mm = String(d.getMonth() + 1).padStart(2, '0');
+                      const dd = String(d.getDate()).padStart(2, '0');
+                      setDate(`${yyyy}-${mm}-${dd}`);
+                    }}
                     className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
                   >
                     <span className="text-xs font-medium text-muted-foreground">
@@ -376,18 +384,57 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                   </button>
                 )}
 
-                {/* Calendar time shortcut — only shown when opening from calendar and no time is set yet */}
-                {defaultDate && !time && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowTimeFields(true);
-                      setDatePopoverOpen(true);
-                    }}
-                    className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
-                  >
-                    <span className="text-xs font-medium text-muted-foreground">Time</span>
-                  </button>
+                {/* Calendar time shortcut — only shown after date shortcut used and no time set yet */}
+                {defaultDate && date && !time && (
+                  <Popover open={timeShortcutPopoverOpen} onOpenChange={setTimeShortcutPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
+                      >
+                        <span className="text-xs font-medium text-muted-foreground">Time</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="start"
+                      side="bottom"
+                      sideOffset={8}
+                      collisionPadding={16}
+                      className="w-auto p-3 rounded-2xl"
+                      style={{ zIndex: 10000 }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={time}
+                          onChange={(e) => { setShowTimeFields(true); handleTimeChange(e.target.value); }}
+                          autoFocus
+                          className={cn(
+                            'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
+                            !time && 'text-muted-foreground/60',
+                          )}
+                        />
+                        <span className="text-muted-foreground text-sm">–</span>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => handleEndTimeChange(e.target.value)}
+                          className={cn(
+                            'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
+                            !endTime && 'text-muted-foreground/60',
+                          )}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setTimeShortcutPopoverOpen(false)}
+                          className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary/70 flex items-center justify-center text-muted-foreground transition-colors shrink-0"
+                          aria-label="Done"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
             </PopoverAnchor>
@@ -492,6 +539,18 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                 className="w-11 h-11 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center"
               >
                 <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            {editing && onOpenInList && (
+              <button
+                onClick={() => {
+                  handleSave();
+                  onOpenInList();
+                }}
+                className="flex items-center justify-center gap-1.5 h-11 px-3 rounded-xl bg-secondary hover:bg-secondary/70 text-foreground text-sm font-medium transition-colors shrink-0"
+              >
+                <ListTodo className="w-4 h-4" />
+                Open in list
               </button>
             )}
             <button
