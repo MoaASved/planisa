@@ -166,26 +166,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     if (!editor) return;
     const dom = editor.view.dom;
 
-    const toggleTaskItem = (li: Element) => {
-      try {
-        const pos = editor.view.posAtDOM(li, 0);
-        const $pos = editor.state.doc.resolve(pos);
-        for (let d = $pos.depth; d >= 0; d--) {
-          if ($pos.node(d).type.name === 'taskItem') {
-            const nodePos = $pos.before(d);
-            const node = $pos.node(d);
-            editor.view.dispatch(
-              editor.state.tr.setNodeMarkup(nodePos, undefined, {
-                ...node.attrs,
-                checked: !node.attrs.checked,
-              })
-            );
-            return;
-          }
-        }
-      } catch { /* posAtDOM can throw */ }
-    };
-
     const isCheckboxTarget = (e: Event): Element | null => {
       const target = e.target as HTMLElement;
       const li = target.closest('li[data-type="taskItem"]');
@@ -201,9 +181,18 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      toggleTaskItem(li);
-      editor.commands.blur();
-      (document.activeElement as HTMLElement)?.blur();
+
+      // Disable editing so TipTap cannot refocus after the DOM change
+      editor.setEditable(false);
+
+      // Toggle directly in the DOM — no TipTap transaction, no focus side-effects
+      const input = li.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+      const wasChecked = li.getAttribute('data-checked') === 'true';
+      li.setAttribute('data-checked', wasChecked ? 'false' : 'true');
+      if (input) input.checked = !wasChecked;
+
+      // Re-enable editing after 100ms without calling focus
+      setTimeout(() => editor.setEditable(true), 100);
     };
 
     const handleCheckboxTouchEnd = (e: Event) => {
