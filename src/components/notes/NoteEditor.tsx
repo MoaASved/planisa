@@ -112,6 +112,22 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const [, forceUpdate] = useState(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kh = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
+      setKeyboardHeight(kh);
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -307,7 +323,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       {/* Top bar — three floating elements */}
       <div
         className="fixed left-0 right-0 z-[1250] flex items-center"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)', pointerEvents: 'none' }}
+        style={keyboardHeight > 50
+          ? { bottom: `${keyboardHeight}px`, top: 'auto', pointerEvents: 'none' }
+          : { top: 'calc(env(safe-area-inset-top, 0px) + 12px)', bottom: 'auto', pointerEvents: 'none' }
+        }
       >
 
           {/* Back arrow — round button, far left */}
