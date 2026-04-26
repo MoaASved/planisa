@@ -375,6 +375,24 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                     </span>
                   </button>
                 )}
+
+                {/* Calendar time shortcut — only shown when opening from calendar and no time is set yet */}
+                {defaultDate && !time && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const rounded = new Date(Math.round(now.getTime() / (15 * 60 * 1000)) * (15 * 60 * 1000));
+                      const h = String(rounded.getHours()).padStart(2, '0');
+                      const m = String(rounded.getMinutes()).padStart(2, '0');
+                      handleTimeChange(`${h}:${m}`);
+                      setShowTimeFields(true);
+                    }}
+                    className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
+                  >
+                    <span className="text-xs font-medium text-muted-foreground">Now</span>
+                  </button>
+                )}
               </div>
             </PopoverAnchor>
             <PopoverContent
