@@ -576,6 +576,8 @@ export function CalendarItemList({
                 })}
               </div>
             </div>
+            {/* Spacer so the last time slot scrolls above the bottom nav bar */}
+            <div className="h-24" />
           </div>
           {timelineCanScrollUp && (
             <div

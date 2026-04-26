@@ -38,6 +38,7 @@ export function TaskCell({ task, onClick, showListDot = false, highlight }: Task
 
   const subtaskTotal = task.subtasks.length;
   const subtaskDone = task.subtasks.filter((s) => s.completed).length;
+  const isTitleOnly = !task.note && !task.date && !task.time && subtaskTotal === 0 && !(showListDot && task.category);
 
   return (
     <button
@@ -52,8 +53,8 @@ export function TaskCell({ task, onClick, showListDot = false, highlight }: Task
         highlight && 'animate-task-highlight',
       )}
     >
-      <div className="flex items-start gap-3">
-        <div onClick={(e) => e.stopPropagation()} className="pt-0.5 self-start">
+      <div className={cn('flex gap-3', isTitleOnly ? 'items-center' : 'items-start')}>
+        <div onClick={(e) => e.stopPropagation()} className={cn(!isTitleOnly && 'pt-0.5 self-start')}>
           <AnimatedCheckbox checked={task.completed} onChange={() => toggleTask(task.id)} />
         </div>
 
