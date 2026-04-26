@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 import { format, startOfWeek, addDays, isToday, isSameDay, getWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
@@ -15,6 +15,7 @@ interface WeekDayViewProps {
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onWeekChange: (direction: 'prev' | 'next') => void;
+  onDayChange: (direction: 'prev' | 'next') => void;
   onDateSelect: (date: Date) => void;
 }
 
@@ -29,47 +30,59 @@ export function WeekDayView({
   onItemClick,
   onTaskToggle,
   onWeekChange,
+  onDayChange,
   onDateSelect,
 }: WeekDayViewProps) {
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
+  const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
 
   // Get week days for header
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const weekNumber = getWeek(weekStart, { weekStartsOn: 1 });
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleHeaderTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
-      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      headerTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   };
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (touchStartRef.current && e.changedTouches.length === 1) {
-      const endX = e.changedTouches[0].clientX;
-      const endY = e.changedTouches[0].clientY;
-      const deltaX = endX - touchStartRef.current.x;
-      const deltaY = endY - touchStartRef.current.y;
-
+  const handleHeaderTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (headerTouchRef.current && e.changedTouches.length === 1) {
+      const deltaX = e.changedTouches[0].clientX - headerTouchRef.current.x;
+      const deltaY = e.changedTouches[0].clientY - headerTouchRef.current.y;
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        if (deltaX > 0) {
-          onWeekChange('prev');
-        } else {
-          onWeekChange('next');
-        }
+        onWeekChange(deltaX > 0 ? 'prev' : 'next');
       }
     }
-    touchStartRef.current = null;
+    headerTouchRef.current = null;
   }, [onWeekChange]);
 
+  const handleBodyTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      bodyTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleBodyTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (bodyTouchRef.current && e.changedTouches.length === 1) {
+      const deltaX = e.changedTouches[0].clientX - bodyTouchRef.current.x;
+      const deltaY = e.changedTouches[0].clientY - bodyTouchRef.current.y;
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        onDayChange(deltaX > 0 ? 'prev' : 'next');
+      }
+    }
+    bodyTouchRef.current = null;
+  }, [onDayChange]);
+
   return (
-    <div 
-      className="animate-fade-in flex flex-col h-full overflow-x-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Week header - clean white background */}
-      <div className="flex-shrink-0 px-3 pb-3 bg-background">
+    <div className="animate-fade-in flex flex-col h-full overflow-x-hidden">
+      {/* Week header - swipe left/right changes the whole week */}
+      <div
+        className="flex-shrink-0 px-3 pb-3 bg-background"
+        onTouchStart={handleHeaderTouchStart}
+        onTouchEnd={handleHeaderTouchEnd}
+      >
         <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-1">
           {/* Week number */}
           <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 py-2">
@@ -106,8 +119,12 @@ export function WeekDayView({
         </div>
       </div>
 
-      {/* Lower section - unified background, no divider */}
-      <div className="flex-1 flex flex-col relative bg-background">
+      {/* Lower section - swipe left/right changes one day at a time */}
+      <div
+        className="flex-1 flex flex-col relative bg-background"
+        onTouchStart={handleBodyTouchStart}
+        onTouchEnd={handleBodyTouchEnd}
+      >
         <CalendarItemList
           date={selectedDate}
           events={events}

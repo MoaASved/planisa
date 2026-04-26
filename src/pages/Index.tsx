@@ -46,6 +46,7 @@ const Index = () => {
   
   // Task creation state
   const [isCreatingNewTask, setIsCreatingNewTask] = useState(false);
+  const [defaultTaskDate, setDefaultTaskDate] = useState<Date | undefined>(undefined);
 
   // Apply theme on mount and when settings change
   useEffect(() => {
@@ -72,6 +73,7 @@ const Index = () => {
 
   const handleCreateTask = () => {
     setIsCreatingNewTask(true);
+    setDefaultTaskDate(activeTab === 'calendar' ? selectedCalendarDate : undefined);
     setActiveTab('tasks');
   };
 
@@ -107,9 +109,10 @@ const Index = () => {
         return <CalendarViewComponent onDateChange={setSelectedCalendarDate} onNavigateToTasks={(task) => { setHighlightTaskId(task.id); setActiveTab('tasks'); }} />;
       case 'tasks':
         return (
-          <TasksView 
+          <TasksView
             isCreatingNewTask={isCreatingNewTask}
-            onCreatingTaskComplete={() => setIsCreatingNewTask(false)}
+            onCreatingTaskComplete={() => { setIsCreatingNewTask(false); setDefaultTaskDate(undefined); }}
+            defaultTaskDate={defaultTaskDate}
           />
         );
       case 'notes':

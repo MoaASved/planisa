@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addMonths, subMonths, addWeeks, subWeeks, startOfWeek } from 'date-fns';
+import { addMonths, subMonths, addWeeks, subWeeks, addDays, startOfWeek } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor, Task, CalendarEvent, Note } from '@/types';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
@@ -156,17 +156,26 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   };
 
   const handleWeekChange = (direction: 'prev' | 'next') => {
-    const newDate = direction === 'prev' 
-      ? subWeeks(currentDate, 1) 
+    const newDate = direction === 'prev'
+      ? subWeeks(currentDate, 1)
       : addWeeks(currentDate, 1);
     setCurrentDate(newDate);
-    
+
     // Update selected date to same day of week in new week
     const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 });
     const currentDayOffset = selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1;
     const newSelectedDate = new Date(newWeekStart);
     newSelectedDate.setDate(newWeekStart.getDate() + currentDayOffset);
     setSelectedDate(newSelectedDate);
+  };
+
+  const handleDayChange = (direction: 'prev' | 'next') => {
+    const newDate = direction === 'prev' ? addDays(selectedDate, -1) : addDays(selectedDate, 1);
+    setSelectedDate(newDate);
+    // Sync currentDate when crossing a week boundary so the header updates
+    const curWeekStart = startOfWeek(currentDate, { weekStartsOn: 1 }).getTime();
+    const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 }).getTime();
+    if (curWeekStart !== newWeekStart) setCurrentDate(newDate);
   };
 
   return (
@@ -218,6 +227,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onItemClick={handleItemClick}
             onTaskToggle={handleTaskToggle}
             onWeekChange={handleWeekChange}
+            onDayChange={handleDayChange}
             onDateSelect={handleDateSelect}
           />
         )}

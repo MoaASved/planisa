@@ -28,11 +28,12 @@ import {
 interface TasksViewProps {
   isCreatingNewTask?: boolean;
   onCreatingTaskComplete?: () => void;
+  defaultTaskDate?: Date;
 }
 
 type SmartView = 'priority' | 'today' | null;
 
-export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksViewProps) {
+export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTaskDate }: TasksViewProps) {
   const { tasks, taskCategories, searchQuery, reorderTaskCategories, highlightTaskId, setHighlightTaskId } = useAppStore();
 
   const [selectedList, setSelectedList] = useState<TaskCategory | null>(null);
@@ -222,7 +223,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete }: TasksVi
       </div>
 
       <CreateListModal isOpen={showCreateList} onClose={() => setShowCreateList(false)} />
-      <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} />
+      <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} />
     </div>
   );
 }

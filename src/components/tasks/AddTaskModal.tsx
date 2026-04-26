@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { format } from 'date-fns';
+import { format, isToday, isTomorrow } from 'date-fns';
 import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -14,9 +14,10 @@ interface AddTaskModalProps {
   onClose: () => void;
   defaultListId?: string;
   editingTaskId?: string;
+  defaultDate?: Date;
 }
 
-export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, defaultDate }: AddTaskModalProps) {
   const { addTask, updateTask, deleteTask, toggleSubtask, taskCategories, tasks } = useAppStore();
   const editing = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : undefined;
 
@@ -361,6 +362,19 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId }: 
                     )}
                   </button>
                 </PopoverTrigger>
+
+                {/* Calendar date shortcut — only shown when opening from calendar and no date is set yet */}
+                {defaultDate && !date && (
+                  <button
+                    type="button"
+                    onClick={() => setDate(defaultDate.toISOString().slice(0, 10))}
+                    className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
+                  >
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {isToday(defaultDate) ? 'Today' : isTomorrow(defaultDate) ? 'Tomorrow' : format(defaultDate, 'MMM d')}
+                    </span>
+                  </button>
+                )}
               </div>
             </PopoverAnchor>
             <PopoverContent
