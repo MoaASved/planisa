@@ -113,11 +113,15 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
   const [, forceUpdate] = useState(0);
   const [viewportOffset, setViewportOffset] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
 
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const onUpdate = () => setViewportOffset(vv.offsetTop);
+    const onUpdate = () => {
+      setViewportOffset(vv.offsetTop);
+      setViewportHeight(vv.height);
+    };
     vv.addEventListener('resize', onUpdate);
     vv.addEventListener('scroll', onUpdate);
     return () => {
@@ -132,7 +136,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
       TaskList,
       TaskItem.configure({ nested: true }),
-      Placeholder.configure({ placeholder: 'Start writing...' }),
+      Placeholder.configure({ placeholder: '' }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       DraggableImage,
       VoiceNoteExtension,
@@ -182,21 +186,44 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       } catch { /* posAtDOM can throw */ }
     };
 
-    const handleCheckboxTap = (e: Event) => {
+    const isCheckboxTarget = (e: Event): Element | null => {
       const target = e.target as HTMLElement;
       const li = target.closest('li[data-type="taskItem"]');
-      if (!li) return;
+      if (!li) return null;
       const label = li.querySelector('label');
-      if (!label || !label.contains(target)) return;
+      if (!label || !label.contains(target)) return null;
+      return li;
+    };
+
+    const handleCheckboxTap = (e: Event) => {
+      const li = isCheckboxTarget(e);
+      if (!li) return;
       e.preventDefault();
       e.stopImmediatePropagation();
+      const editorWasFocused = document.activeElement === dom;
       toggleTaskItem(li);
+      if (!editorWasFocused) {
+        requestAnimationFrame(() => {
+          if (document.activeElement === dom) {
+            (dom as HTMLElement).blur();
+          }
+        });
+      }
+    };
+
+    const handleCheckboxTouchEnd = (e: Event) => {
+      const li = isCheckboxTarget(e);
+      if (!li) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
     };
 
     dom.addEventListener('touchstart', handleCheckboxTap, { capture: true, passive: false });
+    dom.addEventListener('touchend', handleCheckboxTouchEnd, { capture: true, passive: false });
     dom.addEventListener('mousedown', handleCheckboxTap, true);
     return () => {
       dom.removeEventListener('touchstart', handleCheckboxTap, true);
+      dom.removeEventListener('touchend', handleCheckboxTouchEnd, true);
       dom.removeEventListener('mousedown', handleCheckboxTap, true);
     };
   }, [editor]);
@@ -315,7 +342,10 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   );
 
   return (
-    <div className="fixed inset-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in">
+    <div
+      className="fixed left-0 right-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
+      style={{ top: `${viewportOffset}px`, height: `${viewportHeight}px` }}
+    >
 
       {/* Top bar — three floating elements */}
       <div
@@ -736,15 +766,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             )}
           </div>
         )}
-
-        {/* Title — no placeholder, left-aligned */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-2xl font-bold bg-transparent border-0 outline-none text-foreground mb-3 block"
-          placeholder=""
-        />
 
         {/* TipTap editor */}
         <EditorContent editor={editor} className="tiptap-content" />
