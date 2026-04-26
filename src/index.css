@@ -729,6 +729,11 @@ input[type="time"]::-webkit-inner-spin-button {
   @apply flex-1 leading-snug;
 }
 
+/* Prevent the editable content div from receiving focus while the checkbox label is being tapped */
+.tiptap-editor ul[data-type="taskList"] li[data-type="taskItem"]:has(label:active) > div[contenteditable="true"] {
+  pointer-events: none;
+}
+
 /* No strikethrough on checked items */
 .tiptap-editor ul[data-type="taskList"] li[data-checked="true"] > div {
   @apply text-foreground;
