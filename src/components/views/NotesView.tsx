@@ -225,42 +225,67 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
         )}
       >
-        <div className="flex items-start gap-2">
-          {/* Left: star + title + preview */}
-          <div className="flex-1 min-w-0">
-            {(header || note.isPinned) && (
-              <div className="flex items-center gap-1.5">
+        {isGrid ? (
+          /* Grid layout: star top-right, title+preview top-left, folder+date bottom row */
+          <div className="flex flex-col h-full">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                {header && <h4 className="flow-card-title">{header}</h4>}
                 {note.isPinned && (
                   <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
                 )}
-                {header && (
-                  <h4 className="flow-card-title truncate">{header}</h4>
-                )}
               </div>
-            )}
-            {preview && (
-              <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-2">
-                {preview}
-              </p>
-            )}
-          </div>
-
-          {/* Right: folder on top, date below, right-aligned */}
-          <div className="flex-shrink-0 text-right">
-            {note.folder && (
-              <div>
+              {preview && (
+                <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-4">
+                  {preview}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-2 mt-auto pt-3">
+              {note.folder ? (
                 <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
                   {note.folder}
                 </span>
-              </div>
-            )}
-            <div className={note.folder ? 'mt-1' : ''}>
+              ) : <span />}
               <span className="flow-meta-sm">
                 {format(new Date(note.date || note.updatedAt), 'MMM d')}
               </span>
             </div>
           </div>
-        </div>
+        ) : (
+          /* List layout: star+title left, folder+date right-aligned column */
+          <div className="flex items-start gap-2">
+            <div className="flex-1 min-w-0">
+              {(header || note.isPinned) && (
+                <div className="flex items-center gap-1.5">
+                  {note.isPinned && (
+                    <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
+                  )}
+                  {header && <h4 className="flow-card-title truncate">{header}</h4>}
+                </div>
+              )}
+              {preview && (
+                <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-2">
+                  {preview}
+                </p>
+              )}
+            </div>
+            <div className="flex-shrink-0 text-right">
+              {note.folder && (
+                <div>
+                  <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
+                    {note.folder}
+                  </span>
+                </div>
+              )}
+              <div className={note.folder ? 'mt-1' : ''}>
+                <span className="flow-meta-sm">
+                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </button>
     );
   };
