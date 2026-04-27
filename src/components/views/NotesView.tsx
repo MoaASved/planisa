@@ -270,19 +270,15 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 </p>
               )}
             </div>
-            <div className="flex-shrink-0 text-right">
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
               {note.folder && (
-                <div>
-                  <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
-                    {note.folder}
-                  </span>
-                </div>
-              )}
-              <div className={note.folder ? 'mt-1' : ''}>
-                <span className="flow-meta-sm">
-                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-gray', 'text-foreground/75')}>
+                  {note.folder}
                 </span>
-              </div>
+              )}
+              <span className="flow-meta-sm">
+                {format(new Date(note.date || note.updatedAt), 'MMM d')}
+              </span>
             </div>
           </div>
         )}
