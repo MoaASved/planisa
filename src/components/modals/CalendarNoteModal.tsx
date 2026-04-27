@@ -51,8 +51,8 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
       {/* Preview card — bottom sheet */}
       <div className="fixed inset-x-0 bottom-0 z-[1200] animate-slide-up">
         <div
-          className="bg-[#F8F7F4] dark:bg-background rounded-t-[24px] flex flex-col overflow-hidden"
-          style={{ maxHeight: '72vh', boxShadow: '0 -8px 40px rgba(0,0,0,0.10)' }}
+          className="bg-[#F8F7F4] dark:bg-background rounded-t-[32px] flex flex-col overflow-hidden"
+          style={{ maxHeight: '72vh', boxShadow: '0 -16px 60px rgba(0,0,0,0.22), 0 -2px 8px rgba(0,0,0,0.08)' }}
         >
           {/* Top bar: date + close */}
           <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
@@ -84,7 +84,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
           <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
             {note.content ? (
               <div
-                className="tiptap-content prose prose-sm max-w-none text-foreground pointer-events-none select-none"
+                className="tiptap-editor pointer-events-none select-none"
                 dangerouslySetInnerHTML={{ __html: note.content }}
               />
             ) : (

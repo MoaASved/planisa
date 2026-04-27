@@ -14,6 +14,18 @@ import {
 const HOUR_HEIGHT = 60;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
+const getNoteDisplayTitle = (note: Note): string => {
+  if (note.title && note.title !== 'Untitled') return note.title;
+  if (!note.content) return '';
+  const text = note.content
+    .replace(/<\/p>/gi, '\n').replace(/<\/h[1-6]>/gi, '\n')
+    .replace(/<\/li>/gi, '\n').replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  return text.split('\n').map(l => l.trim()).find(l => l.length > 0) || '';
+};
+
 // Helper function: add minutes to a time string
 const addMinutes = (time: string, minutes: number): string => {
   const [h, m] = time.split(':').map(Number);
@@ -429,7 +441,7 @@ export function CalendarItemList({
       >
         <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
         <div className="flex-1 min-w-0">
-          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{note.title || 'Untitled'}</span>
+          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
           {showTime && time && (
             <span className="text-xs text-[#2C2C2A]/70">
               {time}{endTime && ` - ${endTime}`}
