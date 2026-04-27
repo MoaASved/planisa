@@ -1,11 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Calendar, Clock, FileText, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Note } from '@/types';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 interface CalendarNoteModalProps {
   note: Note | null;
@@ -16,169 +13,94 @@ interface CalendarNoteModalProps {
 
 export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: CalendarNoteModalProps) {
   const { updateNote } = useAppStore();
-  
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState<Date>(new Date());
-  const [isAllDay, setIsAllDay] = useState(true);
-  const [time, setTime] = useState<string | undefined>(undefined);
-  const [endTime, setEndTime] = useState<string | undefined>(undefined);
-  const endTimeManuallySet = useRef(false);
-
-  const calculateEndTime = (start: string): string => {
-    const [h, m] = start.split(':').map(Number);
-    const endH = Math.min(h + 1, 23);
-    const endMin = h + 1 > 23 ? 59 : m;
-    return `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
-  };
 
   useEffect(() => {
-    if (note) {
-      setTitle(note.title);
-      setDate(note.date ? new Date(note.date) : new Date());
-      setTime(note.time);
-      setEndTime(note.endTime);
-      setIsAllDay(!note.time);
-      endTimeManuallySet.current = false;
-    }
+    if (note) setTitle(note.title);
   }, [note]);
 
   if (!isOpen || !note) return null;
 
-  const handleSave = () => {
-    updateNote(note.id, {
-      title: title.trim() || 'Untitled',
-      date,
-      time: isAllDay ? undefined : time,
-      endTime: isAllDay ? undefined : endTime,
-    });
+  const isNotebookPage = note.id.startsWith('nbp-');
+
+  const saveTitle = () => {
+    if (!isNotebookPage) {
+      updateNote(note.id, { title: title.trim() });
+    }
+  };
+
+  const handleClose = () => {
+    saveTitle();
     onClose();
   };
 
-  const handleOpenNote = () => {
-    onClose();
+  const handleOpen = () => {
+    saveTitle();
     onOpenFullEditor(note);
   };
 
+  const dateDisplay = note.date
+    ? format(new Date(note.date), 'MMMM d, yyyy')
+    : null;
+
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[1100] animate-fade-in" 
-        onClick={onClose} 
-      />
-      
-      {/* Compact Bottom Sheet Modal */}
-      <div className="fixed inset-x-3 z-[1200] bg-card rounded-2xl p-4 max-w-sm mx-auto animate-scale-in shadow-elevated" style={{ bottom: '40%' }}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold text-foreground">Note</h3>
-          <button 
-            onClick={onClose}
-            className="p-1.5 rounded-full bg-secondary hover:bg-muted transition-colors"
-          >
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
+      {/* Tap-away backdrop */}
+      <div className="fixed inset-0 z-[1100]" onClick={handleClose} />
 
-        {/* Title */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full bg-secondary rounded-xl px-3 py-2.5 text-sm mb-3 border-0 outline-none text-foreground placeholder:text-muted-foreground"
-          placeholder="Note title"
-        />
+      {/* Preview card — bottom sheet */}
+      <div className="fixed inset-x-0 bottom-0 z-[1200] animate-slide-up">
+        <div
+          className="bg-[#F8F7F4] dark:bg-background rounded-t-[24px] flex flex-col overflow-hidden"
+          style={{ maxHeight: '72vh', boxShadow: '0 -8px 40px rgba(0,0,0,0.10)' }}
+        >
+          {/* Top bar: date + close */}
+          <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
+            <span className="text-sm text-muted-foreground">
+              {dateDisplay}
+            </span>
+            <button
+              onClick={handleClose}
+              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-all"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
 
-        {/* Date & Time Row */}
-        <div className="flex items-center gap-2 mb-3">
-          {/* Date picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-secondary text-sm text-foreground hover:bg-muted transition-colors">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                {format(date, 'MMM d')}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={date}
-                onSelect={(d) => d && setDate(d)}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-          
-          {/* Time toggle */}
-          <button
-            onClick={() => {
-              if (isAllDay) {
-                setIsAllDay(false);
-                const defaultTime = '09:00';
-                setTime(defaultTime);
-                setEndTime(calculateEndTime(defaultTime));
-                endTimeManuallySet.current = false;
-              } else {
-                setIsAllDay(true);
-                setTime(undefined);
-                setEndTime(undefined);
-              }
-            }}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors",
-              isAllDay ? "bg-secondary text-foreground" : "bg-primary text-primary-foreground"
-            )}
-          >
-            <Clock className="w-4 h-4" />
-            {isAllDay ? 'All day' : (time || '09:00')}
-          </button>
-        </div>
-
-        {/* Time inputs when not all day */}
-        {!isAllDay && (
-          <div className="flex items-center gap-2 mb-3">
+          {/* Title field */}
+          <div className="px-5 pb-3 flex-shrink-0">
             <input
-              type="time"
-              value={time || '09:00'}
-              onChange={(e) => {
-                setTime(e.target.value);
-                if (!endTimeManuallySet.current && e.target.value) {
-                  setEndTime(calculateEndTime(e.target.value));
-                }
-              }}
-              className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-            />
-            <span className="text-muted-foreground">-</span>
-            <input
-              type="time"
-              value={endTime || ''}
-              onChange={(e) => {
-                endTimeManuallySet.current = true;
-                setEndTime(e.target.value || undefined);
-              }}
-              min={time}
-              placeholder="End"
-              className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Add title…"
+              className="w-full bg-transparent text-lg font-semibold text-foreground placeholder:text-muted-foreground/40 border-0 outline-none"
             />
           </div>
-        )}
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleOpenNote}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
-          >
-            <FileText className="w-4 h-4" />
-            Open
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            Save
-          </button>
+          <div className="h-px bg-border/50 mx-5 flex-shrink-0" />
+
+          {/* Read-only content preview */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
+            {note.content ? (
+              <div
+                className="tiptap-content prose prose-sm max-w-none text-foreground pointer-events-none select-none"
+                dangerouslySetInnerHTML={{ __html: note.content }}
+              />
+            ) : (
+              <p className="text-muted-foreground/50 text-sm italic">No content</p>
+            )}
+          </div>
+
+          {/* Open button */}
+          <div className="px-5 pt-3 pb-8 border-t border-border/30 flex-shrink-0">
+            <button
+              onClick={handleOpen}
+              className="w-full py-3 rounded-2xl bg-foreground text-background text-sm font-semibold active:scale-[0.98] transition-all"
+            >
+              Open
+            </button>
+          </div>
         </div>
       </div>
     </>
