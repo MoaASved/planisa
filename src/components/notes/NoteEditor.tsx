@@ -608,11 +608,19 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between px-2 py-1.5">
-                    <span className="text-sm text-foreground">Hide from All Notes</span>
-                    <button onClick={() => setHideFromAllNotes(!hideFromAllNotes)} className={toggleStyle(hideFromAllNotes)}>
-                      <span className={toggleKnob(hideFromAllNotes)} />
-                    </button>
+                  <div className={cn('px-2 py-1.5', !folder && 'opacity-40')}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-foreground">Hide from All Notes</span>
+                      <button
+                        onClick={() => folder && setHideFromAllNotes(!hideFromAllNotes)}
+                        className={cn(toggleStyle(hideFromAllNotes), !folder && 'cursor-not-allowed')}
+                      >
+                        <span className={toggleKnob(hideFromAllNotes)} />
+                      </button>
+                    </div>
+                    {!folder && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Requires a folder</p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between px-2 py-1.5">
