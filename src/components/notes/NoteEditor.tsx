@@ -107,6 +107,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [inlineFolderColor, setInlineFolderColor] = useState<PastelColor>('sky');
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
+  const [removeHighlightMode, setRemoveHighlightMode] = useState(false);
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -299,15 +300,23 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   };
 
   useEffect(() => {
+    if (!activeHighlightColor) setRemoveHighlightMode(false);
+  }, [activeHighlightColor]);
+
+  useEffect(() => {
     if (!editor || !activeHighlightColor) return;
     const handler = ({ editor: e }: { editor: typeof editor }) => {
       if (e && !e.state.selection.empty) {
-        e.chain().setHighlight({ color: colorHslMap[activeHighlightColor] }).run();
+        if (removeHighlightMode) {
+          e.chain().unsetHighlight().run();
+        } else {
+          e.chain().setHighlight({ color: colorHslMap[activeHighlightColor] }).run();
+        }
       }
     };
     editor.on('selectionUpdate', handler as any);
     return () => { editor.off('selectionUpdate', handler as any); };
-  }, [editor, activeHighlightColor]);
+  }, [editor, activeHighlightColor, removeHighlightMode]);
 
   const cycleAlignment = () => {
     const next = textAlign === 'left' ? 'center' : textAlign === 'center' ? 'right' : 'left';
@@ -721,6 +730,38 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
           </Popover>
           </div>{/* end + ··· pill */}
       </div>{/* end top bar */}
+
+      {/* Floating highlight mode circle */}
+      {activeHighlightColor && (
+        <div
+          className="fixed z-[1200]"
+          style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 64}px)`, right: '16px' }}
+        >
+          <div className="relative">
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setRemoveHighlightMode(m => !m)}
+              className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center active:scale-95 transition-all"
+            >
+              <div className="relative">
+                <Highlighter className="w-5 h-5" style={{ color: colorHslMap[activeHighlightColor] }} />
+                {removeHighlightMode && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="absolute w-[130%] h-0.5 bg-foreground/70 rotate-[-40deg]" />
+                  </div>
+                )}
+              </div>
+            </button>
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { setActiveHighlightColor(null); setRemoveHighlightMode(false); }}
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-foreground/75 text-background flex items-center justify-center shadow-sm active:scale-90 transition-all"
+            >
+              <span className="text-[11px] font-bold leading-none">×</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Highlight color picker */}
       {showHighlightPicker && (
