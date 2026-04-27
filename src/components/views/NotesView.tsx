@@ -243,7 +243,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
             <div className="flex items-center justify-between gap-2 mt-auto pt-3">
               {note.folder ? (
-                <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-gray', 'text-foreground/75')}>
                   {note.folder}
                 </span>
               ) : <span />}
