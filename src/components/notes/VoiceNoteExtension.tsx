@@ -3,7 +3,7 @@ import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import { VoiceNotePlayer } from './VoiceNotePlayer';
 
-function VoiceNoteComponent({ node, editor, getPos, deleteNode }: { node: any; editor: any; getPos: () => number | undefined; deleteNode: () => void }) {
+function VoiceNoteComponent({ node, editor, getPos, deleteNode, selected }: { node: any; editor: any; getPos: () => number | undefined; deleteNode: () => void; selected: boolean }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const draggingRef = useRef(false);
@@ -63,6 +63,38 @@ function VoiceNoteComponent({ node, editor, getPos, deleteNode }: { node: any; e
     startRef.current = null;
   };
 
+  const moveUp = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nodePos = getPos();
+    if (nodePos == null) return;
+    const $pos = editor.state.doc.resolve(nodePos);
+    if (!$pos.nodeBefore) return;
+    const prevStart = nodePos - $pos.nodeBefore.nodeSize;
+    const nodeToMove = editor.state.doc.nodeAt(nodePos);
+    if (!nodeToMove) return;
+    const tr = editor.state.tr;
+    tr.delete(nodePos, nodePos + node.nodeSize);
+    tr.insert(prevStart, nodeToMove);
+    editor.view.dispatch(tr);
+  };
+
+  const moveDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nodePos = getPos();
+    if (nodePos == null) return;
+    const nodeEnd = nodePos + node.nodeSize;
+    const $end = editor.state.doc.resolve(nodeEnd);
+    if (!$end.nodeAfter) return;
+    const nodeToMove = editor.state.doc.nodeAt(nodePos);
+    if (!nodeToMove) return;
+    const tr = editor.state.tr;
+    tr.delete(nodePos, nodeEnd);
+    tr.insert(nodePos + $end.nodeAfter.nodeSize, nodeToMove);
+    editor.view.dispatch(tr);
+  };
+
   return (
     <NodeViewWrapper
       className="relative group voice-note-wrapper my-4"
@@ -77,6 +109,18 @@ function VoiceNoteComponent({ node, editor, getPos, deleteNode }: { node: any; e
         duration={node.attrs.duration}
         onDelete={deleteNode}
       />
+      {selected && (
+        <div contentEditable={false} className="absolute top-2 right-2 flex flex-col gap-1 z-10">
+          <button
+            onPointerDown={moveUp}
+            className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60 transition-colors select-none"
+          >↑</button>
+          <button
+            onPointerDown={moveDown}
+            className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60 transition-colors select-none"
+          >↓</button>
+        </div>
+      )}
     </NodeViewWrapper>
   );
 }
