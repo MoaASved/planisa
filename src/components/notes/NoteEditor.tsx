@@ -784,12 +784,6 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                   />
                 ))}
               </div>
-              <button
-                onClick={handleRemoveHighlight}
-                className="mt-2 w-full text-sm text-muted-foreground hover:text-foreground py-1.5 rounded-xl hover:bg-secondary transition-colors"
-              >
-                Remove highlight
-              </button>
             </div>
           </div>
         </>
