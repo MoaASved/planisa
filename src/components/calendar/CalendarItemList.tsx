@@ -555,13 +555,14 @@ export function CalendarItemList({
                   const widthPercent = 100 / colInfo.totalColumns;
                   const leftPercent = colInfo.column * widthPercent;
 
+                  const GAP = 4;
                   return (
                     <div
                       key={item.id}
                       className="absolute"
-                      style={{ 
-                        top, 
-                        height,
+                      style={{
+                        top: top + GAP / 2,
+                        height: Math.max(height - GAP, 20),
                         left: `${leftPercent}%`,
                         width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
                       }}
