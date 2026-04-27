@@ -225,26 +225,28 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
         )}
       >
-        <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
+        <div className="flex items-start gap-2">
+          {/* Left: star + title + preview */}
           <div className="flex-1 min-w-0">
             {(header || note.isPinned) && (
-              <div className="flex items-start justify-between gap-2">
-                {header && (
-                  <h4 className="flow-card-title truncate">{header}</h4>
-                )}
+              <div className="flex items-center gap-1.5">
                 {note.isPinned && (
                   <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
+                )}
+                {header && (
+                  <h4 className="flow-card-title truncate">{header}</h4>
                 )}
               </div>
             )}
             {preview && (
-              <p className={cn('text-[13px] text-muted-foreground leading-snug whitespace-pre-line', header && 'mt-1', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
+              <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-2">
                 {preview}
               </p>
             )}
           </div>
 
-          <div className={cn('flex items-center gap-2 flex-wrap', isGrid ? 'mt-auto pt-3' : 'mt-2')}>
+          {/* Right: folder on top, date below, right-aligned */}
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
             {note.folder && (
               <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
                 {note.folder}
@@ -254,10 +256,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               {format(new Date(note.date || note.updatedAt), 'MMM d')}
             </span>
           </div>
-
-          {!isGrid && (
-            <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
-          )}
         </div>
       </button>
     );
