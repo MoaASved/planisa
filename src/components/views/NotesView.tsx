@@ -104,9 +104,23 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     ? notes.filter(n => n.folder === selectedFolder.name)
     : [];
 
-  const getPreview = (content: string) => {
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
-    return plainText.slice(0, 100) + (plainText.length > 100 ? '...' : '');
+  const parseNoteContent = (html: string): { header: string; preview: string } => {
+    if (!html || html.trim() === '') return { header: '', preview: '' };
+    const withBreaks = html
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<\/h[1-6]>/gi, '\n')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    const lines = withBreaks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length === 0) return { header: '', preview: '' };
+    return { header: lines[0], preview: lines.slice(1).join('\n') };
   };
 
   const handleCreateFolder = () => {
@@ -193,12 +207,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => {
     const folderData = folders.find(f => f.name === note.folder);
     const isSticky = note.type === 'sticky';
-    
+
     // Only sticky notes get color
     const cardBgClass = isSticky && note.color
       ? `bg-[hsl(var(--pastel-${note.color}))]`
       : 'bg-card border border-black/[0.04]';
-    
+
+    const { header, preview } = parseNoteContent(note.content);
+
     return (
       <button
         onClick={() => handleOpenNote(note)}
@@ -211,19 +227,23 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       >
         <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <h4 className="flow-card-title truncate">
-                {note.title || 'Untitled'}
-              </h4>
-              {note.isPinned && (
-                <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
-              )}
-            </div>
-            <p className={cn('text-[13px] text-muted-foreground mt-1 leading-snug', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
-              {getPreview(note.content)}
-            </p>
+            {(header || note.isPinned) && (
+              <div className="flex items-start justify-between gap-2">
+                {header && (
+                  <h4 className="flow-card-title truncate">{header}</h4>
+                )}
+                {note.isPinned && (
+                  <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
+                )}
+              </div>
+            )}
+            {preview && (
+              <p className={cn('text-[13px] text-muted-foreground leading-snug whitespace-pre-line', header && 'mt-1', isGrid ? 'line-clamp-4' : 'line-clamp-2')}>
+                {preview}
+              </p>
+            )}
           </div>
-          
+
           <div className={cn('flex items-center gap-2 flex-wrap', isGrid ? 'mt-auto pt-3' : 'mt-2')}>
             {note.folder && (
               <span className={cn('flow-badge', folderData ? `flow-badge-${folderData.color}` : 'flow-badge-gray')}>
@@ -234,7 +254,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               {format(new Date(note.date || note.updatedAt), 'MMM d')}
             </span>
           </div>
-          
+
           {!isGrid && (
             <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
           )}
