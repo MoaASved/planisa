@@ -16,7 +16,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const [title, setTitle] = useState('');
 
   useEffect(() => {
-    if (note) setTitle(note.title);
+    if (note) setTitle(note.title === 'Untitled' ? '' : (note.title || ''));
   }, [note]);
 
   if (!isOpen || !note) return null;
@@ -73,7 +73,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Add title…"
+              placeholder=""
               className="w-full bg-transparent text-lg font-semibold text-foreground placeholder:text-muted-foreground/40 border-0 outline-none"
             />
           </div>
