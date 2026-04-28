@@ -9,6 +9,8 @@ import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
+import { CalendarNoteCreateSheet } from '@/components/modals/CalendarNoteCreateSheet';
+import { CalendarStickyCreateSheet } from '@/components/modals/CalendarStickyCreateSheet';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
@@ -21,7 +23,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
   
-  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages, addNote } = useAppStore();
+  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages } = useAppStore();
 
   // Edit modal states
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
@@ -33,7 +35,9 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   // Timeline create states
   const [showTimelineCreateEvent, setShowTimelineCreateEvent] = useState(false);
   const [showTimelineCreateTask, setShowTimelineCreateTask] = useState(false);
-  const [timelineCreateTime, setTimelineCreateTime] = useState<string | undefined>(undefined);
+  const [showTimelineCreateNote, setShowTimelineCreateNote] = useState(false);
+  const [showTimelineCreateSticky, setShowTimelineCreateSticky] = useState(false);
+  const [timelineCreateTime, setTimelineCreateTime] = useState<string>('');
 
   // Filter notes to only show those with showInCalendar enabled
   const calendarNotes: Note[] = [
@@ -160,38 +164,9 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     } else if (type === 'task') {
       setShowTimelineCreateTask(true);
     } else if (type === 'note') {
-      addNote({
-        title: '',
-        content: '',
-        type: 'note' as const,
-        tags: [],
-        date: selectedDate,
-        time,
-        isPinned: false,
-        showInCalendar: true,
-      });
-      const notesList = useAppStore.getState().notes;
-      const created = notesList[notesList.length - 1];
-      if (created) {
-        setEditingNote(created);
-        setShowNoteEditor(true);
-      }
+      setShowTimelineCreateNote(true);
     } else if (type === 'sticky') {
-      addNote({
-        title: '',
-        content: '',
-        type: 'sticky' as const,
-        tags: [],
-        date: selectedDate,
-        time,
-        isPinned: false,
-        showInCalendar: true,
-      });
-      const notesList = useAppStore.getState().notes;
-      const created = notesList[notesList.length - 1];
-      if (created) {
-        setEditingStickyNote(created);
-      }
+      setShowTimelineCreateSticky(true);
     }
   };
 
@@ -303,7 +278,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
       {/* Timeline create modals */}
       <CreateEventModal
         isOpen={showTimelineCreateEvent}
-        onClose={() => { setShowTimelineCreateEvent(false); setTimelineCreateTime(undefined); }}
+        onClose={() => { setShowTimelineCreateEvent(false); setTimelineCreateTime(''); }}
         initialDate={selectedDate}
         initialTime={timelineCreateTime}
       />
@@ -311,7 +286,25 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         isOpen={showTimelineCreateTask}
         defaultDate={selectedDate}
         defaultTime={timelineCreateTime}
-        onClose={() => { setShowTimelineCreateTask(false); setTimelineCreateTime(undefined); }}
+        onClose={() => { setShowTimelineCreateTask(false); setTimelineCreateTime(''); }}
+      />
+      <CalendarNoteCreateSheet
+        isOpen={showTimelineCreateNote}
+        date={selectedDate}
+        time={timelineCreateTime}
+        onClose={() => { setShowTimelineCreateNote(false); setTimelineCreateTime(''); }}
+        onOpenInNotes={(note) => {
+          setShowTimelineCreateNote(false);
+          setTimelineCreateTime('');
+          setEditingNote(note);
+          setShowNoteEditor(true);
+        }}
+      />
+      <CalendarStickyCreateSheet
+        isOpen={showTimelineCreateSticky}
+        date={selectedDate}
+        time={timelineCreateTime}
+        onClose={() => { setShowTimelineCreateSticky(false); setTimelineCreateTime(''); }}
       />
 
       {/* Edit Modals */}
