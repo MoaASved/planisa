@@ -108,7 +108,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
 
     if (note) {
       updateNote(note.id, noteData);
-    } else {
+    } else if (content.trim()) {
       addNote(noteData);
     }
     onClose();
@@ -144,10 +144,10 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
           getStickyBgClass(color)
         )}
         style={{
-          maxHeight: '70vh',
-          top: keyboardOffset > 0
-            ? `calc((100vh - ${keyboardOffset}px) / 2)`
-            : '50%',
+          maxHeight: keyboardOffset > 0
+            ? Math.max(220, window.innerHeight - 2 * keyboardOffset - 16)
+            : '70vh',
+          top: '50%',
           transform: 'translateY(-50%)',
         }}
       >

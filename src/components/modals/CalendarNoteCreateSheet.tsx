@@ -75,10 +75,9 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
 
   const dateDisplay = format(date, 'MMMM d, yyyy');
 
-  // Center vertically; shift up when keyboard is open
-  const cardTop = keyboardOffset > 0
-    ? `calc((100vh - ${keyboardOffset}px) / 2)`
-    : '50%';
+  const maxHeight = keyboardOffset > 0
+    ? Math.max(220, window.innerHeight - 2 * keyboardOffset - 16)
+    : window.innerHeight * 0.7;
 
   return (
     <>
@@ -92,9 +91,9 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
       <div
         className="fixed left-4 right-4 z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
-          top: cardTop,
+          top: '50%',
           transform: 'translateY(-50%)',
-          maxHeight: '70vh',
+          maxHeight,
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
