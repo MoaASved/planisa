@@ -384,12 +384,13 @@ export function CalendarItemList({
   };
 
   const renderItemCard = useCallback((
-    item: CalendarEvent | Task | Note, 
+    item: CalendarEvent | Task | Note,
     type: 'event' | 'task' | 'note',
     time?: string,
     endTime?: string,
     compact?: boolean,
-    fillHeight?: boolean
+    fillHeight?: boolean,
+    centerContent?: boolean
   ) => {
     const color = type === 'note' 
       ? getNoteColor(item as Note)
@@ -409,9 +410,10 @@ export function CalendarItemList({
           onClick={() => onItemClick(task, 'task')}
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
-            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-3 relative text-[#2C2C2A]',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex gap-3 relative text-[#2C2C2A]',
+            centerContent ? 'items-center px-2.5' : 'items-start',
+            !centerContent && (compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5'),
             task.completed ? 'bg-secondary' : getColorCardClass(color),
-            compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
@@ -642,6 +644,7 @@ export function CalendarItemList({
                   const leftPercent = colInfo.column * widthPercent;
 
                   const GAP = 4;
+                  const shortBlock = type === 'task' && height <= HOUR_HEIGHT * 0.5;
                   return (
                     <div
                       key={item.id}
@@ -654,7 +657,7 @@ export function CalendarItemList({
                         width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
                       }}
                     >
-                      {renderItemCard(item, type, time, endTime, true, true)}
+                      {renderItemCard(item, type, time, endTime, true, true, shortBlock)}
                     </div>
                   );
                 })}
