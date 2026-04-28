@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { X } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Note } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 interface CalendarNoteCreateSheetProps {
   date: Date;
@@ -16,11 +18,15 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
   const { addNote } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [localDate, setLocalDate] = useState<Date>(date);
+  const [localTime, setLocalTime] = useState<string>(time);
 
   useEffect(() => {
     if (!isOpen) return;
     setTitle('');
     setContent('');
+    setLocalDate(date);
+    setLocalTime(time);
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -35,8 +41,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         content: buildContent(),
         type: 'note' as const,
         tags: [],
-        date,
-        time,
+        date: localDate,
+        time: localTime,
         isPinned: false,
         showInCalendar: true,
       });
@@ -50,8 +56,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
       content: buildContent(),
       type: 'note' as const,
       tags: [],
-      date,
-      time,
+      date: localDate,
+      time: localTime,
       isPinned: false,
       showInCalendar: true,
     });
@@ -59,8 +65,6 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
     const created = notesList[notesList.length - 1];
     if (created) onOpenInNotes(created);
   };
-
-  const dateDisplay = format(date, 'MMMM d, yyyy');
 
   return (
     <>
@@ -79,9 +83,42 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
-        {/* Top bar: date/time + close */}
+        {/* Top bar: editable date/time + close */}
         <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
-          <span className="text-sm text-muted-foreground">{dateDisplay} · {time}</span>
+          <div className="flex items-center gap-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  {format(localDate, 'MMM d, yyyy')}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                <Calendar
+                  mode="single"
+                  selected={localDate}
+                  onSelect={(d) => { if (d) setLocalDate(d); }}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
+                  <Clock className="w-3.5 h-3.5" />
+                  {localTime}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 z-[9999]" align="start">
+                <input
+                  type="time"
+                  value={localTime}
+                  onChange={(e) => setLocalTime(e.target.value)}
+                  className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           <button
             onClick={saveAndClose}
             className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-all"
@@ -113,19 +150,19 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
           />
         </div>
 
-        {/* Footer buttons */}
+        {/* Footer buttons: Open in Notes, Save */}
         <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 flex gap-3">
           <button
-            onClick={saveAndClose}
+            onClick={handleOpenInNotes}
             className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
           >
-            Save
+            Open in Notes
           </button>
           <button
-            onClick={handleOpenInNotes}
+            onClick={saveAndClose}
             className="flex-1 py-3 rounded-2xl bg-foreground text-background text-sm font-semibold active:scale-[0.98] transition-all"
           >
-            Open in Notes
+            Save
           </button>
         </div>
       </div>

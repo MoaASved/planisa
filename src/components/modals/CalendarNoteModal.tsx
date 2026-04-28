@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { Note } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 interface CalendarNoteModalProps {
   note: Note | null;
@@ -14,9 +16,15 @@ interface CalendarNoteModalProps {
 export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: CalendarNoteModalProps) {
   const { updateNote, deleteNote } = useAppStore();
   const [title, setTitle] = useState('');
+  const [localDate, setLocalDate] = useState<Date | undefined>(undefined);
+  const [localTime, setLocalTime] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    if (note) setTitle(note.title === 'Untitled' ? '' : (note.title || ''));
+    if (note) {
+      setTitle(note.title === 'Untitled' ? '' : (note.title || ''));
+      setLocalDate(note.date ? new Date(note.date) : undefined);
+      setLocalTime(note.time);
+    }
   }, [note]);
 
   if (!isOpen || !note) return null;
@@ -24,7 +32,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const isNotebookPage = note.id.startsWith('nbp-');
 
   const handleSave = () => {
-    if (!isNotebookPage) updateNote(note.id, { title: title.trim() });
+    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime });
     onClose();
   };
 
@@ -34,15 +42,9 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   };
 
   const handleOpen = () => {
-    if (!isNotebookPage) updateNote(note.id, { title: title.trim() });
+    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime });
     onOpenFullEditor(note);
   };
-
-  const dateDisplay = note.date
-    ? format(new Date(note.date), 'MMMM d, yyyy')
-    : null;
-
-  const timeDisplay = note.time ? ` · ${note.time}` : '';
 
   return (
     <>
@@ -52,7 +54,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
         onClick={handleSave}
       />
 
-      {/* Centered card */}
+      {/* Card */}
       <div
         className="fixed left-4 right-4 z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
@@ -61,11 +63,48 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
-        {/* Top bar: date + close */}
+        {/* Top bar: editable date/time + close */}
         <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
-          <span className="text-sm text-muted-foreground">
-            {dateDisplay}{timeDisplay}
-          </span>
+          <div className="flex items-center gap-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  disabled={isNotebookPage}
+                  className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity disabled:pointer-events-none"
+                >
+                  <CalendarIcon className="w-3.5 h-3.5" />
+                  {localDate ? format(localDate, 'MMM d, yyyy') : '—'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[9999]" align="start">
+                <Calendar
+                  mode="single"
+                  selected={localDate}
+                  onSelect={(d) => setLocalDate(d ?? undefined)}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  disabled={isNotebookPage}
+                  className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity disabled:pointer-events-none"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  {localTime ?? '—'}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 z-[9999]" align="start">
+                <input
+                  type="time"
+                  value={localTime ?? ''}
+                  onChange={(e) => setLocalTime(e.target.value || undefined)}
+                  className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           <button
             onClick={handleSave}
             className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center active:scale-95 transition-all"
@@ -100,7 +139,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
           )}
         </div>
 
-        {/* Footer buttons */}
+        {/* Footer buttons: Delete, Open in Notes, Save */}
         <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 flex gap-3">
           {!isNotebookPage && (
             <button
@@ -111,16 +150,16 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             </button>
           )}
           <button
-            onClick={handleSave}
+            onClick={handleOpen}
             className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
           >
-            Save
+            Open in Notes
           </button>
           <button
-            onClick={handleOpen}
+            onClick={handleSave}
             className="flex-1 py-3 rounded-2xl bg-foreground text-background text-sm font-semibold active:scale-[0.98] transition-all"
           >
-            Open
+            Save
           </button>
         </div>
       </div>
