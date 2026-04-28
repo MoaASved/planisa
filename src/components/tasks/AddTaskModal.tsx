@@ -71,12 +71,13 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
       setTitle('');
       setNote('');
       setShowNote(false);
-      setDate('');
       if (defaultTime) {
+        setDate(defaultDate ? format(defaultDate, 'yyyy-MM-dd') : '');
         setTime(defaultTime);
         setEndTime(addMinutes(defaultTime, 30));
         setShowTimeFields(true);
       } else {
+        setDate('');
         setTime('');
         setEndTime('');
         setShowTimeFields(false);
