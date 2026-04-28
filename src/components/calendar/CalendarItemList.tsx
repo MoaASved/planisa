@@ -179,8 +179,7 @@ export function CalendarItemList({
   const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
   const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
   const [contextMenu, setContextMenu] = useState<TimeContextMenu | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressOrigin = useRef<{ x: number; y: number } | null>(null);
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
   const dateStr = format(date, 'yyyy-MM-dd');
 
@@ -315,54 +314,49 @@ export function CalendarItemList({
     setDraggedItem(null);
   };
 
-  // Long-press on timeline background to create items
+  // Double-tap/double-click on timeline background to create items
   const getTimeFromY = (clientY: number): string => {
     const el = timelineRef.current;
     if (!el) return '09:00';
-    const rect = el.getBoundingClientRect();
-    // Account for allDayItems section height by checking the timeline inner div
     const timelineInner = el.querySelector('[data-timeline-grid]') as HTMLElement | null;
-    const gridTop = timelineInner ? timelineInner.getBoundingClientRect().top : rect.top;
+    const gridTop = timelineInner ? timelineInner.getBoundingClientRect().top : el.getBoundingClientRect().top;
     const y = clientY - gridTop + el.scrollTop;
     const totalMinutes = Math.max(0, Math.round((y / HOUR_HEIGHT) * 60 / 15) * 15);
     const hour = Math.min(Math.floor(totalMinutes / 60), 23);
-    const minute = totalMinutes % 60 >= 60 ? 0 : totalMinutes % 60;
-    return `${String(hour).padStart(2, '0')}:${String(minute < 60 ? minute : 0).padStart(2, '0')}`;
+    const minute = totalMinutes % 60;
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
-  const handleTimelinePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const showMenuAt = (clientX: number, clientY: number) => {
+    const time = getTimeFromY(clientY);
+    const menuW = 160;
+    const menuH = 176;
+    const x = Math.min(clientX, window.innerWidth - menuW - 8);
+    const y = Math.min(clientY - 20, window.innerHeight - menuH - 8);
+    setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time });
+  };
+
+  const handleTimelineDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!onCreateFromTimeline) return;
     if ((e.target as HTMLElement).closest('[data-timeline-item]')) return;
-    longPressOrigin.current = { x: e.clientX, y: e.clientY };
-    longPressTimer.current = setTimeout(() => {
-      const time = getTimeFromY(e.clientY);
-      // Clamp popup to viewport
-      const menuW = 160;
-      const menuH = 176;
-      const x = Math.min(e.clientX, window.innerWidth - menuW - 8);
-      const y = Math.min(e.clientY - 20, window.innerHeight - menuH - 8);
-      setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time });
-      longPressOrigin.current = null;
-    }, 500);
+    e.preventDefault();
+    showMenuAt(e.clientX, e.clientY);
   };
 
-  const handleTimelinePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!longPressOrigin.current || !longPressTimer.current) return;
-    const dx = e.clientX - longPressOrigin.current.x;
-    const dy = e.clientY - longPressOrigin.current.y;
-    if (Math.sqrt(dx * dx + dy * dy) > 8) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-      longPressOrigin.current = null;
+  // Touch double-tap (within 300ms, within 30px)
+  const handleTimelineTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!onCreateFromTimeline) return;
+    if ((e.target as HTMLElement).closest('[data-timeline-item]')) return;
+    const touch = e.changedTouches[0];
+    const now = Date.now();
+    const last = lastTapRef.current;
+    if (last && now - last.time < 300 && Math.abs(touch.clientX - last.x) < 30 && Math.abs(touch.clientY - last.y) < 30) {
+      e.preventDefault();
+      showMenuAt(touch.clientX, touch.clientY);
+      lastTapRef.current = null;
+    } else {
+      lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
     }
-  };
-
-  const cancelLongPress = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-    longPressOrigin.current = null;
   };
 
   const handleContextMenuSelect = (type: CreateType) => {
@@ -597,11 +591,9 @@ export function CalendarItemList({
           <div
             ref={timelineRef}
             onScroll={checkTimelineScroll}
-            onPointerDown={handleTimelinePointerDown}
-            onPointerMove={handleTimelinePointerMove}
-            onPointerUp={cancelLongPress}
-            onPointerCancel={cancelLongPress}
-            className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+            onDoubleClick={handleTimelineDoubleClick}
+            onTouchEnd={handleTimelineTouchEnd}
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
           >
             {/* All-day items - 2 columns */}
             {allDayItems.length > 0 && (
