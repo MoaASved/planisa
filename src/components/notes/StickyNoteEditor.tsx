@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { X, Calendar as CalendarIcon, Folder, Star, Trash2 } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Clock, Folder, Star, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
@@ -220,7 +220,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
               {folder || 'Folder'}
             </button>
 
-            {/* Calendar toggle */}
+            {/* Date picker */}
             <Popover>
               <PopoverTrigger asChild>
                 <button className={cn(
@@ -232,44 +232,46 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[9999]" align="start">
-                <div className="p-3">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={showInCalendar}
-                      onChange={(e) => setShowInCalendar(e.target.checked)}
-                      className="rounded"
-                    />
-                    Show in calendar
-                  </label>
-                </div>
-                {showInCalendar && (
-                  <>
-                    <div className="flex items-center gap-2 px-3 pb-3">
-                      <input
-                        type="time"
-                        value={time || ''}
-                        onChange={(e) => handleTimeChange(e.target.value)}
-                        className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                      />
-                      <span className="text-muted-foreground text-sm">–</span>
-                      <input
-                        type="time"
-                        value={endTime || ''}
-                        onChange={(e) => { setEndTime(e.target.value); endTimeManuallySet.current = true; }}
-                        className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                      />
-                    </div>
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={(d) => d && setDate(d)}
-                      className="p-3 pointer-events-auto"
-                    />
-                  </>
-                )}
+                <Calendar
+                  mode="single"
+                  selected={showInCalendar ? date : undefined}
+                  onSelect={(d) => {
+                    if (d) { setDate(d); setShowInCalendar(true); }
+                    else { setShowInCalendar(false); setTime(undefined); setEndTime(undefined); }
+                  }}
+                  className="p-3 pointer-events-auto"
+                />
               </PopoverContent>
             </Popover>
+
+            {/* Time picker — only shown after a date is selected */}
+            {showInCalendar && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
+                    <Clock className="w-4 h-4" />
+                    {time && <span>{time}</span>}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3 z-[9999]" align="start">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={time || ''}
+                      onChange={(e) => handleTimeChange(e.target.value)}
+                      className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                    />
+                    <span className="text-muted-foreground text-sm">–</span>
+                    <input
+                      type="time"
+                      value={endTime || ''}
+                      onChange={(e) => { setEndTime(e.target.value); endTimeManuallySet.current = true; }}
+                      className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Delete */}
