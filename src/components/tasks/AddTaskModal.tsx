@@ -5,7 +5,7 @@ import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clo
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
-import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { getColorDotClass, getAccentDotClass } from '@/lib/colors';
 
@@ -35,8 +35,6 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
   const [newSub, setNewSub] = useState('');
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [listPopoverOpen, setListPopoverOpen] = useState(false);
-  const [showTimeFields, setShowTimeFields] = useState(false);
-  const [timeShortcutPopoverOpen, setTimeShortcutPopoverOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const noteRef = useRef<HTMLTextAreaElement>(null);
@@ -62,7 +60,6 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
       setTime(editing.time ?? '');
       setEndTime(editing.endTime ?? '');
       endTimeManual.current = !!editing.endTime;
-      setShowTimeFields(!!editing.time);
       setPriority(editing.priority !== 'none');
       const cat = taskCategories.find((c) => c.name === editing.category);
       setListId(cat?.id ?? '');
@@ -75,12 +72,10 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
         setDate(defaultDate ? format(defaultDate, 'yyyy-MM-dd') : '');
         setTime(defaultTime);
         setEndTime(addMinutes(defaultTime, 30));
-        setShowTimeFields(true);
       } else {
         setDate('');
         setTime('');
         setEndTime('');
-        setShowTimeFields(false);
       }
       endTimeManual.current = false;
       setPriority(false);
@@ -147,15 +142,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
   };
 
   const selectedList = taskCategories.find((c) => c.id === listId);
-  const dateLabel = (() => {
-    if (!date) return null;
-    const d = new Date(date + 'T00:00:00');
-    const base = format(d, 'MMM d');
-    if (time) {
-      return `${base} · ${time}${endTime ? `–${endTime}` : ''}`;
-    }
-    return base;
-  })();
+  const dateLabel = date ? format(new Date(date + 'T00:00:00'), 'MMM d') : null;
 
   return ReactDOM.createPortal(
     <>
@@ -281,260 +268,187 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
           <div className="mx-5 my-3 h-px bg-border" />
 
           {/* Icon / pill row */}
-          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-            <PopoverAnchor asChild>
-              <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
-                {/* List pill */}
-                <Popover open={listPopoverOpen} onOpenChange={setListPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <button className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors">
-                      {selectedList ? (
-                        <>
-                          <span className={cn('w-2 h-2 rounded-full', getAccentDotClass(selectedList.color))} />
-                          <span className="text-xs font-medium text-foreground">{selectedList.name}</span>
-                        </>
-                      ) : (
-                        <>
-                          <ListChecks className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="text-xs font-medium text-muted-foreground">List</span>
-                        </>
-                      )}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    className="w-56 p-1.5 rounded-2xl"
-                    style={{ zIndex: 10000 }}
-                  >
-                    <div className="max-h-64 overflow-y-auto">
-                      {taskCategories.map((c) => (
-                        <button
-                          key={c.id}
-                          onClick={() => {
-                            setListId(c.id);
-                            setListPopoverOpen(false);
-                          }}
-                          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-secondary transition-colors"
-                        >
-                          <span className={cn('w-2.5 h-2.5 rounded-full', getAccentDotClass(c.color))} />
-                          <span className="flex-1 text-left text-sm text-foreground">{c.name}</span>
-                          {listId === c.id && <Check className="w-4 h-4 text-primary" />}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                {/* Priority */}
-                <button
-                  onClick={() => setPriority(!priority)}
-                  className={cn(
-                    'flex items-center justify-center h-8 w-8 rounded-full transition-colors',
-                    priority ? 'bg-amber-500/15' : 'bg-secondary hover:bg-secondary/70',
+          <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
+            {/* List pill */}
+            <Popover open={listPopoverOpen} onOpenChange={setListPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors">
+                  {selectedList ? (
+                    <>
+                      <span className={cn('w-2 h-2 rounded-full', getAccentDotClass(selectedList.color))} />
+                      <span className="text-xs font-medium text-foreground">{selectedList.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ListChecks className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">List</span>
+                    </>
                   )}
-                >
-                  <Star
-                    className={cn(
-                      'w-3.5 h-3.5',
-                      priority ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground',
-                    )}
-                  />
                 </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-56 p-1.5 rounded-2xl" style={{ zIndex: 10000 }}>
+                <div className="max-h-64 overflow-y-auto">
+                  {taskCategories.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => { setListId(c.id); setListPopoverOpen(false); }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-secondary transition-colors"
+                    >
+                      <span className={cn('w-2.5 h-2.5 rounded-full', getAccentDotClass(c.color))} />
+                      <span className="flex-1 text-left text-sm text-foreground">{c.name}</span>
+                      {listId === c.id && <Check className="w-4 h-4 text-primary" />}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-                {/* Date pill */}
-                <PopoverTrigger asChild>
+            {/* Priority */}
+            <button
+              onClick={() => setPriority(!priority)}
+              className={cn(
+                'flex items-center justify-center h-8 w-8 rounded-full transition-colors',
+                priority ? 'bg-amber-500/15' : 'bg-secondary hover:bg-secondary/70',
+              )}
+            >
+              <Star className={cn('w-3.5 h-3.5', priority ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground')} />
+            </button>
+
+            {/* Date pill */}
+            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+              <PopoverTrigger asChild>
+                <button className={cn('flex items-center gap-1.5 h-8 px-2.5 rounded-full transition-colors',
+                  date ? 'bg-primary/10 text-primary' : 'bg-secondary hover:bg-secondary/70')}>
+                  <CalendarIcon className={cn('w-3.5 h-3.5', date ? 'text-primary' : 'text-muted-foreground')} />
+                  {dateLabel ? (
+                    <>
+                      <span className="text-xs font-medium">{dateLabel}</span>
+                      <span
+                        role="button"
+                        onClick={(e) => { e.stopPropagation(); setDate(''); setTime(''); setEndTime(''); endTimeManual.current = false; }}
+                        className="ml-0.5 -mr-0.5 w-4 h-4 rounded-full hover:bg-primary/20 flex items-center justify-center"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-medium text-muted-foreground">Date</span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" side="bottom" sideOffset={8} collisionPadding={16} className="w-auto p-3 rounded-2xl" style={{ zIndex: 10000 }}>
+                <Calendar
+                  mode="single"
+                  weekStartsOn={1}
+                  selected={date ? new Date(date + 'T00:00:00') : undefined}
+                  onSelect={(d) => {
+                    if (!d) { setDate(''); return; }
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    setDate(`${yyyy}-${mm}-${dd}`);
+                  }}
+                  className="p-0 pointer-events-auto"
+                />
+                {date && (
                   <button
-                    className={cn(
-                      'flex items-center gap-1.5 h-8 px-2.5 rounded-full transition-colors',
-                      date ? 'bg-primary/10 text-primary' : 'bg-secondary hover:bg-secondary/70',
-                    )}
+                    onClick={() => { setDate(''); setTime(''); setEndTime(''); endTimeManual.current = false; setDatePopoverOpen(false); }}
+                    className="w-full mt-2 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
                   >
-                    <CalendarIcon className={cn('w-3.5 h-3.5', date ? 'text-primary' : 'text-muted-foreground')} />
-                    {dateLabel ? (
+                    Clear date
+                  </button>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {/* Calendar date shortcut — only shown when opening from calendar and no date is set yet */}
+            {defaultDate && !date && (
+              <button
+                type="button"
+                onClick={() => {
+                  const d = defaultDate;
+                  const yyyy = d.getFullYear();
+                  const mm = String(d.getMonth() + 1).padStart(2, '0');
+                  const dd = String(d.getDate()).padStart(2, '0');
+                  setDate(`${yyyy}-${mm}-${dd}`);
+                }}
+                className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
+              >
+                <span className="text-xs font-medium text-muted-foreground">
+                  {isToday(defaultDate) ? 'Today' : isTomorrow(defaultDate) ? 'Tomorrow' : format(defaultDate, 'MMM d')}
+                </span>
+              </button>
+            )}
+
+            {/* Start time pill — only shown after date is selected */}
+            {date && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={cn('flex items-center gap-1.5 h-8 px-2.5 rounded-full transition-colors',
+                    time ? 'bg-primary/10 text-primary' : 'bg-secondary hover:bg-secondary/70')}>
+                    <Clock className={cn('w-3.5 h-3.5', time ? 'text-primary' : 'text-muted-foreground')} />
+                    {time ? (
                       <>
-                        <span className="text-xs font-medium">{dateLabel}</span>
+                        <span className="text-xs font-medium">{time}</span>
                         <span
                           role="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDate('');
-                            setTime('');
-                            setEndTime('');
-                            endTimeManual.current = false;
-                          }}
+                          onClick={(e) => { e.stopPropagation(); setTime(''); setEndTime(''); endTimeManual.current = false; }}
                           className="ml-0.5 -mr-0.5 w-4 h-4 rounded-full hover:bg-primary/20 flex items-center justify-center"
                         >
                           <X className="w-2.5 h-2.5" />
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs font-medium text-muted-foreground">Date</span>
+                      <span className="text-xs font-medium text-muted-foreground">Time</span>
                     )}
                   </button>
                 </PopoverTrigger>
-
-                {/* Calendar date shortcut — only shown when opening from calendar and no date is set yet */}
-                {defaultDate && !date && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const d = defaultDate;
-                      const yyyy = d.getFullYear();
-                      const mm = String(d.getMonth() + 1).padStart(2, '0');
-                      const dd = String(d.getDate()).padStart(2, '0');
-                      setDate(`${yyyy}-${mm}-${dd}`);
-                    }}
-                    className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
-                  >
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {isToday(defaultDate) ? 'Today' : isTomorrow(defaultDate) ? 'Tomorrow' : format(defaultDate, 'MMM d')}
-                    </span>
-                  </button>
-                )}
-
-                {/* Calendar time shortcut — only shown after date shortcut used and no time set yet */}
-                {defaultDate && date && !time && (
-                  <Popover open={timeShortcutPopoverOpen} onOpenChange={setTimeShortcutPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors"
-                      >
-                        <span className="text-xs font-medium text-muted-foreground">Time</span>
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      side="bottom"
-                      sideOffset={8}
-                      collisionPadding={16}
-                      className="w-auto p-3 rounded-2xl"
-                      style={{ zIndex: 10000 }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="time"
-                          value={time}
-                          onChange={(e) => { setShowTimeFields(true); handleTimeChange(e.target.value); }}
-                          autoFocus
-                          className={cn(
-                            'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
-                            !time && 'text-muted-foreground/60',
-                          )}
-                        />
-                        <span className="text-muted-foreground text-sm">–</span>
-                        <input
-                          type="time"
-                          value={endTime}
-                          onChange={(e) => handleEndTimeChange(e.target.value)}
-                          className={cn(
-                            'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
-                            !endTime && 'text-muted-foreground/60',
-                          )}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setTimeShortcutPopoverOpen(false)}
-                          className="w-7 h-7 rounded-full bg-secondary hover:bg-secondary/70 flex items-center justify-center text-muted-foreground transition-colors shrink-0"
-                          aria-label="Done"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
-            </PopoverAnchor>
-            <PopoverContent
-              align="start"
-              side="bottom"
-              sideOffset={8}
-              collisionPadding={16}
-              className="w-auto p-3 rounded-2xl"
-              style={{ zIndex: 10000 }}
-            >
-              {/* Time: on-demand */}
-              {!showTimeFields ? (
-                <button
-                  onClick={() => setShowTimeFields(true)}
-                  className="w-full mb-3 h-9 rounded-lg bg-secondary/60 hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 text-sm text-muted-foreground"
-                >
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Add time</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 mb-3 animate-fade-in">
+                <PopoverContent align="start" side="bottom" sideOffset={8} collisionPadding={16} className="w-auto p-3 rounded-2xl" style={{ zIndex: 10000 }}>
                   <input
                     type="time"
                     value={time}
                     onChange={(e) => handleTimeChange(e.target.value)}
                     autoFocus
-                    className={cn(
-                      'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
-                      !time && 'text-muted-foreground/60',
-                    )}
+                    className="h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
-                  <span className="text-muted-foreground text-sm">–</span>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* End time pill — only shown after start time is selected */}
+            {time && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className={cn('flex items-center gap-1.5 h-8 px-2.5 rounded-full transition-colors',
+                    endTime ? 'bg-primary/10 text-primary' : 'bg-secondary hover:bg-secondary/70')}>
+                    {endTime ? (
+                      <>
+                        <span className="text-xs font-medium">{endTime}</span>
+                        <span
+                          role="button"
+                          onClick={(e) => { e.stopPropagation(); setEndTime(''); endTimeManual.current = false; }}
+                          className="ml-0.5 -mr-0.5 w-4 h-4 rounded-full hover:bg-primary/20 flex items-center justify-center"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs font-medium text-muted-foreground">End time</span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" side="bottom" sideOffset={8} collisionPadding={16} className="w-auto p-3 rounded-2xl" style={{ zIndex: 10000 }}>
                   <input
                     type="time"
                     value={endTime}
                     onChange={(e) => handleEndTimeChange(e.target.value)}
-                    className={cn(
-                      'flex-1 h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all',
-                      !endTime && 'text-muted-foreground/60',
-                    )}
+                    autoFocus
+                    className="h-9 rounded-lg px-2 text-sm text-center bg-secondary/60 outline-none focus:ring-2 focus:ring-primary/30 transition-all"
                   />
-                  <button
-                    onClick={() => {
-                      setTime('');
-                      setEndTime('');
-                      endTimeManual.current = false;
-                      setShowTimeFields(false);
-                    }}
-                    className="w-7 h-7 rounded-full bg-secondary hover:bg-destructive/10 hover:text-destructive flex items-center justify-center text-muted-foreground transition-colors shrink-0"
-                    aria-label="Clear time"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
-              {/* Calendar */}
-              <Calendar
-                mode="single"
-                weekStartsOn={1}
-                selected={date ? new Date(date + 'T00:00:00') : undefined}
-                onSelect={(d) => {
-                  if (!d) {
-                    setDate('');
-                    return;
-                  }
-                  const yyyy = d.getFullYear();
-                  const mm = String(d.getMonth() + 1).padStart(2, '0');
-                  const dd = String(d.getDate()).padStart(2, '0');
-                  setDate(`${yyyy}-${mm}-${dd}`);
-                }}
-                className={cn('p-0 pointer-events-auto')}
-              />
-
-              {date && (
-                <button
-                  onClick={() => {
-                    setDate('');
-                    setTime('');
-                    setEndTime('');
-                    endTimeManual.current = false;
-                    setShowTimeFields(false);
-                    setDatePopoverOpen(false);
-                  }}
-                  className="w-full mt-2 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 rounded-lg transition-colors"
-                >
-                  Clear date
-                </button>
-              )}
-            </PopoverContent>
-          </Popover>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
 
           {/* Footer actions */}
           <div className="px-5 pb-5 pt-1 flex items-center gap-2">
