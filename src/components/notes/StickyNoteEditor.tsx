@@ -229,31 +229,65 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
               </PopoverContent>
             </Popover>
 
-            {/* Time picker — only shown after a date is selected */}
+            {/* Start time — only shown after a date is selected */}
             {showInCalendar && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
                     <Clock className="w-4 h-4" />
-                    {time && <span>{time}</span>}
+                    {time ? (
+                      <>
+                        <span>{time}</span>
+                        <span
+                          role="button"
+                          onClick={(e) => { e.stopPropagation(); setTime(undefined); setEndTime(undefined); endTimeManuallySet.current = false; }}
+                          className="w-3.5 h-3.5 rounded-full hover:bg-white/30 flex items-center justify-center"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </span>
+                      </>
+                    ) : null}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-3 z-[9999]" align="start">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="time"
-                      value={time || ''}
-                      onChange={(e) => handleTimeChange(e.target.value)}
-                      className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                    />
-                    <span className="text-muted-foreground text-sm">–</span>
-                    <input
-                      type="time"
-                      value={endTime || ''}
-                      onChange={(e) => { setEndTime(e.target.value); endTimeManuallySet.current = true; }}
-                      className="flex-1 bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                    />
-                  </div>
+                  <input
+                    type="time"
+                    value={time || ''}
+                    onChange={(e) => handleTimeChange(e.target.value)}
+                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {/* End time — only shown after start time is set */}
+            {showInCalendar && time && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
+                    {endTime ? (
+                      <>
+                        <span>{endTime}</span>
+                        <span
+                          role="button"
+                          onClick={(e) => { e.stopPropagation(); setEndTime(undefined); endTimeManuallySet.current = true; }}
+                          className="w-3.5 h-3.5 rounded-full hover:bg-white/30 flex items-center justify-center"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </span>
+                      </>
+                    ) : (
+                      <span className="opacity-60">End</span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3 z-[9999]" align="start">
+                  <input
+                    type="time"
+                    value={endTime || ''}
+                    onChange={(e) => { setEndTime(e.target.value); endTimeManuallySet.current = true; }}
+                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                  />
                 </PopoverContent>
               </Popover>
             )}

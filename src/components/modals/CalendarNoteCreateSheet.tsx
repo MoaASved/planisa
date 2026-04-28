@@ -50,8 +50,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         type: 'note' as const,
         tags: [],
         date: localDate,
-        time: localTime,
-        endTime: localEndTime,
+        time: localTime || undefined,
+        endTime: localEndTime || undefined,
         isPinned: false,
         showInCalendar: true,
       });
@@ -116,27 +116,53 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
                   <Clock className="w-3.5 h-3.5" />
-                  {localTime} – {localEndTime}
+                  <span>{localTime || 'Time'}</span>
+                  {localTime && (
+                    <span
+                      role="button"
+                      onClick={(e) => { e.stopPropagation(); setLocalTime(''); setLocalEndTime(''); }}
+                      className="w-3.5 h-3.5 rounded-full hover:bg-black/10 flex items-center justify-center"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </span>
+                  )}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3 z-[9999]" align="start">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="time"
-                    value={localTime}
-                    onChange={(e) => setLocalTime(e.target.value)}
-                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                  />
-                  <span className="text-muted-foreground text-sm">–</span>
+                <input
+                  type="time"
+                  value={localTime}
+                  onChange={(e) => setLocalTime(e.target.value)}
+                  className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                />
+              </PopoverContent>
+            </Popover>
+            {localTime && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
+                    <span>{localEndTime || 'End'}</span>
+                    {localEndTime && (
+                      <span
+                        role="button"
+                        onClick={(e) => { e.stopPropagation(); setLocalEndTime(''); }}
+                        className="w-3.5 h-3.5 rounded-full hover:bg-black/10 flex items-center justify-center"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3 z-[9999]" align="start">
                   <input
                     type="time"
                     value={localEndTime}
                     onChange={(e) => setLocalEndTime(e.target.value)}
                     className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
                   />
-                </div>
-              </PopoverContent>
-            </Popover>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
           <button
             onClick={saveAndClose}
