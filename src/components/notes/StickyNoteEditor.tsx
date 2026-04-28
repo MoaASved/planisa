@@ -171,8 +171,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
 
         {/* Bottom actions */}
         <div className="pt-4 border-t border-foreground/10 space-y-2">
-          {/* Row 1: color, folder, delete */}
-          <div className="flex items-center justify-between">
+          {/* Row 1: color, folder */}
           <div className="flex items-center gap-2">
             {/* Color picker */}
             <Popover>
@@ -209,18 +208,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
 
           </div>
 
-          {/* Delete */}
-          {note && (
-            <button
-              onClick={handleDelete}
-              className="p-2 rounded-xl bg-white/20 text-destructive transition-all active:scale-95"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
-          )}
-          </div>
 
-          {/* Row 2: date and times */}
+          {/* Row 2: date and times + delete */}
           <div className="flex items-center gap-2">
             {/* Date picker */}
             <Popover>
@@ -307,6 +296,16 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
                   />
                 </PopoverContent>
               </Popover>
+            )}
+
+            {/* Delete — far right of this row */}
+            {note && (
+              <button
+                onClick={handleDelete}
+                className="ml-auto p-2 rounded-xl bg-white/20 text-destructive transition-all active:scale-95"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
             )}
           </div>
         </div>
