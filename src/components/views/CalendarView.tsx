@@ -7,6 +7,7 @@ import { YearView } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
+import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
@@ -20,7 +21,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
   
-  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages } = useAppStore();
+  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages, addNote } = useAppStore();
 
   // Edit modal states
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
@@ -28,6 +29,11 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editingStickyNote, setEditingStickyNote] = useState<Note | null>(null);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
+
+  // Timeline create states
+  const [showTimelineCreateEvent, setShowTimelineCreateEvent] = useState(false);
+  const [showTimelineCreateTask, setShowTimelineCreateTask] = useState(false);
+  const [timelineCreateTime, setTimelineCreateTime] = useState<string | undefined>(undefined);
 
   // Filter notes to only show those with showInCalendar enabled
   const calendarNotes: Note[] = [
@@ -147,6 +153,48 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     toggleTask(taskId);
   };
 
+  const handleCreateFromTimeline = (type: 'event' | 'task' | 'note' | 'sticky', time: string) => {
+    setTimelineCreateTime(time);
+    if (type === 'event') {
+      setShowTimelineCreateEvent(true);
+    } else if (type === 'task') {
+      setShowTimelineCreateTask(true);
+    } else if (type === 'note') {
+      addNote({
+        title: '',
+        content: '',
+        type: 'note' as const,
+        tags: [],
+        date: selectedDate,
+        time,
+        isPinned: false,
+        showInCalendar: true,
+      });
+      const notesList = useAppStore.getState().notes;
+      const created = notesList[notesList.length - 1];
+      if (created) {
+        setEditingNote(created);
+        setShowNoteEditor(true);
+      }
+    } else if (type === 'sticky') {
+      addNote({
+        title: '',
+        content: '',
+        type: 'sticky' as const,
+        tags: [],
+        date: selectedDate,
+        time,
+        isPinned: false,
+        showInCalendar: true,
+      });
+      const notesList = useAppStore.getState().notes;
+      const created = notesList[notesList.length - 1];
+      if (created) {
+        setEditingStickyNote(created);
+      }
+    }
+  };
+
   const handleMonthChange = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
       setCurrentDate(subMonths(currentDate, 1));
@@ -218,6 +266,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onMonthChange={handleMonthChange}
             onDayChange={handleDayChange}
             onDateSelect={handleDateSelect}
+            onCreateFromTimeline={handleCreateFromTimeline}
           />
         ) : (
           <WeekDayView
@@ -233,6 +282,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onWeekChange={handleWeekChange}
             onDayChange={handleDayChange}
             onDateSelect={handleDateSelect}
+            onCreateFromTimeline={handleCreateFromTimeline}
           />
         )}
       </div>
@@ -248,6 +298,20 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
           setEditingTask(null);
           if (task) onNavigateToTasks?.(task);
         }}
+      />
+
+      {/* Timeline create modals */}
+      <CreateEventModal
+        isOpen={showTimelineCreateEvent}
+        onClose={() => { setShowTimelineCreateEvent(false); setTimelineCreateTime(undefined); }}
+        initialDate={selectedDate}
+        initialTime={timelineCreateTime}
+      />
+      <AddTaskModal
+        isOpen={showTimelineCreateTask}
+        defaultDate={selectedDate}
+        defaultTime={timelineCreateTime}
+        onClose={() => { setShowTimelineCreateTask(false); setTimelineCreateTime(undefined); }}
       />
 
       {/* Edit Modals */}

@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getColorVar } from '@/lib/colors';
-import { Check, FileText, Clock, ChevronDown } from 'lucide-react';
+import { Check, FileText, Clock, ChevronDown, CalendarPlus, CheckSquare, StickyNote } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,6 +141,14 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
   );
 }
 
+type CreateType = 'event' | 'task' | 'note' | 'sticky';
+
+interface TimeContextMenu {
+  x: number;
+  y: number;
+  time: string;
+}
+
 interface CalendarItemListProps {
   date: Date;
   events: CalendarEvent[];
@@ -150,6 +158,7 @@ interface CalendarItemListProps {
   getNoteColor: (note: Note) => PastelColor;
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
+  onCreateFromTimeline?: (type: CreateType, time: string) => void;
 }
 
 export function CalendarItemList({
@@ -161,6 +170,7 @@ export function CalendarItemList({
   getNoteColor,
   onItemClick,
   onTaskToggle,
+  onCreateFromTimeline,
 }: CalendarItemListProps) {
   const [showTimeline, setShowTimeline] = useState(false);
   const [activeFilters, setActiveFilters] = useState<ItemType[]>(['events', 'tasks', 'notes']);
@@ -168,6 +178,9 @@ export function CalendarItemList({
   const timelineRef = useRef<HTMLDivElement>(null);
   const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
   const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
+  const [contextMenu, setContextMenu] = useState<TimeContextMenu | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressOrigin = useRef<{ x: number; y: number } | null>(null);
 
   const dateStr = format(date, 'yyyy-MM-dd');
 
@@ -300,6 +313,63 @@ export function CalendarItemList({
 
   const handleDragEnd = () => {
     setDraggedItem(null);
+  };
+
+  // Long-press on timeline background to create items
+  const getTimeFromY = (clientY: number): string => {
+    const el = timelineRef.current;
+    if (!el) return '09:00';
+    const rect = el.getBoundingClientRect();
+    // Account for allDayItems section height by checking the timeline inner div
+    const timelineInner = el.querySelector('[data-timeline-grid]') as HTMLElement | null;
+    const gridTop = timelineInner ? timelineInner.getBoundingClientRect().top : rect.top;
+    const y = clientY - gridTop + el.scrollTop;
+    const totalMinutes = Math.max(0, Math.round((y / HOUR_HEIGHT) * 60 / 15) * 15);
+    const hour = Math.min(Math.floor(totalMinutes / 60), 23);
+    const minute = totalMinutes % 60 >= 60 ? 0 : totalMinutes % 60;
+    return `${String(hour).padStart(2, '0')}:${String(minute < 60 ? minute : 0).padStart(2, '0')}`;
+  };
+
+  const handleTimelinePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!onCreateFromTimeline) return;
+    if ((e.target as HTMLElement).closest('[data-timeline-item]')) return;
+    longPressOrigin.current = { x: e.clientX, y: e.clientY };
+    longPressTimer.current = setTimeout(() => {
+      const time = getTimeFromY(e.clientY);
+      // Clamp popup to viewport
+      const menuW = 160;
+      const menuH = 176;
+      const x = Math.min(e.clientX, window.innerWidth - menuW - 8);
+      const y = Math.min(e.clientY - 20, window.innerHeight - menuH - 8);
+      setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time });
+      longPressOrigin.current = null;
+    }, 500);
+  };
+
+  const handleTimelinePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!longPressOrigin.current || !longPressTimer.current) return;
+    const dx = e.clientX - longPressOrigin.current.x;
+    const dy = e.clientY - longPressOrigin.current.y;
+    if (Math.sqrt(dx * dx + dy * dy) > 8) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+      longPressOrigin.current = null;
+    }
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    longPressOrigin.current = null;
+  };
+
+  const handleContextMenuSelect = (type: CreateType) => {
+    if (contextMenu) {
+      onCreateFromTimeline?.(type, contextMenu.time);
+    }
+    setContextMenu(null);
   };
 
   // Check if item has both start AND end time (for timeline indicator)
@@ -524,7 +594,15 @@ export function CalendarItemList({
       {!hasItems ? null : showTimeline ? (
         // Timeline view - only timed items + all-day at top
         <div className="flex-1 relative overflow-hidden">
-          <div ref={timelineRef} onScroll={checkTimelineScroll} className="absolute inset-0 overflow-y-auto overflow-x-hidden">
+          <div
+            ref={timelineRef}
+            onScroll={checkTimelineScroll}
+            onPointerDown={handleTimelinePointerDown}
+            onPointerMove={handleTimelinePointerMove}
+            onPointerUp={cancelLongPress}
+            onPointerCancel={cancelLongPress}
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+          >
             {/* All-day items - 2 columns */}
             {allDayItems.length > 0 && (
               <div className="px-4 pt-2 pb-4 border-b border-border/20 mb-2">
@@ -539,7 +617,7 @@ export function CalendarItemList({
             )}
 
             {/* Timeline */}
-            <div className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
+            <div data-timeline-grid className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
               {/* Hour lines - subtle thin lines */}
               {HOURS.map((hour) => (
                 <div
@@ -571,6 +649,7 @@ export function CalendarItemList({
                   return (
                     <div
                       key={item.id}
+                      data-timeline-item
                       className="absolute"
                       style={{
                         top: top + GAP / 2,
@@ -618,6 +697,43 @@ export function CalendarItemList({
         </ListScrollContainer>
       )}
       </div>
+
+      {/* Long-press context menu */}
+      {contextMenu && (
+        <>
+          <div
+            className="fixed inset-0 z-[1300]"
+            onPointerDown={() => setContextMenu(null)}
+          />
+          <div
+            className="fixed z-[1400] bg-white dark:bg-[#1c1c1e] rounded-2xl shadow-xl overflow-hidden"
+            style={{ left: contextMenu.x, top: contextMenu.y, width: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}
+          >
+            <div className="px-3 pt-2.5 pb-1">
+              <span className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{contextMenu.time}</span>
+            </div>
+            {(
+              [
+                { type: 'event' as CreateType, label: 'Event', icon: CalendarPlus },
+                { type: 'task' as CreateType, label: 'Task', icon: CheckSquare },
+                { type: 'note' as CreateType, label: 'Note', icon: FileText },
+                { type: 'sticky' as CreateType, label: 'Sticky', icon: StickyNote },
+              ] as const
+            ).map(({ type, label, icon: Icon }) => (
+              <button
+                key={type}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => handleContextMenuSelect(type)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 active:bg-secondary transition-colors text-left"
+              >
+                <Icon className="w-4 h-4 text-foreground/60 flex-shrink-0" />
+                <span className="text-sm font-medium text-foreground">{label}</span>
+              </button>
+            ))}
+            <div className="h-1.5" />
+          </div>
+        </>
+      )}
     </div>
   );
 }

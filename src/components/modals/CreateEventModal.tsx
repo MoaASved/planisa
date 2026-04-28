@@ -10,9 +10,10 @@ interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialDate?: Date;
+  initialTime?: string;
 }
 
-export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventModalProps) {
+export function CreateEventModal({ isOpen, onClose, initialDate, initialTime }: CreateEventModalProps) {
   const { addEvent, eventCategories, addEventCategory } = useAppStore();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -29,15 +30,18 @@ export function CreateEventModal({ isOpen, onClose, initialDate }: CreateEventMo
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
 
-  // Set initial date when modal opens
+  // Set initial date/time when modal opens
   useEffect(() => {
     if (isOpen) {
       if (initialDate) {
         setDate(format(initialDate, 'yyyy-MM-dd'));
       }
+      if (initialTime) {
+        handleStartTimeChange(initialTime);
+      }
       endTimeManuallySet.current = false;
     }
-  }, [isOpen, initialDate]);
+  }, [isOpen, initialDate, initialTime]);
 
   // Auto-calculate end time when start time changes
   const handleStartTimeChange = (newStartTime: string) => {

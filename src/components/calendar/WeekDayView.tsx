@@ -17,6 +17,7 @@ interface WeekDayViewProps {
   onWeekChange: (direction: 'prev' | 'next') => void;
   onDayChange: (direction: 'prev' | 'next') => void;
   onDateSelect: (date: Date) => void;
+  onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string) => void;
 }
 
 export function WeekDayView({
@@ -32,6 +33,7 @@ export function WeekDayView({
   onWeekChange,
   onDayChange,
   onDateSelect,
+  onCreateFromTimeline,
 }: WeekDayViewProps) {
   const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
   const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
@@ -134,6 +136,7 @@ export function WeekDayView({
           getNoteColor={getNoteColor}
           onItemClick={onItemClick}
           onTaskToggle={onTaskToggle}
+          onCreateFromTimeline={onCreateFromTimeline}
         />
       </div>
     </div>
