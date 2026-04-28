@@ -331,10 +331,12 @@ export function CalendarItemList({
     const time = getTimeFromY(clientY);
     const menuW = 160;
     const menuH = 176;
-    // Keep popup above the floating bottom nav bar (~120px from bottom)
-    const bottomClearance = 120;
+    // Measure the actual bottom nav bar to get a reliable safe zone
+    const nav = document.querySelector('nav');
+    const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 120;
+    const safeBottom = window.innerHeight - navTop + 8;
     const x = Math.min(clientX, window.innerWidth - menuW - 8);
-    const y = Math.min(clientY - 20, window.innerHeight - menuH - bottomClearance);
+    const y = Math.min(clientY - 20, window.innerHeight - menuH - safeBottom);
     setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time });
   };
 
