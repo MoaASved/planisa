@@ -267,8 +267,8 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
           {/* Divider */}
           <div className="mx-5 my-3 h-px bg-border" />
 
-          {/* Icon / pill row */}
-          <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
+          {/* List / priority row */}
+          <div className="px-5 pb-2 flex items-center gap-2">
             {/* List pill */}
             <Popover open={listPopoverOpen} onOpenChange={setListPopoverOpen}>
               <PopoverTrigger asChild>
@@ -313,7 +313,10 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
             >
               <Star className={cn('w-3.5 h-3.5', priority ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground')} />
             </button>
+          </div>
 
+          {/* Date / time row */}
+          <div className="px-5 pb-3 flex items-center gap-2 flex-wrap">
             {/* Date pill */}
             <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
               <PopoverTrigger asChild>
