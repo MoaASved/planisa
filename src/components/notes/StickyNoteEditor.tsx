@@ -132,8 +132,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
           getStickyBgClass(color)
         )}
         style={{
-          top: 16,
-          maxHeight: '55vh',
+          top: '15%',
+          maxHeight: '45vh',
         }}
       >
         {/* Top actions */}

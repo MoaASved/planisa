@@ -74,8 +74,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
       <div
         className="fixed left-4 right-4 z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
-          top: 16,
-          maxHeight: '55vh',
+          top: '15%',
+          maxHeight: '45vh',
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
