@@ -33,13 +33,17 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime }: 
   // Set initial date/time when modal opens
   useEffect(() => {
     if (isOpen) {
-      if (initialDate) {
-        setDate(format(initialDate, 'yyyy-MM-dd'));
-      }
+      endTimeManuallySet.current = false;
+      setTitle('');
+      setDescription('');
+      setIsAllDay(false);
+      setDate(initialDate ? format(initialDate, 'yyyy-MM-dd') : '');
       if (initialTime) {
         handleStartTimeChange(initialTime);
+      } else {
+        setStartTime('');
+        setEndTime('');
       }
-      endTimeManuallySet.current = false;
     }
   }, [isOpen, initialDate, initialTime]);
 
