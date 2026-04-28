@@ -132,11 +132,17 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
           />
         </div>
 
-        {/* Open in Notes button */}
-        <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0">
+        {/* Footer buttons */}
+        <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 flex gap-3">
+          <button
+            onClick={saveAndClose}
+            className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
+          >
+            Save
+          </button>
           <button
             onClick={handleOpenInNotes}
-            className="w-full py-3 rounded-2xl bg-foreground text-background text-sm font-semibold active:scale-[0.98] transition-all"
+            className="flex-1 py-3 rounded-2xl bg-foreground text-background text-sm font-semibold active:scale-[0.98] transition-all"
           >
             Open in Notes
           </button>
