@@ -10,7 +10,6 @@ import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
 import { CalendarNoteCreateSheet } from '@/components/modals/CalendarNoteCreateSheet';
-import { CalendarStickyCreateSheet } from '@/components/modals/CalendarStickyCreateSheet';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
@@ -300,12 +299,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
           setShowNoteEditor(true);
         }}
       />
-      <CalendarStickyCreateSheet
-        isOpen={showTimelineCreateSticky}
-        date={selectedDate}
-        time={timelineCreateTime}
-        onClose={() => { setShowTimelineCreateSticky(false); setTimelineCreateTime(''); }}
-      />
+      {showTimelineCreateSticky && (
+        <StickyNoteEditor
+          onClose={() => { setShowTimelineCreateSticky(false); setTimelineCreateTime(''); }}
+          initialDate={selectedDate}
+          initialTime={timelineCreateTime}
+        />
+      )}
 
       {/* Edit Modals */}
       <EditEventModal

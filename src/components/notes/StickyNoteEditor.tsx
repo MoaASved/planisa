@@ -14,6 +14,8 @@ import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 interface StickyNoteEditorProps {
   note?: Note;
   onClose: () => void;
+  initialDate?: Date;
+  initialTime?: string;
 }
 
 const getStickyBgClass = (color?: PastelColor): string => {
@@ -34,10 +36,10 @@ const getStickyBgClass = (color?: PastelColor): string => {
   return colorMap[color] || 'bg-pastel-yellow';
 };
 
-export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
+export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: StickyNoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
-  
+
   const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || '');
   const [color, setColor] = useState<PastelColor>(() => {
     if (note?.color) return note.color;
@@ -45,12 +47,21 @@ export function StickyNoteEditor({ note, onClose }: StickyNoteEditorProps) {
     return colors[Math.floor(Math.random() * colors.length)];
   });
   const [folder, setFolder] = useState(note?.folder || '');
-  const [date, setDate] = useState<Date>(note?.date || new Date());
+  const [date, setDate] = useState<Date>(note?.date || initialDate || new Date());
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
-  const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar || false);
+  const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar ?? !!initialDate);
   const [showFolderPicker, setShowFolderPicker] = useState(false);
-  const [time, setTime] = useState<string | undefined>(note?.time);
-  const [endTime, setEndTime] = useState<string | undefined>(note?.endTime);
+  const [time, setTime] = useState<string | undefined>(note?.time || initialTime);
+  const [endTime, setEndTime] = useState<string | undefined>(() => {
+    if (note?.endTime) return note.endTime;
+    if (initialTime) {
+      const [h, m] = initialTime.split(':').map(Number);
+      const endH = Math.min(h + 1, 23);
+      const endM = h >= 23 ? 59 : m;
+      return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+    }
+    return undefined;
+  });
   const endTimeManuallySet = useRef(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
