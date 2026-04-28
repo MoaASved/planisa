@@ -18,12 +18,22 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const [title, setTitle] = useState('');
   const [localDate, setLocalDate] = useState<Date | undefined>(undefined);
   const [localTime, setLocalTime] = useState<string | undefined>(undefined);
+  const [localEndTime, setLocalEndTime] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (note) {
       setTitle(note.title === 'Untitled' ? '' : (note.title || ''));
       setLocalDate(note.date ? new Date(note.date) : undefined);
       setLocalTime(note.time);
+      if (note.endTime) {
+        setLocalEndTime(note.endTime);
+      } else if (note.time) {
+        const [h, m] = note.time.split(':').map(Number);
+        const endH = Math.min(h + 1, 23);
+        setLocalEndTime(`${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      } else {
+        setLocalEndTime(undefined);
+      }
     }
   }, [note]);
 
@@ -32,7 +42,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const isNotebookPage = note.id.startsWith('nbp-');
 
   const handleSave = () => {
-    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime });
+    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
     onClose();
   };
 
@@ -42,7 +52,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   };
 
   const handleOpen = () => {
-    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime });
+    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
     onOpenFullEditor(note);
   };
 
@@ -92,16 +102,25 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
                   className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity disabled:pointer-events-none"
                 >
                   <Clock className="w-3.5 h-3.5" />
-                  {localTime ?? '—'}
+                  {localTime ?? '—'}{localEndTime ? ` – ${localEndTime}` : ''}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3 z-[9999]" align="start">
-                <input
-                  type="time"
-                  value={localTime ?? ''}
-                  onChange={(e) => setLocalTime(e.target.value || undefined)}
-                  className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={localTime ?? ''}
+                    onChange={(e) => setLocalTime(e.target.value || undefined)}
+                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                  />
+                  <span className="text-muted-foreground text-sm">–</span>
+                  <input
+                    type="time"
+                    value={localEndTime ?? ''}
+                    onChange={(e) => setLocalEndTime(e.target.value || undefined)}
+                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                  />
+                </div>
               </PopoverContent>
             </Popover>
           </div>
