@@ -320,7 +320,7 @@ export function CalendarItemList({
     if (!el) return '09:00';
     const timelineInner = el.querySelector('[data-timeline-grid]') as HTMLElement | null;
     const gridTop = timelineInner ? timelineInner.getBoundingClientRect().top : el.getBoundingClientRect().top;
-    const y = clientY - gridTop + el.scrollTop;
+    const y = clientY - gridTop;
     const totalMinutes = Math.max(0, Math.round((y / HOUR_HEIGHT) * 60 / 15) * 15);
     const hour = Math.min(Math.floor(totalMinutes / 60), 23);
     const minute = totalMinutes % 60;
