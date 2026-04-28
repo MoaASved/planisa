@@ -63,18 +63,6 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
     return undefined;
   });
   const endTimeManuallySet = useRef(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const handler = () => {
-      const keyboardHeight = window.innerHeight - vv.height;
-      setKeyboardOffset(keyboardHeight > 50 ? keyboardHeight : 0);
-    };
-    vv.addEventListener('resize', handler);
-    return () => vv.removeEventListener('resize', handler);
-  }, []);
 
   const calculateEndTime = (startTime: string): string => {
     const [h, m] = startTime.split(':').map(Number);
@@ -144,11 +132,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
           getStickyBgClass(color)
         )}
         style={{
-          maxHeight: keyboardOffset > 0
-            ? Math.max(220, window.innerHeight - 2 * keyboardOffset - 16)
-            : '70vh',
-          top: '50%',
-          transform: 'translateY(-50%)',
+          top: 16,
+          maxHeight: '55vh',
         }}
       >
         {/* Top actions */}

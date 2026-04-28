@@ -16,25 +16,12 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
   const { addNote } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     if (!isOpen) return;
     setTitle('');
     setContent('');
-    setKeyboardOffset(0);
   }, [isOpen]);
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const handler = () => {
-      const kbHeight = window.innerHeight - vv.height;
-      setKeyboardOffset(kbHeight > 50 ? kbHeight : 0);
-    };
-    vv.addEventListener('resize', handler);
-    return () => vv.removeEventListener('resize', handler);
-  }, []);
 
   if (!isOpen) return null;
 
@@ -75,10 +62,6 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
 
   const dateDisplay = format(date, 'MMMM d, yyyy');
 
-  const maxHeight = keyboardOffset > 0
-    ? Math.max(220, window.innerHeight - 2 * keyboardOffset - 16)
-    : window.innerHeight * 0.7;
-
   return (
     <>
       {/* Backdrop */}
@@ -87,13 +70,12 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         onClick={saveAndClose}
       />
 
-      {/* Centered card */}
+      {/* Card pinned near top so keyboard cannot overlap it */}
       <div
         className="fixed left-4 right-4 z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
-          top: '50%',
-          transform: 'translateY(-50%)',
-          maxHeight,
+          top: 16,
+          maxHeight: '55vh',
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
