@@ -20,6 +20,11 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
   const [content, setContent] = useState('');
   const [localDate, setLocalDate] = useState<Date>(date);
   const [localTime, setLocalTime] = useState<string>(time);
+  const [localEndTime, setLocalEndTime] = useState<string>(() => {
+    const [h, m] = time.split(':').map(Number);
+    const endH = Math.min(h + 1, 23);
+    return `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -27,6 +32,9 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
     setContent('');
     setLocalDate(date);
     setLocalTime(time);
+    const [h, m] = time.split(':').map(Number);
+    const endH = Math.min(h + 1, 23);
+    setLocalEndTime(`${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -43,6 +51,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         tags: [],
         date: localDate,
         time: localTime,
+        endTime: localEndTime,
         isPinned: false,
         showInCalendar: true,
       });
@@ -58,6 +67,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
       tags: [],
       date: localDate,
       time: localTime,
+      endTime: localEndTime,
       isPinned: false,
       showInCalendar: true,
     });
@@ -106,16 +116,25 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
                   <Clock className="w-3.5 h-3.5" />
-                  {localTime}
+                  {localTime} – {localEndTime}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3 z-[9999]" align="start">
-                <input
-                  type="time"
-                  value={localTime}
-                  onChange={(e) => setLocalTime(e.target.value)}
-                  className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={localTime}
+                    onChange={(e) => setLocalTime(e.target.value)}
+                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                  />
+                  <span className="text-muted-foreground text-sm">–</span>
+                  <input
+                    type="time"
+                    value={localEndTime}
+                    onChange={(e) => setLocalEndTime(e.target.value)}
+                    className="bg-muted/50 rounded-lg px-3 py-2.5 text-sm border-0 outline-none"
+                  />
+                </div>
               </PopoverContent>
             </Popover>
           </div>
