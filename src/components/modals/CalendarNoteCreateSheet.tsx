@@ -21,6 +21,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
   const [localDate, setLocalDate] = useState<Date>(date);
   const [localTime, setLocalTime] = useState<string>(time);
   const [localEndTime, setLocalEndTime] = useState<string>(() => {
+    if (!time) return '';
     const [h, m] = time.split(':').map(Number);
     const endH = Math.min(h + 1, 23);
     return `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -32,9 +33,13 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
     setContent('');
     setLocalDate(date);
     setLocalTime(time);
-    const [h, m] = time.split(':').map(Number);
-    const endH = Math.min(h + 1, 23);
-    setLocalEndTime(`${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    if (time) {
+      const [h, m] = time.split(':').map(Number);
+      const endH = Math.min(h + 1, 23);
+      setLocalEndTime(`${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    } else {
+      setLocalEndTime('');
+    }
   }, [isOpen]);
 
   if (!isOpen) return null;

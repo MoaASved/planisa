@@ -180,6 +180,7 @@ export function CalendarItemList({
   const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
   const [contextMenu, setContextMenu] = useState<TimeContextMenu | null>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const lastListTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
   const dateStr = format(date, 'yyyy-MM-dd');
 
@@ -327,8 +328,8 @@ export function CalendarItemList({
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
-  const showMenuAt = (clientX: number, clientY: number) => {
-    const time = getTimeFromY(clientY);
+  const showMenuAt = (clientX: number, clientY: number, time?: string) => {
+    const resolvedTime = time !== undefined ? time : getTimeFromY(clientY);
     const menuW = 160;
     const menuH = 176;
     // Measure the actual bottom nav bar to get a reliable safe zone
@@ -337,7 +338,7 @@ export function CalendarItemList({
     const safeBottom = window.innerHeight - navTop + 8;
     const x = Math.min(clientX, window.innerWidth - menuW - 8);
     const y = Math.min(clientY - 20, window.innerHeight - menuH - safeBottom);
-    setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time });
+    setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time: resolvedTime });
   };
 
   const handleTimelineDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -360,6 +361,28 @@ export function CalendarItemList({
       lastTapRef.current = null;
     } else {
       lastTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
+    }
+  };
+
+  const handleListDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!onCreateFromTimeline) return;
+    if ((e.target as HTMLElement).closest('[data-list-item]')) return;
+    e.preventDefault();
+    showMenuAt(e.clientX, e.clientY, '');
+  };
+
+  const handleListTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!onCreateFromTimeline) return;
+    if ((e.target as HTMLElement).closest('[data-list-item]')) return;
+    const touch = e.changedTouches[0];
+    const now = Date.now();
+    const last = lastListTapRef.current;
+    if (last && now - last.time < 300 && Math.abs(touch.clientX - last.x) < 30 && Math.abs(touch.clientY - last.y) < 30) {
+      e.preventDefault();
+      showMenuAt(touch.clientX, touch.clientY, '');
+      lastListTapRef.current = null;
+    } else {
+      lastListTapRef.current = { time: now, x: touch.clientX, y: touch.clientY };
     }
   };
 
@@ -591,9 +614,9 @@ export function CalendarItemList({
         </div>
       </div>
 
-      {!hasItems ? null : showTimeline ? (
+      {showTimeline ? (
         // Timeline view - only timed items + all-day at top
-        <div className="flex-1 relative overflow-hidden">
+        !hasItems ? null : <div className="flex-1 relative overflow-hidden">
           <div
             ref={timelineRef}
             onScroll={checkTimelineScroll}
@@ -686,14 +709,22 @@ export function CalendarItemList({
           )}
         </div>
       ) : (
-        // List view - all items with time shown on cards
-        <ListScrollContainer>
-          {allItems.map(({ type, item, time, endTime }) => (
-            <div key={item.id}>
-              {renderItemCard(item, type, time, endTime)}
-            </div>
-          ))}
-        </ListScrollContainer>
+        // List view - all items with time shown on cards; double-tap on empty area to create
+        <div
+          className="flex-1 flex flex-col"
+          onDoubleClick={handleListDoubleClick}
+          onTouchEnd={handleListTouchEnd}
+        >
+          {hasItems && (
+            <ListScrollContainer>
+              {allItems.map(({ type, item, time, endTime }) => (
+                <div key={item.id} data-list-item>
+                  {renderItemCard(item, type, time, endTime)}
+                </div>
+              ))}
+            </ListScrollContainer>
+          )}
+        </div>
       )}
       </div>
 
@@ -708,9 +739,11 @@ export function CalendarItemList({
             className="fixed z-[1400] bg-white dark:bg-[#1c1c1e] rounded-2xl shadow-xl overflow-hidden"
             style={{ left: contextMenu.x, top: contextMenu.y, width: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}
           >
-            <div className="px-3 pt-2.5 pb-1">
-              <span className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{contextMenu.time}</span>
-            </div>
+            {contextMenu.time && (
+              <div className="px-3 pt-2.5 pb-1">
+                <span className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{contextMenu.time}</span>
+              </div>
+            )}
             {(
               [
                 { type: 'event' as CreateType, label: 'Event', icon: CalendarPlus },
