@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ArrowLeft, Plus, BookOpen, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -11,9 +11,32 @@ interface NotebookViewProps {
 }
 
 export function NotebookView({ notebook, onClose }: NotebookViewProps) {
-  const { notebookPages, addNotebookPage } = useAppStore();
+  const { notebookPages, addNotebookPage, updateNotebookPage } = useAppStore();
   const [selectedPage, setSelectedPage] = useState<NotebookPage | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
+  const [editingPageId, setEditingPageId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const justFinishedEditingRef = useRef(false);
+
+  const getDisplayName = (page: NotebookPage) => {
+    if (page.title) return page.title;
+    const plain = page.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return plain.slice(0, 60) || 'Untitled page';
+  };
+
+  const startEditing = (e: React.MouseEvent, page: NotebookPage) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setEditingPageId(page.id);
+    setEditingTitle(page.title || '');
+  };
+
+  const saveTitle = (page: NotebookPage) => {
+    updateNotebookPage(page.id, { title: editingTitle.trim() });
+    justFinishedEditingRef.current = true;
+    setEditingPageId(null);
+    setTimeout(() => { justFinishedEditingRef.current = false; }, 300);
+  };
 
   const pages = notebookPages
     .filter(p => p.notebookId === notebook.id)
@@ -66,12 +89,16 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
           </div>
         ) : (
           pages.map((page, index) => {
-            const plainText = page.content.replace(/<[^>]*>/g, '').trim();
-            const preview = plainText.split('\n')[0]?.slice(0, 60) || '';
+            const plainText = page.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+            const preview = page.title ? plainText.slice(0, 60) : '';
+            const isEditing = editingPageId === page.id;
             return (
               <button
                 key={page.id}
-                onClick={() => setSelectedPage(page)}
+                onClick={() => {
+                  if (editingPageId !== null || justFinishedEditingRef.current) return;
+                  setSelectedPage(page);
+                }}
                 className="w-full text-left transition-all active:scale-[0.98] bg-white"
                 style={{
                   borderRadius: 14,
@@ -83,9 +110,28 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                 <div className="flex items-center gap-3 h-full">
                   <FileText className="w-5 h-5 shrink-0" style={{ color: '#C7C7CC' }} />
                   <div className="flex-1 min-w-0">
-                    <h4 className="flow-card-title truncate">
-                      {page.title}
-                    </h4>
+                    {isEditing ? (
+                      <input
+                        autoFocus
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onBlur={() => saveTitle(page)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') { e.preventDefault(); saveTitle(page); }
+                          if (e.key === 'Escape') setEditingPageId(null);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="Custom name…"
+                        className="w-full text-sm font-semibold bg-transparent border-b border-primary/50 outline-none text-foreground"
+                      />
+                    ) : (
+                      <h4
+                        className="flow-card-title truncate"
+                        onClick={(e) => startEditing(e, page)}
+                      >
+                        {getDisplayName(page)}
+                      </h4>
+                    )}
                     {preview && (
                       <p className="flow-meta truncate">
                         {preview}

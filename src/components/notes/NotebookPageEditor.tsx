@@ -233,7 +233,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     const pagesInNotebook = notebookPages.filter(p => p.notebookId === notebook.id);
     if (page) {
       updateNotebookPage(page.id, {
-        title: title || 'Untitled',
+        title,
         content,
         showInCalendar,
         hideDate,
@@ -245,7 +245,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     } else {
       addNotebookPage({
         notebookId: notebook.id,
-        title: title || 'Untitled',
+        title,
         content,
         type: 'note' as NoteType,
         order: pagesInNotebook.length,
@@ -699,14 +699,6 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
             </span>
           </div>
         )}
-
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-2xl font-bold bg-transparent border-0 outline-none text-foreground mb-4"
-          placeholder="Title"
-        />
 
         <EditorContent editor={editor} className="tiptap-content" />
       </div>
