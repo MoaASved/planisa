@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { X, Calendar as CalendarIcon, CalendarOff, Clock, Folder, Star, Trash2 } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Eye, EyeOff, Clock, Folder, Star, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
@@ -51,6 +51,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
   const [date, setDate] = useState<Date>(note?.date || initialDate || new Date());
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar ?? !!initialDate);
+  const [hasDateSelected, setHasDateSelected] = useState(!!(note?.date || initialDate));
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [time, setTime] = useState<string | undefined>(note?.time || initialTime);
   const [endTime, setEndTime] = useState<string | undefined>(() => {
@@ -90,8 +91,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
       tags: [],
       isPinned,
       showInCalendar,
-      time: showInCalendar ? time : undefined,
-      endTime: showInCalendar ? endTime : undefined,
+      time,
+      endTime,
       hideFromAllNotes: false,
     };
 
@@ -212,24 +213,15 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
 
           {/* Row 2: date and times + delete */}
           <div className="flex items-center gap-2">
-            {/* Show-in-calendar icon toggle — only in notes context */}
+            {/* Show-in-calendar eye toggle — only in notes context */}
             {showCalendarToggle && (
               <button
-                onClick={() => {
-                  if (showInCalendar) {
-                    setShowInCalendar(false);
-                    setTime(undefined);
-                    setEndTime(undefined);
-                    endTimeManuallySet.current = false;
-                  } else {
-                    setShowInCalendar(true);
-                  }
-                }}
+                onClick={() => setShowInCalendar(prev => !prev)}
                 className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
               >
                 {showInCalendar
-                  ? <CalendarIcon className="w-4 h-4" />
-                  : <CalendarOff className="w-4 h-4 opacity-60" />
+                  ? <Eye className="w-4 h-4" />
+                  : <EyeOff className="w-4 h-4 opacity-60" />
                 }
               </button>
             )}
@@ -239,27 +231,36 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
               <PopoverTrigger asChild>
                 <button className={cn(
                   'h-8 px-3 rounded-full flex items-center gap-1 text-sm transition-all active:scale-95',
-                  showInCalendar ? 'bg-white/40' : 'bg-white/30'
+                  (showCalendarToggle ? hasDateSelected : showInCalendar) ? 'bg-white/40' : 'bg-white/30'
                 )}>
                   <CalendarIcon className="w-4 h-4" />
-                  {showInCalendar && <span>{format(date, 'd MMM', { locale: sv })}</span>}
+                  {(showCalendarToggle ? hasDateSelected : showInCalendar) && <span>{format(date, 'd MMM', { locale: sv })}</span>}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[9999]" align="start">
                 <Calendar
                   mode="single"
-                  selected={showInCalendar ? date : undefined}
+                  selected={(showCalendarToggle ? hasDateSelected : showInCalendar) ? date : undefined}
                   onSelect={(d) => {
-                    if (d) { setDate(d); setShowInCalendar(true); }
-                    else { setShowInCalendar(false); setTime(undefined); setEndTime(undefined); endTimeManuallySet.current = false; }
+                    if (d) {
+                      setDate(d);
+                      setHasDateSelected(true);
+                      if (!showCalendarToggle) setShowInCalendar(true);
+                    } else {
+                      setHasDateSelected(false);
+                      setShowInCalendar(false);
+                      setTime(undefined);
+                      setEndTime(undefined);
+                      endTimeManuallySet.current = false;
+                    }
                   }}
                   className="p-3 pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
 
-            {/* Start time — only shown after a date is selected */}
-            {showInCalendar && (
+            {/* Start time — shown after a date is selected */}
+            {(showCalendarToggle ? hasDateSelected : showInCalendar) && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
@@ -289,8 +290,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
               </Popover>
             )}
 
-            {/* End time — only shown after start time is set */}
-            {showInCalendar && time && (
+            {/* End time — shown after start time is set */}
+            {(showCalendarToggle ? hasDateSelected : showInCalendar) && time && (
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
