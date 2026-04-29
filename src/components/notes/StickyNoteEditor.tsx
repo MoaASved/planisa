@@ -16,6 +16,7 @@ interface StickyNoteEditorProps {
   onClose: () => void;
   initialDate?: Date;
   initialTime?: string;
+  showCalendarToggle?: boolean;
 }
 
 const getStickyBgClass = (color?: PastelColor): string => {
@@ -36,7 +37,7 @@ const getStickyBgClass = (color?: PastelColor): string => {
   return colorMap[color] || 'bg-pastel-yellow';
 };
 
-export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: StickyNoteEditorProps) {
+export function StickyNoteEditor({ note, onClose, initialDate, initialTime, showCalendarToggle }: StickyNoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
 
@@ -50,6 +51,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
   const [date, setDate] = useState<Date>(note?.date || initialDate || new Date());
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar ?? !!initialDate);
+  const [hasDateSelected, setHasDateSelected] = useState(!!(note?.date || initialDate));
   const [showFolderPicker, setShowFolderPicker] = useState(false);
   const [time, setTime] = useState<string | undefined>(note?.time || initialTime);
   const [endTime, setEndTime] = useState<string | undefined>(() => {
@@ -216,19 +218,28 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
               <PopoverTrigger asChild>
                 <button className={cn(
                   'h-8 px-3 rounded-full flex items-center gap-1 text-sm transition-all active:scale-95',
-                  showInCalendar ? 'bg-white/40' : 'bg-white/30'
+                  (showCalendarToggle ? hasDateSelected : showInCalendar) ? 'bg-white/40' : 'bg-white/30'
                 )}>
                   <CalendarIcon className="w-4 h-4" />
-                  {showInCalendar && <span>{format(date, 'd MMM', { locale: sv })}</span>}
+                  {(showCalendarToggle ? hasDateSelected : showInCalendar) && <span>{format(date, 'd MMM', { locale: sv })}</span>}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[9999]" align="start">
                 <Calendar
                   mode="single"
-                  selected={showInCalendar ? date : undefined}
+                  selected={(showCalendarToggle ? hasDateSelected : showInCalendar) ? date : undefined}
                   onSelect={(d) => {
-                    if (d) { setDate(d); setShowInCalendar(true); }
-                    else { setShowInCalendar(false); setTime(undefined); setEndTime(undefined); }
+                    if (d) {
+                      setDate(d);
+                      setHasDateSelected(true);
+                      if (!showCalendarToggle) setShowInCalendar(true);
+                    } else {
+                      setHasDateSelected(false);
+                      setShowInCalendar(false);
+                      setTime(undefined);
+                      setEndTime(undefined);
+                      endTimeManuallySet.current = false;
+                    }
                   }}
                   className="p-3 pointer-events-auto"
                 />
@@ -308,6 +319,25 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime }: St
               </button>
             )}
           </div>
+
+          {/* Show in calendar toggle — only after a date has been selected */}
+          {showCalendarToggle && hasDateSelected && (
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-sm text-foreground/70">Show in calendar</span>
+              <button
+                onClick={() => setShowInCalendar(prev => !prev)}
+                className={cn(
+                  'w-12 h-6 rounded-full transition-colors relative flex-shrink-0',
+                  showInCalendar ? 'bg-black/25' : 'bg-black/10'
+                )}
+              >
+                <span className={cn(
+                  'absolute w-5 h-5 rounded-full bg-white shadow-sm top-0.5 transition-transform',
+                  showInCalendar ? 'translate-x-6' : 'translate-x-0.5'
+                )} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -292,7 +292,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   }
 
   if (selectedStickyNote || isCreatingStickyNote || (isCreatingNew && externalIsCreatingStickyNote)) {
-    return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} />;
+    return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} showCalendarToggle />;
   }
 
   if (selectedNotebook) {
