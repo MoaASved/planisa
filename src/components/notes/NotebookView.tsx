@@ -103,7 +103,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
       </div>
 
       {/* Add page FAB */}
-      <div className="fixed bottom-[120px] right-4 z-[1100]">
+      <div className="fixed bottom-[132px] right-4 z-[1100]">
         <button
           onClick={handleAddPage}
           className={cn(
