@@ -212,16 +212,16 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
 
 
           {/* Row 2: date and times + delete */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {/* Show-in-calendar eye toggle — only in notes context */}
             {showCalendarToggle && (
               <button
                 onClick={() => setShowInCalendar(prev => !prev)}
-                className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
+                className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
               >
                 {showInCalendar
-                  ? <Eye className="w-4 h-4" />
-                  : <EyeOff className="w-4 h-4 opacity-60" />
+                  ? <Eye className="w-3.5 h-3.5" />
+                  : <EyeOff className="w-3.5 h-3.5 opacity-60" />
                 }
               </button>
             )}
@@ -230,10 +230,10 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
             <Popover>
               <PopoverTrigger asChild>
                 <button className={cn(
-                  'h-8 px-3 rounded-full flex items-center gap-1 text-sm transition-all active:scale-95',
+                  'h-7 px-2 rounded-full flex items-center gap-1 text-xs transition-all active:scale-95 whitespace-nowrap',
                   (showCalendarToggle ? hasDateSelected : showInCalendar) ? 'bg-white/40' : 'bg-white/30'
                 )}>
-                  <CalendarIcon className="w-4 h-4" />
+                  <CalendarIcon className="w-3.5 h-3.5 flex-shrink-0" />
                   {(showCalendarToggle ? hasDateSelected : showInCalendar) && <span>{format(date, 'd MMM', { locale: sv })}</span>}
                 </button>
               </PopoverTrigger>
@@ -263,17 +263,17 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
             {(showCalendarToggle ? hasDateSelected : showInCalendar) && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
-                    <Clock className="w-4 h-4" />
+                  <button className="h-7 px-2 rounded-full bg-white/30 flex items-center gap-1 text-xs transition-all active:scale-95 whitespace-nowrap">
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                     {time ? (
                       <>
                         <span>{time}</span>
                         <span
                           role="button"
                           onClick={(e) => { e.stopPropagation(); setTime(undefined); setEndTime(undefined); endTimeManuallySet.current = false; }}
-                          className="w-3.5 h-3.5 rounded-full hover:bg-white/30 flex items-center justify-center"
+                          className="w-3 h-3 rounded-full hover:bg-white/30 flex items-center justify-center"
                         >
-                          <X className="w-2.5 h-2.5" />
+                          <X className="w-2 h-2" />
                         </span>
                       </>
                     ) : null}
@@ -294,16 +294,16 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
             {(showCalendarToggle ? hasDateSelected : showInCalendar) && time && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="h-8 px-3 rounded-full bg-white/30 flex items-center gap-1 text-sm transition-all active:scale-95">
+                  <button className="h-7 px-2 rounded-full bg-white/30 flex items-center gap-1 text-xs transition-all active:scale-95 whitespace-nowrap">
                     {endTime ? (
                       <>
                         <span>{endTime}</span>
                         <span
                           role="button"
                           onClick={(e) => { e.stopPropagation(); setEndTime(undefined); endTimeManuallySet.current = true; }}
-                          className="w-3.5 h-3.5 rounded-full hover:bg-white/30 flex items-center justify-center"
+                          className="w-3 h-3 rounded-full hover:bg-white/30 flex items-center justify-center"
                         >
-                          <X className="w-2.5 h-2.5" />
+                          <X className="w-2 h-2" />
                         </span>
                       </>
                     ) : (
@@ -326,9 +326,9 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
             {note && (
               <button
                 onClick={handleDelete}
-                className="ml-auto p-2 rounded-xl bg-white/20 text-destructive transition-all active:scale-95"
+                className="ml-auto p-1.5 rounded-lg bg-white/20 text-destructive transition-all active:scale-95"
               >
-                <Trash2 className="w-5 h-5" />
+                <Trash2 className="w-4 h-4" />
               </button>
             )}
           </div>
