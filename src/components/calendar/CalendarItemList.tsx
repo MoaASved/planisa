@@ -517,21 +517,44 @@ export function CalendarItemList({
 
     // Note
     const note = item as Note;
+    const isSticky = note.type === 'sticky';
+
+    // Deterministic subtle rotation for sticky notes, keyed on note id
+    const stickyRotation = isSticky ? (() => {
+      let hash = 0;
+      for (let i = 0; i < note.id.length; i++) {
+        hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
+      }
+      // Range: -1.5 to +1.5 deg (slightly tighter than the notes grid)
+      return (((hash % 300) + 300) % 300) / 100 - 1.5;
+    })() : 0;
+
     return (
       <div
         draggable
         onDragStart={() => handleDragStart(note.id, 'note')}
         onDragEnd={handleDragEnd}
         onClick={() => onItemClick(note, 'note')}
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
-          className={cn(
+        style={{
+          boxShadow: isSticky ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
+          transform: isSticky ? `rotate(${stickyRotation.toFixed(2)}deg)` : undefined,
+        }}
+        className={cn(
           'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
+          isSticky && 'relative overflow-hidden',
           getColorCardClass(color),
           compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
           fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
         )}
       >
+        {/* Folded corner — sticky notes only */}
+        {isSticky && (
+          <>
+            <div className="absolute top-0 right-0 w-5 h-5 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
+            <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
+          </>
+        )}
         <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
