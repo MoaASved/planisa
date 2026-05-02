@@ -705,7 +705,7 @@ export function CalendarItemList({
                         key={item.id}
                         data-timeline-item
                         className="absolute"
-                        style={{ top: top + GAP, right: 0, width: 120 }}
+                        style={{ top: top + GAP, right: 0, width: 120, zIndex: 2 }}
                       >
                         {/* Outer rotates tape + card together */}
                         <div style={{ transform: `rotate(${rotation.toFixed(1)}deg)`, position: 'relative', paddingTop: 14 }}>
