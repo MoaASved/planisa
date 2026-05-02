@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getColorVar } from '@/lib/colors';
+import { getColorCardClass, getColorVar, getAccentVar } from '@/lib/colors';
 import { Check, FileText, Clock, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
 import {
   DropdownMenu,
@@ -436,7 +436,7 @@ export function CalendarItemList({
           onClick={() => onItemClick(task, 'task')}
           style={{
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            borderLeft: isUntimed ? `2px dashed ${getColorVar(color)}` : undefined,
+            borderLeft: isUntimed ? `2px dashed ${getAccentVar(color)}` : undefined,
           }}
           className={cn(
             'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex gap-3 relative text-[#2C2C2A]',
@@ -454,7 +454,7 @@ export function CalendarItemList({
               compact ? 'w-4 h-4' : 'w-5 h-5',
               task.completed ? 'bg-primary border-primary' : ''
             )}
-            style={!task.completed ? { borderColor: getColorVar(color) } : undefined}
+            style={!task.completed ? { borderColor: getAccentVar(color) } : undefined}
           >
             {task.completed && <Check className={cn(compact ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-primary-foreground')} />}
           </div>
@@ -503,7 +503,7 @@ export function CalendarItemList({
           {/* Solid colored left border — always present on events */}
           <div
             className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-[12px] pointer-events-none"
-            style={{ background: getColorVar(color) }}
+            style={{ background: getAccentVar(color) }}
           />
           <span className={cn('font-semibold block truncate', compact ? 'text-xs' : 'text-sm')}>
             {event.title}
@@ -577,7 +577,7 @@ export function CalendarItemList({
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
           {/* Ruled notebook line under title — regular notes only */}
           {!isSticky && (
-            <div className="mt-1 mb-1" style={{ height: 1, background: getColorVar(color), opacity: 0.3 }} />
+            <div className="mt-1 mb-1" style={{ height: 1, background: getAccentVar(color), opacity: 0.3 }} />
           )}
           {noteShowTime && time && (
             <span className="text-xs text-[#2C2C2A]/70">
