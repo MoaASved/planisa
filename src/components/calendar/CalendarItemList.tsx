@@ -180,24 +180,12 @@ export function CalendarItemList({
   }, []);
 
   // Auto-scroll to 7:00 when timeline is activated
-  const timedItemsRef = useRef(timedItems);
-  timedItemsRef.current = timedItems;
-
   useEffect(() => {
-    if (!showTimeline || !timelineRef.current) return;
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const items = timedItemsRef.current;
-    let targetMinutes = currentMinutes - 60;
-    if (items.length > 0) {
-      const earliest = Math.min(...items.map(i => {
-        const [h, m] = i.time.split(':').map(Number);
-        return h * 60 + m;
-      }));
-      if (earliest < currentMinutes) targetMinutes = Math.min(targetMinutes, earliest - 30);
+    if (showTimeline && timelineRef.current) {
+      const scrollPosition = 7 * HOUR_HEIGHT;
+      timelineRef.current.scrollTop = scrollPosition;
+      checkTimelineScroll();
     }
-    timelineRef.current.scrollTop = Math.max(0, targetMinutes * (HOUR_HEIGHT / 60));
-    checkTimelineScroll();
   }, [showTimeline, checkTimelineScroll]);
 
   // Filter items for this date
@@ -668,20 +656,26 @@ export function CalendarItemList({
       </div>
 
       {showTimeline ? (
-        // Timeline view - sticky all-day strip + scrollable timed timeline
-        !hasItems ? null : <div className="flex-1 flex flex-col overflow-hidden">
-          {/* All-day / unscheduled items — sticky strip above timeline */}
-          {allDayItems.length > 0 && (
-            <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)', flexShrink: 0 }}>
-              {/* Always-visible strip row */}
-              <button
-                className="w-full flex items-center gap-2 px-4"
-                style={{ height: 36 }}
-                onClick={() => setAllDayExpanded(v => !v)}
-              >
-                <span className="text-[11px] text-muted-foreground/55 font-medium shrink-0 mr-1">All day</span>
-                {/* Pills — only when collapsed */}
-                {!allDayExpanded && (
+        // Timeline view - only timed items + all-day at top
+        !hasItems ? null : <div className="flex-1 relative overflow-hidden">
+          <div
+            ref={timelineRef}
+            onScroll={checkTimelineScroll}
+            onDoubleClick={handleTimelineDoubleClick}
+            onTouchEnd={handleTimelineTouchEnd}
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
+          >
+            {/* All-day / unscheduled items — collapsible bar */}
+            {allDayItems.length > 0 && (
+              <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                {/* Collapsed bar — always visible */}
+                <button
+                  className="w-full flex items-center gap-2 px-4"
+                  style={{ height: 36 }}
+                  onClick={() => setAllDayExpanded(v => !v)}
+                >
+                  <span className="text-[11px] text-muted-foreground/55 font-medium shrink-0 mr-1">All day</span>
+                  {/* Pill chips */}
                   <div className="flex-1 flex items-center gap-1.5 overflow-hidden">
                     {allDayItems.map(({ type, item }) => {
                       const color = type === 'note'
@@ -704,42 +698,30 @@ export function CalendarItemList({
                       );
                     })}
                   </div>
-                )}
-                {allDayExpanded && <div className="flex-1" />}
-                {/* Badge (collapsed only) + chevron */}
-                {!allDayExpanded && allDayItems.length >= 2 && (
-                  <span className="shrink-0 text-[10px] text-muted-foreground/55 font-medium bg-black/[0.06] rounded-full px-1.5 leading-5 h-5 flex items-center">
-                    {allDayItems.length}
-                  </span>
-                )}
-                <ChevronDown
-                  className={cn('w-3.5 h-3.5 text-muted-foreground/40 shrink-0 transition-transform duration-200', allDayExpanded && 'rotate-180')}
-                />
-              </button>
-              {/* Expanded full blocks — only when expanded */}
-              {allDayExpanded && (
-                <div className="px-4 pb-3 pt-1">
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                    {allDayItems.map(({ type, item }) => (
-                      <div key={item.id}>
-                        {renderItemCard(item, type, undefined, undefined, true)}
-                      </div>
-                    ))}
+                  {/* Badge + chevron */}
+                  {allDayItems.length >= 2 && (
+                    <span className="shrink-0 text-[10px] text-muted-foreground/55 font-medium bg-black/[0.06] rounded-full px-1.5 leading-5 h-5 flex items-center">
+                      {allDayItems.length}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={cn('w-3.5 h-3.5 text-muted-foreground/40 shrink-0 transition-transform duration-200', allDayExpanded && 'rotate-180')}
+                  />
+                </button>
+                {/* Expanded grid */}
+                {allDayExpanded && (
+                  <div className="px-4 pb-3 pt-1">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                      {allDayItems.map(({ type, item }) => (
+                        <div key={item.id}>
+                          {renderItemCard(item, type, undefined, undefined, true)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Scrollable timeline */}
-          <div className="flex-1 relative overflow-hidden">
-          <div
-            ref={timelineRef}
-            onScroll={checkTimelineScroll}
-            onDoubleClick={handleTimelineDoubleClick}
-            onTouchEnd={handleTimelineTouchEnd}
-            className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
-          >
+                )}
+              </div>
+            )}
 
             {/* Timeline */}
             <div data-timeline-grid className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
@@ -903,7 +885,6 @@ export function CalendarItemList({
               }}
             />
           )}
-          </div>
         </div>
       ) : (
         // List view - all items with time shown on cards; double-tap on empty area to create
