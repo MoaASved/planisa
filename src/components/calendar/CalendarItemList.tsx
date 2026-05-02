@@ -166,6 +166,7 @@ export function CalendarItemList({
   const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
   const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
   const [contextMenu, setContextMenu] = useState<TimeContextMenu | null>(null);
+  const [allDayExpanded, setAllDayExpanded] = useState(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastListTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
@@ -575,10 +576,6 @@ export function CalendarItemList({
         }
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
-          {/* Ruled notebook line under title — regular notes only */}
-          {!isSticky && (
-            <div className="mt-1 mb-1" style={{ height: 1, background: getAccentVar(color), opacity: 0.3 }} />
-          )}
           {noteShowTime && time && (
             <span className="text-xs text-[#2C2C2A]/70">
               {time}{endTime && ` - ${endTime}`}
@@ -668,16 +665,61 @@ export function CalendarItemList({
             onTouchEnd={handleTimelineTouchEnd}
             className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
           >
-            {/* All-day items - 2 columns */}
+            {/* All-day / unscheduled items — collapsible bar */}
             {allDayItems.length > 0 && (
-              <div className="px-4 pt-2 pb-4 border-b border-border/20 mb-2">
-                <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                  {allDayItems.map(({ type, item }) => (
-                    <div key={item.id}>
-                      {renderItemCard(item, type, undefined, undefined, true)}
+              <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+                {/* Collapsed bar — always visible */}
+                <button
+                  className="w-full flex items-center gap-2 px-4"
+                  style={{ height: 36 }}
+                  onClick={() => setAllDayExpanded(v => !v)}
+                >
+                  <span className="text-[11px] text-muted-foreground/55 font-medium shrink-0 mr-1">All day</span>
+                  {/* Pill chips */}
+                  <div className="flex-1 flex items-center gap-1.5 overflow-hidden">
+                    {allDayItems.map(({ type, item }) => {
+                      const color = type === 'note'
+                        ? getNoteColor(item as Note)
+                        : getItemColor(item as Task | CalendarEvent, type as 'task' | 'event');
+                      const title = type === 'event'
+                        ? (item as CalendarEvent).title
+                        : type === 'task'
+                        ? (item as Task).title
+                        : getNoteDisplayTitle(item as Note);
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-1 px-2 rounded-full shrink-0"
+                          style={{ background: getColorVar(color), height: 20, maxWidth: 110 }}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: getAccentVar(color) }} />
+                          <span className="text-[10px] font-medium text-[#2C2C2A] truncate leading-none">{title}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* Badge + chevron */}
+                  {allDayItems.length >= 2 && (
+                    <span className="shrink-0 text-[10px] text-muted-foreground/55 font-medium bg-black/[0.06] rounded-full px-1.5 leading-5 h-5 flex items-center">
+                      {allDayItems.length}
+                    </span>
+                  )}
+                  <ChevronDown
+                    className={cn('w-3.5 h-3.5 text-muted-foreground/40 shrink-0 transition-transform duration-200', allDayExpanded && 'rotate-180')}
+                  />
+                </button>
+                {/* Expanded grid */}
+                {allDayExpanded && (
+                  <div className="px-4 pb-3 pt-1">
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                      {allDayItems.map(({ type, item }) => (
+                        <div key={item.id}>
+                          {renderItemCard(item, type, undefined, undefined, true)}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
