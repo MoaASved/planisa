@@ -519,6 +519,9 @@ export function CalendarItemList({
     const note = item as Note;
     const isSticky = note.type === 'sticky';
 
+    // In timeline mode sticky notes still display their time (they don't span a duration)
+    const noteShowTime = showTime || (isSticky && showTimeline && !!time);
+
     // Deterministic subtle rotation for sticky notes, keyed on note id
     const stickyRotation = isSticky ? (() => {
       let hash = 0;
@@ -558,7 +561,7 @@ export function CalendarItemList({
         <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
-          {showTime && time && (
+          {noteShowTime && time && (
             <span className="text-xs text-[#2C2C2A]/70">
               {time}{endTime && ` - ${endTime}`}
             </span>
@@ -680,6 +683,34 @@ export function CalendarItemList({
               <div className="absolute left-16 right-4 top-0 bottom-0">
                 {timedItems.map(({ type, item, time, endTime }) => {
                   const top = getTimePosition(time);
+                  const GAP = 4;
+
+                  // Sticky notes: fixed compact card anchored at start time, not spanning duration
+                  if (type === 'note' && (item as Note).type === 'sticky') {
+                    const note = item as Note;
+                    // Deterministic left offset (3–8%) so each note feels individually placed
+                    let hash = 0;
+                    for (let i = 0; i < note.id.length; i++) {
+                      hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
+                    }
+                    const leftPct = 3 + (((hash % 50) + 50) % 50) / 10;
+                    return (
+                      <div
+                        key={item.id}
+                        data-timeline-item
+                        className="absolute"
+                        style={{
+                          top: top + GAP / 2,
+                          height: 76,
+                          left: `${leftPct.toFixed(1)}%`,
+                          width: '65%',
+                        }}
+                      >
+                        {renderItemCard(item, type, time, endTime, true, true)}
+                      </div>
+                    );
+                  }
+
                   // Default to 30 minutes if no end time specified
                   const calculatedEndTime = endTime || addMinutes(time, 30);
                   const height = Math.max(getTimePosition(calculatedEndTime) - top, HOUR_HEIGHT * 0.5);
@@ -689,7 +720,6 @@ export function CalendarItemList({
                   const widthPercent = 100 / colInfo.totalColumns;
                   const leftPercent = colInfo.column * widthPercent;
 
-                  const GAP = 4;
                   const shortBlock = type === 'task' && height <= HOUR_HEIGHT * 0.5;
                   return (
                     <div
