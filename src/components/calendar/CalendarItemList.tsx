@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getColorVar } from '@/lib/colors';
-import { Check, FileText, Clock, ChevronDown, CalendarPlus, CheckSquare, StickyNote } from 'lucide-react';
+import { Check, FileText, Clock, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -536,17 +536,23 @@ export function CalendarItemList({
     // Note
     const note = item as Note;
     const isSticky = note.type === 'sticky';
+    // List-view sticky: no timeline, not compact — gets the full physical sticky treatment
+    const isListViewSticky = isSticky && !showTimeline && !compact;
 
     // In timeline mode sticky notes still display their time (they don't span a duration)
     const noteShowTime = showTime || (isSticky && showTimeline && !!time);
 
-    // Deterministic subtle rotation for sticky notes, keyed on note id
+    // Deterministic rotation: 2–4° for list view, ±1.5° elsewhere
     const stickyRotation = isSticky ? (() => {
       let hash = 0;
       for (let i = 0; i < note.id.length; i++) {
         hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
       }
-      // Range: -1.5 to +1.5 deg (slightly tighter than the notes grid)
+      if (isListViewSticky) {
+        const dirSign = hash % 2 === 0 ? 1 : -1;
+        const mag = 2 + (Math.abs(hash >> 4) % 200) / 100;
+        return dirSign * mag;
+      }
       return (((hash % 300) + 300) % 300) / 100 - 1.5;
     })() : 0;
 
@@ -557,8 +563,11 @@ export function CalendarItemList({
         onDragEnd={handleDragEnd}
         onClick={() => onItemClick(note, 'note')}
         style={{
-          boxShadow: isSticky ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
+          boxShadow: isListViewSticky
+            ? '3px 4px 12px rgba(0,0,0,0.15)'
+            : isSticky ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
           transform: isSticky ? `rotate(${stickyRotation.toFixed(2)}deg)` : undefined,
+          ...(isListViewSticky && { maxWidth: '160px', minHeight: '90px' }),
         }}
         className={cn(
           'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
@@ -576,7 +585,10 @@ export function CalendarItemList({
             <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
           </>
         )}
-        <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
+        {isSticky
+          ? <Pin className={cn(compact ? 'w-3 h-3' : 'w-3.5 h-3.5', 'text-[#2C2C2A]/45 flex-shrink-0 mt-0.5')} />
+          : <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
+        }
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
           {noteShowTime && time && (
