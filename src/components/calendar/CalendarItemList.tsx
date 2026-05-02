@@ -284,8 +284,11 @@ export function CalendarItemList({
     return items.sort((a, b) => a.time.localeCompare(b.time));
   }, [timedEvents, timedTasks, timedNotes, activeFilters]);
 
-  // Calculate overlap columns for timeline view
-  const overlapColumns = useMemo(() => getOverlapColumns(timedItems), [timedItems]);
+  // Calculate overlap columns for timeline view — exclude sticky notes, they have their own fixed right-side layout
+  const overlapColumns = useMemo(() =>
+    getOverlapColumns(timedItems.filter(i => !(i.type === 'note' && (i.item as Note).type === 'sticky'))),
+    [timedItems]
+  );
 
   const toggleFilter = (filter: ItemType) => {
     setActiveFilters(prev => 
