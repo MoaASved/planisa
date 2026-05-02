@@ -685,28 +685,77 @@ export function CalendarItemList({
                   const top = getTimePosition(time);
                   const GAP = 4;
 
-                  // Sticky notes: fixed compact card anchored at start time, not spanning duration
+                  // Sticky notes: physical sticky note appearance, fixed size on right side
                   if (type === 'note' && (item as Note).type === 'sticky') {
                     const note = item as Note;
-                    // Deterministic left offset (3–8%) so each note feels individually placed
+                    const stickyIsDragging = draggedItem?.id === note.id;
+                    const colorClass = getColorCardClass(getNoteColor(note));
+
+                    // Deterministic rotation 2–4 deg, direction based on id hash
                     let hash = 0;
                     for (let i = 0; i < note.id.length; i++) {
                       hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
                     }
-                    const leftPct = 3 + (((hash % 50) + 50) % 50) / 10;
+                    const dirSign = hash % 2 === 0 ? 1 : -1;
+                    const mag = 2 + (Math.abs(hash >> 4) % 200) / 100;
+                    const rotation = dirSign * mag;
+
                     return (
                       <div
                         key={item.id}
                         data-timeline-item
                         className="absolute"
-                        style={{
-                          top: top + GAP / 2,
-                          height: 76,
-                          left: `${leftPct.toFixed(1)}%`,
-                          width: '65%',
-                        }}
+                        style={{ top: top + GAP, right: 0, width: 120 }}
                       >
-                        {renderItemCard(item, type, time, endTime, true, true)}
+                        {/* Outer rotates tape + card together */}
+                        <div style={{ transform: `rotate(${rotation.toFixed(1)}deg)`, position: 'relative', paddingTop: 14 }}>
+                          {/* Tape strip centered above the card */}
+                          <div
+                            className="absolute pointer-events-none"
+                            style={{
+                              top: 2,
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              width: 36,
+                              height: 12,
+                              background: 'rgba(255,255,255,0.52)',
+                              borderRadius: 3,
+                              boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35), 0 1px 3px rgba(0,0,0,0.08)',
+                            }}
+                          />
+                          {/* Card */}
+                          <div
+                            draggable
+                            onDragStart={() => handleDragStart(note.id, 'note')}
+                            onDragEnd={handleDragEnd}
+                            onClick={() => onItemClick(note, 'note')}
+                            className={cn(
+                              'relative overflow-hidden cursor-pointer active:scale-[0.97] transition-transform',
+                              colorClass,
+                              stickyIsDragging && 'opacity-50'
+                            )}
+                            style={{
+                              borderRadius: 8,
+                              boxShadow: '3px 4px 12px rgba(0,0,0,0.15)',
+                              padding: '8px 10px 22px',
+                              height: 110,
+                            }}
+                          >
+                            {/* Folded corner */}
+                            <div className="absolute top-0 right-0 w-5 h-5 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
+                            {/* Title — up to 3 lines */}
+                            <p className="text-xs font-medium text-[#2C2C2A] line-clamp-3 leading-[1.35]">
+                              {getNoteDisplayTitle(note) || '—'}
+                            </p>
+                            {/* Time — pinned to bottom */}
+                            {time && (
+                              <span className="absolute bottom-2 left-2.5 right-2.5 text-[10px] text-[#2C2C2A]/50 truncate block">
+                                {time}{endTime && ` – ${endTime}`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     );
                   }
