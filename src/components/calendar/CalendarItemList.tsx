@@ -567,7 +567,7 @@ export function CalendarItemList({
             ? '3px 4px 12px rgba(0,0,0,0.15)'
             : isSticky ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
           transform: isSticky ? `rotate(${stickyRotation.toFixed(2)}deg)` : undefined,
-          ...(isListViewSticky && { maxWidth: '160px', minHeight: '90px' }),
+          ...(isListViewSticky && { minHeight: '90px' }),
         }}
         className={cn(
           'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
