@@ -44,56 +44,40 @@ type TimedItem = { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task |
 
 // Calculate overlap columns for timeline items (Apple Calendar style)
 const getOverlapColumns = (items: TimedItem[]): Map<string, { column: number; totalColumns: number }> => {
-  const columns: Map<string, { column: number; totalColumns: number }> = new Map();
-  
-  if (items.length === 0) return columns;
-  
-  // Sort by start time
-  const sorted = [...items].sort((a, b) => a.time.localeCompare(b.time));
-  
-  // Find overlapping groups using a more accurate algorithm
-  const groups: TimedItem[][] = [];
-  
-  sorted.forEach((item) => {
-    const itemStart = item.time;
-    const itemEnd = item.endTime || addMinutes(item.time, 30);
-    
-    // Find if this item overlaps with any existing group
-    let addedToGroup = false;
-    
-    for (const group of groups) {
-      // Check if item overlaps with any item in the group
-      const overlapsWithGroup = group.some(existing => {
-        const existingStart = existing.time;
-        const existingEnd = existing.endTime || addMinutes(existing.time, 30);
-        return itemStart < existingEnd && itemEnd > existingStart;
-      });
-      
-      if (overlapsWithGroup) {
-        group.push(item);
-        addedToGroup = true;
-        break;
-      }
-    }
-    
-    if (!addedToGroup) {
-      groups.push([item]);
-    }
-  });
-  
-  // Assign columns within each group
-  groups.forEach(group => {
-    // Sort group by start time for consistent column assignment
-    group.sort((a, b) => a.time.localeCompare(b.time));
-    group.forEach((item, index) => {
-      columns.set(item.item.id, { 
-        column: index, 
-        totalColumns: group.length 
-      });
-    });
-  });
-  
-  return columns;
+  const result: Map<string, { column: number; totalColumns: number }> = new Map();
+  if (items.length === 0) return result;
+
+  const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+  const sorted = [...items]
+    .map(item => ({
+      item,
+      start: toMin(item.time),
+      end: toMin(item.endTime || addMinutes(item.time, 30)),
+    }))
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+
+  // Greedy column assignment: reuse the earliest column whose last item has already ended.
+  // Two items only share a column when they do NOT overlap (one ends at or before the other starts).
+  const columnEnds: number[] = [];
+  const assignments: { id: string; column: number; start: number; end: number }[] = [];
+
+  for (const { item, start, end } of sorted) {
+    let col = columnEnds.findIndex(e => e <= start);
+    if (col === -1) col = columnEnds.length; // all columns busy — open a new one
+    columnEnds[col] = end;
+    assignments.push({ id: item.item.id, column: col, start, end });
+  }
+
+  // totalColumns for each item = highest column index among all items concurrent with it, plus 1.
+  // Items that are not concurrent get totalColumns = 1 (full width).
+  for (const a of assignments) {
+    const concurrent = assignments.filter(b => b.start < a.end && b.end > a.start);
+    const totalColumns = Math.max(...concurrent.map(b => b.column)) + 1;
+    result.set(a.id, { column: a.column, totalColumns });
+  }
+
+  return result;
 };
 
 // Scroll container with top + bottom fade effect
