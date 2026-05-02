@@ -13,6 +13,9 @@ import {
 
 const HOUR_HEIGHT = 60;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
+// Sticky note card: 14px tape padding + 110px card = 124px visual height on the timeline
+const STICKY_VISUAL_MINUTES = Math.ceil((14 + 110) / HOUR_HEIGHT * 60); // 124 min at 60px/hr
+const STICKY_RESERVE_PX = 124; // 120px card width + 4px breathing gap
 
 const getNoteDisplayTitle = (note: Note): string => {
   if (note.title && note.title !== 'Untitled') return note.title;
@@ -287,6 +290,18 @@ export function CalendarItemList({
   // Calculate overlap columns for timeline view — exclude sticky notes, they have their own fixed right-side layout
   const overlapColumns = useMemo(() =>
     getOverlapColumns(timedItems.filter(i => !(i.type === 'note' && (i.item as Note).type === 'sticky'))),
+    [timedItems]
+  );
+
+  // Visual time ranges occupied by sticky notes (card height converted to minutes, not item duration)
+  const stickyRanges = useMemo(() =>
+    timedItems
+      .filter(i => i.type === 'note' && (i.item as Note).type === 'sticky')
+      .map(i => {
+        const [h, m] = i.time.split(':').map(Number);
+        const startMin = h * 60 + m;
+        return { startMin, endMin: startMin + STICKY_VISUAL_MINUTES };
+      }),
     [timedItems]
   );
 
@@ -772,6 +787,22 @@ export function CalendarItemList({
                   const widthPercent = 100 / colInfo.totalColumns;
                   const leftPercent = colInfo.column * widthPercent;
 
+                  // Shrink block to the left of any overlapping sticky note
+                  const [bsh, bsm] = time.split(':').map(Number);
+                  const blockStartMin = bsh * 60 + bsm;
+                  const [beh, bem] = calculatedEndTime.split(':').map(Number);
+                  const blockEndMin = beh * 60 + bem;
+                  const nearSticky = stickyRanges.some(
+                    s => s.startMin < blockEndMin && s.endMin > blockStartMin
+                  );
+                  const gapPx = colInfo.totalColumns > 1 ? 4 : 0;
+                  const blockLeft = nearSticky
+                    ? `calc(${leftPercent}% - ${(leftPercent * STICKY_RESERVE_PX / 100).toFixed(1)}px)`
+                    : `${leftPercent}%`;
+                  const blockWidth = nearSticky
+                    ? `calc(${widthPercent}% - ${(widthPercent * STICKY_RESERVE_PX / 100).toFixed(1)}px - ${gapPx}px)`
+                    : `calc(${widthPercent}% - ${gapPx}px)`;
+
                   const shortBlock = type === 'task' && height <= HOUR_HEIGHT * 0.5;
                   return (
                     <div
@@ -781,8 +812,8 @@ export function CalendarItemList({
                       style={{
                         top: top + GAP / 2,
                         height: Math.max(height - GAP, 20),
-                        left: `${leftPercent}%`,
-                        width: `calc(${widthPercent}% - ${colInfo.totalColumns > 1 ? '4px' : '0px'})`,
+                        left: blockLeft,
+                        width: blockWidth,
                       }}
                     >
                       {renderItemCard(item, type, time, endTime, true, true, shortBlock)}
