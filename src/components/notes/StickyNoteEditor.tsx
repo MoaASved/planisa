@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { X, Calendar as CalendarIcon, Eye, EyeOff, Clock, Folder, Star, Trash2 } from 'lucide-react';
@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { FolderPickerSheet } from './FolderPickerSheet';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
+import { useAutoSave } from '@/hooks/useAutoSave';
 
 interface StickyNoteEditorProps {
   note?: Note;
@@ -80,22 +81,30 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
     }
   };
 
-  const handleSave = () => {
-    const noteData = {
-      title: content.slice(0, 30) || 'Sticky Note',
-      content,
-      type: 'sticky' as const,
-      folder,
-      color,
-      date,
-      tags: [],
-      isPinned,
-      showInCalendar,
-      time,
-      endTime,
-      hideFromAllNotes: false,
-    };
+  const buildNoteData = useCallback(() => ({
+    title: content.slice(0, 30) || 'Sticky Note',
+    content,
+    type: 'sticky' as const,
+    folder,
+    color,
+    date,
+    tags: [] as string[],
+    isPinned,
+    showInCalendar,
+    time,
+    endTime,
+    hideFromAllNotes: false,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [content, folder, color, date, isPinned, showInCalendar, time, endTime]);
 
+  const { trigger: triggerAutoSave, cancel: cancelAutoSave } = useAutoSave(useCallback(() => {
+    if (!note) return;
+    updateNote(note.id, buildNoteData());
+  }, [note, buildNoteData, updateNote]));
+
+  const handleSave = () => {
+    cancelAutoSave();
+    const noteData = buildNoteData();
     if (note) {
       updateNote(note.id, noteData);
     } else if (content.trim()) {
@@ -161,7 +170,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
         {/* Content */}
         <textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => { setContent(e.target.value); if (note) triggerAutoSave(); }}
           placeholder="Write something..."
           className={cn(
             'w-full bg-transparent border-none outline-none resize-none text-lg',

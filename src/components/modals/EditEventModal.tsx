@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import { X, Plus, Calendar, Clock, Tag, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { CalendarEvent, PastelColor } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
+import { useAutoSave } from '@/hooks/useAutoSave';
 
 interface EditEventModalProps {
   event: CalendarEvent | null;
@@ -62,7 +63,28 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
     }
   };
 
+  const { trigger: triggerAutoSave, flush: flushAutoSave, cancel: cancelAutoSave } = useAutoSave(useCallback(() => {
+    if (!event || !title.trim() || !date) return;
+    updateEvent(event.id, {
+      title: title.trim(),
+      date: new Date(date),
+      startTime: isAllDay ? undefined : startTime || undefined,
+      endTime: isAllDay ? undefined : endTime || undefined,
+      category,
+      color,
+      isAllDay,
+      description: description.trim() || undefined,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event, title, date, startTime, endTime, isAllDay, category, color, description]));
+
+  const handleClose = () => {
+    flushAutoSave();
+    onClose();
+  };
+
   const handleSave = () => {
+    cancelAutoSave();
     if (!event || !title.trim() || !date) return;
 
     updateEvent(event.id, {
@@ -89,14 +111,14 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
 
   return (
     <div className="fixed inset-0 z-[1100] flex items-end justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
       <div className="relative bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
         <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-foreground">Edit Event</h2>
-          <button onClick={onClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
+          <button onClick={handleClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
@@ -105,7 +127,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
           <input
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { setTitle(e.target.value); triggerAutoSave(); }}
             placeholder="Event title"
             className="w-full text-lg font-medium bg-transparent border-0 outline-none placeholder:text-muted-foreground"
           />
@@ -227,7 +249,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Description</label>
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => { setDescription(e.target.value); triggerAutoSave(); }}
               placeholder="Add description..."
               rows={3}
               className="flow-input resize-none"

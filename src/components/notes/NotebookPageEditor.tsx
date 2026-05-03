@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -43,6 +43,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { NotebookPage, NoteType, PastelColor, Notebook } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors } from '@/lib/colors';
 import { compressImage } from '@/lib/mediaUtils';
@@ -155,6 +156,40 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     onTransaction: () => { forceUpdate(n => n + 1); },
   });
 
+  const autoSaveFn = useCallback(() => {
+    if (!page) return;
+    updateNotebookPage(page.id, {
+      title,
+      content: editor?.getHTML() || '',
+      showInCalendar,
+      hideDate,
+      color: selectedColor,
+      date,
+      time: showInCalendar ? time : undefined,
+      endTime: showInCalendar && time ? endTime : undefined,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, title, editor, showInCalendar, hideDate, selectedColor, date, time, endTime]);
+
+  const { trigger: triggerAutoSave, cancel: cancelAutoSave } = useAutoSave(autoSaveFn);
+
+  // Trigger auto-save when TipTap content changes
+  useEffect(() => {
+    if (!editor || !page) return;
+    const handler = () => triggerAutoSave();
+    editor.on('update', handler);
+    return () => { editor.off('update', handler); };
+  }, [editor, page, triggerAutoSave]);
+
+  // Trigger auto-save when metadata changes (skip on initial mount)
+  const settingsMounted = useRef(false);
+  useEffect(() => {
+    if (!settingsMounted.current) { settingsMounted.current = true; return; }
+    if (!page) return;
+    triggerAutoSave();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, showInCalendar, hideDate, selectedColor, date, time, endTime]);
+
   // Prevent iOS keyboard from opening when tapping a task-list checkbox
   useEffect(() => {
     if (!editor) return;
@@ -229,6 +264,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   }, [editor]);
 
   const handleSave = () => {
+    cancelAutoSave();
     const content = editor?.getHTML() || '';
     const pagesInNotebook = notebookPages.filter(p => p.notebookId === notebook.id);
     if (page) {

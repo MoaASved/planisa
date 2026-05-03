@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clock, ListTodo } from 'lucide-react';
@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
 import { newId } from '@/lib/supabaseSync';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { getColorDotClass, getAccentDotClass } from '@/lib/colors';
@@ -110,9 +111,36 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
     setEndTime(v);
   };
 
+  const { trigger: triggerAutoSave, flush: flushAutoSave, cancel: cancelAutoSave } = useAutoSave(useCallback(() => {
+    if (!editing) return;
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    const cat = taskCategories.find((c) => c.id === listId);
+    updateTask(editing.id, {
+      title: trimmed,
+      completed,
+      note: note.trim() || undefined,
+      date: date ? new Date(date) : undefined,
+      time: time || undefined,
+      endTime: time ? (endTime || addMinutes(time, 30)) : undefined,
+      category: cat?.name ?? '',
+      color: cat?.color ?? 'gray',
+      subtasks: subs,
+      priority: priority ? 'high' : 'none',
+      listId: cat?.id,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing, title, note, completed, date, time, endTime, listId, priority, subs, taskCategories]));
+
+  const handleClose = () => {
+    flushAutoSave();
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   const handleSave = () => {
+    cancelAutoSave();
     const trimmed = title.trim();
     if (!trimmed) return;
     const cat = taskCategories.find((c) => c.id === listId);
@@ -153,7 +181,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
       <div
         className="fixed inset-0 bg-foreground/20 backdrop-blur-[6px] animate-fade-in"
         style={{ zIndex: 9998 }}
-        onClick={onClose}
+        onClick={handleClose}
       />
       <div
         className="fixed inset-0 flex items-center justify-center px-4 py-6 overflow-y-auto"
@@ -166,7 +194,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
           {/* Header */}
           <div className="flex items-center justify-end px-4 pt-4">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
             >
               <X className="w-4 h-4 text-muted-foreground" />
@@ -189,7 +217,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                 ref={inputRef}
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => { setTitle(e.target.value); if (editing) triggerAutoSave(); }}
                 placeholder="Task title"
                 className={cn(
                   'flex-1 bg-transparent border-0 outline-none text-[20px] font-semibold placeholder:text-muted-foreground/50 transition-colors',
@@ -203,7 +231,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
               <textarea
                 ref={noteRef}
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(e) => { setNote(e.target.value); if (editing) triggerAutoSave(); }}
                 onBlur={() => !note.trim() && setShowNote(false)}
                 placeholder="Note"
                 rows={2}

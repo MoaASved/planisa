@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -46,6 +46,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors } from '@/lib/colors';
 import { compressImage } from '@/lib/mediaUtils';
@@ -151,6 +152,45 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     onTransaction: () => { forceUpdate(n => n + 1); },
   });
 
+  const autoSaveFn = useCallback(() => {
+    if (!note) return;
+    updateNote(note.id, {
+      title: title.trim() || 'Untitled',
+      content: editor?.getHTML() || '',
+      type: note.type,
+      folder,
+      color: undefined,
+      date,
+      time: showInCalendar ? time : undefined,
+      endTime: showInCalendar && time ? endTime : undefined,
+      tags: [],
+      isPinned,
+      showInCalendar,
+      hideFromAllNotes,
+      hideDate,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note, title, editor, folder, date, time, endTime, showInCalendar, isPinned, hideFromAllNotes, hideDate]);
+
+  const { trigger: triggerAutoSave, cancel: cancelAutoSave } = useAutoSave(autoSaveFn);
+
+  // Trigger auto-save when TipTap content changes
+  useEffect(() => {
+    if (!editor || !note) return;
+    const handler = () => triggerAutoSave();
+    editor.on('update', handler);
+    return () => { editor.off('update', handler); };
+  }, [editor, note, triggerAutoSave]);
+
+  // Trigger auto-save when metadata changes (skip on initial mount)
+  const settingsMounted = useRef(false);
+  useEffect(() => {
+    if (!settingsMounted.current) { settingsMounted.current = true; return; }
+    if (!note) return;
+    triggerAutoSave();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folder, date, time, endTime, showInCalendar, isPinned, hideFromAllNotes, hideDate]);
+
   const handleCreateInlineFolder = () => {
     if (inlineFolderName.trim()) {
       addFolder({ name: inlineFolderName.trim(), color: inlineFolderColor });
@@ -245,6 +285,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   }, [editor]);
 
   const handleSave = () => {
+    cancelAutoSave();
     const noteData = {
       title: title.trim() || 'Untitled',
       content: editor?.getHTML() || '',
