@@ -672,6 +672,23 @@ export function CalendarItemList({
       {showTimeline ? (
         // Timeline view - only timed items + all-day at top
         !hasItems ? null : <div className="flex-1 relative overflow-hidden">
+          {/* Floating all-day badge — outside scroll area, top-right */}
+          {allDayItems.length > 0 && (
+            <button
+              onClick={() => setAllDayExpanded(v => !v)}
+              className="absolute top-2 right-3 z-20 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
+              style={{
+                background: 'rgba(44,44,42,0.82)',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+              }}
+            >
+              <span className="text-[12px] font-semibold text-white tabular-nums leading-none">{allDayItems.length}</span>
+              <ChevronDown
+                className={cn('w-3 h-3 text-white/80 transition-transform duration-200', allDayExpanded && 'rotate-180')}
+              />
+            </button>
+          )}
           <div
             ref={timelineRef}
             onScroll={checkTimelineScroll}
@@ -679,34 +696,18 @@ export function CalendarItemList({
             onTouchEnd={handleTimelineTouchEnd}
             className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
           >
-            {/* All-day / unscheduled items — collapsible bar */}
-            {allDayItems.length > 0 && (
+            {/* All-day expanded grid — sticky at top, only when open */}
+            {allDayItems.length > 0 && allDayExpanded && (
               <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)', position: 'sticky', top: 0, zIndex: 10 }}>
-                {/* Always-visible slim header row */}
-                <div className="flex items-center justify-between px-4" style={{ height: 32 }}>
-                  <span className="text-[11px] text-muted-foreground/50 font-medium">All day</span>
-                  <button
-                    onClick={() => setAllDayExpanded(v => !v)}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/70 hover:bg-secondary transition-colors"
-                  >
-                    <span className="text-[11px] font-semibold text-foreground/70 tabular-nums leading-none">{allDayItems.length}</span>
-                    <ChevronDown
-                      className={cn('w-3 h-3 text-foreground/50 transition-transform duration-200', allDayExpanded && 'rotate-180')}
-                    />
-                  </button>
-                </div>
-                {/* Expanded grid */}
-                {allDayExpanded && (
-                  <div className="px-4 pb-3 pt-1">
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                      {allDayItems.map(({ type, item }) => (
-                        <div key={item.id}>
-                          {renderItemCard(item, type, undefined, undefined, true)}
-                        </div>
-                      ))}
-                    </div>
+                <div className="px-4 pb-3 pt-2">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                    {allDayItems.map(({ type, item }) => (
+                      <div key={item.id}>
+                        {renderItemCard(item, type, undefined, undefined, true)}
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
             )}
 
