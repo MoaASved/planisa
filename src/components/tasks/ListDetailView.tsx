@@ -56,7 +56,9 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
   const [adding, setAdding] = useState<string | null>(null); // sectionId or 'main' or 'new-section'
   const [newSectionName, setNewSectionName] = useState('');
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [completedExpanded, setCompletedExpanded] = useState<Set<string>>(new Set());
+  const toggleCompleted = (id: string) =>
+    setCompletedExpanded((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [showMenu, setShowMenu] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingList, setEditingList] = useState(false);
@@ -149,6 +151,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   const incomplete = tasks.filter((t) => !t.completed);
   const completed = tasks.filter((t) => t.completed);
   const mainTasks = sortTasks(isVirtualList ? incomplete : incomplete.filter((t) => !t.sectionId));
+  const mainCompleted = sortTasks(isVirtualList ? completed : completed.filter((t) => !t.sectionId));
 
   const handleCreate = (title: string, sectionId?: string) => {
     addTask({
@@ -305,9 +308,30 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
           />
         )}
 
+        {mainCompleted.length > 0 && (
+          <div className="pt-1">
+            <button
+              onClick={() => toggleCompleted('main')}
+              className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {completedExpanded.has('main') ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              Completed
+              <span className="text-xs">{mainCompleted.length}</span>
+            </button>
+            {completedExpanded.has('main') && (
+              <div className="space-y-2 mt-1 opacity-70">
+                {mainCompleted.map((t) => (
+                  <TaskCell key={t.id} task={t} onClick={() => setEditingTaskId(t.id)} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Sections */}
         {sections.map((section) => {
           const sTasks = sortTasks(incomplete.filter((t) => t.sectionId === section.id));
+          const sCompleted = sortTasks(completed.filter((t) => t.sectionId === section.id));
           const collapsed = section.collapsed;
           return (
             <div key={section.id} className="pt-3">
@@ -406,6 +430,25 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                       <Plus className="w-3.5 h-3.5" /> Add task
                     </button>
                   )}
+                  {sCompleted.length > 0 && (
+                    <div className="pt-1">
+                      <button
+                        onClick={() => toggleCompleted(section.id)}
+                        className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {completedExpanded.has(section.id) ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                        Completed
+                        <span className="text-xs">{sCompleted.length}</span>
+                      </button>
+                      {completedExpanded.has(section.id) && (
+                        <div className="space-y-2 mt-1 opacity-70">
+                          {sCompleted.map((t) => (
+                            <TaskCell key={t.id} task={t} onClick={() => setEditingTaskId(t.id)} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -457,30 +500,6 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
           </div>
         )}
 
-        {/* Completed */}
-        {completed.length > 0 && (
-          <div className="pt-6">
-            <button
-              onClick={() => setShowCompleted((v) => !v)}
-              className="flex items-center gap-2 px-1 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {showCompleted ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-              Completed
-              <span className="text-xs">{completed.length}</span>
-            </button>
-            {showCompleted && (
-              <div className="space-y-2 mt-2 opacity-70">
-                {completed.map((t) => (
-                  <TaskCell key={t.id} task={t} onClick={() => setEditingTaskId(t.id)} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {editingTaskId && (
