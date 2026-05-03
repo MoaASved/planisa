@@ -30,6 +30,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [completed, setCompleted] = useState(false);
   const [priority, setPriority] = useState(false);
   const [listId, setListId] = useState<string>('');
   const [subs, setSubs] = useState<Subtask[]>([]);
@@ -61,6 +62,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
       setTime(editing.time ?? '');
       setEndTime(editing.endTime ?? '');
       endTimeManual.current = !!editing.endTime;
+      setCompleted(!!editing.completed);
       setPriority(editing.priority !== 'none');
       const cat = taskCategories.find((c) => c.name === editing.category);
       setListId(cat?.id ?? '');
@@ -79,6 +81,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
         setEndTime('');
       }
       endTimeManual.current = false;
+      setCompleted(false);
       setPriority(false);
       setListId(defaultListId ?? taskCategories[0]?.id ?? '');
       setSubs([]);
@@ -115,7 +118,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
     const cat = taskCategories.find((c) => c.id === listId);
     const payload: Omit<Task, 'id' | 'createdAt'> = {
       title: trimmed,
-      completed: editing?.completed ?? false,
+      completed,
       note: note.trim() || undefined,
       date: date ? new Date(date) : undefined,
       time: time || undefined,
@@ -172,14 +175,28 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
 
           {/* Body */}
           <div className="px-5 pb-2 space-y-2.5 max-h-[65vh] overflow-y-auto">
-            <input
-              ref={inputRef}
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Task title"
-              className="w-full bg-transparent border-0 outline-none text-[20px] font-semibold text-foreground placeholder:text-muted-foreground/50"
-            />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setCompleted((v) => !v)}
+                className={cn(
+                  'w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all',
+                  completed ? 'bg-primary border-primary' : 'border-muted-foreground/40 hover:border-primary'
+                )}
+              >
+                {completed && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
+              </button>
+              <input
+                ref={inputRef}
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Task title"
+                className={cn(
+                  'flex-1 bg-transparent border-0 outline-none text-[20px] font-semibold placeholder:text-muted-foreground/50 transition-colors',
+                  completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                )}
+              />
+            </div>
 
             {/* Note */}
             {showNote ? (
