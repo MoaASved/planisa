@@ -163,6 +163,7 @@ export function CalendarItemList({
   const [activeFilters, setActiveFilters] = useState<ItemType[]>(['events', 'tasks', 'notes']);
   const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'task' | 'event' | 'note' } | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const timedItemsRef = useRef<{ time: string }[]>([]);
   const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
   const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
   const [contextMenu, setContextMenu] = useState<TimeContextMenu | null>(null);
@@ -179,13 +180,22 @@ export function CalendarItemList({
     setTimelineCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
   }, []);
 
-  // Auto-scroll to 7:00 when timeline is activated
+  // Auto-scroll to current time (or earliest event) when timeline is activated
   useEffect(() => {
-    if (showTimeline && timelineRef.current) {
-      const scrollPosition = 7 * HOUR_HEIGHT;
-      timelineRef.current.scrollTop = scrollPosition;
-      checkTimelineScroll();
+    if (!showTimeline || !timelineRef.current) return;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    let targetMinutes = currentMinutes - 60;
+    const items = timedItemsRef.current;
+    if (items.length > 0) {
+      const earliest = Math.min(...items.map(i => {
+        const [h, m] = i.time.split(':').map(Number);
+        return h * 60 + m;
+      }));
+      if (earliest < currentMinutes) targetMinutes = Math.min(targetMinutes, earliest - 30);
     }
+    timelineRef.current.scrollTop = Math.max(0, targetMinutes * (HOUR_HEIGHT / 60));
+    checkTimelineScroll();
   }, [showTimeline, checkTimelineScroll]);
 
   // Filter items for this date
@@ -271,6 +281,7 @@ export function CalendarItemList({
     
     return items.sort((a, b) => a.time.localeCompare(b.time));
   }, [timedEvents, timedTasks, timedNotes, activeFilters]);
+  timedItemsRef.current = timedItems;
 
   // Calculate overlap columns for timeline view — exclude sticky notes, they have their own fixed right-side layout
   const overlapColumns = useMemo(() =>
@@ -667,7 +678,7 @@ export function CalendarItemList({
           >
             {/* All-day / unscheduled items — collapsible bar */}
             {allDayItems.length > 0 && (
-              <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+              <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)', position: 'sticky', top: 0, zIndex: 10 }}>
                 {/* Collapsed bar — always visible */}
                 <button
                   className="w-full flex items-center gap-2 px-4"
@@ -675,31 +686,33 @@ export function CalendarItemList({
                   onClick={() => setAllDayExpanded(v => !v)}
                 >
                   <span className="text-[11px] text-muted-foreground/55 font-medium shrink-0 mr-1">All day</span>
-                  {/* Pill chips */}
-                  <div className="flex-1 flex items-center gap-1.5 overflow-hidden">
-                    {allDayItems.map(({ type, item }) => {
-                      const color = type === 'note'
-                        ? getNoteColor(item as Note)
-                        : getItemColor(item as Task | CalendarEvent, type as 'task' | 'event');
-                      const title = type === 'event'
-                        ? (item as CalendarEvent).title
-                        : type === 'task'
-                        ? (item as Task).title
-                        : getNoteDisplayTitle(item as Note);
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-1 px-2 rounded-full shrink-0"
-                          style={{ background: getColorVar(color), height: 20, maxWidth: 110 }}
-                        >
-                          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: getAccentVar(color) }} />
-                          <span className="text-[10px] font-medium text-[#2C2C2A] truncate leading-none">{title}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* Badge + chevron */}
-                  {allDayItems.length >= 2 && (
+                  {/* Pill chips — only when collapsed */}
+                  {!allDayExpanded ? (
+                    <div className="flex-1 flex items-center gap-1.5 overflow-hidden">
+                      {allDayItems.map(({ type, item }) => {
+                        const color = type === 'note'
+                          ? getNoteColor(item as Note)
+                          : getItemColor(item as Task | CalendarEvent, type as 'task' | 'event');
+                        const title = type === 'event'
+                          ? (item as CalendarEvent).title
+                          : type === 'task'
+                          ? (item as Task).title
+                          : getNoteDisplayTitle(item as Note);
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-1 px-2 rounded-full shrink-0"
+                            style={{ background: getColorVar(color), height: 20, maxWidth: 110 }}
+                          >
+                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: getAccentVar(color) }} />
+                            <span className="text-[10px] font-medium text-[#2C2C2A] truncate leading-none">{title}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : <div className="flex-1" />}
+                  {/* Badge (collapsed only) + chevron */}
+                  {!allDayExpanded && allDayItems.length >= 2 && (
                     <span className="shrink-0 text-[10px] text-muted-foreground/55 font-medium bg-black/[0.06] rounded-full px-1.5 leading-5 h-5 flex items-center">
                       {allDayItems.length}
                     </span>
