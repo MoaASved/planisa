@@ -682,48 +682,19 @@ export function CalendarItemList({
             {/* All-day / unscheduled items — collapsible bar */}
             {allDayItems.length > 0 && (
               <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)', position: 'sticky', top: 0, zIndex: 10 }}>
-                {/* Collapsed bar — always visible */}
-                <button
-                  className="w-full flex items-center gap-2 px-4"
-                  style={{ height: 36 }}
-                  onClick={() => setAllDayExpanded(v => !v)}
-                >
-                  <span className="text-[11px] text-muted-foreground/55 font-medium shrink-0 mr-1">All day</span>
-                  {/* Pill chips — only when collapsed */}
-                  {!allDayExpanded ? (
-                    <div className="flex-1 flex items-center gap-1.5 overflow-hidden">
-                      {allDayItems.map(({ type, item }) => {
-                        const color = type === 'note'
-                          ? getNoteColor(item as Note)
-                          : getItemColor(item as Task | CalendarEvent, type as 'task' | 'event');
-                        const title = type === 'event'
-                          ? (item as CalendarEvent).title
-                          : type === 'task'
-                          ? (item as Task).title
-                          : getNoteDisplayTitle(item as Note);
-                        return (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-1 px-2 rounded-full shrink-0"
-                            style={{ background: getColorVar(color), height: 20, maxWidth: 110 }}
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: getAccentVar(color) }} />
-                            <span className="text-[10px] font-medium text-[#2C2C2A] truncate leading-none">{title}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : <div className="flex-1" />}
-                  {/* Badge (collapsed only) + chevron */}
-                  {!allDayExpanded && allDayItems.length >= 2 && (
-                    <span className="shrink-0 text-[10px] text-muted-foreground/55 font-medium bg-black/[0.06] rounded-full px-1.5 leading-5 h-5 flex items-center">
-                      {allDayItems.length}
-                    </span>
-                  )}
-                  <ChevronDown
-                    className={cn('w-3.5 h-3.5 text-muted-foreground/40 shrink-0 transition-transform duration-200', allDayExpanded && 'rotate-180')}
-                  />
-                </button>
+                {/* Always-visible slim header row */}
+                <div className="flex items-center justify-between px-4" style={{ height: 32 }}>
+                  <span className="text-[11px] text-muted-foreground/50 font-medium">All day</span>
+                  <button
+                    onClick={() => setAllDayExpanded(v => !v)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary/70 hover:bg-secondary transition-colors"
+                  >
+                    <span className="text-[11px] font-semibold text-foreground/70 tabular-nums leading-none">{allDayItems.length}</span>
+                    <ChevronDown
+                      className={cn('w-3 h-3 text-foreground/50 transition-transform duration-200', allDayExpanded && 'rotate-180')}
+                    />
+                  </button>
+                </div>
                 {/* Expanded grid */}
                 {allDayExpanded && (
                   <div className="px-4 pb-3 pt-1">
