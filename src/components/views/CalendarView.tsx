@@ -21,6 +21,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(true);
   
   const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages } = useAppStore();
 
@@ -241,6 +242,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onDayChange={handleDayChange}
             onDateSelect={handleDateSelect}
             onCreateFromTimeline={handleCreateFromTimeline}
+            showTimeline={showTimeline}
+            onTimelineChange={setShowTimeline}
           />
         ) : (
           <WeekDayView
@@ -257,6 +260,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onDayChange={handleDayChange}
             onDateSelect={handleDateSelect}
             onCreateFromTimeline={handleCreateFromTimeline}
+            showTimeline={showTimeline}
+            onTimelineChange={setShowTimeline}
           />
         )}
       </div>

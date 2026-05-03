@@ -30,6 +30,8 @@ interface MonthViewProps {
   onDayChange: (direction: 'prev' | 'next') => void;
   onDateSelect: (date: Date) => void;
   onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string) => void;
+  showTimeline: boolean;
+  onTimelineChange: (v: boolean) => void;
 }
 
 export function MonthView({
@@ -46,6 +48,8 @@ export function MonthView({
   onDayChange,
   onDateSelect,
   onCreateFromTimeline,
+  showTimeline,
+  onTimelineChange,
 }: MonthViewProps) {
   const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
   const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
@@ -211,6 +215,8 @@ export function MonthView({
           onItemClick={onItemClick}
           onTaskToggle={onTaskToggle}
           onCreateFromTimeline={onCreateFromTimeline}
+          showTimeline={showTimeline}
+          onTimelineChange={onTimelineChange}
         />
       </div>
     </div>

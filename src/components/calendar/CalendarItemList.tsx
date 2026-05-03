@@ -146,6 +146,8 @@ interface CalendarItemListProps {
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onCreateFromTimeline?: (type: CreateType, time: string) => void;
+  showTimeline: boolean;
+  onTimelineChange: (v: boolean) => void;
 }
 
 export function CalendarItemList({
@@ -158,8 +160,9 @@ export function CalendarItemList({
   onItemClick,
   onTaskToggle,
   onCreateFromTimeline,
+  showTimeline,
+  onTimelineChange,
 }: CalendarItemListProps) {
-  const [showTimeline, setShowTimeline] = useState(false);
   const [activeFilters, setActiveFilters] = useState<ItemType[]>(['events', 'tasks', 'notes']);
   const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'task' | 'event' | 'note' } | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -626,7 +629,7 @@ export function CalendarItemList({
         {/* Clock icon + All filter on right */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowTimeline(!showTimeline)}
+            onClick={() => onTimelineChange(!showTimeline)}
             className={cn(
               'p-2 rounded-lg transition-colors',
               showTimeline ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary'
