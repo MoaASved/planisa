@@ -442,22 +442,19 @@ export function CalendarItemList({
 
     if (type === 'task') {
       const task = item as Task;
-      const isUntimed = !time && !task.completed;
       return (
         <div
           draggable
           onDragStart={() => handleDragStart(task.id, 'task')}
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(task, 'task')}
-          style={{
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            borderLeft: isUntimed ? `2px dashed ${getAccentVar(color)}` : undefined,
-          }}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
           className={cn(
             'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex gap-3 relative text-[#2C2C2A]',
             centerContent ? 'items-center px-2.5' : 'items-start',
             !centerContent && (compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5'),
-            task.completed ? 'bg-secondary' : getColorCardClass(color),
+            getColorCardClass(color),
+            task.completed && 'opacity-60',
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
@@ -478,7 +475,7 @@ export function CalendarItemList({
               <span className={cn(
                 'font-medium truncate',
                 compact ? 'text-xs' : 'text-sm',
-                task.completed && 'line-through opacity-50'
+                task.completed && 'line-through'
               )}>
                 {task.title}
               </span>
