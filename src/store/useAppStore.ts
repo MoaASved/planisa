@@ -225,12 +225,27 @@ export const useAppStore = create<AppState>()((set, get) => {
       });
     },
     updateTask: (id, updates) => {
+      const original = get().tasks.find(t => t.id === id);
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)) }));
       queueOrRun(uid(), (userId) => {
-        const { subtasks, ...rest } = updates as any;
+        const { subtasks: newSubs, ...rest } = updates as any;
         const row = taskToRow(rest, userId);
         delete row.user_id;
         (supabase.from('tasks') as any).update(row).eq('id', id).then(swallow('updateTask'));
+        if (newSubs !== undefined && original) {
+          const origIds = new Set(original.subtasks.map((s: any) => s.id));
+          const newIds = new Set(newSubs.map((s: any) => s.id));
+          original.subtasks.forEach((s: any) => {
+            if (!newIds.has(s.id))
+              (supabase.from('subtasks') as any).delete().eq('id', s.id).then(swallow('updateTask.removeSubtask'));
+          });
+          newSubs.forEach((s: any, i: number) => {
+            if (!origIds.has(s.id))
+              (supabase.from('subtasks') as any)
+                .insert(subtaskToRow(s, id, userId, i))
+                .then(swallow('updateTask.addSubtask'));
+          });
+        }
       });
     },
     deleteTask: (id) => {

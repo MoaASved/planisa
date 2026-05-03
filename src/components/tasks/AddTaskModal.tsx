@@ -5,6 +5,7 @@ import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clo
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Task, Subtask } from '@/types';
+import { newId } from '@/lib/supabaseSync';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { getColorDotClass, getAccentDotClass } from '@/lib/colors';
@@ -136,7 +137,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
   const addSub = () => {
     const t = newSub.trim();
     if (!t) return;
-    setSubs([...subs, { id: `s-${Date.now()}`, title: t, completed: false }]);
+    setSubs([...subs, { id: newId(), title: t, completed: false }]);
     setNewSub('');
     setTimeout(() => subInputRef.current?.focus(), 30);
   };
