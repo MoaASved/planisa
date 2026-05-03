@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getColorVar, getAccentVar } from '@/lib/colors';
-import { Check, FileText, Clock, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
+import { Check, FileText, Clock, List, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -630,12 +630,12 @@ export function CalendarItemList({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onTimelineChange(!showTimeline)}
-            className={cn(
-              'p-2 rounded-lg transition-colors',
-              showTimeline ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary'
-            )}
+            className="p-2 rounded-lg transition-colors hover:bg-secondary"
           >
-            <Clock className="w-5 h-5" />
+            {showTimeline
+              ? <Clock className="w-5 h-5 text-muted-foreground" />
+              : <List className="w-5 h-5 text-foreground" />
+            }
           </button>
 
           <DropdownMenu>
@@ -678,9 +678,8 @@ export function CalendarItemList({
               onClick={() => setAllDayExpanded(v => !v)}
               className="absolute top-2 right-3 z-20 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
               style={{
-                background: 'rgba(44,44,42,0.82)',
-                backdropFilter: 'blur(4px)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                background: '#1C1C1E',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
               }}
             >
               <span className="text-[12px] font-semibold text-white tabular-nums leading-none">{allDayItems.length}</span>
@@ -698,7 +697,7 @@ export function CalendarItemList({
           >
             {/* All-day expanded grid — sticky at top, only when open */}
             {allDayItems.length > 0 && allDayExpanded && (
-              <div style={{ background: '#FAF9F7', borderBottom: '1px solid rgba(0,0,0,0.07)', position: 'sticky', top: 0, zIndex: 10 }}>
+              <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div className="px-4 pb-3 pt-2">
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                     {allDayItems.map(({ type, item }) => (
