@@ -1,26 +1,14 @@
 import { useState } from 'react';
-import { X, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Folder, PastelColor } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
+import { pastelColors } from '@/lib/colors';
+import { cn } from '@/lib/utils';
 
 interface FolderEditModalProps {
   folder: Folder;
   onClose: () => void;
 }
-
-const FOLDER_COLORS: { hex: string; value: PastelColor }[] = [
-  { hex: '#768E78', value: 'coral' },
-  { hex: '#C6C09C', value: 'peach' },
-  { hex: '#6398A9', value: 'amber' },
-  { hex: '#D5E3E8', value: 'yellow' },
-  { hex: '#FCAC83', value: 'mint' },
-  { hex: '#FCC88A', value: 'teal' },
-  { hex: '#E79897', value: 'sky' },
-  { hex: '#F2C4CE', value: 'lavender' },
-  { hex: '#9B7FA6', value: 'rose' },
-  { hex: '#A89880', value: 'gray' },
-  { hex: '#E0DCD1', value: 'stone' },
-];
 
 export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
   const { updateFolder, deleteFolder, notes } = useAppStore();
@@ -75,24 +63,13 @@ export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
           />
 
           {/* Color picker */}
-          <div className="flex flex-wrap gap-2 mb-5" style={{ maxWidth: 280 }}>
-            {FOLDER_COLORS.map((c) => (
+          <div className="flex flex-wrap gap-2 mb-5">
+            {pastelColors.map((c) => (
               <button
                 key={c.value}
                 onClick={() => setColor(c.value)}
-                className="relative flex items-center justify-center transition-all"
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '50%',
-                  backgroundColor: c.hex,
-                  boxShadow: color === c.value ? `0 0 0 2px #fff, 0 0 0 4px ${c.hex}` : 'none',
-                }}
-              >
-                {color === c.value && (
-                  <Check className="w-4 h-4" style={{ color: '#fff' }} />
-                )}
-              </button>
+                className={cn('w-9 h-9 rounded-full transition-all active:scale-95', c.class, color === c.value && 'ring-2 ring-offset-2 ring-primary')}
+              />
             ))}
           </div>
 

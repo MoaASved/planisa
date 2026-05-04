@@ -48,7 +48,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { pastelColors } from '@/lib/colors';
+import { pastelColors, getColorVar } from '@/lib/colors';
 import { compressImage } from '@/lib/mediaUtils';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
 import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
@@ -58,19 +58,6 @@ interface NoteEditorProps {
   onClose: () => void;
 }
 
-const colorHslMap: Record<PastelColor, string> = {
-  coral: 'hsl(123, 10%, 51%)',
-  peach: 'hsl(53, 24%, 69%)',
-  amber: 'hsl(195, 29%, 53%)',
-  yellow: 'hsl(196, 27%, 87%)',
-  mint: 'hsl(20, 96%, 75%)',
-  teal: 'hsl(33, 96%, 76%)',
-  sky: 'hsl(1, 64%, 75%)',
-  lavender: 'hsl(344, 48%, 67%)',
-  rose: 'hsl(283, 18%, 57%)',
-  gray: 'hsl(34, 19%, 58%)',
-  stone: 'hsl(44, 16%, 85%)',
-};
 
 export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
@@ -324,7 +311,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const handleHighlight = (highlightColor: PastelColor) => {
     const hasSelection = editor && !editor.state.selection.empty;
     if (hasSelection) {
-      editor?.chain().focus().setHighlight({ color: colorHslMap[highlightColor] }).run();
+      editor?.chain().focus().setHighlight({ color: getColorVar(highlightColor) }).run();
       setActiveHighlightColor(null);
     } else {
       setActiveHighlightColor(highlightColor);
@@ -349,7 +336,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
         if (removeHighlightMode) {
           e.chain().unsetHighlight().run();
         } else {
-          e.chain().setHighlight({ color: colorHslMap[activeHighlightColor] }).run();
+          e.chain().setHighlight({ color: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }).run();
         }
       }
     };
@@ -474,7 +461,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                 <Highlighter className="w-4 h-4 mr-2" />
                 Highlight
                 {activeHighlightColor && (
-                  <span className="ml-auto w-3 h-3 rounded-full" style={{ background: colorHslMap[activeHighlightColor] }} />
+                  <span className="ml-auto w-3 h-3 rounded-full" style={{ background: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }} />
                 )}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -791,7 +778,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center active:scale-95 transition-all"
             >
               <div className="relative">
-                <Highlighter className="w-5 h-5" style={{ color: colorHslMap[activeHighlightColor] }} />
+                <Highlighter className="w-5 h-5" style={{ color: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }} />
                 {removeHighlightMode && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="absolute w-[130%] h-0.5 bg-foreground/70 rotate-[-40deg]" />
@@ -826,8 +813,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
                   <button
                     key={c.value}
                     onClick={() => handleHighlight(c.value)}
-                    className={cn('w-8 h-8 rounded-full transition-all', activeHighlightColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
-                    style={{ background: colorHslMap[c.value] }}
+                    className={cn('w-8 h-8 rounded-full transition-all', c.class, activeHighlightColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
                   />
                 ))}
               </div>
