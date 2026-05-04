@@ -170,6 +170,8 @@ export function CalendarItemList({
   const [timelineCanScrollUp, setTimelineCanScrollUp] = useState(false);
   const [timelineCanScrollDown, setTimelineCanScrollDown] = useState(false);
   const [contextMenu, setContextMenu] = useState<TimeContextMenu | null>(null);
+  const [menuInteractive, setMenuInteractive] = useState(false);
+  const menuReadyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [allDayExpanded, setAllDayExpanded] = useState(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const lastListTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
@@ -361,6 +363,12 @@ export function CalendarItemList({
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+    setMenuInteractive(false);
+    if (menuReadyTimerRef.current) { clearTimeout(menuReadyTimerRef.current); menuReadyTimerRef.current = null; }
+  }, []);
+
   const showMenuAt = (clientX: number, clientY: number, time?: string) => {
     const resolvedTime = time !== undefined ? time : getTimeFromY(clientY);
     const menuW = 160;
@@ -369,9 +377,15 @@ export function CalendarItemList({
     const nav = document.querySelector('nav');
     const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 120;
     const safeBottom = window.innerHeight - navTop + 8;
-    const x = Math.min(clientX, window.innerWidth - menuW - 8);
-    const y = Math.min(clientY - 20, window.innerHeight - menuH - safeBottom);
+    // Offset menu away from the exact click point so no button sits directly under the cursor
+    const x = Math.min(clientX - 8, window.innerWidth - menuW - 8);
+    const y = Math.min(clientY - 40, window.innerHeight - menuH - safeBottom);
     setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time: resolvedTime });
+    // Short interaction delay — prevents the trailing click of a fast double-tap from
+    // immediately triggering a menu option before the user perceives the menu.
+    setMenuInteractive(false);
+    if (menuReadyTimerRef.current) clearTimeout(menuReadyTimerRef.current);
+    menuReadyTimerRef.current = setTimeout(() => setMenuInteractive(true), 100);
   };
 
   const handleTimelineDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -423,7 +437,7 @@ export function CalendarItemList({
     if (contextMenu) {
       onCreateFromTimeline?.(type, contextMenu.time);
     }
-    setContextMenu(null);
+    closeContextMenu();
   };
 
   // Check if item has both start AND end time (for timeline indicator)
@@ -916,35 +930,45 @@ export function CalendarItemList({
         <>
           <div
             className="fixed inset-0 z-[1300]"
-            onPointerDown={() => setContextMenu(null)}
+            onPointerDown={closeContextMenu}
           />
           <div
-            className="fixed z-[1400] bg-white dark:bg-[#1c1c1e] rounded-2xl shadow-xl overflow-hidden"
-            style={{ left: contextMenu.x, top: contextMenu.y, width: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}
+            className="fixed z-[1400] bg-white dark:bg-[#1c1c1e] rounded-2xl shadow-xl overflow-hidden animate-scale-in"
+            style={{
+              left: contextMenu.x,
+              top: contextMenu.y,
+              width: 160,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              transformOrigin: 'top left',
+              animation: 'scale-in 0.15s ease-out forwards',
+            }}
           >
             {contextMenu.time && (
               <div className="px-3 pt-2.5 pb-1">
                 <span className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-wide">{contextMenu.time}</span>
               </div>
             )}
-            {(
-              [
-                { type: 'event' as CreateType, label: 'Event', icon: CalendarPlus },
-                { type: 'task' as CreateType, label: 'Task', icon: CheckSquare },
-                { type: 'note' as CreateType, label: 'Note', icon: FileText },
-                { type: 'sticky' as CreateType, label: 'Sticky', icon: StickyNote },
-              ] as const
-            ).map(({ type, label, icon: Icon }) => (
-              <button
-                key={type}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={() => handleContextMenuSelect(type)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 active:bg-secondary transition-colors text-left"
-              >
-                <Icon className="w-4 h-4 text-foreground/60 flex-shrink-0" />
-                <span className="text-sm font-medium text-foreground">{label}</span>
-              </button>
-            ))}
+            {/* Buttons are non-interactive for 100ms after open to prevent accidental trigger */}
+            <div style={{ pointerEvents: menuInteractive ? 'auto' : 'none' }}>
+              {(
+                [
+                  { type: 'event' as CreateType, label: 'Event', icon: CalendarPlus },
+                  { type: 'task' as CreateType, label: 'Task', icon: CheckSquare },
+                  { type: 'note' as CreateType, label: 'Note', icon: FileText },
+                  { type: 'sticky' as CreateType, label: 'Sticky', icon: StickyNote },
+                ] as const
+              ).map(({ type, label, icon: Icon }) => (
+                <button
+                  key={type}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => handleContextMenuSelect(type)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 active:bg-secondary transition-colors text-left"
+                >
+                  <Icon className="w-4 h-4 text-foreground/60 flex-shrink-0" />
+                  <span className="text-sm font-medium text-foreground">{label}</span>
+                </button>
+              ))}
+            </div>
             <div className="h-1.5" />
           </div>
         </>
