@@ -57,7 +57,9 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
   const [time, setTime] = useState<string | undefined>(note?.time || initialTime);
   const [endTime, setEndTime] = useState<string | undefined>(() => {
     if (note?.endTime) return note.endTime;
-    if (initialTime) {
+    // Only compute a default end time when creating a new sticky note.
+    // For existing notes, honour whatever is stored (including no end time).
+    if (!note && initialTime) {
       const [h, m] = initialTime.split(':').map(Number);
       const endH = Math.min(h + 1, 23);
       const endM = h >= 23 ? 59 : m;
@@ -76,7 +78,10 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, show
 
   const handleTimeChange = (val: string) => {
     setTime(val);
-    if (!endTimeManuallySet.current) {
+    // Auto-compute end time only for new notes, or when an end time is already
+    // present (to preserve the duration). Never introduce one for existing notes
+    // that were saved without an end time.
+    if (!endTimeManuallySet.current && (!note || endTime !== undefined)) {
       setEndTime(calculateEndTime(val));
     }
   };
