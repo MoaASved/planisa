@@ -548,22 +548,17 @@ export function CalendarItemList({
     // Note
     const note = item as Note;
     const isSticky = note.type === 'sticky';
-    // List-view sticky: no timeline, not compact — gets the full physical sticky treatment
-    const isListViewSticky = isSticky && !showTimeline && !compact;
+    // Only apply physical sticky styling outside of list view (i.e. in timeline/compact contexts)
+    const stickyStyled = isSticky && (showTimeline || compact);
 
     // In timeline mode sticky notes still display their time (they don't span a duration)
     const noteShowTime = showTime || (isSticky && showTimeline && !!time);
 
-    // Deterministic rotation: 2–4° for list view, ±1.5° elsewhere
-    const stickyRotation = isSticky ? (() => {
+    // Deterministic slight rotation — timeline/compact only, never list view
+    const stickyRotation = stickyStyled ? (() => {
       let hash = 0;
       for (let i = 0; i < note.id.length; i++) {
         hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
-      }
-      if (isListViewSticky) {
-        const dirSign = hash % 2 === 0 ? 1 : -1;
-        const mag = 2 + (Math.abs(hash >> 4) % 200) / 100;
-        return dirSign * mag;
       }
       return (((hash % 300) + 300) % 300) / 100 - 1.5;
     })() : 0;
@@ -575,23 +570,20 @@ export function CalendarItemList({
         onDragEnd={handleDragEnd}
         onClick={() => onItemClick(note, 'note')}
         style={{
-          boxShadow: isListViewSticky
-            ? '3px 4px 12px rgba(0,0,0,0.15)'
-            : isSticky ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
-          transform: isSticky ? `rotate(${stickyRotation.toFixed(2)}deg)` : undefined,
-          ...(isListViewSticky && { minHeight: '90px' }),
+          boxShadow: stickyStyled ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
+          transform: stickyStyled ? `rotate(${stickyRotation.toFixed(2)}deg)` : undefined,
         }}
         className={cn(
           'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
-          isSticky && 'relative overflow-hidden',
+          stickyStyled && 'relative overflow-hidden',
           getColorCardClass(color),
           compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
           fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
         )}
       >
-        {/* Folded corner — sticky notes only */}
-        {isSticky && (
+        {/* Folded corner — only in timeline/compact, not list view */}
+        {stickyStyled && (
           <>
             <div className="absolute top-0 right-0 w-5 h-5 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
             <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
