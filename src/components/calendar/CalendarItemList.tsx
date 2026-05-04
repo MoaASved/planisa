@@ -667,8 +667,8 @@ export function CalendarItemList({
       </div>
 
       {showTimeline ? (
-        // Timeline view - only timed items + all-day at top
-        !hasItems ? null : <div className="flex-1 relative overflow-hidden">
+        // Timeline view — always render the full 24h grid regardless of content
+        <div className="flex-1 relative overflow-hidden">
           {/* Floating all-day badge — outside scroll area, top-right */}
           {allDayItems.length > 0 && (
             <button
