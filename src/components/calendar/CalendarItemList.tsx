@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getColorVar, getAccentVar } from '@/lib/colors';
@@ -175,6 +175,22 @@ export function CalendarItemList({
   const lastListTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
   const dateStr = format(date, 'yyyy-MM-dd');
+  const isTodayDate = isToday(date);
+
+  const getNowPosition = () => {
+    const now = new Date();
+    return (now.getHours() * 60 + now.getMinutes()) * (HOUR_HEIGHT / 60);
+  };
+  const [nowPosition, setNowPosition] = useState(getNowPosition);
+
+  useEffect(() => {
+    if (!isTodayDate) return;
+    const tick = () => setNowPosition(getNowPosition());
+    const ms = (60 - new Date().getSeconds()) * 1000;
+    let intervalId: ReturnType<typeof setInterval>;
+    const timeoutId = setTimeout(() => { tick(); intervalId = setInterval(tick, 60_000); }, ms);
+    return () => { clearTimeout(timeoutId); clearInterval(intervalId); };
+  }, [isTodayDate]);
 
   const checkTimelineScroll = useCallback(() => {
     const el = timelineRef.current;
@@ -722,6 +738,19 @@ export function CalendarItemList({
                   <div className="flex-1 border-t border-foreground/[0.06]" />
                 </div>
               ))}
+
+              {/* Current time indicator — today only */}
+              {isTodayDate && (
+                <div
+                  className="absolute w-full flex items-center pointer-events-none"
+                  style={{ top: nowPosition, zIndex: 10 }}
+                >
+                  <div className="w-12 flex-shrink-0 flex justify-end pr-[9px]">
+                    <div className="w-[5px] h-[5px] rounded-full bg-foreground/40 dark:bg-foreground/50" />
+                  </div>
+                  <div className="flex-1 h-px bg-foreground/20 dark:bg-foreground/25" />
+                </div>
+              )}
 
               {/* Timed items with column layout for overlaps */}
               <div className="absolute left-16 right-4 top-0 bottom-0">
