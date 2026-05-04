@@ -233,17 +233,29 @@ export const useAppStore = create<AppState>()((set, get) => {
         delete row.user_id;
         (supabase.from('tasks') as any).update(row).eq('id', id).then(swallow('updateTask'));
         if (newSubs !== undefined && original) {
-          const origIds = new Set(original.subtasks.map((s: any) => s.id));
+          const origMap = new Map(original.subtasks.map((s: any) => [s.id, s]));
           const newIds = new Set(newSubs.map((s: any) => s.id));
+          // Delete removed subtasks
           original.subtasks.forEach((s: any) => {
             if (!newIds.has(s.id))
               (supabase.from('subtasks') as any).delete().eq('id', s.id).then(swallow('updateTask.removeSubtask'));
           });
           newSubs.forEach((s: any, i: number) => {
-            if (!origIds.has(s.id))
+            if (!origMap.has(s.id)) {
+              // Insert new subtasks
               (supabase.from('subtasks') as any)
                 .insert(subtaskToRow(s, id, userId, i))
                 .then(swallow('updateTask.addSubtask'));
+            } else {
+              // Update existing subtasks if title or completion changed
+              const orig = origMap.get(s.id);
+              if (orig.title !== s.title || orig.completed !== s.completed) {
+                (supabase.from('subtasks') as any)
+                  .update({ title: s.title, completed: s.completed, order_index: i })
+                  .eq('id', s.id)
+                  .then(swallow('updateTask.updateSubtask'));
+              }
+            }
           });
         }
       });
@@ -332,14 +344,16 @@ export const useAppStore = create<AppState>()((set, get) => {
       const id = newId();
       const newEvent: CalendarEvent = { ...event, id };
       set((s) => ({ events: [...s.events, newEvent] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('events') as any).insert(eventToRow(newEvent, userId)).then(swallow('addEvent'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('events') as any).insert(eventToRow(newEvent, userId)).then(swallow('addEvent'));
+      });
     },
     updateEvent: (id, updates) => {
       set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...updates } : e)) }));
-      const userId = uid(); if (!userId) return;
-      const row = eventToRow(updates, userId); delete row.user_id;
-      (supabase.from('events') as any).update(row).eq('id', id).then(swallow('updateEvent'));
+      queueOrRun(uid(), (userId) => {
+        const row = eventToRow(updates, userId); delete row.user_id;
+        (supabase.from('events') as any).update(row).eq('id', id).then(swallow('updateEvent'));
+      });
     },
     deleteEvent: (id) => {
       set((s) => ({ events: s.events.filter((e) => e.id !== id) }));
@@ -352,15 +366,17 @@ export const useAppStore = create<AppState>()((set, get) => {
       const now = new Date();
       const newNote: Note = { ...note, id, createdAt: now, updatedAt: now };
       set((s) => ({ notes: [...s.notes, newNote] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('notes') as any).insert(noteToRow(newNote, userId)).then(swallow('addNote'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('notes') as any).insert(noteToRow(newNote, userId)).then(swallow('addNote'));
+      });
     },
     updateNote: (id, updates) => {
       const updatedAt = new Date();
       set((s) => ({ notes: s.notes.map((n) => (n.id === id ? { ...n, ...updates, updatedAt } : n)) }));
-      const userId = uid(); if (!userId) return;
-      const row = noteToRow(updates, userId); delete row.user_id;
-      (supabase.from('notes') as any).update(row).eq('id', id).then(swallow('updateNote'));
+      queueOrRun(uid(), (userId) => {
+        const row = noteToRow(updates, userId); delete row.user_id;
+        (supabase.from('notes') as any).update(row).eq('id', id).then(swallow('updateNote'));
+      });
     },
     deleteNote: (id) => {
       set((s) => ({ notes: s.notes.filter((n) => n.id !== id) }));
@@ -379,14 +395,16 @@ export const useAppStore = create<AppState>()((set, get) => {
       const id = newId();
       const newF: Folder = { ...folder, id };
       set((s) => ({ folders: [...s.folders, newF] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('note_folders') as any).insert(folderToRow(newF, userId)).then(swallow('addFolder'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('note_folders') as any).insert(folderToRow(newF, userId)).then(swallow('addFolder'));
+      });
     },
     updateFolder: (id, updates) => {
       set((s) => ({ folders: s.folders.map((f) => (f.id === id ? { ...f, ...updates } : f)) }));
-      const userId = uid(); if (!userId) return;
-      const row = folderToRow(updates, userId); delete row.user_id;
-      (supabase.from('note_folders') as any).update(row).eq('id', id).then(swallow('updateFolder'));
+      queueOrRun(uid(), (userId) => {
+        const row = folderToRow(updates, userId); delete row.user_id;
+        (supabase.from('note_folders') as any).update(row).eq('id', id).then(swallow('updateFolder'));
+      });
     },
     deleteFolder: (id) => {
       set((s) => ({ folders: s.folders.filter((f) => f.id !== id) }));
@@ -398,14 +416,16 @@ export const useAppStore = create<AppState>()((set, get) => {
       const id = newId();
       const newC: TaskCategory = { ...category, id };
       set((s) => ({ taskCategories: [...s.taskCategories, newC] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('task_lists') as any).insert(taskCategoryToRow(newC, userId)).then(swallow('addTaskCategory'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('task_lists') as any).insert(taskCategoryToRow(newC, userId)).then(swallow('addTaskCategory'));
+      });
     },
     updateTaskCategory: (id, updates) => {
       set((s) => ({ taskCategories: s.taskCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)) }));
-      const userId = uid(); if (!userId) return;
-      const row = taskCategoryToRow(updates, userId); delete row.user_id;
-      (supabase.from('task_lists') as any).update(row).eq('id', id).then(swallow('updateTaskCategory'));
+      queueOrRun(uid(), (userId) => {
+        const row = taskCategoryToRow(updates, userId); delete row.user_id;
+        (supabase.from('task_lists') as any).update(row).eq('id', id).then(swallow('updateTaskCategory'));
+      });
     },
     deleteTaskCategory: (id) => {
       set((s) => ({ taskCategories: s.taskCategories.filter((c) => c.id !== id) }));
@@ -438,14 +458,16 @@ export const useAppStore = create<AppState>()((set, get) => {
       const id = newId();
       const newS: TaskSection = { ...section, id };
       set((s) => ({ taskSections: [...s.taskSections, newS] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('task_sections') as any).insert(taskSectionToRow(newS, userId)).then(swallow('addTaskSection'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('task_sections') as any).insert(taskSectionToRow(newS, userId)).then(swallow('addTaskSection'));
+      });
     },
     updateTaskSection: (id, updates) => {
       set((s) => ({ taskSections: s.taskSections.map((x) => (x.id === id ? { ...x, ...updates } : x)) }));
-      const userId = uid(); if (!userId) return;
-      const row = taskSectionToRow(updates, userId); delete row.user_id;
-      (supabase.from('task_sections') as any).update(row).eq('id', id).then(swallow('updateTaskSection'));
+      queueOrRun(uid(), (userId) => {
+        const row = taskSectionToRow(updates, userId); delete row.user_id;
+        (supabase.from('task_sections') as any).update(row).eq('id', id).then(swallow('updateTaskSection'));
+      });
     },
     deleteTaskSection: (id) => {
       set((s) => ({
@@ -461,14 +483,16 @@ export const useAppStore = create<AppState>()((set, get) => {
       const id = newId();
       const newC: EventCategory = { ...category, id };
       set((s) => ({ eventCategories: [...s.eventCategories, newC] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('calendar_categories') as any).insert(eventCategoryToRow(newC, userId)).then(swallow('addEventCategory'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('calendar_categories') as any).insert(eventCategoryToRow(newC, userId)).then(swallow('addEventCategory'));
+      });
     },
     updateEventCategory: (id, updates) => {
       set((s) => ({ eventCategories: s.eventCategories.map((c) => (c.id === id ? { ...c, ...updates } : c)) }));
-      const userId = uid(); if (!userId) return;
-      const row = eventCategoryToRow(updates, userId); delete row.user_id;
-      (supabase.from('calendar_categories') as any).update(row).eq('id', id).then(swallow('updateEventCategory'));
+      queueOrRun(uid(), (userId) => {
+        const row = eventCategoryToRow(updates, userId); delete row.user_id;
+        (supabase.from('calendar_categories') as any).update(row).eq('id', id).then(swallow('updateEventCategory'));
+      });
     },
     deleteEventCategory: (id) => {
       set((s) => ({ eventCategories: s.eventCategories.filter((c) => c.id !== id) }));
@@ -480,14 +504,16 @@ export const useAppStore = create<AppState>()((set, get) => {
       const id = newId();
       const newN: Notebook = { ...notebook, id, createdAt: new Date() };
       set((s) => ({ notebooks: [...s.notebooks, newN] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('notebooks') as any).insert(notebookToRow(newN, userId)).then(swallow('addNotebook'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('notebooks') as any).insert(notebookToRow(newN, userId)).then(swallow('addNotebook'));
+      });
     },
     updateNotebook: (id, updates) => {
       set((s) => ({ notebooks: s.notebooks.map((n) => (n.id === id ? { ...n, ...updates } : n)) }));
-      const userId = uid(); if (!userId) return;
-      const row = notebookToRow(updates, userId); delete row.user_id;
-      (supabase.from('notebooks') as any).update(row).eq('id', id).then(swallow('updateNotebook'));
+      queueOrRun(uid(), (userId) => {
+        const row = notebookToRow(updates, userId); delete row.user_id;
+        (supabase.from('notebooks') as any).update(row).eq('id', id).then(swallow('updateNotebook'));
+      });
     },
     deleteNotebook: (id) => {
       set((s) => ({
@@ -503,15 +529,17 @@ export const useAppStore = create<AppState>()((set, get) => {
       const now = new Date();
       const newP: NotebookPage = { ...page, id, createdAt: now, updatedAt: now };
       set((s) => ({ notebookPages: [...s.notebookPages, newP] }));
-      const userId = uid(); if (!userId) return;
-      (supabase.from('notebook_pages') as any).insert(notebookPageToRow(newP, userId)).then(swallow('addNotebookPage'));
+      queueOrRun(uid(), (userId) => {
+        (supabase.from('notebook_pages') as any).insert(notebookPageToRow(newP, userId)).then(swallow('addNotebookPage'));
+      });
     },
     updateNotebookPage: (id, updates) => {
       const updatedAt = new Date();
       set((s) => ({ notebookPages: s.notebookPages.map((p) => (p.id === id ? { ...p, ...updates, updatedAt } : p)) }));
-      const userId = uid(); if (!userId) return;
-      const row = notebookPageToRow(updates, userId); delete row.user_id;
-      (supabase.from('notebook_pages') as any).update(row).eq('id', id).then(swallow('updateNotebookPage'));
+      queueOrRun(uid(), (userId) => {
+        const row = notebookPageToRow(updates, userId); delete row.user_id;
+        (supabase.from('notebook_pages') as any).update(row).eq('id', id).then(swallow('updateNotebookPage'));
+      });
     },
     deleteNotebookPage: (id) => {
       set((s) => ({ notebookPages: s.notebookPages.filter((p) => p.id !== id) }));
@@ -538,18 +566,25 @@ export const useAppStore = create<AppState>()((set, get) => {
         tables.map((t) => (supabase.from(t as any) as any).select('*').eq('user_id', userId)),
       );
       const [tasksR, subsR, listsR, sectionsR, eventsR, calCatsR, notesR, foldersR, notebooksR, pagesR] = results;
-      const subs = subsR.data ?? [];
-      set({
-        tasks: (tasksR.data ?? []).map((r: any) => rowToTask(r, subs)),
-        taskCategories: (listsR.data ?? []).map(rowToTaskCategory),
-        taskSections: (sectionsR.data ?? []).map(rowToTaskSection),
-        events: (eventsR.data ?? []).map(rowToEvent),
-        eventCategories: (calCatsR.data ?? []).map(rowToEventCategory),
-        notes: (notesR.data ?? []).map(rowToNote),
-        folders: (foldersR.data ?? []).map(rowToFolder),
-        notebooks: (notebooksR.data ?? []).map(rowToNotebook),
-        notebookPages: (pagesR.data ?? []).map(rowToNotebookPage),
+
+      // Log errors but never overwrite a slice with an empty array on failure —
+      // that would silently wipe all notes/tasks/events on a transient network error.
+      results.forEach((r, i) => {
+        if (r.error) console.error(`[supabase:loadAll:${tables[i]}]`, r.error);
       });
+
+      const subs = subsR.data ?? [];
+      const update: Record<string, any> = {};
+      if (!tasksR.error) update.tasks = (tasksR.data ?? []).map((r: any) => rowToTask(r, subs));
+      if (!listsR.error) update.taskCategories = (listsR.data ?? []).map(rowToTaskCategory);
+      if (!sectionsR.error) update.taskSections = (sectionsR.data ?? []).map(rowToTaskSection);
+      if (!eventsR.error) update.events = (eventsR.data ?? []).map(rowToEvent);
+      if (!calCatsR.error) update.eventCategories = (calCatsR.data ?? []).map(rowToEventCategory);
+      if (!notesR.error) update.notes = (notesR.data ?? []).map(rowToNote);
+      if (!foldersR.error) update.folders = (foldersR.data ?? []).map(rowToFolder);
+      if (!notebooksR.error) update.notebooks = (notebooksR.data ?? []).map(rowToNotebook);
+      if (!pagesR.error) update.notebookPages = (pagesR.data ?? []).map(rowToNotebookPage);
+      set(update);
     },
 
     subscribeAll: (userId: string) => {
