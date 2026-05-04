@@ -201,7 +201,7 @@ export function MonthView({
 
       {/* Lower section - swipe left/right changes one day at a time */}
       <div
-        className="flex-1 flex flex-col relative bg-background"
+        className="flex-1 overflow-hidden flex flex-col relative bg-background"
         onTouchStart={handleBodyTouchStart}
         onTouchEnd={handleBodyTouchEnd}
       >

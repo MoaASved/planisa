@@ -205,7 +205,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   };
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-56px)] overflow-x-hidden bg-background">
+    <div className="flex flex-col h-[calc(100vh-96px)] overflow-hidden bg-background">
       {/* Header */}
       <CalendarHeader
         currentDate={currentDate}
@@ -218,8 +218,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         onTodayClick={handleTodayClick}
       />
 
-      {/* Main content */}
-      <div className="flex-1">
+      {/* Main content — overflow-hidden so only CalendarItemList's internal scroll container moves */}
+      <div className="flex-1 overflow-hidden">
         {showYearView ? (
           <div className="h-full overflow-y-auto px-2">
             <YearView
