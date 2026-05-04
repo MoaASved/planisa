@@ -567,7 +567,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         </div>
 
         {/* FAB for creating new folder */}
-        <div className="fixed bottom-[120px] right-4 z-[1100]">
+        <div className="fixed bottom-[144px] right-4 z-[1100]">
           <button
             onClick={() => setShowFolderModal(true)}
             className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
