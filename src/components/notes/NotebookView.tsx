@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Plus, BookOpen, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -18,15 +18,23 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
   const [editingTitle, setEditingTitle] = useState('');
   const justFinishedEditingRef = useRef(false);
 
+  // Double-click detection on title: first click waits 220ms for a second click.
+  // If one comes → rename. If not → open the page (same as clicking the card body).
+  const titlePendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const titlePendingPageId = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => { if (titlePendingTimerRef.current) clearTimeout(titlePendingTimerRef.current); };
+  }, []);
+
+  // Returns the display name: custom title if set, otherwise first words of content.
   const getDisplayName = (page: NotebookPage) => {
     if (page.title) return page.title;
     const plain = page.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
     return plain.slice(0, 60) || 'Untitled page';
   };
 
-  const startEditing = (e: React.MouseEvent, page: NotebookPage) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const startEditing = (page: NotebookPage) => {
     setEditingPageId(page.id);
     setEditingTitle(page.title || '');
   };
@@ -66,7 +74,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
     <div className="min-h-screen pb-24">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
-        <button 
+        <button
           onClick={onClose}
           className="w-10 h-10 rounded-full bg-card flex items-center justify-center active:scale-95 transition-all"
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}
@@ -122,12 +130,32 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                         }}
                         onClick={(e) => e.stopPropagation()}
                         placeholder="Custom name…"
-                        className="w-full text-sm font-semibold bg-transparent border-b border-primary/50 outline-none text-foreground"
+                        className="w-full text-sm font-semibold bg-transparent outline-none border-none text-foreground"
                       />
                     ) : (
                       <h4
                         className="flow-card-title truncate"
-                        onClick={(e) => startEditing(e, page)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (editingPageId !== null || justFinishedEditingRef.current) return;
+                          if (titlePendingPageId.current === page.id && titlePendingTimerRef.current) {
+                            // Second click within window → double-click → rename
+                            clearTimeout(titlePendingTimerRef.current);
+                            titlePendingTimerRef.current = null;
+                            titlePendingPageId.current = null;
+                            startEditing(page);
+                          } else {
+                            // First click — wait to see if a second follows
+                            if (titlePendingTimerRef.current) clearTimeout(titlePendingTimerRef.current);
+                            titlePendingPageId.current = page.id;
+                            titlePendingTimerRef.current = setTimeout(() => {
+                              titlePendingTimerRef.current = null;
+                              titlePendingPageId.current = null;
+                              if (justFinishedEditingRef.current) return;
+                              setSelectedPage(page);
+                            }, 220);
+                          }
+                        }}
                       >
                         {getDisplayName(page)}
                       </h4>
