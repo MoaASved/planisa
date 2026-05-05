@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
+import { NoFocusTaskItem } from './NoFocusTaskItem';
 import TextAlign from '@tiptap/extension-text-align';
 import { DraggableImage } from './DraggableImage';
 import { toast } from 'sonner';
@@ -114,7 +114,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       StarterKit.configure({ heading: { levels: [1, 2] } }),
       Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
       TaskList,
-      TaskItem.configure({ nested: true }),
+      NoFocusTaskItem.configure({ nested: true }),
       Placeholder.configure({ placeholder: 'Start writing...' }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       DraggableImage,
@@ -163,116 +163,56 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, showInCalendar, hideDate, selectedColor, date, time, endTime]);
 
-  // Block keyboard-open on checkbox tap (iOS + Android).
+  // Prevent keyboard from opening when tapping a task-list checkbox.
   useEffect(() => {
     if (!editor) return;
     const dom = editor.view.dom as HTMLElement;
 
-    let suppressFocus = false;
+    let checkboxTapped = false;
 
-    const onDocFocusIn = (e: FocusEvent) => {
-      if (!suppressFocus) return;
-      const t = e.target as Node;
-      if (t === dom || dom.contains(t)) dom.blur();
-    };
-
-    const isCheckboxTarget = (e: Event): Element | null => {
+    const isCheckboxArea = (e: Event): boolean => {
       const target = e.target as HTMLElement;
       const li = target.closest('li[data-type="taskItem"]');
-      if (!li) return null;
+      if (!li) return false;
       const label = li.querySelector('label');
-      if (!label || !label.contains(target)) return null;
-      return li;
+      return !!(label && label.contains(target));
     };
 
-    const toggleTaskItem = (li: Element) => {
-      try {
-        const pos = editor.view.posAtDOM(li, 0);
-        const $pos = editor.state.doc.resolve(pos);
-        for (let d = $pos.depth; d >= 0; d--) {
-          if ($pos.node(d).type.name === 'taskItem') {
-            const nodePos = $pos.before(d);
-            const node = $pos.node(d);
-            editor.view.dispatch(
-              editor.state.tr.setNodeMarkup(nodePos, undefined, { ...node.attrs, checked: !node.attrs.checked })
-            );
-            return;
-          }
-        }
-      } catch { /* posAtDOM can throw */ }
+    const onDocFocusIn = (e: FocusEvent) => {
+      if (!checkboxTapped) return;
+      const t = e.target as Node;
+      if (t === dom || dom.contains(t)) (t as HTMLElement).blur();
     };
 
-    const applyTabIndex = () => {
-      dom.querySelectorAll('li[data-type="taskItem"] input[type="checkbox"]').forEach(cb => {
-        (cb as HTMLInputElement).tabIndex = -1;
-      });
-    };
-    applyTabIndex();
-    const mutationObserver = new MutationObserver(applyTabIndex);
-    mutationObserver.observe(dom, { childList: true, subtree: true });
-
-    const handleCheckboxTap = (e: Event) => {
-      const li = isCheckboxTarget(e);
-      if (!li) return;
+    const onTouchStart = (e: Event) => {
+      if (!isCheckboxArea(e)) return;
       e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-
-      const vv = window.visualViewport;
-      const keyboardOpen = vv ? window.innerHeight - vv.height > 150 : false;
-
-      if (!keyboardOpen) {
-        suppressFocus = true;
-        editor.setEditable(false, false);
-        dom.blur();
-      }
-
-      toggleTaskItem(li);
-
-      if (!keyboardOpen) {
-        dom.blur();
-        requestAnimationFrame(() => {
-          editor.setEditable(true, false);
-          setTimeout(() => { suppressFocus = false; }, 200);
-        });
-      }
-    };
-
-    // TipTap's TaskItem registers a `change` listener on the checkbox input that
-    // calls editor.chain().focus() — intercept it at capture phase before it fires.
-    const blockCheckboxChange = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' &&
-        (target as HTMLInputElement).type === 'checkbox' &&
-        target.closest('li[data-type="taskItem"]')
-      ) {
-        e.stopImmediatePropagation();
-      }
+      checkboxTapped = true;
+      setTimeout(() => { checkboxTapped = false; }, 500);
     };
 
     const blockEvent = (e: Event) => {
-      const li = isCheckboxTarget(e);
-      if (!li) return;
+      if (!isCheckboxArea(e)) return;
       e.preventDefault();
-      e.stopPropagation();
       e.stopImmediatePropagation();
     };
 
+    const onClickCapture = (e: Event) => {
+      if (!isCheckboxArea(e)) return;
+      e.preventDefault();
+    };
+
     document.addEventListener('focusin', onDocFocusIn, true);
-    dom.addEventListener('touchstart', handleCheckboxTap, { capture: true, passive: false });
+    dom.addEventListener('touchstart', onTouchStart, { capture: true, passive: false });
     dom.addEventListener('touchend', blockEvent, { capture: true, passive: false });
-    dom.addEventListener('click', blockEvent, { capture: true });
-    dom.addEventListener('mousedown', handleCheckboxTap, true);
-    dom.addEventListener('change', blockCheckboxChange, { capture: true });
+    dom.addEventListener('change', blockEvent, { capture: true });
+    dom.addEventListener('click', onClickCapture, { capture: true });
     return () => {
-      mutationObserver.disconnect();
       document.removeEventListener('focusin', onDocFocusIn, true);
-      dom.removeEventListener('touchstart', handleCheckboxTap, true);
+      dom.removeEventListener('touchstart', onTouchStart, true);
       dom.removeEventListener('touchend', blockEvent, true);
-      dom.removeEventListener('click', blockEvent, true);
-      dom.removeEventListener('mousedown', handleCheckboxTap, true);
-      dom.removeEventListener('change', blockCheckboxChange, true);
+      dom.removeEventListener('change', blockEvent, true);
+      dom.removeEventListener('click', onClickCapture, true);
     };
   }, [editor]);
 
