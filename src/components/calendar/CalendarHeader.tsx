@@ -29,26 +29,33 @@ export function CalendarHeader({
     <div className="flex items-center justify-between px-4 py-3 bg-background pt-safe-2 px-safe">
       {/* Month navigation */}
       <div className="flex items-center gap-1">
-        <button
-          onClick={onPrev}
-          className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 text-foreground/50" />
-        </button>
-        
+        {!showYearView && (
+          <button
+            onClick={onPrev}
+            className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground/50" />
+          </button>
+        )}
+
         <button
           onClick={onMonthClick}
-          className="text-[17px] font-semibold tracking-tight text-foreground hover:opacity-70 transition-opacity min-w-[140px] text-center"
+          className={cn(
+            'text-[17px] font-semibold tracking-tight text-foreground hover:opacity-70 transition-opacity text-center',
+            showYearView ? 'pl-1 min-w-0' : 'min-w-[140px]'
+          )}
         >
           {format(currentDate, 'MMMM yyyy')}
         </button>
-        
-        <button
-          onClick={onNext}
-          className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
-        >
-          <ChevronRight className="w-5 h-5 text-foreground/50" />
-        </button>
+
+        {!showYearView && (
+          <button
+            onClick={onNext}
+            className="p-2 rounded-full hover:bg-secondary/40 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 text-foreground/50" />
+          </button>
+        )}
       </div>
 
       {/* View icons + Today button */}

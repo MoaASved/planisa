@@ -1,7 +1,6 @@
-import { 
-  format, 
-  startOfYear, 
-  addMonths,
+import { useEffect } from 'react';
+import {
+  format,
   startOfMonth,
   endOfMonth,
   startOfWeek,
@@ -9,7 +8,7 @@ import {
   eachDayOfInterval,
   isSameMonth,
   isToday,
-  setMonth
+  getYear,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -18,86 +17,129 @@ interface YearViewProps {
   onMonthClick: (date: Date) => void;
 }
 
+const YEARS_BEFORE = 5;
+const YEARS_AFTER = 6;
+
 export function YearView({ currentDate, onMonthClick }: YearViewProps) {
-  const yearStart = startOfYear(currentDate);
-  const months = Array.from({ length: 12 }, (_, i) => addMonths(yearStart, i));
+  const today = new Date();
+  const activeYear = getYear(currentDate);
+  const years = Array.from(
+    { length: YEARS_BEFORE + YEARS_AFTER + 1 },
+    (_, i) => activeYear - YEARS_BEFORE + i
+  );
+
+  // Scroll to the active year instantly on mount
+  useEffect(() => {
+    document
+      .getElementById(`ycal-${activeYear}`)
+      ?.scrollIntoView({ behavior: 'instant', block: 'start' });
+  }, []);
 
   return (
-    <div className="animate-fade-in px-2">
-      <div className="grid grid-cols-3 gap-4 md:gap-6">
-        {months.map((month, index) => (
-          <MiniMonth
-            key={index}
-            month={month}
-            onClick={() => onMonthClick(setMonth(currentDate, index))}
-          />
-        ))}
-      </div>
+    <div className="animate-fade-in h-full overflow-y-auto pb-24">
+      {years.map(year => (
+        <div key={year} id={`ycal-${year}`} className="px-4 mb-2">
+          <p className={cn(
+            'text-xl font-semibold tracking-tight py-3',
+            year === getYear(today) ? 'text-foreground' : 'text-muted-foreground/40'
+          )}>
+            {year}
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {Array.from({ length: 12 }, (_, m) => {
+              const monthDate = new Date(year, m, 1);
+              return (
+                <MiniMonth
+                  key={m}
+                  month={monthDate}
+                  isSelected={isSameMonth(monthDate, currentDate)}
+                  isTodayMonth={isSameMonth(monthDate, today)}
+                  onClick={() => onMonthClick(monthDate)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
 
 interface MiniMonthProps {
   month: Date;
+  isSelected: boolean;
+  isTodayMonth: boolean;
   onClick: () => void;
 }
 
-function MiniMonth({ month, onClick }: MiniMonthProps) {
+function MiniMonth({ month, isSelected, isTodayMonth, onClick }: MiniMonthProps) {
   const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
+  const days = eachDayOfInterval({
+    start: startOfWeek(monthStart, { weekStartsOn: 1 }),
+    end: endOfWeek(endOfMonth(monthStart), { weekStartsOn: 1 }),
+  });
 
   const weeks: Date[][] = [];
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7));
-  }
-
-  // Limit to 6 weeks max for consistent sizing
-  const displayWeeks = weeks.slice(0, 6);
+  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
 
   return (
     <button
       onClick={onClick}
-      className="group text-left p-2 md:p-3 rounded-2xl hover:bg-secondary/50 transition-all duration-200 active:scale-[0.98]"
+      className={cn(
+        'text-left px-2 pt-2 pb-2.5 rounded-2xl transition-all duration-150 active:scale-[0.97]',
+        isSelected ? 'bg-[#1C1C1E] dark:bg-white' : 'hover:bg-secondary/50'
+      )}
     >
-      <h3 className="text-sm font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-        {format(month, 'MMMM')}
-      </h3>
-      
-      <div className="grid grid-cols-7 gap-px text-[8px] md:text-[9px] mb-1">
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-          <div key={i} className="text-center text-muted-foreground/50 font-medium">
-            {day}
+      {/* Month name */}
+      <p className={cn(
+        'text-[11px] font-semibold mb-1.5',
+        isSelected
+          ? 'text-white dark:text-[#1C1C1E]'
+          : isTodayMonth
+          ? 'text-foreground font-bold'
+          : 'text-foreground/80'
+      )}>
+        {format(month, 'MMM')}
+      </p>
+
+      {/* Day-of-week headers */}
+      <div className="grid grid-cols-7 gap-px mb-0.5">
+        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+          <div key={i} className={cn(
+            'text-center text-[6.5px] font-medium',
+            isSelected ? 'text-white/40 dark:text-[#1C1C1E]/40' : 'text-muted-foreground/35'
+          )}>
+            {d}
           </div>
         ))}
       </div>
 
-      <div className="space-y-px">
-        {displayWeeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 gap-px">
-            {week.map((day, dayIndex) => {
-              const isCurrentMonth = isSameMonth(day, month);
-              const isTodayDate = isToday(day);
-
-              return (
-                <div
-                  key={dayIndex}
-                  className={cn(
-                    'aspect-square flex items-center justify-center text-[8px] md:text-[9px] rounded-full',
-                    !isCurrentMonth && 'opacity-0',
-                    isTodayDate && 'bg-primary text-primary-foreground font-semibold',
-                    isCurrentMonth && !isTodayDate && 'text-foreground/70'
-                  )}
-                >
-                  {format(day, 'd')}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      {/* Calendar grid */}
+      {weeks.slice(0, 6).map((week, wi) => (
+        <div key={wi} className="grid grid-cols-7 gap-px">
+          {week.map((day, di) => {
+            const inMonth = isSameMonth(day, month);
+            const isT = isToday(day);
+            return (
+              <div
+                key={di}
+                className={cn(
+                  'aspect-square flex items-center justify-center text-[7px] rounded-full',
+                  !inMonth && 'opacity-0',
+                  isT && !isSelected && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-bold',
+                  isT && isSelected && 'bg-white/30 dark:bg-[#1C1C1E]/30 text-white dark:text-[#1C1C1E] font-bold',
+                  inMonth && !isT && (isSelected
+                    ? 'text-white/75 dark:text-[#1C1C1E]/75'
+                    : 'text-foreground/60'
+                  )
+                )}
+              >
+                {format(day, 'd')}
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </button>
   );
 }

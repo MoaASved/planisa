@@ -221,12 +221,10 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
       {/* Main content — overflow-hidden so only CalendarItemList's internal scroll container moves */}
       <div className="flex-1 overflow-hidden">
         {showYearView ? (
-          <div className="h-full overflow-y-auto px-2">
-            <YearView
-              currentDate={currentDate}
-              onMonthClick={handleYearMonthSelect}
-            />
-          </div>
+          <YearView
+            currentDate={currentDate}
+            onMonthClick={handleYearMonthSelect}
+          />
         ) : view === 'month' ? (
           <MonthView
             currentDate={currentDate}
