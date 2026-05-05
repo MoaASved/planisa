@@ -10,7 +10,6 @@ import { ProfileView } from '@/components/views/ProfileView';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { useAppStore } from '@/store/useAppStore';
-import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
@@ -19,26 +18,10 @@ const Index = () => {
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
   const { settings, setHighlightTaskId } = useAppStore();
-  const { hasFullAccess, userRecord } = useAuth();
-
-  // When trial/subscription doesn't grant full access, only Calendar + Profile are allowed
-  const isRestricted = !!userRecord && !hasFullAccess;
-  const allowedTabs = isRestricted ? ['calendar', 'profile'] : ['home', 'calendar', 'tasks', 'notes', 'profile'];
 
   const setActiveTab = (tab: string) => {
-    if (!allowedTabs.includes(tab)) {
-      setActiveTabRaw('calendar');
-      return;
-    }
     setActiveTabRaw(tab);
   };
-
-  // Force redirect to calendar if user is restricted and on a forbidden tab
-  useEffect(() => {
-    if (isRestricted && !allowedTabs.includes(activeTab)) {
-      setActiveTabRaw('calendar');
-    }
-  }, [isRestricted, activeTab]);
 
   // Note editing state
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -69,7 +52,6 @@ const Index = () => {
   }, [activeTab]);
 
   const handlePlusClick = () => {
-    if (isRestricted) return;
     setShowQuickCreate(!showQuickCreate);
   };
 
