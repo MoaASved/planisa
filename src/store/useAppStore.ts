@@ -193,13 +193,6 @@ export const useAppStore = create<AppState>()((set, get) => {
       set((s) => ({ tasks: [...s.tasks, newTask] }));
       queueOrRun(uid(), (userId) => {
         const payload = taskToRow(newTask, userId);
-        console.log('[supabase:addTask] insert payload', {
-          userId,
-          taskId: newTask.id,
-          listId: newTask.listId ?? null,
-          category: newTask.category,
-          payload,
-        });
         (supabase.from('tasks') as any)
           .insert(payload)
           .select()
@@ -213,8 +206,6 @@ export const useAppStore = create<AppState>()((set, get) => {
                 payload,
                 error: res.error,
               });
-            } else {
-              console.log('[supabase:addTask] insert success', res.data);
             }
             return swallow('addTask')(res);
           });
