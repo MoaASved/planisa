@@ -163,7 +163,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, showInCalendar, hideDate, selectedColor, date, time, endTime]);
 
-  // Prevent iOS keyboard from opening when tapping a task-list checkbox
+  // Block keyboard-open on checkbox tap (iOS + Android).
   useEffect(() => {
     if (!editor) return;
     const dom = editor.view.dom as HTMLElement;
@@ -202,21 +202,52 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       } catch { /* posAtDOM can throw */ }
     };
 
+    const applyTabIndex = () => {
+      dom.querySelectorAll('li[data-type="taskItem"] input[type="checkbox"]').forEach(cb => {
+        (cb as HTMLInputElement).tabIndex = -1;
+      });
+    };
+    applyTabIndex();
+    const mutationObserver = new MutationObserver(applyTabIndex);
+    mutationObserver.observe(dom, { childList: true, subtree: true });
+
     const handleCheckboxTap = (e: Event) => {
       const li = isCheckboxTarget(e);
       if (!li) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      const editorHadFocus = dom === document.activeElement || dom.contains(document.activeElement as Node);
-      if (!editorHadFocus) {
+
+      const vv = window.visualViewport;
+      const keyboardOpen = vv ? window.innerHeight - vv.height > 150 : false;
+
+      if (!keyboardOpen) {
         suppressFocus = true;
+        editor.setEditable(false, false);
         dom.blur();
       }
+
       toggleTaskItem(li);
-      if (!editorHadFocus) {
+
+      if (!keyboardOpen) {
         dom.blur();
-        setTimeout(() => { dom.blur(); suppressFocus = false; }, 300);
+        requestAnimationFrame(() => {
+          editor.setEditable(true, false);
+          setTimeout(() => { suppressFocus = false; }, 200);
+        });
+      }
+    };
+
+    // TipTap's TaskItem registers a `change` listener on the checkbox input that
+    // calls editor.chain().focus() — intercept it at capture phase before it fires.
+    const blockCheckboxChange = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === 'INPUT' &&
+        (target as HTMLInputElement).type === 'checkbox' &&
+        target.closest('li[data-type="taskItem"]')
+      ) {
+        e.stopImmediatePropagation();
       }
     };
 
@@ -233,12 +264,15 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
     dom.addEventListener('touchend', blockEvent, { capture: true, passive: false });
     dom.addEventListener('click', blockEvent, { capture: true });
     dom.addEventListener('mousedown', handleCheckboxTap, true);
+    dom.addEventListener('change', blockCheckboxChange, { capture: true });
     return () => {
+      mutationObserver.disconnect();
       document.removeEventListener('focusin', onDocFocusIn, true);
       dom.removeEventListener('touchstart', handleCheckboxTap, true);
       dom.removeEventListener('touchend', blockEvent, true);
       dom.removeEventListener('click', blockEvent, true);
       dom.removeEventListener('mousedown', handleCheckboxTap, true);
+      dom.removeEventListener('change', blockCheckboxChange, true);
     };
   }, [editor]);
 
