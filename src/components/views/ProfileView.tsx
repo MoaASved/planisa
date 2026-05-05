@@ -58,7 +58,7 @@ export function ProfileView() {
     updateNotebook,
     deleteNotebook
   } = useAppStore();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -187,7 +187,7 @@ export function ProfileView() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">Planisa User</h3>
-              <p className="text-sm text-muted-foreground">user@example.com</p>
+              <p className="text-sm text-muted-foreground">{user?.email ?? 'Ingen e-post registrerad'}</p>
               <span className="text-xs text-muted-foreground">Tap to edit profile</span>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -205,7 +205,7 @@ export function ProfileView() {
                 </div>
                 <div className="text-left">
                   <p className="font-medium text-foreground">Email</p>
-                  <p className="text-sm text-muted-foreground">user@example.com</p>
+                  <p className="text-sm text-muted-foreground">{user?.email ?? 'Ingen e-post registrerad'}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
