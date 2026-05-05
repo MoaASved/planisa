@@ -208,10 +208,16 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      suppressFocus = true;
+      const editorHadFocus = dom === document.activeElement || dom.contains(document.activeElement as Node);
+      if (!editorHadFocus) {
+        suppressFocus = true;
+        dom.blur();
+      }
       toggleTaskItem(li);
-      dom.blur();
-      setTimeout(() => { suppressFocus = false; }, 500);
+      if (!editorHadFocus) {
+        dom.blur();
+        setTimeout(() => { dom.blur(); suppressFocus = false; }, 300);
+      }
     };
 
     const blockEvent = (e: Event) => {
