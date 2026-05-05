@@ -250,6 +250,8 @@ input[type="time"]::-webkit-inner-spin-button {
     padding: 12px 28px;
     border-radius: 9999px;
     z-index: 1000;
+    pointer-events: all;
+    touch-action: manipulation;
     background: #1C1C1E;
     box-shadow: 0 6px 24px -6px rgba(0, 0, 0, 0.25), 0 2px 6px -2px rgba(0, 0, 0, 0.15);
   }
@@ -263,6 +265,7 @@ input[type="time"]::-webkit-inner-spin-button {
   .flow-nav-icon {
     @apply flex items-center justify-center w-11 h-11 rounded-full transition-all duration-200;
     color: rgba(255, 255, 255, 0.5);
+    touch-action: manipulation;
   }
 
   .flow-nav-icon-active {
@@ -275,6 +278,7 @@ input[type="time"]::-webkit-inner-spin-button {
     background: #ffffff;
     color: #1C1C1E;
     box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.3);
+    touch-action: manipulation;
   }
 
   /* FAB */
