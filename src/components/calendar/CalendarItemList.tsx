@@ -94,7 +94,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    checkScroll();
+    requestAnimationFrame(checkScroll);
   }, [children, checkScroll]);
 
   return (
@@ -111,7 +111,8 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           className="absolute top-0 left-0 right-0 pointer-events-none"
           style={{
             height: '70px',
-            background: 'linear-gradient(to top, transparent, #ffffff)',
+            zIndex: 20,
+            background: 'linear-gradient(to bottom, #ffffff, transparent)',
           }}
         />
       )}
@@ -120,7 +121,8 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           className="absolute bottom-0 left-0 right-0 pointer-events-none"
           style={{
             height: '70px',
-            background: 'linear-gradient(to bottom, transparent, #ffffff)',
+            zIndex: 20,
+            background: 'linear-gradient(to top, #ffffff, transparent)',
           }}
         />
       )}
@@ -627,7 +629,7 @@ export function CalendarItemList({
   const formattedDate = format(date, 'MMMM d');
 
   return (
-    <div className="flex flex-col min-h-full bg-background pt-4">
+    <div className="flex flex-col h-full bg-background pt-4">
       {/* White card lifts from the beige background */}
       <div
         className="flex flex-col flex-grow"
@@ -890,7 +892,8 @@ export function CalendarItemList({
               className="absolute top-0 left-0 right-0 pointer-events-none"
               style={{
                 height: '70px',
-                background: 'linear-gradient(to top, transparent, #ffffff)',
+                zIndex: 25,
+                background: 'linear-gradient(to bottom, #ffffff, transparent)',
               }}
             />
           )}
@@ -899,7 +902,8 @@ export function CalendarItemList({
               className="absolute bottom-0 left-0 right-0 pointer-events-none"
               style={{
                 height: '70px',
-                background: 'linear-gradient(to bottom, transparent, #ffffff)',
+                zIndex: 25,
+                background: 'linear-gradient(to top, #ffffff, transparent)',
               }}
             />
           )}
