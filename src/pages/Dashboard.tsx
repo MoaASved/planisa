@@ -15,7 +15,9 @@ import { StickyNoteEditor } from '../components/notes/StickyNoteEditor';
 import { NoteEditor } from '../components/notes/NoteEditor';
 import { QuickCreateMenu } from '../components/QuickCreateMenu';
 import { FocusPickerModal, FocusCandidate, FocusItemType } from '../components/modals/FocusPickerModal';
-import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X } from 'lucide-react';
+import { BrainDumpSortModal, BrainDumpSortType } from '../components/modals/BrainDumpSortModal';
+import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpSheet';
+import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { CalendarEvent, Note } from '../types';
@@ -143,6 +145,9 @@ interface DashboardHomeProps {
   onTapFocus: (item: FocusItem) => void;
   brainDumpText: string;
   setBrainDumpText: React.Dispatch<React.SetStateAction<string>>;
+  brainDumpItems: BrainDumpItem[];
+  onSaveBrainDump: (text: string) => Promise<void>;
+  onDeleteBrainDumpItem: (id: string) => void;
   weekEvents: { [key: string]: number };
   showNisaBubble: boolean;
   dismissNisaBubble: () => void;
@@ -160,6 +165,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onTapFocus,
   brainDumpText,
   setBrainDumpText,
+  brainDumpItems,
+  onSaveBrainDump,
+  onDeleteBrainDumpItem,
   weekEvents,
   showNisaBubble,
   dismissNisaBubble,
@@ -174,10 +182,33 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     { id: '3', name: 'Read',        days: [true, false, true, true, false, true, true] },
   ]);
 
-  const handleBrainDumpSort = (type: 'event' | 'task' | 'note' | 'sticky') => {
+  // Brain dump sheet + sort modal state
+  const [showBrainDumpSheet, setShowBrainDumpSheet] = useState(false);
+  const [sortModal, setSortModal] = useState<{ text: string; type: BrainDumpSortType; itemId: string | null } | null>(null);
+
+  const handleBrainDumpSort = (type: BrainDumpSortType) => {
     if (!brainDumpText.trim()) return;
-    toast.success(`Creating ${type} with: "${brainDumpText}"`);
+    setSortModal({ text: brainDumpText, type, itemId: null });
+  };
+
+  const handleSaveForLater = async () => {
+    if (!brainDumpText.trim()) return;
+    await onSaveBrainDump(brainDumpText);
     setBrainDumpText('');
+  };
+
+  const handleSheetSort = (item: BrainDumpItem, type: BrainDumpSortType) => {
+    setShowBrainDumpSheet(false);
+    setSortModal({ text: item.content, type, itemId: item.id });
+  };
+
+  const handleSortModalDone = () => {
+    if (sortModal?.itemId) {
+      onDeleteBrainDumpItem(sortModal.itemId);
+    } else {
+      setBrainDumpText('');
+    }
+    setSortModal(null);
   };
 
   const today = new Date();
@@ -249,25 +280,49 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
         {/* ── Brain dump ────────────────────────────────────────────────── */}
         <div className="flow-widget">
-          <h2 className="flow-section-title mb-4">Brain dump</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="flow-section-title">Brain dump</h2>
+            {brainDumpItems.length > 0 && (
+              <button
+                onClick={() => setShowBrainDumpSheet(true)}
+                className="w-6 h-6 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: '#9674cc' }}
+                aria-label={`${brainDumpItems.length} saved items`}
+              >
+                <span className="text-white text-[10px] font-bold leading-none">
+                  {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
+                </span>
+              </button>
+            )}
+          </div>
           <textarea
             value={brainDumpText}
             onChange={e => setBrainDumpText(e.target.value)}
             placeholder="Write anything… sort later."
             className="w-full h-24 p-3 bg-secondary border-0 rounded-xl resize-none mb-4 flow-input"
           />
-          <div className="flex space-x-4">
-            <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
-              <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
-            </button>
-            <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('task')}>
-              <CheckSquare className="w-5 h-5" /><span className="flow-meta">Task</span>
-            </button>
-            <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('note')}>
-              <FileText className="w-5 h-5" /><span className="flow-meta">Note</span>
-            </button>
-            <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('sticky')}>
-              <Pin className="w-5 h-5" /><span className="flow-meta">Sticky</span>
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-4">
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('task')}>
+                <CheckSquare className="w-5 h-5" /><span className="flow-meta">Task</span>
+              </button>
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
+                <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
+              </button>
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('note')}>
+                <FileText className="w-5 h-5" /><span className="flow-meta">Note</span>
+              </button>
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('sticky')}>
+                <Pin className="w-5 h-5" /><span className="flow-meta">Sticky</span>
+              </button>
+            </div>
+            <button
+              onClick={handleSaveForLater}
+              disabled={!brainDumpText.trim()}
+              className="flex items-center gap-1.5 text-[#9674cc] text-sm font-medium disabled:opacity-30"
+            >
+              <Bookmark className="w-4 h-4" />
+              Save
             </button>
           </div>
         </div>
@@ -313,6 +368,24 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Brain dump sheet + sort modal */}
+      <BrainDumpSheet
+        isOpen={showBrainDumpSheet}
+        items={brainDumpItems}
+        onClose={() => setShowBrainDumpSheet(false)}
+        onSort={handleSheetSort}
+        onDelete={onDeleteBrainDumpItem}
+      />
+      {sortModal && (
+        <BrainDumpSortModal
+          isOpen
+          text={sortModal.text}
+          type={sortModal.type}
+          onClose={() => setSortModal(null)}
+          onSorted={handleSortModalDone}
+        />
+      )}
 
       {/* Nisa bubble */}
       <div className="fixed bottom-28 left-4 z-50">
@@ -361,6 +434,9 @@ const Dashboard: React.FC = () => {
   const [focusNote, setFocusNote] = useState<Note | null>(null);
   const [showFocusNoteEditor, setShowFocusNoteEditor] = useState(false);
   const [focusStickyNote, setFocusStickyNote] = useState<Note | null>(null);
+
+  // Brain dump items — saved for later
+  const [brainDumpItems, setBrainDumpItems] = useState<BrainDumpItem[]>([]);
 
   // Quick-create / modals
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -446,6 +522,33 @@ const Dashboard: React.FC = () => {
     await supabase.from('focus_items').delete().eq('id', rowId);
   };
 
+  // ── Brain dump items ───────────────────────────────────────────────────────
+  const loadBrainDumpItems = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('brain_dump_items')
+      .select('id, content, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    setBrainDumpItems((data ?? []) as BrainDumpItem[]);
+  }, [user]);
+
+  const saveBrainDump = async (text: string) => {
+    if (!user || !text.trim()) return;
+    const { data, error } = await supabase
+      .from('brain_dump_items')
+      .insert({ user_id: user.id, content: text.trim() })
+      .select()
+      .single();
+    if (error) { toast.error(`Could not save: ${error.message}`); return; }
+    if (data) setBrainDumpItems(prev => [data as BrainDumpItem, ...prev]);
+  };
+
+  const deleteBrainDumpItem = async (id: string) => {
+    setBrainDumpItems(prev => prev.filter(i => i.id !== id));
+    await supabase.from('brain_dump_items').delete().eq('id', id);
+  };
+
   // ── Tap a focus item → open overlay on top of Dashboard ───────────────────
   const handleTapFocus = (item: FocusItem) => {
     switch (item.item_type) {
@@ -481,6 +584,7 @@ const Dashboard: React.FC = () => {
     setShowNisaBubble(!dismissedToday);
     fetchWeekEvents();
     loadFocusItems();
+    loadBrainDumpItems();
   }, [user, settings.name]);
 
   // Apply theme
@@ -544,6 +648,9 @@ const Dashboard: React.FC = () => {
             onTapFocus={handleTapFocus}
             brainDumpText={brainDumpText}
             setBrainDumpText={setBrainDumpText}
+            brainDumpItems={brainDumpItems}
+            onSaveBrainDump={saveBrainDump}
+            onDeleteBrainDumpItem={deleteBrainDumpItem}
             weekEvents={weekEvents}
             showNisaBubble={showNisaBubble}
             dismissNisaBubble={dismissNisaBubble}
