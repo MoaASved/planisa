@@ -696,7 +696,7 @@ export function CalendarItemList({
           {allDayItems.length > 0 && (
             <button
               onClick={() => setAllDayExpanded(v => !v)}
-              className="absolute top-2 right-3 z-20 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
+              className="absolute top-2 right-3 z-30 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
               style={{
                 background: '#1C1C1E',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
@@ -717,7 +717,7 @@ export function CalendarItemList({
           >
             {/* All-day expanded grid — sticky at top, only when open */}
             {allDayItems.length > 0 && allDayExpanded && (
-              <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ position: 'sticky', top: 0, zIndex: 30, background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div className="px-4 pb-3 pt-2">
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                     {allDayItems.map(({ type, item }) => (
