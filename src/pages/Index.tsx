@@ -125,10 +125,10 @@ const Index = () => {
 
   // Determine top padding based on active tab
   const getMainPadding = () => {
-    if (!showNavigation) return 'pt-0'; // Editing note
-    if (activeTab === 'calendar') return 'pt-0'; // Calendar has its own header
-    if (activeTab === 'home') return 'pt-safe-14'; // safe area + 56px clears the fixed TopBar on all devices
-    return 'pt-safe-4'; // Tasks/Notes/Profile: safe area + 16px breathing room below status bar
+    if (!showNavigation) return 'pt-0';
+    if (activeTab === 'calendar') return 'pt-0'; // CalendarHeader handles its own pt-safe-2
+    if (activeTab === 'home') return 'pt-safe-14'; // fixed TopBar is safe_area + 48px tall
+    return 'pt-0'; // Tasks/Notes/Profile each apply pt-safe-2 on their own first element
   };
 
   return (

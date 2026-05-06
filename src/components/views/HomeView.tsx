@@ -20,7 +20,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
   const userName = settings.name?.trim();
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-24 pt-safe-2">
       <div className="px-4 py-4">
         {/* Greeting */}
         <div className="mb-6">

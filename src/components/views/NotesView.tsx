@@ -302,7 +302,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Inside folder view - separate from tabs
   if (selectedFolder) {
     return (
-      <div className="min-h-screen pb-24">
+      <div className="min-h-screen pb-24 pt-safe-2">
         {/* Header with back button */}
         <div className="flex items-center gap-3 px-4 py-3">
           <button 
@@ -386,7 +386,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Notebooks view - macOS style icons
   if (viewTab === 'notebooks') {
     return (
-      <div className="min-h-screen pb-24">
+      <div className="min-h-screen pb-24 pt-safe-2">
         <div className="px-4 py-4">
           <TabsHeader />
           
@@ -487,7 +487,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Sticky notes view
   if (viewTab === 'sticky') {
     return (
-      <div className="min-h-screen pb-24">
+      <div className="min-h-screen pb-24 pt-safe-2">
         <div className="px-4 py-4">
           <TabsHeader />
           
@@ -525,7 +525,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Folders view - macOS style icons
   if (viewTab === 'folders') {
     return (
-      <div className="min-h-screen pb-24">
+      <div className="min-h-screen pb-24 pt-safe-2">
         <div className="px-4 py-4">
           <TabsHeader />
 
@@ -617,7 +617,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Notes view (default) - all notes and sticky notes, regular notes without color
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-24 pt-safe-2">
       <div className="px-4 py-4">
         <TabsHeader />
 
