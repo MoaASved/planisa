@@ -211,7 +211,7 @@ export function ProfileView() {
               className={cn('w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold', getAccentTextClass(settings.avatarColor || 'sky'))}
               style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'sky'}) / 0.3)` }}
             >
-              {settings.name ? getInitials(settings.name) : (settings.avatarInitial || 'U')}
+              {settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">{settings.name || 'Planisa User'}</h3>
