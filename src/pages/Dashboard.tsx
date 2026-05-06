@@ -9,13 +9,16 @@ import { NotesView } from '../components/views/NotesView';
 import { ProfileView } from '../components/views/ProfileView';
 import { CreateEventModal } from '../components/modals/CreateEventModal';
 import { EditEventModal } from '../components/modals/EditEventModal';
+import { CalendarNoteModal } from '../components/modals/CalendarNoteModal';
 import { AddTaskModal } from '../components/tasks/AddTaskModal';
+import { StickyNoteEditor } from '../components/notes/StickyNoteEditor';
+import { NoteEditor } from '../components/notes/NoteEditor';
 import { QuickCreateMenu } from '../components/QuickCreateMenu';
 import { FocusPickerModal, FocusCandidate, FocusItemType } from '../components/modals/FocusPickerModal';
 import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
-import { CalendarEvent } from '../types';
+import { CalendarEvent, Note } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -339,7 +342,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { settings, setHighlightTaskId, events } = useAppStore();
+  const { settings, setHighlightTaskId, events, notes } = useAppStore();
 
   const [activeTab, setActiveTabRaw] = useState('home');
   const [userName, setUserName] = useState('');
@@ -352,9 +355,12 @@ const Dashboard: React.FC = () => {
   const [loadingFocus, setLoadingFocus] = useState(false);
   const [showFocusPicker, setShowFocusPicker] = useState(false);
 
-  // Navigation state for focus item taps
+  // Overlay state for focus item taps — all stay on Dashboard
   const [focusEditEvent, setFocusEditEvent] = useState<CalendarEvent | null>(null);
-  const [pendingNoteId, setPendingNoteId] = useState<string | null>(null);
+  const [focusEditTaskId, setFocusEditTaskId] = useState<string | null>(null);
+  const [focusNote, setFocusNote] = useState<Note | null>(null);
+  const [showFocusNoteEditor, setShowFocusNoteEditor] = useState(false);
+  const [focusStickyNote, setFocusStickyNote] = useState<Note | null>(null);
 
   // Quick-create / modals
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -440,23 +446,27 @@ const Dashboard: React.FC = () => {
     await supabase.from('focus_items').delete().eq('id', rowId);
   };
 
-  // ── Tap a focus item → navigate to linked content ───────────────────────────
+  // ── Tap a focus item → open overlay on top of Dashboard ───────────────────
   const handleTapFocus = (item: FocusItem) => {
     switch (item.item_type) {
       case 'task':
-        setHighlightTaskId(item.item_id);
-        setActiveTab('tasks');
+        setFocusEditTaskId(item.item_id);
         break;
       case 'event': {
         const evt = events.find(e => e.id === item.item_id);
         if (evt) setFocusEditEvent(evt);
         break;
       }
-      case 'note':
-      case 'sticky':
-        setPendingNoteId(item.item_id);
-        setActiveTab('notes');
+      case 'note': {
+        const note = notes.find(n => n.id === item.item_id);
+        if (note) setFocusNote(note);
         break;
+      }
+      case 'sticky': {
+        const sticky = notes.find(n => n.id === item.item_id);
+        if (sticky) setFocusStickyNote(sticky);
+        break;
+      }
       case 'custom':
         break;
     }
@@ -563,8 +573,6 @@ const Dashboard: React.FC = () => {
             isCreatingNew={isCreatingNewNote}
             isCreatingStickyNote={isCreatingStickyNote}
             onCloseEditor={() => { setIsCreatingNewNote(false); setIsCreatingStickyNote(false); setIsEditingNote(false); }}
-            initialNoteId={pendingNoteId ?? undefined}
-            onInitialNoteConsumed={() => setPendingNoteId(null)}
           />
         );
       case 'profile':
@@ -593,12 +601,42 @@ const Dashboard: React.FC = () => {
       <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} initialDate={selectedCalendarDate} />
       <AddTaskModal isOpen={showCalendarTaskCreate} onClose={() => setShowCalendarTaskCreate(false)} defaultDate={selectedCalendarDate} />
 
-      {/* Event detail opened from a focus card tap */}
+      {/* Focus item overlays — all stay on Dashboard */}
       <EditEventModal
         event={focusEditEvent}
         isOpen={!!focusEditEvent}
         onClose={() => setFocusEditEvent(null)}
       />
+      <AddTaskModal
+        isOpen={!!focusEditTaskId}
+        editingTaskId={focusEditTaskId ?? undefined}
+        onClose={() => setFocusEditTaskId(null)}
+      />
+      <CalendarNoteModal
+        note={focusNote}
+        isOpen={!!focusNote && !showFocusNoteEditor}
+        onClose={() => { setFocusNote(null); setShowFocusNoteEditor(false); }}
+        onOpenFullEditor={note => {
+          if (note.type === 'sticky') {
+            setFocusNote(null);
+            setFocusStickyNote(note);
+          } else {
+            setShowFocusNoteEditor(true);
+          }
+        }}
+      />
+      {showFocusNoteEditor && focusNote && (
+        <NoteEditor
+          note={focusNote}
+          onClose={() => { setFocusNote(null); setShowFocusNoteEditor(false); }}
+        />
+      )}
+      {focusStickyNote && (
+        <StickyNoteEditor
+          note={focusStickyNote}
+          onClose={() => setFocusStickyNote(null)}
+        />
+      )}
 
       {/* Focus picker modal */}
       <FocusPickerModal
