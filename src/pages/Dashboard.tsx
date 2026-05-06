@@ -408,6 +408,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           onClose={() => setSortModal(null)}
           onSorted={handleSortModalDone}
           onOpenFullEditor={handleOpenFullEditor}
+          onSaveAndOpenNote={(note) => {
+            setFocusNote(note);
+            setShowFocusNoteEditor(true);
+          }}
         />
       )}
       {/* Full editors opened via "+ add details" */}

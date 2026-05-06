@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, CheckSquare, Calendar, FileText, ChevronDown } from 'lucide-react';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAppStore } from '@/store/useAppStore';
+import { Note } from '@/types';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ interface BrainDumpSortModalProps {
   onClose: () => void;
   onSorted: () => void;
   onOpenFullEditor: (title: string) => void;
+  onSaveAndOpenNote?: (note: Note) => void;
 }
 
 function todayIso() {
@@ -164,14 +166,29 @@ function NoteFields({
   folder: string; setFolder: (v: string) => void;
 }) {
   const { folders } = useAppStore();
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 60); }, []);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { setTimeout(() => textareaRef.current?.focus(), 60); }, []);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [title]);
 
   return (
     <>
       <div>
-        <FieldLabel>Title</FieldLabel>
-        <FieldInput ref={inputRef} value={title} onChange={e => setTitle(e.target.value)} placeholder="Note title" />
+        <FieldLabel>Text</FieldLabel>
+        <textarea
+          ref={textareaRef}
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="Note text"
+          rows={3}
+          className="w-full px-3 py-2.5 bg-secondary rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none border-0 resize-none overflow-hidden"
+        />
       </div>
       <div>
         <FieldLabel>Folder (optional)</FieldLabel>
@@ -188,7 +205,7 @@ function NoteFields({
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
-export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOpenFullEditor }: BrainDumpSortModalProps) {
+export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOpenFullEditor, onSaveAndOpenNote }: BrainDumpSortModalProps) {
   const { modalTop, maxHeight } = useVisualViewport(70);
   const { addTask, addEvent, addNote, taskCategories, eventCategories } = useAppStore();
 
@@ -265,6 +282,25 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
     onClose();
   };
 
+  const handleSaveAndOpenNote = () => {
+    const t = title.trim();
+    if (!t) return;
+    const htmlContent = t.split('\n').map(l => `<p>${l || '<br>'}</p>`).join('');
+    addNote({
+      title: t,
+      content: htmlContent,
+      type: 'note',
+      tags: [],
+      isPinned: false,
+      folder: folder || undefined,
+    });
+    const created = useAppStore.getState().notes.at(-1);
+    toast.success('Note created');
+    onSorted();
+    onClose();
+    if (created && onSaveAndOpenNote) onSaveAndOpenNote(created);
+  };
+
   if (!isOpen) return null;
 
   const { label, icon: Icon } = TYPE_META[type];
@@ -311,19 +347,32 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
 
             {/* Actions */}
             <div className="flex items-center justify-between pt-1">
-              <button
-                onClick={handleOpenFull}
-                className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
-              >
-                + add details
-              </button>
-              <button
-                onClick={handleCreate}
-                disabled={!title.trim()}
-                className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
-              >
-                Save {label}
-              </button>
+              {type === 'task' ? (
+                <button
+                  onClick={handleOpenFull}
+                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                >
+                  + add details
+                </button>
+              ) : <span />}
+              <div className="flex items-center gap-2">
+                {type === 'note' && (
+                  <button
+                    onClick={handleSaveAndOpenNote}
+                    disabled={!title.trim()}
+                    className="px-5 py-2.5 rounded-2xl bg-secondary text-foreground text-sm font-semibold disabled:opacity-40"
+                  >
+                    Save & open
+                  </button>
+                )}
+                <button
+                  onClick={handleCreate}
+                  disabled={!title.trim()}
+                  className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
+                >
+                  Save {label}
+                </button>
+              </div>
             </div>
           </div>
 
