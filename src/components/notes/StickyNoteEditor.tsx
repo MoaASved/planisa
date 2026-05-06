@@ -17,6 +17,7 @@ interface StickyNoteEditorProps {
   onClose: () => void;
   initialDate?: Date;
   initialTime?: string;
+  initialContent?: string;
   showCalendarToggle?: boolean;
 }
 
@@ -38,11 +39,11 @@ const getStickyBgClass = (color?: PastelColor): string => {
   return colorMap[color] || 'bg-pastel-yellow';
 };
 
-export function StickyNoteEditor({ note, onClose, initialDate, initialTime, showCalendarToggle }: StickyNoteEditorProps) {
+export function StickyNoteEditor({ note, onClose, initialDate, initialTime, initialContent, showCalendarToggle }: StickyNoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
 
-  const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || '');
+  const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || initialContent || '');
   const [color, setColor] = useState<PastelColor>(() => {
     if (note?.color) return note.color;
     const colors: PastelColor[] = ['coral', 'peach', 'amber', 'yellow', 'mint', 'teal', 'sky', 'lavender', 'rose', 'gray', 'stone'];

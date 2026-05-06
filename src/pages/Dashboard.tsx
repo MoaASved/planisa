@@ -154,6 +154,7 @@ interface DashboardHomeProps {
   dismissNisaBubble: () => void;
   toggleNisaBubble: () => void;
   onProfileClick: () => void;
+  onSaveAndOpenNote: (note: Note) => void;
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -174,6 +175,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   dismissNisaBubble,
   toggleNisaBubble,
   onProfileClick,
+  onSaveAndOpenNote,
 }) => {
   const { tasks, addNote } = useAppStore();
 
@@ -188,14 +190,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const [sortModal, setSortModal] = useState<{ text: string; type: Exclude<BrainDumpSortType, 'sticky'>; itemId: string | null } | null>(null);
   // Full editor state (opened via "+ add details")
   const [fullEditor, setFullEditor] = useState<{ type: 'task' | 'event' | 'note'; title: string } | null>(null);
+  // Sticky note editor state (opened when tapping Sticky sort button)
+  const [stickyEditor, setStickyEditor] = useState<{ text: string; itemId: string | null } | null>(null);
 
   const handleBrainDumpSort = (type: BrainDumpSortType) => {
     const text = brainDumpText.trim();
     if (!text) return;
     if (type === 'sticky') {
-      addNote({ title: text.slice(0, 40), content: text, type: 'sticky', tags: [], isPinned: false });
-      toast.success('Sticky note created');
-      setBrainDumpText('');
+      setStickyEditor({ text, itemId: null });
       return;
     }
     setSortModal({ text: brainDumpText, type, itemId: null });
@@ -210,9 +212,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const handleSheetSort = (item: BrainDumpItem, type: BrainDumpSortType) => {
     setShowBrainDumpSheet(false);
     if (type === 'sticky') {
-      addNote({ title: item.content.slice(0, 40), content: item.content, type: 'sticky', tags: [], isPinned: false });
-      toast.success('Sticky note created');
-      onDeleteBrainDumpItem(item.id);
+      setStickyEditor({ text: item.content, itemId: item.id });
       return;
     }
     setSortModal({ text: item.content, type, itemId: item.id });
@@ -408,9 +408,20 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           onClose={() => setSortModal(null)}
           onSorted={handleSortModalDone}
           onOpenFullEditor={handleOpenFullEditor}
-          onSaveAndOpenNote={(note) => {
-            setFocusNote(note);
-            setShowFocusNoteEditor(true);
+          onSaveAndOpenNote={onSaveAndOpenNote}
+        />
+      )}
+      {/* Sticky note editor opened from brain dump sort */}
+      {stickyEditor && (
+        <StickyNoteEditor
+          initialContent={stickyEditor.text}
+          onClose={() => {
+            if (stickyEditor.itemId) {
+              onDeleteBrainDumpItem(stickyEditor.itemId);
+            } else {
+              setBrainDumpText('');
+            }
+            setStickyEditor(null);
           }}
         />
       )}
@@ -709,6 +720,10 @@ const Dashboard: React.FC = () => {
             dismissNisaBubble={dismissNisaBubble}
             toggleNisaBubble={() => setShowNisaBubble(v => !v)}
             onProfileClick={() => setActiveTab('profile')}
+            onSaveAndOpenNote={(note) => {
+              setFocusNote(note);
+              setShowFocusNoteEditor(true);
+            }}
           />
         );
       case 'calendar':
