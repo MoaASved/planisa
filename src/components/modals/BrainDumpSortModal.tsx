@@ -5,6 +5,8 @@ import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAppStore } from '@/store/useAppStore';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { getColorClass } from '@/lib/colors';
 
 export type BrainDumpSortType = 'task' | 'event' | 'note' | 'sticky';
 
@@ -88,12 +90,15 @@ function TaskFields({
 }
 
 function EventFields({
-  title, setTitle, date, setDate, time, setTime,
+  title, setTitle, date, setDate, time, setTime, endTime, setEndTime, categoryId, setCategoryId,
 }: {
   title: string; setTitle: (v: string) => void;
   date: string; setDate: (v: string) => void;
   time: string; setTime: (v: string) => void;
+  endTime: string; setEndTime: (v: string) => void;
+  categoryId: string; setCategoryId: (v: string) => void;
 }) {
+  const { eventCategories } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 60); }, []);
 
@@ -103,16 +108,51 @@ function EventFields({
         <FieldLabel>Title</FieldLabel>
         <FieldInput ref={inputRef} value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title" />
       </div>
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <FieldInput type="date" value={date} onChange={e => setDate(e.target.value)} />
+      </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <FieldLabel>Date</FieldLabel>
-          <FieldInput type="date" value={date} onChange={e => setDate(e.target.value)} />
-        </div>
-        <div className="flex-1">
-          <FieldLabel>Time (optional)</FieldLabel>
+          <FieldLabel>Start time</FieldLabel>
           <FieldInput type="time" value={time} onChange={e => setTime(e.target.value)} />
         </div>
+        <div className="flex-1">
+          <FieldLabel>End time</FieldLabel>
+          <FieldInput type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+        </div>
       </div>
+      {eventCategories.length > 0 && (
+        <div>
+          <FieldLabel>Category (optional)</FieldLabel>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setCategoryId('')}
+              className={cn(
+                'px-3 py-1.5 rounded-xl text-xs font-medium transition-all',
+                categoryId === '' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
+              )}
+            >
+              None
+            </button>
+            {eventCategories.map(c => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setCategoryId(c.id)}
+                className={cn(
+                  'px-3 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5',
+                  categoryId === c.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
+                )}
+              >
+                <span className={cn('w-2 h-2 rounded-full flex-shrink-0', getColorClass(c.color))} />
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -156,6 +196,8 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
   const [listId, setListId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [folder, setFolder] = useState('');
 
   useEffect(() => {
@@ -164,6 +206,8 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
     setListId(taskCategories[0]?.id ?? '');
     setDate(todayIso());
     setTime('');
+    setEndTime('');
+    setCategoryId(eventCategories[0]?.id ?? '');
     setFolder('');
   }, [isOpen, text]);
 
@@ -185,7 +229,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
         break;
       }
       case 'event': {
-        const cat = eventCategories[0];
+        const cat = (categoryId ? eventCategories.find(c => c.id === categoryId) : null) ?? eventCategories[0];
         addEvent({
           title: t,
           date: date ? new Date(date + 'T12:00:00') : new Date(),
@@ -193,6 +237,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
           color: cat?.color || 'sky',
           isAllDay: !time,
           startTime: time || undefined,
+          endTime: endTime || undefined,
         });
         break;
       }
@@ -252,7 +297,13 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
               <TaskFields title={title} setTitle={setTitle} listId={listId} setListId={setListId} />
             )}
             {type === 'event' && (
-              <EventFields title={title} setTitle={setTitle} date={date} setDate={setDate} time={time} setTime={setTime} />
+              <EventFields
+                title={title} setTitle={setTitle}
+                date={date} setDate={setDate}
+                time={time} setTime={setTime}
+                endTime={endTime} setEndTime={setEndTime}
+                categoryId={categoryId} setCategoryId={setCategoryId}
+              />
             )}
             {type === 'note' && (
               <NoteFields title={title} setTitle={setTitle} folder={folder} setFolder={setFolder} />

@@ -264,7 +264,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
             <div>
-              <h2 className="flow-modal-title">Add Focus Item</h2>
+              <h2 className="flow-modal-title">Today's Focus</h2>
               <p className="flow-meta mt-0.5">
                 {remaining > 0 ? `${remaining} slot${remaining !== 1 ? 's' : ''} remaining` : 'Selection full'}
               </p>

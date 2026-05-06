@@ -267,10 +267,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       </div>
 
       <div className="px-4 space-y-4 pb-6">
-        {/* ── Focus Today ───────────────────────────────────────────────── */}
+        {/* ── Today's Focus ─────────────────────────────────────────────── */}
         <div className="bg-[#1C1C1E] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title text-white">Focus today</h2>
+            <h2 className="flow-section-title text-white">Today's focus</h2>
             {focusItems.length < 3 && (
               <button
                 onClick={onAddFocus}
@@ -287,7 +287,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               <p className="text-gray-400 text-sm">Loading…</p>
             )}
             {!loadingFocus && focusItems.length === 0 && (
-              <p className="text-gray-400 text-sm">No focus today</p>
+              <p className="text-gray-400 text-sm">No focus for today</p>
             )}
             {!loadingFocus && focusItems.map(item => (
               <FocusCard
