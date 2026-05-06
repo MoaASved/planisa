@@ -39,6 +39,7 @@ interface DashboardHomeProps {
   setShowNisaBubble: React.Dispatch<React.SetStateAction<boolean>>;
   dismissNisaBubble: () => void;
   toggleNisaBubble: () => void;
+  onProfileClick: () => void;
 }
 
 interface Habit {
@@ -211,6 +212,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   setShowNisaBubble,
   dismissNisaBubble,
   toggleNisaBubble,
+  onProfileClick,
 }) => {
   const [showFocusPicker, setShowFocusPicker] = useState(false);
   const [habits] = useState<Habit[]>([
@@ -262,9 +264,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
           <div className="flex items-center space-x-4">
             <Search className="w-6 h-6 text-muted-foreground" />
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
+            <button
+              onClick={onProfileClick}
+              className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary/60"
+              aria-label="Open profile settings"
+            >
               {userName.charAt(0).toUpperCase()}
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -535,6 +541,7 @@ const Dashboard: React.FC = () => {
           setShowNisaBubble={setShowNisaBubble}
           dismissNisaBubble={dismissNisaBubble}
           toggleNisaBubble={toggleNisaBubble}
+          onProfileClick={() => setActiveTab('profile')}
         />;
       case 'calendar':
         return <CalendarViewComponent onDateChange={setSelectedCalendarDate} onNavigateToTasks={(task) => { setHighlightTaskId(task.id); setActiveTab('tasks'); }} />;
