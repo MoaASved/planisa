@@ -14,7 +14,12 @@ import {
   CheckSquare,
   Edit3,
   X,
-  BookOpen
+  BookOpen,
+  CreditCard,
+  HelpCircle,
+  MessageSquareDot,
+  Shield,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -216,6 +221,22 @@ export function ProfileView() {
                 <div className="text-left">
                   <p className="font-medium text-foreground">Change Password</p>
                   <p className="text-sm text-muted-foreground">Update your password</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+
+            <button
+              onClick={() => window.open('#', '_blank')}
+              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Subscription</p>
+                  <p className="text-sm text-muted-foreground">Manage your plan</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -502,6 +523,78 @@ export function ProfileView() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Support */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Support</h3>
+          <div className="flow-card-flat space-y-1 p-2">
+            <button
+              onClick={() => window.open('#', '_blank')}
+              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <HelpCircle className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Help & FAQ</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+
+            <button
+              onClick={() => window.open('#', '_blank')}
+              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <MessageSquareDot className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Feedback & Roadmap</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+
+        {/* Legal */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Legal</h3>
+          <div className="flow-card-flat space-y-1 p-2">
+            <button
+              onClick={() => window.open('#', '_blank')}
+              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Privacy Policy</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
+
+            <button
+              onClick={() => window.open('#', '_blank')}
+              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Terms of Service</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
