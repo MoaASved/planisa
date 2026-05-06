@@ -127,8 +127,8 @@ const Index = () => {
   const getMainPadding = () => {
     if (!showNavigation) return 'pt-0'; // Editing note
     if (activeTab === 'calendar') return 'pt-0'; // Calendar has its own header
-    if (activeTab === 'home') return 'pt-14'; // Home has TopBar
-    return 'pt-safe'; // Notes and Tasks - just safe area, content starts higher
+    if (activeTab === 'home') return 'pt-safe-14'; // safe area + 56px clears the fixed TopBar on all devices
+    return 'pt-safe-4'; // Tasks/Notes/Profile: safe area + 16px breathing room below status bar
   };
 
   return (

@@ -541,6 +541,10 @@ input[type="time"]::-webkit-inner-spin-button {
     padding-right: env(safe-area-inset-right, 0px);
   }
   /* Combined: safe-area-top + extra offset baked in */
+  .pt-safe-14 {
+    /* safe area + 3.5rem (56px) — clears the fixed TopBar on all iPhone models */
+    padding-top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+  }
   .pt-safe-4 {
     padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
   }
