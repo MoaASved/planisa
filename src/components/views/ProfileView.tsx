@@ -202,7 +202,7 @@ export function ProfileView() {
   const { modalTop, maxHeight } = useVisualViewport(70);
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-24 pt-safe-2">
       <div className="px-4 py-4 space-y-6">
         {/* User Info Card */}
         <div className="flow-card">
