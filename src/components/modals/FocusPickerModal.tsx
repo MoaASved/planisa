@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Check, Calendar, CheckSquare, FileText, Pin } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
@@ -12,6 +13,7 @@ export interface FocusCandidate {
   item_id: string;
   item_type: ItemType;
   title: string;
+  subtitle: string;
 }
 
 interface FocusPickerModalProps {
@@ -32,7 +34,24 @@ const TAB_LABELS: { key: ItemType; label: string; icon: React.ElementType }[] = 
 function stripHtml(html: string): string {
   return html
     .replace(/<\/p>/gi, ' ').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+    .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .trim();
+}
+
+function fmtDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '';
+  try { return format(parseISO(dateStr), 'MMM d'); } catch { return ''; }
+}
+
+function fmtDateTime(dateStr: string | null | undefined, timeStr: string | null | undefined): string {
+  const d = fmtDate(dateStr);
+  if (!d) return '';
+  return timeStr ? `${d} at ${timeStr}` : d;
+}
+
+function fmtUpdated(ts: string | null | undefined): string {
+  if (!ts) return '';
+  try { return format(parseISO(ts), 'MMM d'); } catch { return ''; }
 }
 
 export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConfirm }: FocusPickerModalProps) {
@@ -42,7 +61,9 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<FocusCandidate[]>([]);
 
-  const remaining = 3 - currentCount - selected.length;
+  // How many more can be selected in this session
+  const cap = 3 - currentCount;
+  const remaining = cap - selected.length;
 
   useEffect(() => {
     if (!isOpen) { setSelected([]); setActiveTab('task'); return; }
@@ -54,57 +75,80 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   }, [activeTab]);
 
   const fetchTab = async (tab: ItemType) => {
+    if (!userId) return;
     setLoading(true);
     setItems([]);
     try {
       if (tab === 'task') {
         const { data } = await supabase
           .from('tasks')
-          .select('id, title')
+          .select('id, title, due_date, category_name')
           .eq('user_id', userId)
           .eq('completed', false)
-          .order('created_at', { ascending: false })
+          .eq('hidden', false)
+          .order('due_date', { ascending: true, nullsFirst: false })
           .limit(40);
-        setItems((data ?? []).map(r => ({ id: r.id, item_id: r.id, item_type: 'task', title: r.title || 'Untitled' })));
+
+        setItems((data ?? []).map(r => {
+          const parts: string[] = [];
+          if (r.due_date) parts.push(`Due ${fmtDate(r.due_date)}`);
+          if (r.category_name) parts.push(r.category_name);
+          return {
+            id: r.id, item_id: r.id, item_type: 'task',
+            title: r.title || 'Untitled',
+            subtitle: parts.join(' · '),
+          };
+        }));
 
       } else if (tab === 'event') {
         const { data } = await supabase
           .from('events')
-          .select('id, title')
+          .select('id, title, event_date, time_text')
           .eq('user_id', userId)
-          .order('created_at', { ascending: false })
+          .order('event_date', { ascending: false })
           .limit(40);
-        setItems((data ?? []).map(r => ({ id: r.id, item_id: r.id, item_type: 'event', title: r.title || 'Untitled' })));
+
+        setItems((data ?? []).map(r => ({
+          id: r.id, item_id: r.id, item_type: 'event',
+          title: r.title || 'Untitled',
+          subtitle: fmtDateTime(r.event_date, r.time_text),
+        })));
 
       } else if (tab === 'note') {
         const { data } = await supabase
           .from('notes')
-          .select('id, title, content')
+          .select('id, title, content, updated_at')
           .eq('user_id', userId)
           .eq('is_sticky', false)
           .order('updated_at', { ascending: false })
           .limit(40);
-        setItems((data ?? []).map(r => ({
-          id: r.id,
-          item_id: r.id,
-          item_type: 'note',
-          title: r.title && r.title !== 'Untitled' ? r.title : (r.content ? stripHtml(r.content).slice(0, 60) : 'Untitled'),
-        })));
+
+        setItems((data ?? []).map(r => {
+          const plain = r.content ? stripHtml(r.content) : '';
+          const firstLine = plain.split('\n').map(l => l.trim()).find(l => l.length > 0) ?? '';
+          const titleDisplay = r.title && r.title !== 'Untitled' ? r.title : firstLine.slice(0, 60) || 'Untitled';
+          const preview = titleDisplay === firstLine ? '' : firstLine.slice(0, 60);
+          const date = fmtUpdated(r.updated_at);
+          const sub = [preview, date].filter(Boolean).join(' · ');
+          return { id: r.id, item_id: r.id, item_type: 'note', title: titleDisplay, subtitle: sub };
+        }));
 
       } else {
         const { data } = await supabase
           .from('notes')
-          .select('id, title, content')
+          .select('id, title, content, updated_at')
           .eq('user_id', userId)
           .eq('is_sticky', true)
           .order('updated_at', { ascending: false })
           .limit(40);
-        setItems((data ?? []).map(r => ({
-          id: r.id,
-          item_id: r.id,
-          item_type: 'sticky',
-          title: r.title && r.title !== 'Untitled' ? r.title : (r.content ? stripHtml(r.content).slice(0, 60) : 'Untitled note'),
-        })));
+
+        setItems((data ?? []).map(r => {
+          const plain = r.content ? stripHtml(r.content) : '';
+          const firstLine = plain.split('\n').map(l => l.trim()).find(l => l.length > 0) ?? '';
+          const titleDisplay = firstLine.slice(0, 60) || r.title || 'Untitled sticky';
+          const date = fmtUpdated(r.updated_at);
+          return { id: r.id, item_id: r.id, item_type: 'sticky', title: titleDisplay, subtitle: date };
+        }));
       }
     } finally {
       setLoading(false);
@@ -115,7 +159,8 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
     setSelected(prev => {
       const already = prev.some(s => s.item_id === item.item_id && s.item_type === item.item_type);
       if (already) return prev.filter(s => !(s.item_id === item.item_id && s.item_type === item.item_type));
-      if (prev.length >= remaining) return prev; // cap
+      // Fix: cap against absolute limit, not the stale `remaining` closure
+      if (prev.length + currentCount >= 3) return prev;
       return [...prev, item];
     });
   };
@@ -133,19 +178,17 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
         onClick={onClose}
       />
 
-      {/* Modal card */}
-      <div
-        style={{ position: 'fixed', top: modalTop, left: 0, right: 0, zIndex: 9999, padding: '0 20px' }}
-      >
-        <div
-          className="bg-card rounded-3xl shadow-xl overflow-hidden flex flex-col"
-          style={{ maxHeight: maxHeight - 20 }}
-        >
+      {/* Modal */}
+      <div style={{ position: 'fixed', top: modalTop, left: 0, right: 0, zIndex: 9999, padding: '0 20px' }}>
+        <div className="bg-card rounded-3xl shadow-xl overflow-hidden flex flex-col" style={{ maxHeight: maxHeight - 20 }}>
+
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
             <div>
               <h2 className="flow-modal-title">Add Focus Item</h2>
-              <p className="flow-meta mt-0.5">{remaining} slot{remaining !== 1 ? 's' : ''} remaining</p>
+              <p className="flow-meta mt-0.5">
+                {remaining > 0 ? `${remaining} slot${remaining !== 1 ? 's' : ''} remaining` : 'Selection full'}
+              </p>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
               <X className="w-4 h-4 text-foreground/70" />
@@ -160,9 +203,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
                 onClick={() => setActiveTab(key)}
                 className={cn(
                   'flex-1 flex flex-col items-center gap-1 py-2 rounded-xl text-xs font-medium transition-colors',
-                  activeTab === key
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                  activeTab === key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
                 )}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -171,17 +212,13 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
             ))}
           </div>
 
-          {/* Item list */}
+          {/* List */}
           <div className="overflow-y-auto flex-1 px-5 pb-3 space-y-2">
-            {loading && (
-              <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>
-            )}
-            {!loading && items.length === 0 && (
-              <div className="py-8 text-center text-sm text-muted-foreground">No items found</div>
-            )}
+            {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>}
+            {!loading && items.length === 0 && <div className="py-8 text-center text-sm text-muted-foreground">No items found</div>}
             {!loading && items.map(item => {
               const sel = isSelected(item);
-              const disabled = !sel && remaining === 0;
+              const disabled = !sel && remaining <= 0;
               return (
                 <button
                   key={item.id}
@@ -199,7 +236,12 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
                   )}>
                     {sel && <Check className="w-3 h-3 text-primary-foreground" />}
                   </div>
-                  <span className="text-sm font-medium text-foreground truncate">{item.title}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                    {item.subtitle && (
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{item.subtitle}</p>
+                    )}
+                  </div>
                 </button>
               );
             })}

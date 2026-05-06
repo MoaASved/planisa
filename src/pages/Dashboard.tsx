@@ -28,6 +28,7 @@ interface FocusItem {
   item_id: string;
   item_type: 'task' | 'event' | 'note' | 'sticky';
   title: string;
+  subtitle: string;
 }
 
 // ─── Type icon helper ─────────────────────────────────────────────────────────
@@ -151,7 +152,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                   <Icon className="w-4 h-4 text-white/50 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium truncate">{item.title}</p>
-                    <p className="text-white/40 text-xs">{TYPE_LABELS[item.item_type]}</p>
+                    <p className="text-white/40 text-xs truncate">{item.subtitle || TYPE_LABELS[item.item_type]}</p>
                   </div>
                   <button
                     onClick={() => onRemoveFocus(item.id)}
@@ -296,7 +297,7 @@ const Dashboard: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('focus_items')
-        .select('id, item_id, item_type, title')
+        .select('id, item_id, item_type, title, subtitle')
         .eq('user_id', user.id)
         .eq('date', todayDate)
         .order('created_at', { ascending: true });
@@ -308,6 +309,7 @@ const Dashboard: React.FC = () => {
           item_id: r.item_id,
           item_type: r.item_type as FocusItem['item_type'],
           title: r.title,
+          subtitle: r.subtitle ?? '',
         }))
       );
     } catch {
@@ -327,6 +329,7 @@ const Dashboard: React.FC = () => {
       item_type: c.item_type,
       item_id: c.item_id,
       title: c.title,
+      subtitle: c.subtitle,
       date: todayDate,
     }));
 
@@ -338,6 +341,7 @@ const Dashboard: React.FC = () => {
       item_id: r.item_id,
       item_type: r.item_type as FocusItem['item_type'],
       title: r.title,
+      subtitle: r.subtitle ?? '',
     }));
     setFocusItems(prev => [...prev, ...inserted]);
   };
