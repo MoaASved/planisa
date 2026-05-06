@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import {
   Mail,
@@ -28,6 +28,7 @@ import { PastelColor } from '@/types';
 import { CategoryEditDrawer } from '@/components/modals/CategoryEditDrawer';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 type Language = 'en' | 'sv';
 type CategorySection = 'calendar' | 'tasks' | 'notes' | 'notebooks';
@@ -36,6 +37,13 @@ const languages: { value: Language; label: string; native: string }[] = [
   { value: 'en', label: 'English', native: 'English' },
   { value: 'sv', label: 'Swedish', native: 'Svenska' },
 ];
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export function ProfileView() {
   const { 
@@ -88,8 +96,26 @@ export function ProfileView() {
     document.documentElement.classList.toggle('dark');
   };
 
-  const handleSaveAvatar = () => {
-    updateSettings({ avatarInitial: avatarInitial, avatarColor: avatarColor, name: userName.trim() });
+  // Sync modal fields from store whenever the modal opens
+  useEffect(() => {
+    if (showAvatarModal) {
+      setUserName(settings.name || '');
+      setAvatarInitial(settings.avatarInitial || 'U');
+      setAvatarColor(settings.avatarColor || 'sky');
+    }
+  }, [showAvatarModal]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSaveAvatar = async () => {
+    const trimmedName = userName.trim();
+    // Persist to Supabase auth user_metadata so it survives page reload
+    await supabase.auth.updateUser({
+      data: {
+        display_name: trimmedName,
+        avatar_initial: avatarInitial,
+        avatar_color: avatarColor,
+      },
+    });
+    updateSettings({ name: trimmedName, avatarInitial, avatarColor });
     setShowAvatarModal(false);
   };
 
@@ -181,14 +207,14 @@ export function ProfileView() {
         {/* User Info Card */}
         <div className="flow-card">
           <button onClick={() => setShowAvatarModal(true)} className="flex items-center gap-4 w-full text-left">
-            <div className={cn(
-              'w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold',
-              `bg-pastel-${settings.avatarColor}/30 text-pastel-${settings.avatarColor}`
-            )}>
-              {settings.avatarInitial || 'U'}
+            <div
+              className={cn('w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold', getAccentTextClass(settings.avatarColor || 'sky'))}
+              style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'sky'}) / 0.3)` }}
+            >
+              {settings.name ? getInitials(settings.name) : (settings.avatarInitial || 'U')}
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">Planisa User</h3>
+              <h3 className="font-semibold text-foreground">{settings.name || 'Planisa User'}</h3>
               <p className="text-sm text-muted-foreground">{user?.email ?? 'Ingen e-post registrerad'}</p>
               <span className="text-xs text-muted-foreground">Tap to edit profile</span>
             </div>
