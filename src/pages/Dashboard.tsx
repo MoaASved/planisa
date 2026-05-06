@@ -252,7 +252,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
   return (
-    <div className="bg-background pb-24 overflow-y-auto">
+    <div className="overflow-y-auto">
       {/* Header */}
       <div className="px-4 py-4">
         <div className="flex items-center justify-between mb-6">
@@ -663,8 +663,10 @@ const Dashboard: React.FC = () => {
   const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
   return (
-    <>
-      {renderView()}
+    <div className="min-h-screen bg-background">
+      <main className="pb-24">
+        {renderView()}
+      </main>
 
       {/* Quick Create Menu */}
       <QuickCreateMenu
@@ -687,7 +689,7 @@ const Dashboard: React.FC = () => {
         onPlusClick={handlePlusClick}
         isPlusActive={showQuickCreate}
       />
-    </>
+    </div>
   );
 };
 
