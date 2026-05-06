@@ -127,7 +127,7 @@ const Index = () => {
   const getMainPadding = () => {
     if (!showNavigation) return 'pt-0';
     if (activeTab === 'calendar') return 'pt-0'; // CalendarHeader handles its own pt-safe-2
-    if (activeTab === 'home') return 'pt-safe-14'; // fixed TopBar is safe_area + 48px tall
+    if (activeTab === 'home') return 'pt-0'; // HomeView handles its own top spacing
     return 'pt-0'; // Tasks/Notes/Profile each apply pt-safe-2 on their own first element
   };
 
