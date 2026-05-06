@@ -250,7 +250,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
   return (
-    <div className="bg-background pb-24 overflow-y-auto pt-safe-2">
+    <div className="bg-background pb-24 overflow-y-auto">
       {/* Header */}
       <div className="px-4 py-4">
         <div className="flex items-center justify-between mb-6">

@@ -20,7 +20,7 @@ const tabs = [
 export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
   const haptics = useHaptics();
   return (
-    <nav className="flow-nav-floating">
+    <nav className="flow-nav-floating" role="navigation" aria-label="Main navigation">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
@@ -34,6 +34,8 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
                 onPlusClick();
               }}
               className="flow-nav-center-btn transition-transform duration-200 active:scale-90"
+              aria-label="Create new item"
+              aria-pressed={isPlusActive}
             >
               <Icon className={cn(
                 "w-5 h-5 transition-transform duration-300",
@@ -54,6 +56,8 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
               'flow-nav-icon transition-all duration-200 active:scale-90',
               isActive && 'flow-nav-icon-active'
             )}
+            aria-label={tab.label}
+            aria-current={isActive ? 'page' : undefined}
           >
             <Icon className="w-[22px] h-[22px]" />
           </button>
