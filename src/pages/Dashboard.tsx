@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { TabNavigation } from '../components/navigation/TabNavigation';
@@ -8,12 +8,14 @@ import { TasksView } from '../components/views/TasksView';
 import { NotesView } from '../components/views/NotesView';
 import { ProfileView } from '../components/views/ProfileView';
 import { CreateEventModal } from '../components/modals/CreateEventModal';
+import { EditEventModal } from '../components/modals/EditEventModal';
 import { AddTaskModal } from '../components/tasks/AddTaskModal';
 import { QuickCreateMenu } from '../components/QuickCreateMenu';
-import { FocusPickerModal, FocusCandidate } from '../components/modals/FocusPickerModal';
-import { Search, Plus, Mic, Calendar, CheckSquare, FileText, Pin, X } from 'lucide-react';
+import { FocusPickerModal, FocusCandidate, FocusItemType } from '../components/modals/FocusPickerModal';
+import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
+import { CalendarEvent } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,28 +26,107 @@ interface Habit {
 }
 
 interface FocusItem {
-  id: string;       // Supabase row id (for deletion)
+  id: string;        // Supabase row id (for deletion)
   item_id: string;
-  item_type: 'task' | 'event' | 'note' | 'sticky';
+  item_type: FocusItemType;
   title: string;
   subtitle: string;
 }
 
 // ─── Type icon helper ─────────────────────────────────────────────────────────
 
-const TYPE_ICONS: Record<FocusItem['item_type'], React.ElementType> = {
+const TYPE_ICONS: Record<FocusItemType, React.ElementType> = {
   task:   CheckSquare,
   event:  Calendar,
   note:   FileText,
   sticky: Pin,
+  custom: PenLine,
 };
 
-const TYPE_LABELS: Record<FocusItem['item_type'], string> = {
-  task:   'Task',
-  event:  'Event',
-  note:   'Note',
-  sticky: 'Sticky',
-};
+// ─── Swipeable focus card ─────────────────────────────────────────────────────
+
+interface FocusCardProps {
+  item: FocusItem;
+  isCompleted: boolean;
+  onRemove: () => void;
+  onTap: () => void;
+}
+
+function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
+  const [offset, setOffset] = useState(0);
+  const startX = useRef(0);
+  const isDragging = useRef(false);
+  const hasSwiped = useRef(false);
+
+  const Icon = TYPE_ICONS[item.item_type] ?? PenLine;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    isDragging.current = true;
+    hasSwiped.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.touches[0].clientX - startX.current;
+    if (dx < 0) {
+      setOffset(dx);
+      hasSwiped.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+    if (offset < -80) {
+      setOffset(-500);
+      setTimeout(onRemove, 200);
+    } else {
+      setOffset(0);
+    }
+  };
+
+  const handleClick = () => {
+    if (hasSwiped.current) return;
+    onTap();
+  };
+
+  const canTap = item.item_type !== 'custom';
+
+  return (
+    <div
+      style={{
+        transform: `translateX(${offset}px)`,
+        transition: offset === 0 || offset === -500 ? 'transform 0.2s ease' : 'none',
+      }}
+      className="bg-white/10 rounded-xl px-3.5 py-3 flex items-center gap-3"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onClick={canTap ? handleClick : undefined}
+      role={canTap ? 'button' : undefined}
+    >
+      <Icon className="w-4 h-4 text-white/50 flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className={cn(
+          'text-white text-sm font-medium truncate',
+          isCompleted && 'line-through opacity-50'
+        )}>
+          {item.title}
+        </p>
+        {item.subtitle && (
+          <p className="text-white/40 text-xs truncate mt-0.5">{item.subtitle}</p>
+        )}
+      </div>
+      <button
+        onClick={e => { e.stopPropagation(); onRemove(); }}
+        className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 active:scale-95"
+        aria-label="Remove focus item"
+      >
+        <X className="w-3 h-3 text-white/60" />
+      </button>
+    </div>
+  );
+}
 
 // ─── DashboardHome component ──────────────────────────────────────────────────
 
@@ -56,6 +137,7 @@ interface DashboardHomeProps {
   loadingFocus: boolean;
   onAddFocus: () => void;
   onRemoveFocus: (id: string) => void;
+  onTapFocus: (item: FocusItem) => void;
   brainDumpText: string;
   setBrainDumpText: React.Dispatch<React.SetStateAction<string>>;
   weekEvents: { [key: string]: number };
@@ -72,6 +154,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   loadingFocus,
   onAddFocus,
   onRemoveFocus,
+  onTapFocus,
   brainDumpText,
   setBrainDumpText,
   weekEvents,
@@ -80,6 +163,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   toggleNisaBubble,
   onProfileClick,
 }) => {
+  const { tasks } = useAppStore();
+
   const [habits] = useState<Habit[]>([
     { id: '1', name: 'Drink water', days: [true, true, false, true, true, false, false] },
     { id: '2', name: 'Exercise',    days: [false, true, true, false, true, true, false] },
@@ -96,6 +181,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const todayString = today.toLocaleDateString('sv-SE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const weekDays = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'];
   const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
+
+  const isTaskCompleted = (item: FocusItem) => {
+    if (item.item_type !== 'task') return false;
+    return tasks.find(t => t.id === item.item_id)?.completed ?? false;
+  };
 
   return (
     <div className="overflow-y-auto pt-safe-2">
@@ -135,35 +225,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             )}
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 overflow-hidden">
             {loadingFocus && (
               <p className="text-gray-400 text-sm">Loading…</p>
             )}
             {!loadingFocus && focusItems.length === 0 && (
               <p className="text-gray-400 text-sm">No focus today</p>
             )}
-            {!loadingFocus && focusItems.map(item => {
-              const Icon = TYPE_ICONS[item.item_type];
-              return (
-                <div
-                  key={item.id}
-                  className="bg-white/10 rounded-xl px-3.5 py-3 flex items-center gap-3"
-                >
-                  <Icon className="w-4 h-4 text-white/50 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{item.title}</p>
-                    <p className="text-white/40 text-xs truncate">{item.subtitle || TYPE_LABELS[item.item_type]}</p>
-                  </div>
-                  <button
-                    onClick={() => onRemoveFocus(item.id)}
-                    className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 active:scale-95"
-                    aria-label="Remove focus item"
-                  >
-                    <X className="w-3 h-3 text-white/60" />
-                  </button>
-                </div>
-              );
-            })}
+            {!loadingFocus && focusItems.map(item => (
+              <FocusCard
+                key={item.id}
+                item={item}
+                isCompleted={isTaskCompleted(item)}
+                onRemove={() => onRemoveFocus(item.id)}
+                onTap={() => onTapFocus(item)}
+              />
+            ))}
           </div>
         </div>
 
@@ -262,7 +339,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { settings, setHighlightTaskId } = useAppStore();
+  const { settings, setHighlightTaskId, events } = useAppStore();
 
   const [activeTab, setActiveTabRaw] = useState('home');
   const [userName, setUserName] = useState('');
@@ -274,6 +351,10 @@ const Dashboard: React.FC = () => {
   const [focusItems, setFocusItems] = useState<FocusItem[]>([]);
   const [loadingFocus, setLoadingFocus] = useState(false);
   const [showFocusPicker, setShowFocusPicker] = useState(false);
+
+  // Navigation state for focus item taps
+  const [focusEditEvent, setFocusEditEvent] = useState<CalendarEvent | null>(null);
+  const [pendingNoteId, setPendingNoteId] = useState<string | null>(null);
 
   // Quick-create / modals
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -307,7 +388,7 @@ const Dashboard: React.FC = () => {
         (data ?? []).map(r => ({
           id: r.id,
           item_id: r.item_id,
-          item_type: r.item_type as FocusItem['item_type'],
+          item_type: r.item_type as FocusItemType,
           title: r.title,
           subtitle: r.subtitle ?? '',
         }))
@@ -346,7 +427,7 @@ const Dashboard: React.FC = () => {
     const inserted: FocusItem[] = (data ?? []).map((r: any) => ({
       id: r.id,
       item_id: r.item_id,
-      item_type: r.item_type as FocusItem['item_type'],
+      item_type: r.item_type as FocusItemType,
       title: r.title,
       subtitle: r.subtitle ?? '',
     }));
@@ -357,6 +438,28 @@ const Dashboard: React.FC = () => {
   const handleRemoveFocus = async (rowId: string) => {
     setFocusItems(prev => prev.filter(f => f.id !== rowId));
     await supabase.from('focus_items').delete().eq('id', rowId);
+  };
+
+  // ── Tap a focus item → navigate to linked content ───────────────────────────
+  const handleTapFocus = (item: FocusItem) => {
+    switch (item.item_type) {
+      case 'task':
+        setHighlightTaskId(item.item_id);
+        setActiveTab('tasks');
+        break;
+      case 'event': {
+        const evt = events.find(e => e.id === item.item_id);
+        if (evt) setFocusEditEvent(evt);
+        break;
+      }
+      case 'note':
+      case 'sticky':
+        setPendingNoteId(item.item_id);
+        setActiveTab('notes');
+        break;
+      case 'custom':
+        break;
+    }
   };
 
   // ── Init ───────────────────────────────────────────────────────────────────
@@ -428,6 +531,7 @@ const Dashboard: React.FC = () => {
             loadingFocus={loadingFocus}
             onAddFocus={() => setShowFocusPicker(true)}
             onRemoveFocus={handleRemoveFocus}
+            onTapFocus={handleTapFocus}
             brainDumpText={brainDumpText}
             setBrainDumpText={setBrainDumpText}
             weekEvents={weekEvents}
@@ -456,13 +560,11 @@ const Dashboard: React.FC = () => {
       case 'notes':
         return (
           <NotesView
-            isEditingNote={isEditingNote}
-            setIsEditingNote={setIsEditingNote}
-            isCreatingNewNote={isCreatingNewNote}
-            setIsCreatingNewNote={setIsCreatingNewNote}
+            isCreatingNew={isCreatingNewNote}
             isCreatingStickyNote={isCreatingStickyNote}
-            setIsCreatingStickyNote={setIsCreatingStickyNote}
-            onCloseNoteEditor={() => { setIsCreatingNewNote(false); setIsCreatingStickyNote(false); setIsEditingNote(false); }}
+            onCloseEditor={() => { setIsCreatingNewNote(false); setIsCreatingStickyNote(false); setIsEditingNote(false); }}
+            initialNoteId={pendingNoteId ?? undefined}
+            onInitialNoteConsumed={() => setPendingNoteId(null)}
           />
         );
       case 'profile':
@@ -490,6 +592,13 @@ const Dashboard: React.FC = () => {
 
       <CreateEventModal isOpen={showEventModal} onClose={() => setShowEventModal(false)} initialDate={selectedCalendarDate} />
       <AddTaskModal isOpen={showCalendarTaskCreate} onClose={() => setShowCalendarTaskCreate(false)} defaultDate={selectedCalendarDate} />
+
+      {/* Event detail opened from a focus card tap */}
+      <EditEventModal
+        event={focusEditEvent}
+        isOpen={!!focusEditEvent}
+        onClose={() => setFocusEditEvent(null)}
+      />
 
       {/* Focus picker modal */}
       <FocusPickerModal

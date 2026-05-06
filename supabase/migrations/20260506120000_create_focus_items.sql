@@ -1,7 +1,7 @@
 create table if not exists public.focus_items (
   id           uuid        primary key default gen_random_uuid(),
   user_id      uuid        not null references auth.users(id) on delete cascade,
-  item_type    text        not null check (item_type in ('task', 'event', 'note', 'sticky')),
+  item_type    text        not null check (item_type in ('task', 'event', 'note', 'sticky', 'custom')),
   item_id      uuid        not null,
   title        text        not null default '',
   subtitle     text        not null default '',

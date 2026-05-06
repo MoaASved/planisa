@@ -40,9 +40,11 @@ interface NotesViewProps {
   isCreatingNew?: boolean;
   isCreatingStickyNote?: boolean;
   onCloseEditor?: () => void;
+  initialNoteId?: string;
+  onInitialNoteConsumed?: () => void;
 }
 
-export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor }: NotesViewProps) {
+export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('notes');
@@ -77,6 +79,20 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       setShouldScrollToTop(false);
     }
   }, [shouldScrollToTop]);
+
+  // Open a specific note when navigated from a focus card tap
+  useEffect(() => {
+    if (!initialNoteId) return;
+    const note = notes.find(n => n.id === initialNoteId);
+    if (!note) return;
+    if (note.type === 'sticky') {
+      setSelectedStickyNote(note);
+    } else {
+      setSelectedNote(note);
+      onEditingChange?.(true);
+    }
+    onInitialNoteConsumed?.();
+  }, []); // intentionally runs once on mount
 
   // Get all notes and sticky notes
   const allNotes = notes.filter(n => !n.hideFromAllNotes);
