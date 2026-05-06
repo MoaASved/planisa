@@ -67,7 +67,7 @@ export function ProfileView() {
   const [userName, setUserName] = useState(settings.name || '');
 
   // Section-wise category management
-  const [expandedSection, setExpandedSection] = useState<CategorySection | null>('calendar');
+  const [expandedSection, setExpandedSection] = useState<CategorySection | null>(null);
   
   // Add new category/folder drawer
   const [showAddDrawer, setShowAddDrawer] = useState(false);
