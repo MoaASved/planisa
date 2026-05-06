@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { 
-  Mail, 
-  Lock, 
-  Globe, 
-  Moon, 
+import ReactDOM from 'react-dom';
+import {
+  Mail,
+  Lock,
+  Globe,
+  Moon,
   Sun,
   ChevronRight,
   ChevronDown,
@@ -17,16 +18,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { pastelColors } from '@/lib/colors';
+import { pastelColors, getAccentTextClass } from '@/lib/colors';
 import { PastelColor } from '@/types';
 import { CategoryEditDrawer } from '@/components/modals/CategoryEditDrawer';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerFooter,
-} from '@/components/ui/drawer';
+import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
 
 type Language = 'en' | 'sv';
@@ -172,6 +167,8 @@ export function ProfileView() {
   const toggleSection = (section: CategorySection) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
+
+  const { modalTop, maxHeight } = useVisualViewport(70);
 
   return (
     <div className="min-h-screen pb-24">
@@ -520,59 +517,83 @@ export function ProfileView() {
         <p className="text-center text-sm text-muted-foreground">Planisa v1.0.0</p>
       </div>
 
-      {/* Avatar Drawer */}
-      <Drawer open={showAvatarModal} onOpenChange={(open) => !open && setShowAvatarModal(false)}>
-        <DrawerContent className="max-h-[85vh]">
-          <div className="mx-auto w-full max-w-lg">
-            <DrawerHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <DrawerTitle className="text-lg font-semibold">Edit Profile</DrawerTitle>
-                <button 
-                  onClick={() => setShowAvatarModal(false)} 
-                  className="p-2 rounded-full bg-secondary hover:bg-muted transition-colors"
+      {/* Edit Profile Modal */}
+      {showAvatarModal && ReactDOM.createPortal(
+        <>
+          {/* Backdrop */}
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9998,
+              background: 'rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+            }}
+            onClick={() => setShowAvatarModal(false)}
+          />
+
+          {/* Modal */}
+          <div
+            style={{
+              position: 'fixed',
+              top: modalTop,
+              left: 0,
+              right: 0,
+              zIndex: 9999,
+              padding: '0 20px',
+            }}
+          >
+            <div
+              className="bg-card rounded-3xl shadow-2xl animate-scale-in"
+              style={{ maxHeight, overflowY: 'auto' }}
+            >
+              {/* Sticky header */}
+              <div className="sticky top-0 bg-card rounded-t-3xl flex items-center justify-between px-5 pt-5 pb-3 z-10">
+                <h2 className="text-lg font-semibold text-foreground">Edit Profile</h2>
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
                 >
-                  <X className="w-5 h-5 text-muted-foreground" />
+                  <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
-            </DrawerHeader>
 
-            <div className="px-4 pb-2">
-              {/* Preview */}
-              <div className="text-center mb-4">
-                <div className={cn(
-                  'w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold mx-auto',
-                  `bg-pastel-${avatarColor}/30 text-pastel-${avatarColor}`
-                )}>
-                  {avatarInitial}
+              <div className="px-5 pb-5">
+                {/* Avatar preview */}
+                <div className="flex justify-center mb-5">
+                  <div
+                    className={cn('w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold', getAccentTextClass(avatarColor))}
+                    style={{ backgroundColor: `hsl(var(--pastel-${avatarColor}) / 0.3)` }}
+                  >
+                    {avatarInitial || '?'}
+                  </div>
                 </div>
-              </div>
 
-              {/* Name Input */}
-              <div className="mb-4">
-                <label className="text-sm font-medium text-muted-foreground mb-2 block text-center">Name</label>
+                {/* Name */}
+                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Name</label>
                 <input
                   type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="Your name"
-                  className="flow-input text-center"
+                  className="flow-input mb-4 w-full"
                 />
-              </div>
 
-              {/* Initial Input */}
-              <input
-                type="text"
-                value={avatarInitial}
-                onChange={(e) => setAvatarInitial(e.target.value.slice(0, 2).toUpperCase())}
-                placeholder="Initial (1-2 characters)"
-                className="flow-input mb-4 text-center"
-                maxLength={2}
-              />
+                {/* Initials */}
+                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Initials (1–2 chars)</label>
+                <input
+                  type="text"
+                  value={avatarInitial}
+                  onChange={(e) => setAvatarInitial(e.target.value.slice(0, 2).toUpperCase())}
+                  placeholder="e.g. MO"
+                  className="flow-input mb-4 w-full text-center tracking-widest"
+                  maxLength={2}
+                />
 
-              {/* Color Selection */}
-              <div className="mb-4">
-                <p className="text-sm font-medium text-muted-foreground mb-2 text-center">Color</p>
-                <div className="flex flex-wrap gap-2 justify-center">
+                {/* Color */}
+                <p className="text-sm font-medium text-muted-foreground mb-2">Color</p>
+                <div className="flex flex-wrap gap-2 mb-5">
                   {pastelColors.map((c) => (
                     <button
                       key={c.value}
@@ -580,25 +601,24 @@ export function ProfileView() {
                       className={cn(
                         'w-10 h-10 rounded-xl transition-all duration-200',
                         c.class,
-                        avatarColor === c.value 
-                          ? 'ring-2 ring-offset-2 ring-primary scale-110' 
-                          : 'hover:scale-105'
+                        avatarColor === c.value
+                          ? 'ring-2 ring-offset-2 ring-primary scale-110'
+                          : 'hover:scale-105',
                       )}
                       aria-label={c.label}
                     />
                   ))}
                 </div>
+
+                <button onClick={handleSaveAvatar} className="w-full flow-button-primary">
+                  Save
+                </button>
               </div>
             </div>
-
-            <DrawerFooter className="pt-2">
-              <button onClick={handleSaveAvatar} className="w-full flow-button-primary">
-                Save
-              </button>
-            </DrawerFooter>
           </div>
-        </DrawerContent>
-      </Drawer>
+        </>,
+        document.body,
+      )}
 
       {/* Add Category/Folder/Notebook Drawer */}
       <CategoryEditDrawer

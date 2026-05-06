@@ -2,8 +2,15 @@ import { Search, User } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { getAvatarBgClass, getAvatarTextClass } from '@/lib/colors';
+import { getAccentTextClass } from '@/lib/colors';
 import { PastelColor } from '@/types';
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 interface TopBarProps {
   activeTab: string;
@@ -62,12 +69,17 @@ export function TopBar({
               onClick={onProfileClick}
               className={cn(
                 'w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors',
-                settings.avatarColor 
-                  ? `${getAvatarBgClass(settings.avatarColor as PastelColor)} ${getAvatarTextClass(settings.avatarColor as PastelColor)}` 
+                settings.avatarColor
+                  ? getAccentTextClass(settings.avatarColor as PastelColor)
                   : 'bg-secondary/60 backdrop-blur-sm text-foreground/70'
               )}
+              style={settings.avatarColor ? {
+                backgroundColor: `hsl(var(--pastel-${settings.avatarColor}) / 0.3)`,
+              } : undefined}
             >
-              {settings.avatarInitial || <User className="w-4 h-4" />}
+              {settings.name
+                ? getInitials(settings.name)
+                : settings.avatarInitial || <User className="w-4 h-4" />}
             </button>
           </div>
         )}
