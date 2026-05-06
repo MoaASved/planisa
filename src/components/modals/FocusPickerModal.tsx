@@ -158,10 +158,18 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   const toggle = (item: FocusCandidate) => {
     setSelected(prev => {
       const already = prev.some(s => s.item_id === item.item_id && s.item_type === item.item_type);
-      if (already) return prev.filter(s => !(s.item_id === item.item_id && s.item_type === item.item_type));
-      // Fix: cap against absolute limit, not the stale `remaining` closure
-      if (prev.length + currentCount >= 3) return prev;
-      return [...prev, item];
+      if (already) {
+        const next = prev.filter(s => !(s.item_id === item.item_id && s.item_type === item.item_type));
+        console.log('[FocusPicker] deselected', item.title, '— selected:', next.length);
+        return next;
+      }
+      if (prev.length + currentCount >= 3) {
+        console.log('[FocusPicker] cap reached, ignoring', item.title);
+        return prev;
+      }
+      const next = [...prev, item];
+      console.log('[FocusPicker] selected', item.title, '— selected:', next.length);
+      return next;
     });
   };
 

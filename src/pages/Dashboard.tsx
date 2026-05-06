@@ -312,8 +312,8 @@ const Dashboard: React.FC = () => {
           subtitle: r.subtitle ?? '',
         }))
       );
-    } catch {
-      // table might not exist yet in dev — silently skip
+    } catch (err) {
+      console.error('[Focus] loadFocusItems error:', err);
     } finally {
       setLoadingFocus(false);
     }
@@ -323,6 +323,7 @@ const Dashboard: React.FC = () => {
   const handleFocusConfirm = async (candidates: FocusCandidate[]) => {
     if (!user) return;
     setShowFocusPicker(false);
+    console.log('[Focus] confirm called with', candidates.length, 'items:', candidates);
 
     const rows = candidates.map(c => ({
       user_id: user.id,
@@ -333,8 +334,14 @@ const Dashboard: React.FC = () => {
       date: todayDate,
     }));
 
+    console.log('[Focus] inserting rows:', rows);
     const { data, error } = await supabase.from('focus_items').insert(rows).select();
-    if (error) { toast.error('Could not save focus items'); return; }
+    console.log('[Focus] insert result — data:', data, 'error:', error);
+    if (error) {
+      console.error('[Focus] insert error details:', error);
+      toast.error(`Could not save: ${error.message}`);
+      return;
+    }
 
     const inserted: FocusItem[] = (data ?? []).map((r: any) => ({
       id: r.id,

@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      focus_items: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          item_id: string
+          item_type: string
+          subtitle: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          item_id: string
+          item_type: string
+          subtitle?: string
+          title?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          subtitle?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           all_day: boolean
