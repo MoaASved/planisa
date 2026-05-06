@@ -11,9 +11,10 @@ interface CreateEventModalProps {
   onClose: () => void;
   initialDate?: Date;
   initialTime?: string;
+  initialTitle?: string;
 }
 
-export function CreateEventModal({ isOpen, onClose, initialDate, initialTime }: CreateEventModalProps) {
+export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, initialTitle }: CreateEventModalProps) {
   const { addEvent, eventCategories, addEventCategory } = useAppStore();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -34,7 +35,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime }: 
   useEffect(() => {
     if (isOpen) {
       endTimeManuallySet.current = false;
-      setTitle('');
+      setTitle(initialTitle ?? '');
       setDescription('');
       setIsAllDay(false);
       setDate(initialDate ? format(initialDate, 'yyyy-MM-dd') : '');

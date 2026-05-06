@@ -17,6 +17,7 @@ import { QuickCreateMenu } from '../components/QuickCreateMenu';
 import { FocusPickerModal, FocusCandidate, FocusItemType } from '../components/modals/FocusPickerModal';
 import { BrainDumpSortModal, BrainDumpSortType } from '../components/modals/BrainDumpSortModal';
 import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpSheet';
+import { CalendarNoteCreateSheet } from '../components/modals/CalendarNoteCreateSheet';
 import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
@@ -174,7 +175,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   toggleNisaBubble,
   onProfileClick,
 }) => {
-  const { tasks } = useAppStore();
+  const { tasks, addNote } = useAppStore();
 
   const [habits] = useState<Habit[]>([
     { id: '1', name: 'Drink water', days: [true, true, false, true, true, false, false] },
@@ -184,10 +185,19 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   // Brain dump sheet + sort modal state
   const [showBrainDumpSheet, setShowBrainDumpSheet] = useState(false);
-  const [sortModal, setSortModal] = useState<{ text: string; type: BrainDumpSortType; itemId: string | null } | null>(null);
+  const [sortModal, setSortModal] = useState<{ text: string; type: Exclude<BrainDumpSortType, 'sticky'>; itemId: string | null } | null>(null);
+  // Full editor state (opened via "+ add details")
+  const [fullEditor, setFullEditor] = useState<{ type: 'task' | 'event' | 'note'; title: string } | null>(null);
 
   const handleBrainDumpSort = (type: BrainDumpSortType) => {
-    if (!brainDumpText.trim()) return;
+    const text = brainDumpText.trim();
+    if (!text) return;
+    if (type === 'sticky') {
+      addNote({ title: text.slice(0, 40), content: text, type: 'sticky', tags: [], isPinned: false });
+      toast.success('Sticky note created');
+      setBrainDumpText('');
+      return;
+    }
     setSortModal({ text: brainDumpText, type, itemId: null });
   };
 
@@ -199,6 +209,12 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   const handleSheetSort = (item: BrainDumpItem, type: BrainDumpSortType) => {
     setShowBrainDumpSheet(false);
+    if (type === 'sticky') {
+      addNote({ title: item.content.slice(0, 40), content: item.content, type: 'sticky', tags: [], isPinned: false });
+      toast.success('Sticky note created');
+      onDeleteBrainDumpItem(item.id);
+      return;
+    }
     setSortModal({ text: item.content, type, itemId: item.id });
   };
 
@@ -209,6 +225,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       setBrainDumpText('');
     }
     setSortModal(null);
+  };
+
+  const handleOpenFullEditor = (title: string) => {
+    if (!sortModal) return;
+    setFullEditor({ type: sortModal.type, title });
+    setSortModal(null);
+    // don't call onSorted — item stays in brain dump list until explicitly sorted or deleted
   };
 
   const today = new Date();
@@ -384,6 +407,32 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           type={sortModal.type}
           onClose={() => setSortModal(null)}
           onSorted={handleSortModalDone}
+          onOpenFullEditor={handleOpenFullEditor}
+        />
+      )}
+      {/* Full editors opened via "+ add details" */}
+      {fullEditor?.type === 'task' && (
+        <AddTaskModal
+          isOpen
+          defaultTitle={fullEditor.title}
+          onClose={() => setFullEditor(null)}
+        />
+      )}
+      {fullEditor?.type === 'event' && (
+        <CreateEventModal
+          isOpen
+          initialTitle={fullEditor.title}
+          onClose={() => setFullEditor(null)}
+        />
+      )}
+      {fullEditor?.type === 'note' && (
+        <CalendarNoteCreateSheet
+          isOpen
+          date={new Date()}
+          time=""
+          initialTitle={fullEditor.title}
+          onClose={() => setFullEditor(null)}
+          onOpenInNotes={() => setFullEditor(null)}
         />
       )}
 

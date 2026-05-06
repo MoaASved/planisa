@@ -12,9 +12,10 @@ interface CalendarNoteCreateSheetProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenInNotes: (note: Note) => void;
+  initialTitle?: string;
 }
 
-export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInNotes }: CalendarNoteCreateSheetProps) {
+export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInNotes, initialTitle }: CalendarNoteCreateSheetProps) {
   const { addNote } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -29,7 +30,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
 
   useEffect(() => {
     if (!isOpen) return;
-    setTitle('');
+    setTitle(initialTitle ?? '');
     setContent('');
     setLocalDate(date);
     setLocalTime(time);

@@ -18,10 +18,11 @@ interface AddTaskModalProps {
   editingTaskId?: string;
   defaultDate?: Date;
   defaultTime?: string;
+  defaultTitle?: string;
   onOpenInList?: () => void;
 }
 
-export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, defaultDate, defaultTime, onOpenInList }: AddTaskModalProps) {
+export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, defaultDate, defaultTime, defaultTitle, onOpenInList }: AddTaskModalProps) {
   const { addTask, updateTask, deleteTask, toggleSubtask, taskCategories, tasks } = useAppStore();
   const editing = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : undefined;
 
@@ -69,7 +70,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
       setListId(cat?.id ?? '');
       setSubs(editing.subtasks);
     } else {
-      setTitle('');
+      setTitle(defaultTitle ?? '');
       setNote('');
       setShowNote(false);
       if (defaultTime) {
