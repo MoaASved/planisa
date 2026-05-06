@@ -632,7 +632,7 @@ export function CalendarItemList({
     <div className="flex flex-col h-full bg-background pt-4">
       {/* White card lifts from the beige background */}
       <div
-        className="flex flex-col flex-grow"
+        className="flex flex-col flex-grow min-h-0"
         style={{
           background: '#ffffff',
           borderRadius: '20px 20px 0 0',
@@ -911,7 +911,7 @@ export function CalendarItemList({
       ) : (
         // List view - all items with time shown on cards; double-tap on empty area to create
         <div
-          className="flex-1 flex flex-col"
+          className="flex-1 flex flex-col overflow-hidden"
           onDoubleClick={handleListDoubleClick}
           onTouchEnd={handleListTouchEnd}
         >
