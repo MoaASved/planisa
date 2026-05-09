@@ -109,7 +109,7 @@ const initialWidgets: Widget[] = [
 ];
 const initialSettings: UserSettings = {
   language: 'en',
-  theme: 'light',
+  theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light',
   avatarColor: 'sky',
   avatarInitial: 'U',
   name: '',
@@ -549,7 +549,10 @@ export const useAppStore = create<AppState>()((set, get) => {
 
     // ─────────────────────────── Client-only ───────────────────────────
     updateWidgets: (widgets) => set({ widgets }),
-    updateSettings: (newSettings) => set((s) => ({ settings: { ...s.settings, ...newSettings } })),
+    updateSettings: (newSettings) => {
+      if (newSettings.theme) localStorage.setItem('theme', newSettings.theme);
+      set((s) => ({ settings: { ...s.settings, ...newSettings } }));
+    },
     setSearchQuery: (query) => set({ searchQuery: query }),
     setHighlightTaskId: (id) => set({ highlightTaskId: id }),
 

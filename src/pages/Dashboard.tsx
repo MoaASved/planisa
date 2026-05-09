@@ -901,17 +901,6 @@ const Dashboard: React.FC = () => {
     loadCompletions();
   }, [user, settings.name]);
 
-  // Apply theme
-  useEffect(() => {
-    if (settings.theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0d1117');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#faf9f7');
-    }
-  }, [settings.theme]);
-
   // Scroll to top on tab change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });

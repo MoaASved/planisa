@@ -29,6 +29,15 @@
     <link rel="manifest" href="/manifest.json" />
 
     <link rel="canonical" href="https://flowplanner.app" />
+    <script>
+      (function() {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0d1117');
+        }
+      })();
+    </script>
   </head>
 
   <body>
