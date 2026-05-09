@@ -151,7 +151,6 @@ interface DashboardHomeProps {
   brainDumpItems: BrainDumpItem[];
   onSaveBrainDump: (text: string) => Promise<void>;
   onDeleteBrainDumpItem: (id: string) => void;
-  weekEvents: { [key: string]: number };
   showNisaBubble: boolean;
   dismissNisaBubble: () => void;
   toggleNisaBubble: () => void;
@@ -178,7 +177,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   brainDumpItems,
   onSaveBrainDump,
   onDeleteBrainDumpItem,
-  weekEvents,
   showNisaBubble,
   dismissNisaBubble,
   toggleNisaBubble,
@@ -263,8 +261,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   const today = new Date();
   const todayString = today.toLocaleDateString('sv-SE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const weekDays = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'];
-  const todayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1;
 
   const isTaskCompleted = (item: FocusItem) => {
     if (item.item_type !== 'task') return false;
@@ -450,29 +446,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           )}
         </div>
 
-        {/* ── This week ────────────────────────────────────────────────── */}
-        <div className="flow-widget">
-          <h2 className="flow-section-title mb-4">This week</h2>
-          <div className="flex justify-between">
-            {weekDays.map((day, index) => (
-              <div key={day} className="flex flex-col items-center">
-                <div className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium mb-2',
-                  index === todayIndex ? 'bg-[#1C1C1E] text-white' : 'text-muted-foreground'
-                )}>
-                  {day}
-                </div>
-                {weekEvents[index] && (
-                  <div className="flex space-x-1">
-                    {Array.from({ length: Math.min(weekEvents[index], 3) }).map((_, i) => (
-                      <div key={i} className="w-2 h-2 bg-primary rounded-full" />
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Brain dump sheet + sort modal */}
@@ -584,7 +557,6 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTabRaw] = useState('home');
   const [userName, setUserName] = useState('');
   const [brainDumpText, setBrainDumpText] = useState('');
-  const [weekEvents, setWeekEvents] = useState<{ [key: string]: number }>({});
   const [showNisaBubble, setShowNisaBubble] = useState(true);
 
   // Focus items — loaded from Supabase
@@ -812,7 +784,6 @@ const Dashboard: React.FC = () => {
     setUserName(name.split(' ')[0]);
     const dismissedToday = localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`);
     setShowNisaBubble(!dismissedToday);
-    fetchWeekEvents();
     loadFocusItems();
     loadBrainDumpItems();
     loadHabits();
@@ -834,32 +805,6 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab]);
-
-  const fetchWeekEvents = async () => {
-    const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-    startOfWeek.setHours(0, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    endOfWeek.setHours(23, 59, 59, 999);
-
-    const { data, error } = await supabase
-      .from('events')
-      .select('start_time')
-      .eq('user_id', user?.id)
-      .gte('start_time', startOfWeek.toISOString())
-      .lte('start_time', endOfWeek.toISOString());
-
-    if (data && !error) {
-      const counts: { [k: string]: number } = {};
-      data.forEach(e => {
-        const day = new Date(e.start_time).getDay();
-        const adj = day === 0 ? 6 : day - 1;
-        counts[adj] = (counts[adj] || 0) + 1;
-      });
-      setWeekEvents(counts);
-    }
-  };
 
   const dismissNisaBubble = () => {
     setShowNisaBubble(false);
@@ -883,7 +828,6 @@ const Dashboard: React.FC = () => {
             brainDumpItems={brainDumpItems}
             onSaveBrainDump={saveBrainDump}
             onDeleteBrainDumpItem={deleteBrainDumpItem}
-            weekEvents={weekEvents}
             showNisaBubble={showNisaBubble}
             dismissNisaBubble={dismissNisaBubble}
             toggleNisaBubble={() => setShowNisaBubble(v => !v)}
