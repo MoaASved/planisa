@@ -193,6 +193,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
 
+  const nisaRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showNisaBubble) return;
+    const handler = (e: MouseEvent | TouchEvent) => {
+      if (nisaRef.current && !nisaRef.current.contains(e.target as Node)) {
+        dismissNisaBubble();
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+    };
+  }, [showNisaBubble, dismissNisaBubble]);
+
   // Compute Mon–Sun dates for this week
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const weekDates = Array.from({ length: 7 }, (_, i) => {
@@ -525,7 +541,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       />
 
       {/* Nisa — fixed top-right, below profile avatar */}
-      <div className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
+      <div ref={nisaRef} className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
         {/* Speech bubble — appears to the left */}
         {showNisaBubble && (
           <div className="absolute right-full top-0 mr-3 w-52">
