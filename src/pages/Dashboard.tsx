@@ -17,18 +17,20 @@ import { QuickCreateMenu } from '../components/QuickCreateMenu';
 import { FocusPickerModal, FocusCandidate, FocusItemType } from '../components/modals/FocusPickerModal';
 import { BrainDumpSortModal, BrainDumpSortType } from '../components/modals/BrainDumpSortModal';
 import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpSheet';
+import { HabitsEditSheet, HabitRow } from '../components/modals/HabitsEditSheet';
 import { CalendarNoteCreateSheet } from '../components/modals/CalendarNoteCreateSheet';
 import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { CalendarEvent, Note } from '../types';
+import { startOfWeek, addDays, format as fmtDate, isToday as dateIsToday } from 'date-fns';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Habit {
+interface HabitCompletion {
   id: string;
-  name: string;
-  days: boolean[];
+  habit_id: string;
+  date: string; // YYYY-MM-DD
 }
 
 interface FocusItem {
@@ -155,6 +157,12 @@ interface DashboardHomeProps {
   toggleNisaBubble: () => void;
   onProfileClick: () => void;
   onSaveAndOpenNote: (note: Note) => void;
+  habits: HabitRow[];
+  completions: HabitCompletion[];
+  onToggleHabit: (habitId: string, date: string) => void;
+  onAddHabit: (name: string) => void;
+  onUpdateHabit: (id: string, name: string) => void;
+  onDeleteHabit: (id: string) => void;
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -176,14 +184,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   toggleNisaBubble,
   onProfileClick,
   onSaveAndOpenNote,
+  habits,
+  completions,
+  onToggleHabit,
+  onAddHabit,
+  onUpdateHabit,
+  onDeleteHabit,
 }) => {
-  const { tasks, addNote } = useAppStore();
+  const { tasks } = useAppStore();
 
-  const [habits] = useState<Habit[]>([
-    { id: '1', name: 'Drink water', days: [true, true, false, true, true, false, false] },
-    { id: '2', name: 'Exercise',    days: [false, true, true, false, true, true, false] },
-    { id: '3', name: 'Read',        days: [true, false, true, true, false, true, true] },
-  ]);
+  const [showHabitEdit, setShowHabitEdit] = useState(false);
+
+  // Compute Mon–Sun dates for this week
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(weekStart, i);
+    return fmtDate(d, 'yyyy-MM-dd');
+  });
 
   // Brain dump sheet + sort modal state
   const [showBrainDumpSheet, setShowBrainDumpSheet] = useState(false);
@@ -362,19 +379,75 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
         {/* ── Habits ───────────────────────────────────────────────────── */}
         <div className="flow-widget">
-          <h2 className="flow-section-title mb-4">Habits</h2>
-          <div className="space-y-4">
-            {habits.map(habit => (
-              <div key={habit.id} className="flex items-center justify-between">
-                <span className="flow-body">{habit.name}</span>
-                <div className="flex space-x-1">
-                  {habit.days.map((done, i) => (
-                    <div key={i} className={cn('w-3 h-3 rounded-full', done ? 'bg-[#9674cc]' : 'border border-muted-foreground/30')} />
-                  ))}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="flow-section-title">Habits</h2>
+            <button
+              onClick={() => setShowHabitEdit(true)}
+              className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+            >
+              Edit
+            </button>
+          </div>
+          {habits.length === 0 ? (
+            <div className="flex flex-col items-center py-4 gap-3">
+              <p className="text-sm text-muted-foreground">No habits yet</p>
+              <button
+                onClick={() => setShowHabitEdit(true)}
+                className="flex items-center gap-1.5 text-sm text-primary font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Add habit
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Day labels */}
+              <div className="flex items-center mb-2">
+                <div className="flex-1" />
+                <div className="flex gap-1.5">
+                  {weekDates.map((date, i) => {
+                    const dayLabel = ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i];
+                    const isToday = dateIsToday(addDays(weekStart, i));
+                    return (
+                      <div key={date} className={cn('w-6 text-center text-[10px] font-medium', isToday ? 'text-primary' : 'text-muted-foreground/50')}>
+                        {dayLabel}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="space-y-3">
+                {habits.map(habit => {
+                  return (
+                    <div key={habit.id} className="flex items-center gap-2">
+                      <span className="flex-1 text-sm text-foreground truncate">{habit.name}</span>
+                      <div className="flex gap-1.5">
+                        {weekDates.map(date => {
+                          const done = completions.some(c => c.habit_id === habit.id && c.date === date);
+                          const isToday = date === fmtDate(new Date(), 'yyyy-MM-dd');
+                          return (
+                            <button
+                              key={date}
+                              onClick={() => onToggleHabit(habit.id, date)}
+                              className={cn(
+                                'w-6 h-6 rounded-full transition-all active:scale-90',
+                                done
+                                  ? 'bg-[#9674cc]'
+                                  : isToday
+                                    ? 'border-2 border-[#9674cc]/50'
+                                    : 'border border-muted-foreground/25'
+                              )}
+                              aria-label={`${habit.name} ${date}`}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── This week ────────────────────────────────────────────────── */}
@@ -469,6 +542,15 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         />
       )}
 
+      <HabitsEditSheet
+        isOpen={showHabitEdit}
+        habits={habits}
+        onClose={() => setShowHabitEdit(false)}
+        onAdd={onAddHabit}
+        onUpdate={onUpdateHabit}
+        onDelete={onDeleteHabit}
+      />
+
       {/* Nisa bubble */}
       <div className="fixed bottom-28 left-4 z-50">
         <div
@@ -519,6 +601,10 @@ const Dashboard: React.FC = () => {
 
   // Brain dump items — saved for later
   const [brainDumpItems, setBrainDumpItems] = useState<BrainDumpItem[]>([]);
+
+  // Habits
+  const [habits, setHabits] = useState<HabitRow[]>([]);
+  const [completions, setCompletions] = useState<HabitCompletion[]>([]);
 
   // Quick-create / modals
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -631,6 +717,68 @@ const Dashboard: React.FC = () => {
     await supabase.from('brain_dump_items').delete().eq('id', id);
   };
 
+  // ── Habits ─────────────────────────────────────────────────────────────────
+  const loadHabits = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('habits')
+      .select('id, name, color')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+    setHabits((data ?? []) as HabitRow[]);
+  }, [user]);
+
+  const loadCompletions = useCallback(async () => {
+    if (!user) return;
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const monday = fmtDate(weekStart, 'yyyy-MM-dd');
+    const sunday = fmtDate(addDays(weekStart, 6), 'yyyy-MM-dd');
+    const { data } = await supabase
+      .from('habit_completions')
+      .select('id, habit_id, date')
+      .eq('user_id', user.id)
+      .gte('date', monday)
+      .lte('date', sunday);
+    setCompletions((data ?? []) as HabitCompletion[]);
+  }, [user]);
+
+  const toggleHabit = async (habitId: string, date: string) => {
+    if (!user) return;
+    const existing = completions.find(c => c.habit_id === habitId && c.date === date);
+    if (existing) {
+      setCompletions(prev => prev.filter(c => c.id !== existing.id));
+      await supabase.from('habit_completions').delete().eq('id', existing.id);
+    } else {
+      const { data, error } = await supabase
+        .from('habit_completions')
+        .insert({ user_id: user.id, habit_id: habitId, date })
+        .select('id, habit_id, date')
+        .single();
+      if (!error && data) setCompletions(prev => [...prev, data as HabitCompletion]);
+    }
+  };
+
+  const addHabit = async (name: string) => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('habits')
+      .insert({ user_id: user.id, name, color: '#9674cc' })
+      .select('id, name, color')
+      .single();
+    if (!error && data) setHabits(prev => [...prev, data as HabitRow]);
+  };
+
+  const updateHabit = async (id: string, name: string) => {
+    setHabits(prev => prev.map(h => h.id === id ? { ...h, name } : h));
+    await supabase.from('habits').update({ name }).eq('id', id);
+  };
+
+  const deleteHabit = async (id: string) => {
+    setHabits(prev => prev.filter(h => h.id !== id));
+    setCompletions(prev => prev.filter(c => c.habit_id !== id));
+    await supabase.from('habits').delete().eq('id', id);
+  };
+
   // ── Tap a focus item → open overlay on top of Dashboard ───────────────────
   const handleTapFocus = (item: FocusItem) => {
     switch (item.item_type) {
@@ -667,6 +815,8 @@ const Dashboard: React.FC = () => {
     fetchWeekEvents();
     loadFocusItems();
     loadBrainDumpItems();
+    loadHabits();
+    loadCompletions();
   }, [user, settings.name]);
 
   // Apply theme
@@ -742,6 +892,12 @@ const Dashboard: React.FC = () => {
               setFocusNote(note);
               setShowFocusNoteEditor(true);
             }}
+            habits={habits}
+            completions={completions}
+            onToggleHabit={toggleHabit}
+            onAddHabit={addHabit}
+            onUpdateHabit={updateHabit}
+            onDeleteHabit={deleteHabit}
           />
         );
       case 'calendar':

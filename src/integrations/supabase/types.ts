@@ -38,6 +38,54 @@ export type Database = {
         }
         Relationships: []
       }
+      habit_completions: {
+        Row: {
+          completed_at: string
+          date: string
+          habit_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          date: string
+          habit_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          date?: string
+          habit_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      habits: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brain_dump_items: {
         Row: {
           content: string
