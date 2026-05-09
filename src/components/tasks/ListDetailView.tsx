@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -48,6 +48,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     deleteTaskSection,
     updateTaskSection,
     reorderTasks,
+    reorderTaskSections,
   } = useAppStore();
 
   const sensors = useSensors(
@@ -211,6 +212,24 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
       newIds.splice(overIndex >= 0 ? overIndex : newIds.length, 0, activeId);
       reorderTasks(newIds);
     }
+  };
+
+  const moveSectionUp = (id: string) => {
+    const idx = sections.findIndex((s) => s.id === id);
+    if (idx <= 0) return;
+    const ids = sections.map((s) => s.id);
+    [ids[idx - 1], ids[idx]] = [ids[idx], ids[idx - 1]];
+    reorderTaskSections(ids);
+    setSectionMenuId(null);
+  };
+
+  const moveSectionDown = (id: string) => {
+    const idx = sections.findIndex((s) => s.id === id);
+    if (idx < 0 || idx >= sections.length - 1) return;
+    const ids = sections.map((s) => s.id);
+    [ids[idx], ids[idx + 1]] = [ids[idx + 1], ids[idx]];
+    reorderTaskSections(ids);
+    setSectionMenuId(null);
   };
 
   const addSectionAction = () => {
@@ -402,6 +421,25 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                       style={{ zIndex: 50 }}
                       onClick={(e) => e.stopPropagation()}
                     >
+                      {sections.findIndex((s) => s.id === section.id) > 0 && (
+                        <button
+                          onClick={() => moveSectionUp(section.id)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                        >
+                          <ChevronUp className="w-4 h-4 text-muted-foreground" /> Move up
+                        </button>
+                      )}
+                      {sections.findIndex((s) => s.id === section.id) < sections.length - 1 && (
+                        <button
+                          onClick={() => moveSectionDown(section.id)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                        >
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" /> Move down
+                        </button>
+                      )}
+                      {(sections.findIndex((s) => s.id === section.id) > 0 || sections.findIndex((s) => s.id === section.id) < sections.length - 1) && (
+                        <div className="h-px bg-border/40" />
+                      )}
                       <button
                         onClick={() => {
                           setRenameValue(section.name);

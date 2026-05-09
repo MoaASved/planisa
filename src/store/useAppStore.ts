@@ -76,6 +76,7 @@ interface AppState {
   addTaskSection: (section: Omit<TaskSection, 'id'>) => void;
   updateTaskSection: (id: string, updates: Partial<TaskSection>) => void;
   deleteTaskSection: (id: string) => void;
+  reorderTaskSections: (orderedIds: string[]) => void;
 
   // Event Categories
   eventCategories: EventCategory[];
@@ -467,6 +468,15 @@ export const useAppStore = create<AppState>()((set, get) => {
       }));
       (supabase.from('task_sections') as any).delete().eq('id', id).then(swallow('deleteTaskSection'));
       (supabase.from('tasks') as any).update({ section_id: null }).eq('section_id', id).then(swallow('deleteTaskSection.unset'));
+    },
+    reorderTaskSections: (orderedIds) => {
+      const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
+      set((s) => ({
+        taskSections: s.taskSections.map((x) => indexMap.has(x.id) ? { ...x, order: indexMap.get(x.id)! } : x),
+      }));
+      orderedIds.forEach((id, i) => {
+        (supabase.from('task_sections') as any).update({ order_index: i }).eq('id', id).then(swallow('reorderTaskSections'));
+      });
     },
 
     // ─────────────────────────── EVENT CATEGORIES ───────────────────────────
