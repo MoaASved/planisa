@@ -216,6 +216,34 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     return fmtDate(d, 'yyyy-MM-dd');
   });
 
+  // ── Nisa smart message ──────────────────────────────────────────────────────
+  const todayStr = fmtDate(new Date(), 'yyyy-MM-dd');
+  const currentHour = new Date().getHours();
+  const taskFocusItems = focusItems.filter(f => f.item_type === 'task');
+  const allTasksDone = taskFocusItems.length > 0 &&
+    taskFocusItems.every(f => tasks.find(t => t.id === f.item_id)?.completed);
+  const anyTaskDone = taskFocusItems.some(f => tasks.find(t => t.id === f.item_id)?.completed);
+  const habitsCompletedToday = completions.some(c => c.date === todayStr);
+
+  let nisaMessage: string;
+  let nisaAction: (() => void) | null = null;
+
+  if (focusItems.length === 0) {
+    nisaMessage = "You haven't set your focus yet today. What's the one thing that matters most? ✨";
+  } else if (allTasksDone) {
+    nisaMessage = "You've completed everything in your focus list today. Incredible! 🎉";
+  } else if (brainDumpItems.length > 0) {
+    const n = brainDumpItems.length;
+    nisaMessage = `You have ${n} unsorted brain dump item${n === 1 ? '' : 's'} waiting. Want to sort them now?`;
+    nisaAction = () => setShowBrainDumpSheet(true);
+  } else if (habits.length > 0 && !habitsCompletedToday) {
+    nisaMessage = "Don't forget your habits today — you're on a streak! 💪";
+  } else if (currentHour >= 17 && taskFocusItems.length > 0 && !anyTaskDone) {
+    nisaMessage = "Still time to knock out your focus items before the day ends 🌙";
+  } else {
+    nisaMessage = `You're all set for today, ${userName}. Let's make it count! 🌟`;
+  }
+
   // Brain dump sheet + sort modal state
   const [showBrainDumpSheet, setShowBrainDumpSheet] = useState(false);
   const [sortModal, setSortModal] = useState<{ text: string; type: 'event' | 'note'; itemId: string | null } | null>(null);
@@ -546,13 +574,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {showNisaBubble && (
           <div className="absolute right-full top-0 mr-3 w-52">
             <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
-              <p className="text-sm text-foreground leading-snug">Hi! I'm Nisa, your AI assistant. How can I help you today?</p>
-              <button
-                onClick={dismissNisaBubble}
-                className="mt-2 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-              >
-                dismiss for today
-              </button>
+              <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
+              <div className="mt-2 flex items-center gap-3">
+                {nisaAction && (
+                  <button
+                    onClick={() => { dismissNisaBubble(); nisaAction!(); }}
+                    className="text-xs text-primary font-medium hover:opacity-80 transition-opacity"
+                  >
+                    Sort now →
+                  </button>
+                )}
+                <button
+                  onClick={dismissNisaBubble}
+                  className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                >
+                  dismiss for today
+                </button>
+              </div>
               {/* Tail pointing right toward Nisa */}
               <span
                 className="absolute top-4 -right-2 w-0 h-0"
