@@ -337,7 +337,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="px-4 pb-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="flow-page-title">Hi, {userName} 👋</h1>
+            <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
             <p className="flow-meta mt-1">{todayString}</p>
           </div>
           <div className="flex items-center space-x-4">
