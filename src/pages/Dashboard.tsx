@@ -578,9 +578,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         <img
           src="/nisa.png"
           alt="Nisa"
+          width={48}
+          height={48}
           onClick={toggleNisaBubble}
-          className="w-12 h-12 rounded-xl shadow-lg cursor-pointer object-cover active:scale-95 transition-transform"
-          style={{ transform: 'rotate(-12deg)' }}
+          className="rounded-xl shadow-lg cursor-pointer object-contain active:scale-95 transition-transform"
+          style={{ width: 48, height: 48, transform: 'rotate(-12deg)', display: 'block' }}
         />
       </div>
     </div>
