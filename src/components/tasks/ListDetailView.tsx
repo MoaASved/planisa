@@ -311,7 +311,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                   onClick={() => updateTaskCategory(category.id, { showCompleted: !showCompleted })}
                   className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-secondary text-left"
                 >
-                  <span>Show completed inline</span>
+                  <span>Show completed tasks</span>
                   <div className={cn(
                     'w-8 h-4.5 rounded-full transition-colors relative flex-shrink-0',
                     showCompleted ? 'bg-primary' : 'bg-muted-foreground/30'
