@@ -575,16 +575,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         )}
 
         {/* Nisa icon */}
-        <div
+        <img
+          src="/nisa.png"
+          alt="Nisa"
           onClick={toggleNisaBubble}
-          className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-xl shadow-lg cursor-pointer flex items-center justify-center text-white font-bold text-base active:scale-95 transition-transform"
-          style={{
-            transform: 'rotate(-12deg)',
-            clipPath: 'polygon(0 0, 100% 0, 100% 78%, 78% 100%, 0 100%)',
-          }}
-        >
-          N
-        </div>
+          className="w-12 h-12 rounded-xl shadow-lg cursor-pointer object-cover active:scale-95 transition-transform"
+          style={{ transform: 'rotate(-12deg)' }}
+        />
       </div>
     </div>
   );
