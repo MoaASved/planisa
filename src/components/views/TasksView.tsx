@@ -85,12 +85,14 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
 
   // ── List detail view
   if (selectedList) {
+    // Use the live store entry so settings (e.g. showCompleted) update reactively
+    const liveCategory = taskCategories.find((c) => c.id === selectedList.id) ?? selectedList;
     const listTasks = visible.filter(
-      (t) => t.listId === selectedList.id || (!t.listId && t.category === selectedList.name),
+      (t) => t.listId === liveCategory.id || (!t.listId && t.category === liveCategory.name),
     );
     return (
       <ListDetailView
-        category={selectedList}
+        category={liveCategory}
         tasks={listTasks}
         onBack={() => setSelectedList(null)}
         highlightTaskId={highlightTaskId ?? undefined}
