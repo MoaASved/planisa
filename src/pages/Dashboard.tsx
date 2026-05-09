@@ -524,25 +524,51 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         onDelete={onDeleteHabit}
       />
 
-      {/* Nisa bubble */}
-      <div className="fixed bottom-28 left-4 z-50">
-        <div
-          onClick={toggleNisaBubble}
-          className="w-16 h-16 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-lg shadow-lg transform -rotate-12 relative cursor-pointer"
-          style={{ clipPath: 'polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%)' }}
-        >
-          <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg">N</div>
-        </div>
+      {/* Nisa — fixed top-right, below profile avatar */}
+      <div className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
+        {/* Speech bubble — appears to the left */}
         {showNisaBubble && (
-          <div className="relative mt-2">
-            <button onClick={dismissNisaBubble} className="absolute -top-2 right-2 text-xs text-muted-foreground hover:text-foreground">
-              dismiss for today
-            </button>
-            <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-card max-w-xs">
-              <p className="flow-body text-sm">Hi! I'm Nisa, your AI assistant. How can I help you today?</p>
+          <div className="absolute right-full top-0 mr-3 w-52">
+            <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
+              <p className="text-sm text-foreground leading-snug">Hi! I'm Nisa, your AI assistant. How can I help you today?</p>
+              <button
+                onClick={dismissNisaBubble}
+                className="mt-2 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+              >
+                dismiss for today
+              </button>
+              {/* Tail pointing right toward Nisa */}
+              <span
+                className="absolute top-4 -right-2 w-0 h-0"
+                style={{
+                  borderTop: '6px solid transparent',
+                  borderBottom: '6px solid transparent',
+                  borderLeft: '8px solid hsl(var(--border))',
+                }}
+              />
+              <span
+                className="absolute top-4 -right-[7px] w-0 h-0"
+                style={{
+                  borderTop: '6px solid transparent',
+                  borderBottom: '6px solid transparent',
+                  borderLeft: '8px solid hsl(var(--card))',
+                }}
+              />
             </div>
           </div>
         )}
+
+        {/* Nisa icon */}
+        <div
+          onClick={toggleNisaBubble}
+          className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-xl shadow-lg cursor-pointer flex items-center justify-center text-white font-bold text-base active:scale-95 transition-transform"
+          style={{
+            transform: 'rotate(-12deg)',
+            clipPath: 'polygon(0 0, 100% 0, 100% 78%, 78% 100%, 0 100%)',
+          }}
+        >
+          N
+        </div>
       </div>
     </div>
   );
