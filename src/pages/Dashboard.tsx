@@ -106,31 +106,31 @@ function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
         transform: `translateX(${offset}px)`,
         transition: offset === 0 || offset === -500 ? 'transform 0.2s ease' : 'none',
       }}
-      className="bg-white/10 rounded-xl px-3.5 py-3 flex items-center gap-3"
+      className="bg-background/10 rounded-xl px-3.5 py-3 flex items-center gap-3"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onClick={canTap ? handleClick : undefined}
       role={canTap ? 'button' : undefined}
     >
-      <Icon className="w-4 h-4 text-white/50 flex-shrink-0" />
+      <Icon className="w-4 h-4 text-background/50 flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className={cn(
-          'text-white text-sm font-medium truncate',
+          'text-background text-sm font-medium truncate',
           isCompleted && 'line-through opacity-50'
         )}>
           {item.title}
         </p>
         {item.subtitle && (
-          <p className="text-white/40 text-xs truncate mt-0.5">{item.subtitle}</p>
+          <p className="text-background/40 text-xs truncate mt-0.5">{item.subtitle}</p>
         )}
       </div>
       <button
         onClick={e => { e.stopPropagation(); onRemove(); }}
-        className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 active:scale-95"
+        className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center flex-shrink-0 active:scale-95"
         aria-label="Remove focus item"
       >
-        <X className="w-3 h-3 text-white/60" />
+        <X className="w-3 h-3 text-background/60" />
       </button>
     </div>
   );
@@ -355,9 +355,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       <div className="px-4 space-y-4 pb-32">
         {/* ── Today's Focus ─────────────────────────────────────────────── */}
-        <div className="bg-[#1C1C1E] rounded-2xl p-5">
+        <div className="bg-foreground rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title text-white">Today's focus</h2>
+            <h2 className="flow-section-title text-background">Today's focus</h2>
             {focusItems.length < 3 && (
               <button
                 onClick={onAddFocus}
@@ -371,10 +371,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
           <div className="space-y-2.5 overflow-hidden">
             {loadingFocus && (
-              <p className="text-gray-400 text-sm">Loading…</p>
+              <p className="text-muted-foreground text-sm">Loading…</p>
             )}
             {!loadingFocus && focusItems.length === 0 && (
-              <p className="text-gray-400 text-sm">No focus for today</p>
+              <p className="text-muted-foreground text-sm">No focus for today</p>
             )}
             {!loadingFocus && focusItems.map(item => (
               <FocusCard
@@ -395,11 +395,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             {brainDumpItems.length > 0 && (
               <button
                 onClick={() => setShowBrainDumpSheet(true)}
-                className="w-6 h-6 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: '#3A3A3A' }}
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-foreground"
                 aria-label={`${brainDumpItems.length} saved items`}
               >
-                <span className="text-white text-[10px] font-bold leading-none">
+                <span className="text-background text-[10px] font-bold leading-none">
                   {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
                 </span>
               </button>
@@ -429,7 +428,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             <button
               onClick={handleSaveForLater}
               disabled={!brainDumpText.trim()}
-              className="flex items-center gap-1.5 text-[#3A3A3A] text-sm font-medium disabled:opacity-30"
+              className="flex items-center gap-1.5 text-foreground text-sm font-medium disabled:opacity-30"
             >
               <Bookmark className="w-4 h-4" />
               Save
@@ -492,9 +491,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                               className={cn(
                                 'w-6 h-6 rounded-full transition-all active:scale-90',
                                 done
-                                  ? 'bg-[#3A3A3A]'
+                                  ? 'bg-foreground'
                                   : isToday
-                                    ? 'border-2 border-[#3A3A3A]/40'
+                                    ? 'border-2 border-foreground/40'
                                     : 'border border-muted-foreground/25'
                               )}
                               aria-label={`${habit.name} ${date}`}

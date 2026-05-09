@@ -351,7 +351,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         <button
           onClick={handleSave}
           style={{ pointerEvents: 'auto' }}
-          className="ml-4 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-foreground active:scale-95 transition-all shrink-0"
+          className="ml-4 w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center text-foreground active:scale-95 transition-all shrink-0"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -364,13 +364,13 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
           disabled={!editor?.can().undo()}
           onMouseDown={(e) => e.preventDefault()}
           style={{ pointerEvents: 'auto' }}
-          className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-muted-foreground active:scale-95 transition-all disabled:opacity-30 shrink-0"
+          className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center text-muted-foreground active:scale-95 transition-all disabled:opacity-30 shrink-0"
         >
           <Undo2 className="w-5 h-5" />
         </button>
 
         {/* + and ··· grouped pill — far right */}
-        <div className="flex items-center bg-white rounded-full shadow-md h-10 px-2 ml-3 mr-4 shrink-0" style={{ pointerEvents: 'auto' }}>
+        <div className="flex items-center bg-card rounded-full shadow-md h-10 px-2 ml-3 mr-4 shrink-0" style={{ pointerEvents: 'auto' }}>
           {/* + insert dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -613,7 +613,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => setRemoveHighlightMode(m => !m)}
-              className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center active:scale-95 transition-all"
+              className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
             >
               <div className="relative">
                 <Highlighter className="w-5 h-5" style={{ color: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }} />

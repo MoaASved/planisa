@@ -65,13 +65,13 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className={cn(
-              'text-sm font-medium text-[#2C2C2A]',
+              'text-sm font-medium text-foreground',
               isGrid ? 'line-clamp-4' : 'line-clamp-2'
             )}>
               {getPreview(note.content) || note.title || 'Empty note'}
             </p>
             {note.isPinned && (
-              <Star className="w-4 h-4 text-[#2C2C2A] flex-shrink-0" fill="currentColor" />
+              <Star className="w-4 h-4 text-foreground flex-shrink-0" fill="currentColor" />
             )}
           </div>
         </div>
@@ -80,7 +80,7 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
           'flex items-center gap-2 flex-wrap',
           isGrid ? 'mt-auto pt-3' : 'mt-2'
         )}>
-          <span className="text-xs text-[#2C2C2A]/70">
+          <span className="text-xs text-foreground/70">
             {format(new Date(note.updatedAt), 'MMM d')}
           </span>
         </div>

@@ -91,7 +91,7 @@ export function HabitsEditSheet({ isOpen, habits, onClose, onAdd, onUpdate, onDe
           {/* Inline new habit input */}
           {isAddingNew && (
             <div className="flex items-center gap-3 bg-secondary rounded-2xl px-4 py-3">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-[#9674cc]" />
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-[#9674cc] dark:bg-[#b399e0]" />
               <input
                 ref={newInputRef}
                 type="text"

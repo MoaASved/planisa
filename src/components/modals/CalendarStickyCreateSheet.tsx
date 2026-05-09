@@ -106,12 +106,12 @@ export function CalendarStickyCreateSheet({ date, time, isOpen, onClose }: Calen
 
         {/* Top bar: date/time + close */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
-          <span className="text-sm text-[#2C2C2A]/60">{dateDisplay} · {time}</span>
+          <span className="text-sm text-foreground/60">{dateDisplay} · {time}</span>
           <button
             onClick={saveAndClose}
             className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center active:scale-95 transition-all"
           >
-            <X className="w-4 h-4 text-[#2C2C2A]/70" />
+            <X className="w-4 h-4 text-foreground/70" />
           </button>
         </div>
 
@@ -121,7 +121,7 @@ export function CalendarStickyCreateSheet({ date, time, isOpen, onClose }: Calen
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write something…"
-            className="w-full h-full bg-transparent border-0 outline-none resize-none text-lg text-[#2C2C2A]/90 placeholder:text-[#2C2C2A]/40 min-h-[120px]"
+            className="w-full h-full bg-transparent border-0 outline-none resize-none text-lg text-foreground/90 placeholder:text-foreground/40 min-h-[120px]"
           />
         </div>
       </div>
