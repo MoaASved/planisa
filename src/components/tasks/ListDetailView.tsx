@@ -39,6 +39,7 @@ function sortTasks(tasks: Task[]): Task[] {
 export function ListDetailView({ category, tasks, onBack, highlightTaskId }: ListDetailViewProps) {
   const {
     addTask,
+    updateTask,
     deleteTaskCategory,
     pinTaskCategory,
     unpinTaskCategory,
@@ -168,14 +169,48 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     });
   };
 
-  const handleDragEnd = (sectionScopeIds: string[]) => (event: DragEndEvent) => {
+  // All visible (non-collapsed) incomplete task IDs for the single shared DndContext
+  const allVisibleTaskIds = useMemo(() => [
+    ...mainTasks.map(t => t.id),
+    ...sections.flatMap(s =>
+      s.collapsed ? [] : sortTasks(incomplete.filter(t => t.sectionId === s.id)).map(t => t.id)
+    ),
+  ], [mainTasks, sections, incomplete]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = sectionScopeIds.indexOf(String(active.id));
-    const newIndex = sectionScopeIds.indexOf(String(over.id));
-    if (oldIndex < 0 || newIndex < 0) return;
-    const newOrder = arrayMove(sectionScopeIds, oldIndex, newIndex);
-    reorderTasks(newOrder);
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    const getGroup = (taskId: string): string | undefined =>
+      incomplete.find(t => t.id === taskId)?.sectionId;
+
+    const activeGroup = getGroup(activeId);
+    const overGroup = getGroup(overId);
+
+    if (activeGroup === overGroup) {
+      // Same section — reorder within group
+      const groupTasks = activeGroup == null
+        ? mainTasks
+        : sortTasks(incomplete.filter(t => t.sectionId === activeGroup));
+      const ids = groupTasks.map(t => t.id);
+      const oldIndex = ids.indexOf(activeId);
+      const newIndex = ids.indexOf(overId);
+      if (oldIndex >= 0 && newIndex >= 0) reorderTasks(arrayMove(ids, oldIndex, newIndex));
+    } else {
+      // Cross-section drop: move task to new group and reorder
+      updateTask(activeId, { sectionId: overGroup });
+      const targetTasks = (overGroup == null
+        ? mainTasks
+        : sortTasks(incomplete.filter(t => t.sectionId === overGroup))
+      ).filter(t => t.id !== activeId);
+      const overIndex = targetTasks.findIndex(t => t.id === overId);
+      const newIds = [...targetTasks.map(t => t.id)];
+      newIds.splice(overIndex >= 0 ? overIndex : newIds.length, 0, activeId);
+      reorderTasks(newIds);
+    }
   };
 
   const addSectionAction = () => {
@@ -276,30 +311,28 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
       </div>
 
-      {/* Content */}
+      {/* Content — single DndContext covers all sections for cross-section drag */}
       <div className="px-4 pt-2 space-y-2">
-        {/* Main (no section) tasks */}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd(mainTasks.map((t) => t.id))}
+          onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={mainTasks.map((t) => t.id)}
+            items={allVisibleTaskIds}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-2">
-              {mainTasks.map((task) => (
-                <SortableTaskCell
-                  key={task.id}
-                  task={task}
-                  onClick={() => setEditingTaskId(task.id)}
-                  highlight={task.id === highlightTaskId}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+        {/* Main (no section) tasks */}
+        <div className="space-y-2">
+          {mainTasks.map((task) => (
+            <SortableTaskCell
+              key={task.id}
+              task={task}
+              onClick={() => setEditingTaskId(task.id)}
+              highlight={task.id === highlightTaskId}
+            />
+          ))}
+        </div>
 
         {adding === 'main' && (
           <InlineNewTaskRow
@@ -395,27 +428,16 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               )}
               {!collapsed && (
                 <div className="space-y-2 mt-1">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd(sTasks.map((t) => t.id))}
-                  >
-                    <SortableContext
-                      items={sTasks.map((t) => t.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-2">
-                        {sTasks.map((task) => (
-                          <SortableTaskCell
-                            key={task.id}
-                            task={task}
-                            onClick={() => setEditingTaskId(task.id)}
-                            highlight={task.id === highlightTaskId}
-                          />
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                  <div className="space-y-2">
+                    {sTasks.map((task) => (
+                      <SortableTaskCell
+                        key={task.id}
+                        task={task}
+                        onClick={() => setEditingTaskId(task.id)}
+                        highlight={task.id === highlightTaskId}
+                      />
+                    ))}
+                  </div>
                   {adding === section.id && (
                     <InlineNewTaskRow
                       onSubmit={(t) => handleCreate(t, section.id)}
@@ -454,6 +476,8 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
             </div>
           );
         })}
+          </SortableContext>
+        </DndContext>
 
         {/* New section input */}
         {adding === 'new-section' && (

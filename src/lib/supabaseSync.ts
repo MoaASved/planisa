@@ -52,7 +52,7 @@ export function taskToRow(task: Partial<Task>, userId: string): Row {
   if (task.notes !== undefined && task.note === undefined) r.note = task.notes ?? null;
   if (task.priority !== undefined) r.priority = task.priority;
   if (task.order !== undefined) r.order_index = task.order;
-  if (task.sectionId !== undefined) r.section_id = task.sectionId ?? null;
+  if ('sectionId' in (task as object)) r.section_id = task.sectionId ?? null;
   if (task.listId !== undefined) r.list_id = task.listId ?? null;
   return r;
 }
