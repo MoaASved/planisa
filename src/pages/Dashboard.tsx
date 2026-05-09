@@ -353,7 +353,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         </div>
       </div>
 
-      <div className="px-4 space-y-4 pb-6">
+      <div className="px-4 space-y-4 pb-32">
         {/* ── Today's Focus ─────────────────────────────────────────────── */}
         <div className="bg-[#1C1C1E] rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
