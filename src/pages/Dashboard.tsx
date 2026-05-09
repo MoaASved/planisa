@@ -429,7 +429,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             <button
               onClick={handleSaveForLater}
               disabled={!brainDumpText.trim()}
-              className="flex items-center gap-1.5 text-[#9674cc] text-sm font-medium disabled:opacity-30"
+              className="flex items-center gap-1.5 text-[#3A3A3A] text-sm font-medium disabled:opacity-30"
             >
               <Bookmark className="w-4 h-4" />
               Save
@@ -492,9 +492,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                               className={cn(
                                 'w-6 h-6 rounded-full transition-all active:scale-90',
                                 done
-                                  ? 'bg-[#9674cc]'
+                                  ? 'bg-[#3A3A3A]'
                                   : isToday
-                                    ? 'border-2 border-[#9674cc]/50'
+                                    ? 'border-2 border-[#3A3A3A]/40'
                                     : 'border border-muted-foreground/25'
                               )}
                               aria-label={`${habit.name} ${date}`}
