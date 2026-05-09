@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 import { useState, useEffect, useRef } from 'react';
-import { X, CheckSquare, Calendar, FileText, ChevronDown } from 'lucide-react';
+import { X, Calendar, FileText, ChevronDown } from 'lucide-react';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAppStore } from '@/store/useAppStore';
 import { Note } from '@/types';
@@ -11,8 +11,7 @@ import { getColorClass } from '@/lib/colors';
 
 export type BrainDumpSortType = 'task' | 'event' | 'note' | 'sticky';
 
-const TYPE_META: Record<Exclude<BrainDumpSortType, 'sticky'>, { label: string; icon: React.ElementType }> = {
-  task:  { label: 'Task',  icon: CheckSquare },
+const TYPE_META: Record<'event' | 'note', { label: string; icon: React.ElementType }> = {
   event: { label: 'Event', icon: Calendar },
   note:  { label: 'Note',  icon: FileText },
 };
@@ -20,7 +19,7 @@ const TYPE_META: Record<Exclude<BrainDumpSortType, 'sticky'>, { label: string; i
 interface BrainDumpSortModalProps {
   isOpen: boolean;
   text: string;
-  type: Exclude<BrainDumpSortType, 'sticky'>;
+  type: 'event' | 'note';
   onClose: () => void;
   onSorted: () => void;
   onOpenFullEditor: (title: string) => void;
@@ -61,35 +60,6 @@ function FieldSelect({ children, ...props }: React.SelectHTMLAttributes<HTMLSele
 }
 
 // ─── Type-specific field sets ─────────────────────────────────────────────────
-
-function TaskFields({
-  title, setTitle, listId, setListId,
-}: {
-  title: string; setTitle: (v: string) => void;
-  listId: string; setListId: (v: string) => void;
-}) {
-  const { taskCategories } = useAppStore();
-  const inputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { setTimeout(() => inputRef.current?.focus(), 60); }, []);
-
-  return (
-    <>
-      <div>
-        <FieldLabel>Title</FieldLabel>
-        <FieldInput ref={inputRef} value={title} onChange={e => setTitle(e.target.value)} placeholder="Task title" />
-      </div>
-      <div>
-        <FieldLabel>List</FieldLabel>
-        <FieldSelect value={listId} onChange={e => setListId(e.target.value)}>
-          {taskCategories.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-          {taskCategories.length === 0 && <option value="">No lists</option>}
-        </FieldSelect>
-      </div>
-    </>
-  );
-}
 
 function EventFields({
   title, setTitle, date, setDate, time, setTime, endTime, setEndTime, categoryId, setCategoryId,
@@ -207,10 +177,9 @@ function NoteFields({
 
 export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOpenFullEditor, onSaveAndOpenNote }: BrainDumpSortModalProps) {
   const { modalTop, maxHeight } = useVisualViewport(70);
-  const { addTask, addEvent, addNote, taskCategories, eventCategories } = useAppStore();
+  const { addEvent, addNote, eventCategories } = useAppStore();
 
   const [title, setTitle] = useState('');
-  const [listId, setListId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -220,7 +189,6 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
   useEffect(() => {
     if (!isOpen) return;
     setTitle(text);
-    setListId(taskCategories[0]?.id ?? '');
     setDate(todayIso());
     setTime('');
     setEndTime('');
@@ -233,18 +201,6 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
     if (!t) return;
 
     switch (type) {
-      case 'task': {
-        const cat = taskCategories.find(c => c.id === listId) ?? taskCategories[0];
-        addTask({
-          title: t,
-          completed: false,
-          category: cat?.name || 'Inbox',
-          color: cat?.color || 'lavender',
-          subtasks: [],
-          priority: 'none',
-        });
-        break;
-      }
       case 'event': {
         const cat = (categoryId ? eventCategories.find(c => c.id === categoryId) : null) ?? eventCategories[0];
         addEvent({
@@ -329,9 +285,6 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
 
           {/* Fields */}
           <div className="px-5 pb-5 flex flex-col gap-3 flex-shrink-0 overflow-y-auto">
-            {type === 'task' && (
-              <TaskFields title={title} setTitle={setTitle} listId={listId} setListId={setListId} />
-            )}
             {type === 'event' && (
               <EventFields
                 title={title} setTitle={setTitle}
@@ -346,33 +299,31 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-between pt-1">
-              {type === 'task' ? (
+            <div className="flex items-center justify-end pt-1 gap-2">
+              {type === 'note' && (
+                <button
+                  onClick={handleSaveAndOpenNote}
+                  disabled={!title.trim()}
+                  className="px-5 py-2.5 rounded-2xl bg-secondary text-foreground text-sm font-semibold disabled:opacity-40"
+                >
+                  Save & open
+                </button>
+              )}
+              {type === 'event' && (
                 <button
                   onClick={handleOpenFull}
-                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+                  className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors mr-auto"
                 >
                   + add details
                 </button>
-              ) : <span />}
-              <div className="flex items-center gap-2">
-                {type === 'note' && (
-                  <button
-                    onClick={handleSaveAndOpenNote}
-                    disabled={!title.trim()}
-                    className="px-5 py-2.5 rounded-2xl bg-secondary text-foreground text-sm font-semibold disabled:opacity-40"
-                  >
-                    Save & open
-                  </button>
-                )}
-                <button
-                  onClick={handleCreate}
-                  disabled={!title.trim()}
-                  className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
-                >
-                  Save {label}
-                </button>
-              </div>
+              )}
+              <button
+                onClick={handleCreate}
+                disabled={!title.trim()}
+                className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
+              >
+                Save {label}
+              </button>
             </div>
           </div>
 

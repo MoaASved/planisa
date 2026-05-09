@@ -187,17 +187,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   // Brain dump sheet + sort modal state
   const [showBrainDumpSheet, setShowBrainDumpSheet] = useState(false);
-  const [sortModal, setSortModal] = useState<{ text: string; type: Exclude<BrainDumpSortType, 'sticky'>; itemId: string | null } | null>(null);
-  // Full editor state (opened via "+ add details")
-  const [fullEditor, setFullEditor] = useState<{ type: 'task' | 'event' | 'note'; title: string } | null>(null);
+  const [sortModal, setSortModal] = useState<{ text: string; type: 'event' | 'note'; itemId: string | null } | null>(null);
+  // Full editor state (opened via "+ add details" from event/note sort modal)
+  const [fullEditor, setFullEditor] = useState<{ type: 'event' | 'note'; title: string } | null>(null);
   // Sticky note editor state (opened when tapping Sticky sort button)
   const [stickyEditor, setStickyEditor] = useState<{ text: string; itemId: string | null } | null>(null);
+  // Task creation state (opened directly when tapping Task sort button)
+  const [taskDump, setTaskDump] = useState<{ text: string; itemId: string | null } | null>(null);
 
   const handleBrainDumpSort = (type: BrainDumpSortType) => {
     const text = brainDumpText.trim();
     if (!text) return;
     if (type === 'sticky') {
       setStickyEditor({ text, itemId: null });
+      return;
+    }
+    if (type === 'task') {
+      setTaskDump({ text, itemId: null });
       return;
     }
     setSortModal({ text: brainDumpText, type, itemId: null });
@@ -213,6 +219,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     setShowBrainDumpSheet(false);
     if (type === 'sticky') {
       setStickyEditor({ text: item.content, itemId: item.id });
+      return;
+    }
+    if (type === 'task') {
+      setTaskDump({ text: item.content, itemId: item.id });
       return;
     }
     setSortModal({ text: item.content, type, itemId: item.id });
@@ -425,14 +435,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           }}
         />
       )}
-      {/* Full editors opened via "+ add details" */}
-      {fullEditor?.type === 'task' && (
+      {/* Task modal opened directly from brain dump sort */}
+      {taskDump && (
         <AddTaskModal
           isOpen
-          defaultTitle={fullEditor.title}
-          onClose={() => setFullEditor(null)}
+          defaultTitle={taskDump.text}
+          onSaved={() => {
+            if (taskDump.itemId) {
+              onDeleteBrainDumpItem(taskDump.itemId);
+            } else {
+              setBrainDumpText('');
+            }
+          }}
+          onClose={() => setTaskDump(null)}
         />
       )}
+      {/* Full editors opened via "+ add details" (event/note only) */}
       {fullEditor?.type === 'event' && (
         <CreateEventModal
           isOpen
