@@ -88,6 +88,7 @@ export interface TaskCategory {
   pinned?: boolean;
   sortMode?: 'manual' | 'date' | 'created';
   order?: number;
+  showCompleted?: boolean;
 }
 
 export interface EventCategory {

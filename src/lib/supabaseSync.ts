@@ -78,6 +78,7 @@ export function rowToTaskCategory(row: Row): TaskCategory {
     pinned: !!row.pinned,
     sortMode: (row.sort_mode ?? 'manual') as TaskCategory['sortMode'],
     order: row.order_index ?? 0,
+    showCompleted: !!row.show_completed,
   };
 }
 export function taskCategoryToRow(c: Partial<TaskCategory>, userId: string): Row {
@@ -88,6 +89,7 @@ export function taskCategoryToRow(c: Partial<TaskCategory>, userId: string): Row
   if (c.pinned !== undefined) r.pinned = c.pinned;
   if (c.sortMode !== undefined) r.sort_mode = c.sortMode;
   if (c.order !== undefined) r.order_index = c.order;
+  if (c.showCompleted !== undefined) r.show_completed = c.showCompleted;
   return r;
 }
 

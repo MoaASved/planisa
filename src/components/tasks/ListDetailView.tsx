@@ -40,6 +40,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   const {
     addTask,
     updateTask,
+    updateTaskCategory,
     deleteTaskCategory,
     pinTaskCategory,
     unpinTaskCategory,
@@ -50,6 +51,8 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     reorderTasks,
     reorderTaskSections,
   } = useAppStore();
+
+  const showCompleted = category.showCompleted ?? false;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
@@ -170,13 +173,17 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     });
   };
 
-  // All visible (non-collapsed) incomplete task IDs for the single shared DndContext
+  // All visible (non-collapsed) task IDs for the single shared DndContext
   const allVisibleTaskIds = useMemo(() => [
     ...mainTasks.map(t => t.id),
-    ...sections.flatMap(s =>
-      s.collapsed ? [] : sortTasks(incomplete.filter(t => t.sectionId === s.id)).map(t => t.id)
-    ),
-  ], [mainTasks, sections, incomplete]);
+    ...(showCompleted ? mainCompleted.map(t => t.id) : []),
+    ...sections.flatMap(s => {
+      if (s.collapsed) return [];
+      const ids = sortTasks(incomplete.filter(t => t.sectionId === s.id)).map(t => t.id);
+      if (showCompleted) ids.push(...sortTasks(completed.filter(t => t.sectionId === s.id)).map(t => t.id));
+      return ids;
+    }),
+  ], [mainTasks, mainCompleted, sections, incomplete, completed, showCompleted]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -301,6 +308,24 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                 </button>
                 <div className="h-px bg-border/40" />
                 <button
+                  onClick={() => updateTaskCategory(category.id, { showCompleted: !showCompleted })}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                >
+                  <span>Show completed inline</span>
+                  <div className={cn(
+                    'w-8 h-4.5 rounded-full transition-colors relative flex-shrink-0',
+                    showCompleted ? 'bg-primary' : 'bg-muted-foreground/30'
+                  )}
+                  style={{ width: '2rem', height: '1.125rem' }}
+                  >
+                    <div className={cn(
+                      'absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow transition-transform',
+                      showCompleted ? 'translate-x-3.5' : 'translate-x-0.5'
+                    )} />
+                  </div>
+                </button>
+                <div className="h-px bg-border/40" />
+                <button
                   onClick={() => {
                     setShowMenu(false);
                     deleteTaskCategory(category.id);
@@ -351,6 +376,14 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               highlight={task.id === highlightTaskId}
             />
           ))}
+          {showCompleted && mainCompleted.map((task) => (
+            <SortableTaskCell
+              key={task.id}
+              task={task}
+              onClick={() => setEditingTaskId(task.id)}
+              highlight={task.id === highlightTaskId}
+            />
+          ))}
         </div>
 
         {adding === 'main' && (
@@ -360,7 +393,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
           />
         )}
 
-        {mainCompleted.length > 0 && (
+        {!showCompleted && mainCompleted.length > 0 && (
           <div className="pt-1">
             <button
               onClick={() => toggleCompleted('main')}
@@ -475,6 +508,14 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                         highlight={task.id === highlightTaskId}
                       />
                     ))}
+                    {showCompleted && sCompleted.map((task) => (
+                      <SortableTaskCell
+                        key={task.id}
+                        task={task}
+                        onClick={() => setEditingTaskId(task.id)}
+                        highlight={task.id === highlightTaskId}
+                      />
+                    ))}
                   </div>
                   {adding === section.id && (
                     <InlineNewTaskRow
@@ -490,7 +531,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                       <Plus className="w-3.5 h-3.5" /> Add task
                     </button>
                   )}
-                  {sCompleted.length > 0 && (
+                  {!showCompleted && sCompleted.length > 0 && (
                     <div className="pt-1">
                       <button
                         onClick={() => toggleCompleted(section.id)}
