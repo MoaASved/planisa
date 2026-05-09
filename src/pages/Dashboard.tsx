@@ -396,7 +396,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               <button
                 onClick={() => setShowBrainDumpSheet(true)}
                 className="w-6 h-6 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: '#9674cc' }}
+                style={{ backgroundColor: '#3A3A3A' }}
                 aria-label={`${brainDumpItems.length} saved items`}
               >
                 <span className="text-white text-[10px] font-bold leading-none">
