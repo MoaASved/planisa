@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import nisaImg from '/public/nisa.png';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { TabNavigation } from '../components/navigation/TabNavigation';
@@ -577,7 +576,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
         {/* Nisa icon */}
         <img
-          src={nisaImg}
+          src="/nisa.png"
           alt="Nisa"
           onClick={toggleNisaBubble}
           style={{ width: '60px', height: '60px', transform: 'rotate(-12deg)', display: 'block', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', cursor: 'pointer', objectFit: 'contain' }}
