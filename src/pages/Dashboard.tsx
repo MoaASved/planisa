@@ -247,7 +247,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   return (
     <div className="overflow-y-auto pt-safe-2">
       {/* Header */}
-      <div className="px-4 py-4">
+      <div className="px-4 pb-4">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="flow-page-title">Hi, {userName} 👋</h1>

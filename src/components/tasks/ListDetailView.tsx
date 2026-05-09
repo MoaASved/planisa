@@ -196,8 +196,8 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   return (
     <div className="min-h-screen pb-32 bg-background">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
-        <div className="flex items-center gap-2 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pt-safe-2">
+        <div className="flex items-center gap-2 px-4 pb-3">
           <button
             onClick={onBack}
             className="w-9 h-9 -ml-1 rounded-full hover:bg-secondary flex items-center justify-center transition-colors"

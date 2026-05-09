@@ -320,7 +320,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
         {/* Header with back button */}
-        <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex items-center gap-3 px-4 pb-3">
           <button 
             onClick={() => setSelectedFolder(null)}
             className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
@@ -403,7 +403,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   if (viewTab === 'notebooks') {
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-4 py-4">
+        <div className="px-4 pb-4">
           <TabsHeader />
           
           {showSearch && (
@@ -504,7 +504,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   if (viewTab === 'sticky') {
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-4 py-4">
+        <div className="px-4 pb-4">
           <TabsHeader />
           
           {showSearch && (
@@ -542,7 +542,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   if (viewTab === 'folders') {
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-4 py-4">
+        <div className="px-4 pb-4">
           <TabsHeader />
 
           {showSearch && (
@@ -634,7 +634,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Notes view (default) - all notes and sticky notes, regular notes without color
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
-      <div className="px-4 py-4">
+      <div className="px-4 pb-4">
         <TabsHeader />
 
         {showSearch && (

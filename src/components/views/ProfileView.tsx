@@ -203,7 +203,7 @@ export function ProfileView() {
 
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
-      <div className="px-4 py-4 space-y-6">
+      <div className="px-4 pb-4 space-y-6">
         {/* User Info Card */}
         <div className="flow-card">
           <button onClick={() => setShowAvatarModal(true)} className="flex items-center gap-4 w-full text-left">

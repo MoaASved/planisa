@@ -71,9 +71,9 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
   const notebookColor = `hsl(var(--pastel-${notebook.color}-accent))`;
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-24 pt-safe-2">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border/30">
+      <div className="flex items-center gap-3 px-4 pb-3 border-b border-border/30">
         <button
           onClick={onClose}
           className="w-10 h-10 rounded-full bg-card flex items-center justify-center active:scale-95 transition-all"

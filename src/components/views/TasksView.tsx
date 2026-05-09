@@ -124,7 +124,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
 
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
-      <div className="px-4 pt-3 pb-6">
+      <div className="px-4 pb-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5 px-1">
           <h1 className="flow-page-title">Tasks</h1>
