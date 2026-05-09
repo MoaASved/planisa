@@ -151,8 +151,10 @@ interface DashboardHomeProps {
   brainDumpItems: BrainDumpItem[];
   onSaveBrainDump: (text: string) => Promise<void>;
   onDeleteBrainDumpItem: (id: string) => void;
+  nisaVisible: boolean;
   showNisaBubble: boolean;
   dismissNisaBubble: () => void;
+  onCloseNisaBubble: () => void;
   toggleNisaBubble: () => void;
   onProfileClick: () => void;
   onSaveAndOpenNote: (note: Note) => void;
@@ -177,8 +179,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   brainDumpItems,
   onSaveBrainDump,
   onDeleteBrainDumpItem,
+  nisaVisible,
   showNisaBubble,
   dismissNisaBubble,
+  onCloseNisaBubble,
   toggleNisaBubble,
   onProfileClick,
   onSaveAndOpenNote,
@@ -192,13 +196,17 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const { tasks } = useAppStore();
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
+  const [nisaStepped, setNisaStepped] = useState(false);
 
   const nisaRef = useRef<HTMLDivElement>(null);
+
+  // Click-outside: close bubble only, step back — don't dismiss icon
   useEffect(() => {
     if (!showNisaBubble) return;
     const handler = (e: MouseEvent | TouchEvent) => {
       if (nisaRef.current && !nisaRef.current.contains(e.target as Node)) {
-        dismissNisaBubble();
+        onCloseNisaBubble();
+        setNisaStepped(true);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -207,7 +215,19 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       document.removeEventListener('mousedown', handler);
       document.removeEventListener('touchstart', handler);
     };
-  }, [showNisaBubble, dismissNisaBubble]);
+  }, [showNisaBubble, onCloseNisaBubble]);
+
+  const handleNisaIconClick = () => {
+    if (nisaStepped) {
+      // Step forward and open bubble
+      setNisaStepped(false);
+      if (!showNisaBubble) toggleNisaBubble();
+    } else {
+      // Toggle: if closing, step back
+      if (showNisaBubble) setNisaStepped(true);
+      toggleNisaBubble();
+    }
+  };
 
   // Compute Mon–Sun dates for this week
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -569,57 +589,70 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       />
 
       {/* Nisa — fixed top-right, below profile avatar */}
-      <div ref={nisaRef} className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
-        {/* Speech bubble — appears to the left */}
-        {showNisaBubble && (
-          <div className="absolute right-full top-0 mr-3 w-52">
-            <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
-              <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
-              <div className="mt-2 flex items-center gap-3">
-                {nisaAction && (
+      {nisaVisible && (
+        <div ref={nisaRef} className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
+          {/* Speech bubble — appears to the left */}
+          {showNisaBubble && (
+            <div className="absolute right-full top-0 mr-3 w-52">
+              <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
+                <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
+                <div className="mt-2 flex items-center gap-3">
+                  {nisaAction && (
+                    <button
+                      onClick={() => { onCloseNisaBubble(); nisaAction!(); }}
+                      className="text-xs text-primary font-medium hover:opacity-80 transition-opacity"
+                    >
+                      Sort now →
+                    </button>
+                  )}
                   <button
-                    onClick={() => { dismissNisaBubble(); nisaAction!(); }}
-                    className="text-xs text-primary font-medium hover:opacity-80 transition-opacity"
+                    onClick={dismissNisaBubble}
+                    className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
                   >
-                    Sort now →
+                    dismiss for today
                   </button>
-                )}
-                <button
-                  onClick={dismissNisaBubble}
-                  className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-                >
-                  dismiss for today
-                </button>
+                </div>
+                {/* Tail pointing right toward Nisa */}
+                <span
+                  className="absolute top-4 -right-2 w-0 h-0"
+                  style={{
+                    borderTop: '6px solid transparent',
+                    borderBottom: '6px solid transparent',
+                    borderLeft: '8px solid hsl(var(--border))',
+                  }}
+                />
+                <span
+                  className="absolute top-4 -right-[7px] w-0 h-0"
+                  style={{
+                    borderTop: '6px solid transparent',
+                    borderBottom: '6px solid transparent',
+                    borderLeft: '8px solid hsl(var(--card))',
+                  }}
+                />
               </div>
-              {/* Tail pointing right toward Nisa */}
-              <span
-                className="absolute top-4 -right-2 w-0 h-0"
-                style={{
-                  borderTop: '6px solid transparent',
-                  borderBottom: '6px solid transparent',
-                  borderLeft: '8px solid hsl(var(--border))',
-                }}
-              />
-              <span
-                className="absolute top-4 -right-[7px] w-0 h-0"
-                style={{
-                  borderTop: '6px solid transparent',
-                  borderBottom: '6px solid transparent',
-                  borderLeft: '8px solid hsl(var(--card))',
-                }}
-              />
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Nisa icon */}
-        <img
-          src="/nisa.png"
-          alt="Nisa"
-          onClick={toggleNisaBubble}
-          style={{ width: '60px', height: '60px', transform: 'rotate(-12deg)', display: 'block', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', cursor: 'pointer', objectFit: 'contain' }}
-        />
-      </div>
+          {/* Nisa icon — steps back when bubble is closed */}
+          <img
+            src="/nisa.png"
+            alt="Nisa"
+            onClick={handleNisaIconClick}
+            style={{
+              width: '60px',
+              height: '60px',
+              display: 'block',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              cursor: 'pointer',
+              objectFit: 'contain',
+              transform: nisaStepped ? 'rotate(-12deg) scale(0.8) translateX(8px)' : 'rotate(-12deg)',
+              opacity: nisaStepped ? 0.65 : 1,
+              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease',
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -634,6 +667,7 @@ const Dashboard: React.FC = () => {
   const [userName, setUserName] = useState('');
   const [brainDumpText, setBrainDumpText] = useState('');
   const [showNisaBubble, setShowNisaBubble] = useState(true);
+  const [nisaDismissedToday, setNisaDismissedToday] = useState(false);
 
   // Focus items — loaded from Supabase
   const [focusItems, setFocusItems] = useState<FocusItem[]>([]);
@@ -858,8 +892,9 @@ const Dashboard: React.FC = () => {
     if (!user) return;
     const name = settings.name?.trim() || user.email?.split('@')[0] || 'User';
     setUserName(name.split(' ')[0]);
-    const dismissedToday = localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`);
-    setShowNisaBubble(!dismissedToday);
+    const iconHidden = !!localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`);
+    setNisaDismissedToday(iconHidden);
+    setShowNisaBubble(!iconHidden);
     loadFocusItems();
     loadBrainDumpItems();
     loadHabits();
@@ -883,6 +918,7 @@ const Dashboard: React.FC = () => {
   }, [activeTab]);
 
   const dismissNisaBubble = () => {
+    setNisaDismissedToday(true);
     setShowNisaBubble(false);
     localStorage.setItem(`nisa_dismissed_${new Date().toDateString()}`, 'true');
   };
@@ -904,8 +940,10 @@ const Dashboard: React.FC = () => {
             brainDumpItems={brainDumpItems}
             onSaveBrainDump={saveBrainDump}
             onDeleteBrainDumpItem={deleteBrainDumpItem}
+            nisaVisible={!nisaDismissedToday}
             showNisaBubble={showNisaBubble}
             dismissNisaBubble={dismissNisaBubble}
+            onCloseNisaBubble={() => setShowNisaBubble(false)}
             toggleNisaBubble={() => setShowNisaBubble(v => !v)}
             onProfileClick={() => setActiveTab('profile')}
             onSaveAndOpenNote={(note) => {
