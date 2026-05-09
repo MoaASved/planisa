@@ -42,7 +42,7 @@ const Index = () => {
     } else {
       document.documentElement.classList.remove('dark');
       document.querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', '#faf9f7');
+        ?.setAttribute('content', '#F5F3F0');
     }
   }, [settings.theme]);
 

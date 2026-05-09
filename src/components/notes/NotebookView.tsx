@@ -107,7 +107,7 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                   if (editingPageId !== null || justFinishedEditingRef.current) return;
                   setSelectedPage(page);
                 }}
-                className="w-full text-left transition-all active:scale-[0.98] bg-white"
+                className="w-full text-left transition-all active:scale-[0.98] bg-card"
                 style={{
                   borderRadius: 14,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
