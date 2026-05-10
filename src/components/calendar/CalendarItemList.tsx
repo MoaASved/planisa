@@ -112,7 +112,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           style={{
             height: '70px',
             zIndex: 20,
-            background: 'linear-gradient(to bottom, #ffffff, transparent)',
+            background: 'linear-gradient(to bottom, hsl(var(--card)), transparent)',
           }}
         />
       )}
@@ -122,7 +122,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           style={{
             height: '70px',
             zIndex: 20,
-            background: 'linear-gradient(to top, #ffffff, transparent)',
+            background: 'linear-gradient(to top, hsl(var(--card)), transparent)',
           }}
         />
       )}
@@ -717,7 +717,7 @@ export function CalendarItemList({
           >
             {/* All-day expanded grid — sticky at top, only when open */}
             {allDayItems.length > 0 && allDayExpanded && (
-              <div style={{ position: 'sticky', top: 0, zIndex: 30, background: '#ffffff', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'hsl(var(--card))', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div className="px-4 pb-3 pt-2">
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                     {allDayItems.map(({ type, item }) => (
@@ -893,7 +893,7 @@ export function CalendarItemList({
               style={{
                 height: '70px',
                 zIndex: 25,
-                background: 'linear-gradient(to bottom, #ffffff, transparent)',
+                background: 'linear-gradient(to bottom, hsl(var(--card)), transparent)',
               }}
             />
           )}
@@ -903,7 +903,7 @@ export function CalendarItemList({
               style={{
                 height: '70px',
                 zIndex: 25,
-                background: 'linear-gradient(to top, #ffffff, transparent)',
+                background: 'linear-gradient(to top, hsl(var(--card)), transparent)',
               }}
             />
           )}
