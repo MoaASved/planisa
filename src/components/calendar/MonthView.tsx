@@ -155,7 +155,7 @@ export function MonthView({
                     <span className={cn(
                       'text-[15px] font-light tracking-tight w-9 h-9 rounded-full flex items-center justify-center',
                       isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
-                      isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-white/20 font-medium text-foreground',
+                      isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-foreground font-medium text-foreground dark:text-background',
                       !isTodayDate && !isSelected && 'text-foreground/80'
                     )}>
                       {format(day, 'd')}

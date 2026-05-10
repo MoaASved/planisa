@@ -636,7 +636,7 @@ export function CalendarItemList({
         style={{
           background: 'hsl(var(--card))',
           borderRadius: '20px 20px 0 0',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
+          boxShadow: 'var(--calendar-panel-shadow)',
         }}
       >
       {/* Filter toolbar */}
