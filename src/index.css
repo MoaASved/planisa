@@ -156,7 +156,7 @@ input[type="time"]::-webkit-inner-spin-button {
     /* Pastel palette - dark mode: same hues as light, boosted saturation, mid lightness */
     --pastel-coral: 84 42% 58%;       /* Fern - medium green */
     --pastel-peach: 113 30% 60%;      /* Pistachio - medium green */
-    --pastel-amber: 203 45% 55%;      /* Lagune - teal blue */
+    --pastel-amber: 195 35% 52%;      /* Lagune - teal blue */
     --pastel-yellow: 228 72% 50%;     /* Sky - vivid periwinkle */
     --pastel-mint: 22 65% 68%;        /* Peach - soft apricot */
     --pastel-teal: 44 72% 68%;        /* Honey - warm gold */
@@ -168,7 +168,7 @@ input[type="time"]::-webkit-inner-spin-button {
 
     --pastel-coral-accent: 84 50% 38%;
     --pastel-peach-accent: 113 38% 40%;
-    --pastel-amber-accent: 203 55% 38%;
+    --pastel-amber-accent: 195 42% 38%;
     --pastel-yellow-accent: 228 60% 45%;
     --pastel-mint-accent: 22 75% 48%;
     --pastel-teal-accent: 44 80% 48%;
