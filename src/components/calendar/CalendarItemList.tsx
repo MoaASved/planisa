@@ -112,7 +112,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           style={{
             height: '70px',
             zIndex: 20,
-            background: 'linear-gradient(to bottom, hsl(var(--card)), transparent)',
+            background: 'linear-gradient(to bottom, var(--calendar-panel-bg), transparent)',
           }}
         />
       )}
@@ -122,7 +122,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
           style={{
             height: '70px',
             zIndex: 20,
-            background: 'linear-gradient(to top, hsl(var(--card)), transparent)',
+            background: 'linear-gradient(to top, var(--calendar-panel-bg), transparent)',
           }}
         />
       )}
@@ -893,7 +893,7 @@ export function CalendarItemList({
               style={{
                 height: '70px',
                 zIndex: 25,
-                background: 'linear-gradient(to bottom, hsl(var(--card)), transparent)',
+                background: 'linear-gradient(to bottom, var(--calendar-panel-bg), transparent)',
               }}
             />
           )}
@@ -903,7 +903,7 @@ export function CalendarItemList({
               style={{
                 height: '70px',
                 zIndex: 25,
-                background: 'linear-gradient(to top, hsl(var(--card)), transparent)',
+                background: 'linear-gradient(to top, var(--calendar-panel-bg), transparent)',
               }}
             />
           )}
