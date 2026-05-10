@@ -5,7 +5,7 @@ import { X, Calendar as CalendarIcon, Eye, EyeOff, Clock, Folder, Star, Trash2 }
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
-import { pastelColors } from '@/lib/colors';
+import { pastelColors, getStickyTextClass } from '@/lib/colors';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { FolderPickerSheet } from './FolderPickerSheet';
@@ -146,7 +146,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
         className={cn(
           'fixed left-4 right-4 z-[1200] rounded-3xl p-6 shadow-xl',
           'animate-in fade-in-0 zoom-in-95 duration-200',
-          getStickyBgClass(color)
+          getStickyBgClass(color),
+          getStickyTextClass(color)
         )}
         style={{
           top: '15%',
@@ -180,7 +181,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           placeholder="Write something..."
           className={cn(
             'w-full bg-transparent border-none outline-none resize-none text-lg',
-            'placeholder:text-foreground/40 text-foreground/90',
+            'placeholder:text-[#2C2C2A]/40 text-[#2C2C2A]/90',
             'min-h-[150px] max-h-[300px]'
           )}
           

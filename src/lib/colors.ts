@@ -30,6 +30,25 @@ export const getBadgeClass = (color: PastelColor): string => {
   return `flow-badge-${color}`;
 };
 
+/**
+ * Returns the appropriate Tailwind text-color class for content rendered on top
+ * of a pastel sticky-note background. All pastel surfaces are light enough in
+ * both light mode (L 81–88%) and dark mode (L 51–87%) that the dark neutral
+ * #2C2C2A gives better contrast than theme-foreground (which becomes near-white
+ * in dark mode and would be unreadable on the lighter pastels).
+ *
+ * Light-in-dark-mode pastels that especially need this (L ≥ 65%):
+ *   yellow (Sky, 87%), lavender (Rose, 85%), stone (84%), teal (Honey, 76%),
+ *   mint (Peach, 75%), peach (Pistachio, 69%)
+ *
+ * Medium-in-dark-mode pastels where dark text still wins on contrast (L 51–58%):
+ *   coral (Fern, 51%), amber (Lagune, 53%), sky (Peony, 56%),
+ *   rose (Plum, 57%), gray (Taupe, 58%)
+ */
+export const getStickyTextClass = (_color?: PastelColor): string => {
+  return 'text-[#2C2C2A]';
+};
+
 // Static color mapping for card backgrounds (40% opacity for sheer, calm appearance) - Tailwind JIT compatible
 export const getColorCardClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
