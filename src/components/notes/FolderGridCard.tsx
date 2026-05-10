@@ -29,9 +29,9 @@ export function FolderGridCard({ folder, onClick, onEdit }: FolderGridCardProps)
         </defs>
 
         {/* Papers sticking out */}
-        <rect x="55" y="20" width="120" height="100" rx="3" fill="white" opacity="0.55" transform="rotate(2, 115, 70)" />
-        <rect x="50" y="22" width="115" height="98" rx="3" fill="white" opacity="0.7" transform="rotate(-1.5, 107, 71)" />
-        <rect x="60" y="18" width="110" height="102" rx="3" fill="white" opacity="0.45" transform="rotate(3.5, 115, 69)" />
+        <rect x="55" y="20" width="120" height="100" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.55" transform="rotate(2, 115, 70)" />
+        <rect x="50" y="22" width="115" height="98" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.7" transform="rotate(-1.5, 107, 71)" />
+        <rect x="60" y="18" width="110" height="102" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.45" transform="rotate(3.5, 115, 69)" />
 
         {/* Folder body with soft same-color gradient */}
         <path
