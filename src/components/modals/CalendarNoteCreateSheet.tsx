@@ -211,7 +211,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
           </button>
           <button
             onClick={saveAndClose}
-            className="flex-1 py-3 rounded-2xl bg-foreground text-background text-sm font-semibold active:scale-[0.98] transition-all"
+            className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-all"
           >
             Save
           </button>
