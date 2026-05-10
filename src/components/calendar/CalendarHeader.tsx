@@ -66,7 +66,7 @@ export function CalendarHeader({
             className={cn(
               'p-2.5 rounded-xl transition-colors',
               view === 'month' 
-                ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]' 
+                ? 'bg-[#1C1C1E] dark:bg-muted text-white dark:text-foreground'
                 : 'text-muted-foreground hover:bg-secondary/40'
             )}
           >
@@ -78,7 +78,7 @@ export function CalendarHeader({
             className={cn(
               'p-2.5 rounded-xl transition-colors',
               view === 'weekday' 
-                ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]' 
+                ? 'bg-[#1C1C1E] dark:bg-muted text-white dark:text-foreground'
                 : 'text-muted-foreground hover:bg-secondary/40'
             )}
           >
