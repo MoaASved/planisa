@@ -696,7 +696,7 @@ export function CalendarItemList({
           {allDayItems.length > 0 && (
             <button
               onClick={() => setAllDayExpanded(v => !v)}
-              className="absolute top-2 right-3 z-30 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
+              className="absolute top-2 right-3 z-40 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
               style={{
                 background: '#1C1C1E',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
