@@ -634,7 +634,7 @@ export function CalendarItemList({
       <div
         className="flex flex-col flex-grow min-h-0"
         style={{
-          background: 'hsl(var(--card))',
+          background: 'var(--calendar-panel-bg)',
           borderRadius: '20px 20px 0 0',
           boxShadow: 'var(--calendar-panel-shadow)',
         }}
@@ -717,7 +717,7 @@ export function CalendarItemList({
           >
             {/* All-day expanded grid — sticky at top, only when open */}
             {allDayItems.length > 0 && allDayExpanded && (
-              <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'hsl(var(--card))', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'var(--calendar-panel-bg)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div className="px-4 pb-3 pt-2">
                   <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
                     {allDayItems.map(({ type, item }) => (
