@@ -634,7 +634,7 @@ export function CalendarItemList({
       <div
         className="flex flex-col flex-grow min-h-0"
         style={{
-          background: '#ffffff',
+          background: 'hsl(var(--card))',
           borderRadius: '20px 20px 0 0',
           boxShadow: '0 -4px 20px rgba(0,0,0,0.08)',
         }}

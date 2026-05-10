@@ -67,7 +67,7 @@ export function CalendarHeader({
               'p-2.5 rounded-xl transition-colors',
               view === 'month' 
                 ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]' 
-                : 'text-foreground/40 hover:bg-secondary/40'
+                : 'text-muted-foreground hover:bg-secondary/40'
             )}
           >
             <Grid3X3 className="w-4.5 h-4.5" />
@@ -79,7 +79,7 @@ export function CalendarHeader({
               'p-2.5 rounded-xl transition-colors',
               view === 'weekday' 
                 ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]' 
-                : 'text-foreground/40 hover:bg-secondary/40'
+                : 'text-muted-foreground hover:bg-secondary/40'
             )}
           >
             <List className="w-4.5 h-4.5" />
