@@ -493,8 +493,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                                 done
                                   ? 'bg-foreground'
                                   : isToday
-                                    ? 'border-2 border-foreground/40'
-                                    : 'border border-muted-foreground/25'
+                                    ? 'border-2 border-foreground/40 dark:border-foreground/50'
+                                    : 'border border-muted-foreground/25 dark:border-foreground/30'
                               )}
                               aria-label={`${habit.name} ${date}`}
                             />
