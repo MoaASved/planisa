@@ -106,31 +106,31 @@ function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
         transform: `translateX(${offset}px)`,
         transition: offset === 0 || offset === -500 ? 'transform 0.2s ease' : 'none',
       }}
-      className="bg-background/10 rounded-xl px-3.5 py-3 flex items-center gap-3"
+      className="bg-secondary rounded-xl px-3.5 py-3 flex items-center gap-3"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onClick={canTap ? handleClick : undefined}
       role={canTap ? 'button' : undefined}
     >
-      <Icon className="w-4 h-4 text-background/50 flex-shrink-0" />
+      <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <p className={cn(
-          'text-background text-sm font-medium truncate',
+          'text-foreground text-sm font-medium truncate',
           isCompleted && 'line-through opacity-50'
         )}>
           {item.title}
         </p>
         {item.subtitle && (
-          <p className="text-background/40 text-xs truncate mt-0.5">{item.subtitle}</p>
+          <p className="text-muted-foreground text-xs truncate mt-0.5">{item.subtitle}</p>
         )}
       </div>
       <button
         onClick={e => { e.stopPropagation(); onRemove(); }}
-        className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center flex-shrink-0 active:scale-95"
+        className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0 active:scale-95"
         aria-label="Remove focus item"
       >
-        <X className="w-3 h-3 text-background/60" />
+        <X className="w-3 h-3 text-muted-foreground" />
       </button>
     </div>
   );
@@ -355,9 +355,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       <div className="px-4 space-y-4 pb-32">
         {/* ── Today's Focus ─────────────────────────────────────────────── */}
-        <div className="bg-foreground rounded-2xl p-5">
+        <div className="bg-card rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title text-background">Today's focus</h2>
+            <h2 className="flow-section-title">Today's focus</h2>
             {focusItems.length < 3 && (
               <button
                 onClick={onAddFocus}

@@ -149,30 +149,30 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-border: 220 15% 18%;
     --sidebar-ring: 0 0% 95%;
 
-    /* Pastel palette - in dark mode, accent IS the primary palette */
-    --pastel-coral: 119 11% 51%;
-    --pastel-peach: 51 31% 69%;
-    --pastel-amber: 194 28% 53%;
-    --pastel-yellow: 197 31% 87%;
-    --pastel-mint: 21 97% 75%;
-    --pastel-teal: 36 99% 76%;
-    --pastel-sky: 353 49% 56%;
-    --pastel-lavender: 350 75% 85%;
-    --pastel-rose: 286 18% 57%;
-    --pastel-gray: 33 19% 58%;
-    --pastel-stone: 40 21% 84%;
+    /* Pastel palette - dark mode: same hues as light, boosted saturation, mid lightness */
+    --pastel-coral: 84 42% 58%;       /* Fern - medium green */
+    --pastel-peach: 113 30% 60%;      /* Pistachio - medium green */
+    --pastel-amber: 203 45% 55%;      /* Lagune - teal blue */
+    --pastel-yellow: 228 52% 65%;     /* Sky - periwinkle */
+    --pastel-mint: 22 65% 68%;        /* Peach - soft apricot */
+    --pastel-teal: 44 72% 68%;        /* Honey - warm gold */
+    --pastel-sky: 327 38% 62%;        /* Peony - mauve pink */
+    --pastel-lavender: 351 55% 70%;   /* Rose - rose pink */
+    --pastel-rose: 273 28% 60%;       /* Plum - soft purple */
+    --pastel-gray: 36 22% 58%;        /* Taupe - warm brown-gray */
+    --pastel-stone: 60 14% 63%;       /* Stone - warm gray */
 
-    --pastel-coral-accent: 119 11% 51%;
-    --pastel-peach-accent: 51 31% 69%;
-    --pastel-amber-accent: 194 28% 53%;
-    --pastel-yellow-accent: 197 31% 87%;
-    --pastel-mint-accent: 21 97% 75%;
-    --pastel-teal-accent: 36 99% 76%;
-    --pastel-sky-accent: 353 49% 56%;
-    --pastel-lavender-accent: 350 75% 85%;
-    --pastel-rose-accent: 286 18% 57%;
-    --pastel-gray-accent: 33 19% 58%;
-    --pastel-stone-accent: 40 21% 84%;
+    --pastel-coral-accent: 84 50% 38%;
+    --pastel-peach-accent: 113 38% 40%;
+    --pastel-amber-accent: 203 55% 38%;
+    --pastel-yellow-accent: 228 60% 45%;
+    --pastel-mint-accent: 22 75% 48%;
+    --pastel-teal-accent: 44 80% 48%;
+    --pastel-sky-accent: 327 48% 45%;
+    --pastel-lavender-accent: 351 65% 52%;
+    --pastel-rose-accent: 273 38% 45%;
+    --pastel-gray-accent: 36 28% 42%;
+    --pastel-stone-accent: 60 18% 45%;
   }
 }
 
@@ -770,6 +770,12 @@ input[type="time"]::-webkit-inner-spin-button {
 
 .tiptap-editor .highlight {
   @apply rounded px-1;
+}
+
+.dark .tiptap-editor mark,
+.dark .tiptap-editor .highlight {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
 }
 
 .tiptap-editor strong {
