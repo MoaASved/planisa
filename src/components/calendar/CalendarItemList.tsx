@@ -691,23 +691,40 @@ export function CalendarItemList({
 
       {showTimeline ? (
         // Timeline view — always render the full 24h grid regardless of content
-        <div className="flex-1 relative overflow-hidden">
-          {/* Floating all-day badge — outside scroll area, top-right */}
-          {allDayItems.length > 0 && (
-            <button
-              onClick={() => setAllDayExpanded(v => !v)}
-              className="absolute top-2 right-3 z-40 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
-              style={{
-                background: '#1C1C1E',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
-              }}
-            >
-              <span className="text-[12px] font-semibold text-white tabular-nums leading-none">{allDayItems.length}</span>
-              <ChevronDown
-                className={cn('w-3 h-3 text-white/80 transition-transform duration-200', allDayExpanded && 'rotate-180')}
-              />
-            </button>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* All-day expanded panel — sits above scroll area, takes natural height */}
+          {allDayItems.length > 0 && allDayExpanded && (
+            <div style={{ background: 'var(--calendar-panel-bg)', borderBottom: '1px solid rgba(0,0,0,0.06)', flexShrink: 0 }}>
+              <div className="px-4 pb-3 pt-2">
+                <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                  {allDayItems.map(({ type, item }) => (
+                    <div key={item.id}>
+                      {renderItemCard(item, type, undefined, undefined, true)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
+
+          {/* Scroll area — flex-1 so it fills whatever space remains */}
+          <div className="flex-1 relative overflow-hidden">
+            {/* Floating all-day badge */}
+            {allDayItems.length > 0 && (
+              <button
+                onClick={() => setAllDayExpanded(v => !v)}
+                className="absolute top-2 right-3 z-40 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
+                style={{
+                  background: '#1C1C1E',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+                }}
+              >
+                <span className="text-[12px] font-semibold text-white tabular-nums leading-none">{allDayItems.length}</span>
+                <ChevronDown
+                  className={cn('w-3 h-3 text-white/80 transition-transform duration-200', allDayExpanded && 'rotate-180')}
+                />
+              </button>
+            )}
           <div
             ref={timelineRef}
             onScroll={checkTimelineScroll}
@@ -715,20 +732,6 @@ export function CalendarItemList({
             onTouchEnd={handleTimelineTouchEnd}
             className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
           >
-            {/* All-day expanded grid — sticky at top, only when open */}
-            {allDayItems.length > 0 && allDayExpanded && (
-              <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'var(--calendar-panel-bg)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                <div className="px-4 pb-3 pt-2">
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-                    {allDayItems.map(({ type, item }) => (
-                      <div key={item.id}>
-                        {renderItemCard(item, type, undefined, undefined, true)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Timeline */}
             <div data-timeline-grid className="relative px-4 pb-4" style={{ height: HOUR_HEIGHT * 24 }}>
@@ -907,6 +910,7 @@ export function CalendarItemList({
               }}
             />
           )}
+        </div>
         </div>
       ) : (
         // List view - all items with time shown on cards; double-tap on empty area to create
