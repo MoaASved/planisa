@@ -292,6 +292,10 @@ input[type="time"]::-webkit-inner-spin-button {
     background: rgba(255, 255, 255, 0.12);
   }
 
+  .dark .flow-nav-icon-active {
+    background: hsl(var(--muted));
+  }
+
   .flow-nav-center-btn {
     @apply flex items-center justify-center w-12 h-12 rounded-full;
     background: #ffffff;
