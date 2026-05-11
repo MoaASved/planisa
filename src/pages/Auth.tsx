@@ -78,7 +78,7 @@ export default function Auth() {
 
         {/* Logo + tagline */}
         <div className="flex flex-col items-center gap-1.5">
-          <img src="/Planisa logo.png" alt="Planisa" className="h-8 w-auto" />
+          <img src="/Planisa-logo.png" alt="Planisa" className="h-8 w-auto" />
           <p className="text-[15px] text-muted-foreground">
             {mode === 'signup' ? 'Start your 14-day free trial' : 'Sign in to continue'}
           </p>
