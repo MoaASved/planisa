@@ -3,6 +3,8 @@ import { CheckSquare, FileText, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
+import { pastelColors, getColorBgClass } from '@/lib/colors';
+import { PastelColor } from '@/types';
 
 interface OnboardingFlowProps {
   onComplete: (name: string) => void;
@@ -50,7 +52,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [fading, setFading] = useState(false);
   const [name, setName] = useState('');
   const [stickyText, setStickyText] = useState('');
+  const [stickyColor, setStickyColor] = useState<PastelColor>('yellow');
   const [saving, setSaving] = useState(false);
+  // Fixed random rotation between 2° and 4°, chosen once on mount
+  const [rotation] = useState(() => 2 + Math.random() * 2);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const stickyRef = useRef<HTMLTextAreaElement>(null);
@@ -77,7 +82,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           title: '',
           content: stickyText.trim(),
           type: 'sticky',
-          color: 'peach',
+          color: stickyColor,
           tags: [],
           isPinned: false,
           showInCalendar: false,
@@ -215,13 +220,16 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 Create your first sticky note.<br />
                 Add anything, a thought, a reminder, something you don't want to forget.
               </p>
-              {/* Sticky note matching the app's StickyNoteCard design */}
+              {/* Sticky note — matches StickyNoteCard exactly */}
               <div
-                className="w-full mt-3 rounded-2xl p-4 relative overflow-hidden"
+                className={cn(
+                  'w-full mt-3 rounded-2xl p-4 relative overflow-hidden',
+                  getColorBgClass(stickyColor)
+                )}
                 style={{
-                  background: 'hsl(var(--pastel-peach))',
+                  transform: `rotate(${rotation.toFixed(2)}deg)`,
                   boxShadow: '2px 3px 8px rgba(0,0,0,0.08)',
-                  minHeight: 120,
+                  minHeight: 130,
                 }}
               >
                 {/* Folded corner — same as StickyNoteCard */}
@@ -233,8 +241,25 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   onChange={e => setStickyText(e.target.value)}
                   placeholder="Write something..."
                   rows={4}
-                  className="w-full bg-transparent border-0 outline-none resize-none text-[15px] text-[#2C2C2A] placeholder:text-[#2C2C2A]/35 leading-relaxed font-medium"
+                  className="w-full bg-transparent border-0 outline-none resize-none text-sm font-medium text-[#2C2C2A] placeholder:text-[#2C2C2A]/35 leading-relaxed"
                 />
+              </div>
+
+              {/* Color picker dots */}
+              <div className="flex items-center gap-2 mt-4">
+                {pastelColors.map(({ value }) => (
+                  <button
+                    key={value}
+                    onClick={() => setStickyColor(value)}
+                    className={cn(
+                      'rounded-full transition-all duration-150',
+                      getColorBgClass(value),
+                      stickyColor === value
+                        ? 'w-5 h-5 ring-2 ring-foreground/25 ring-offset-1 ring-offset-background'
+                        : 'w-4 h-4 opacity-60'
+                    )}
+                  />
+                ))}
               </div>
             </>
           )}
