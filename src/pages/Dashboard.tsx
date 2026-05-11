@@ -697,7 +697,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 const Dashboard: React.FC = () => {
   const { user, hasFullAccess, userRecord } = useAuth();
   const { settings, setHighlightTaskId, events, notes } = useAppStore();
-  console.log('[Dashboard] mounted/rendered — userRecord:', userRecord, '| user:', user?.id ?? null);
 
   // Show onboarding once — determined synchronously from auth metadata so there's no flash
   const [showOnboarding] = useState(() => !user?.user_metadata?.onboarding_completed);
@@ -947,11 +946,17 @@ const Dashboard: React.FC = () => {
 
   // ── Trial reminders ────────────────────────────────────────────────────────
   useEffect(() => {
-    console.log('[Trial] useEffect fired — userRecord:', userRecord, '| user:', user?.id ?? null);
     if (!userRecord || userRecord.subscription_status !== 'trialing' || !user) return;
     const elapsed = (Date.now() - new Date(userRecord.trial_start_date).getTime()) / (1000 * 60 * 60 * 24);
     const day = Math.floor(elapsed);
-    console.log('[Trial] trial_start_date:', userRecord.trial_start_date, '| elapsedDays:', elapsed, '| day:', day);
+
+    if (day === 2) {
+      const key = `trial_d2_seen_${user.id}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        setTrialNisaMessage("Don't forget to add Planisa to your home screen for the full experience. It only takes a second!");
+      }
+    }
 
     if (day === 10) {
       const key = `trial_d10_seen_${user.id}`;
