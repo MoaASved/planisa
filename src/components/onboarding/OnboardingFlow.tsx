@@ -52,7 +52,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [fading, setFading] = useState(false);
   const [name, setName] = useState('');
   const [stickyText, setStickyText] = useState('');
-  const [stickyColor, setStickyColor] = useState<PastelColor>('yellow');
+  const [stickyColor, setStickyColor] = useState<PastelColor>('teal');
   const [saving, setSaving] = useState(false);
   // Fixed random rotation between 2° and 4°, chosen once on mount
   const [rotation] = useState(() => 2 + Math.random() * 2);
