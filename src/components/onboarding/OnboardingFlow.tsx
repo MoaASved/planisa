@@ -200,6 +200,9 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   </p>
                 )}
               </div>
+              <p className="text-[13px] text-center text-muted-foreground/60 leading-relaxed mt-1">
+                Once added, open Planisa from your home screen. You'll already be signed in.
+              </p>
             </>
           )}
 
