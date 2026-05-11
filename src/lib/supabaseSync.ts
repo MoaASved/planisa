@@ -22,7 +22,7 @@ export function rowToTask(row: Row, subtaskRows: Row[] = []): Task {
     time: row.time_text ?? undefined,
     endTime: row.end_time_text ?? undefined,
     category: row.category_name ?? '',
-    color: (asColor(row.color) ?? 'sky') as PastelColor,
+    color: (asColor(row.color) ?? 'peony') as PastelColor,
     subtasks: subtaskRows
       .filter((s) => s.task_id === row.id)
       .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
@@ -74,7 +74,7 @@ export function rowToTaskCategory(row: Row): TaskCategory {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'sky') as PastelColor,
+    color: (asColor(row.color) ?? 'peony') as PastelColor,
     pinned: !!row.pinned,
     sortMode: (row.sort_mode ?? 'manual') as TaskCategory['sortMode'],
     order: row.order_index ?? 0,
@@ -122,7 +122,7 @@ export function rowToEvent(row: Row): CalendarEvent {
     startTime: row.time_text ?? undefined,
     endTime: row.end_time_text ?? undefined,
     category: row.category_name ?? '',
-    color: (asColor(row.color) ?? 'sky') as PastelColor,
+    color: (asColor(row.color) ?? 'peony') as PastelColor,
     description: row.description ?? undefined,
     isAllDay: !!row.all_day,
   };
@@ -150,7 +150,7 @@ export function rowToEventCategory(row: Row): EventCategory {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'sky') as PastelColor,
+    color: (asColor(row.color) ?? 'peony') as PastelColor,
   };
 }
 export function eventCategoryToRow(c: Partial<EventCategory>, userId: string): Row {
@@ -206,7 +206,7 @@ export function rowToFolder(row: Row): Folder {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'sky') as PastelColor,
+    color: (asColor(row.color) ?? 'peony') as PastelColor,
   };
 }
 export function folderToRow(f: Partial<Folder>, userId: string): Row {
@@ -222,7 +222,7 @@ export function rowToNotebook(row: Row): Notebook {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'sky') as PastelColor,
+    color: (asColor(row.color) ?? 'peony') as PastelColor,
     createdAt: new Date(row.created_at),
   };
 }

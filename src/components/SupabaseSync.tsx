@@ -29,7 +29,7 @@ export function SupabaseSync() {
       updateSettings({
         name: meta.display_name ?? '',
         avatarInitial: meta.avatar_initial ?? 'U',
-        avatarColor: (meta.avatar_color as PastelColor) ?? 'sky',
+        avatarColor: (meta.avatar_color as PastelColor) ?? 'peony',
       });
     }
 

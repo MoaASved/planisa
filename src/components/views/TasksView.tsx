@@ -104,8 +104,8 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
   if (smartView) {
     const virtual: TaskCategory =
       smartView === 'priority'
-        ? { id: '__priority', name: 'Priority', color: 'amber' }
-        : { id: '__today', name: 'Today', color: 'sky' };
+        ? { id: '__priority', name: 'Priority', color: 'lagune' }
+        : { id: '__today', name: 'Today', color: 'peony' };
 
     const filtered =
       smartView === 'priority'

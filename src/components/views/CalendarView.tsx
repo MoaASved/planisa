@@ -70,18 +70,18 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     if (type === 'task') {
       const task = item as Task;
       const category = taskCategories.find(c => c.name === task.category);
-      return category?.color || 'sky';
+      return category?.color || 'peony';
     } else {
       const event = item as CalendarEvent;
       const category = eventCategories.find(c => c.name === event.category);
-      return category?.color || 'sky';
+      return category?.color || 'peony';
     }
   };
 
   const getNoteColor = (note: Note): PastelColor => {
     if (note.color) return note.color;
     const folder = folders.find(f => f.name === note.folder);
-    return folder?.color || 'sky';
+    return folder?.color || 'peony';
   };
 
   const handlePrev = () => {

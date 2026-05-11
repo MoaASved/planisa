@@ -92,7 +92,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
   const [morePopoverOpen, setMorePopoverOpen] = useState(false);
   const [moreView, setMoreView] = useState<'main' | 'folder' | 'folder-create'>('main');
   const [inlineFolderName, setInlineFolderName] = useState('');
-  const [inlineFolderColor, setInlineFolderColor] = useState<PastelColor>('sky');
+  const [inlineFolderColor, setInlineFolderColor] = useState<PastelColor>('peony');
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
   const [removeHighlightMode, setRemoveHighlightMode] = useState(false);
@@ -182,7 +182,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
       addFolder({ name: inlineFolderName.trim(), color: inlineFolderColor });
       setFolder(inlineFolderName.trim());
       setInlineFolderName('');
-      setInlineFolderColor('sky');
+      setInlineFolderColor('peony');
       setMoreView('main');
       setMorePopoverOpen(false);
     }
@@ -458,7 +458,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
               if (!open) {
                 setMoreView('main');
                 setInlineFolderName('');
-                setInlineFolderColor('sky');
+                setInlineFolderColor('peony');
               }
             }}
           >

@@ -22,13 +22,13 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState('');
-  const [color, setColor] = useState<PastelColor>('sky');
+  const [color, setColor] = useState<PastelColor>('peony');
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
 
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
+  const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('peony');
 
   const endTimeManuallySet = useRef(false);
 

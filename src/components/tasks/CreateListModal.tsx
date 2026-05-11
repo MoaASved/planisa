@@ -16,13 +16,13 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
   const { addTaskCategory, updateTaskCategory, taskCategories } = useAppStore();
   const editing = editingId ? taskCategories.find((c) => c.id === editingId) : undefined;
   const [name, setName] = useState('');
-  const [color, setColor] = useState<PastelColor>('sky');
+  const [color, setColor] = useState<PastelColor>('peony');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setName(editing?.name ?? '');
-      setColor(editing?.color ?? 'sky');
+      setColor(editing?.color ?? 'peony');
       setTimeout(() => inputRef.current?.focus(), 80);
     }
   }, [isOpen, editing]);

@@ -11,21 +11,21 @@ interface StickyNoteCardProps {
 }
 
 const getStickyBgClass = (color?: PastelColor): string => {
-  if (!color) return 'bg-pastel-yellow';
+  if (!color) return 'bg-pastel-sky';
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral',
-    peach: 'bg-pastel-peach',
-    amber: 'bg-pastel-amber',
-    yellow: 'bg-pastel-yellow',
-    mint: 'bg-pastel-mint',
-    teal: 'bg-pastel-teal',
+    fern: 'bg-pastel-fern',
+    pistachio: 'bg-pastel-pistachio',
+    lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    lavender: 'bg-pastel-lavender',
+    peach: 'bg-pastel-peach',
+    honey: 'bg-pastel-honey',
+    peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    gray: 'bg-pastel-gray',
+    plum: 'bg-pastel-plum',
+    taupe: 'bg-pastel-taupe',
     stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-yellow';
+  return colorMap[color] || 'bg-pastel-sky';
 };
 
 

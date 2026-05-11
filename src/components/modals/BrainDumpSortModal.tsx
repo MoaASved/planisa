@@ -207,7 +207,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
           title: t,
           date: date ? new Date(date + 'T12:00:00') : new Date(),
           category: cat?.name || 'Personal',
-          color: cat?.color || 'sky',
+          color: cat?.color || 'peony',
           isAllDay: !time,
           startTime: time || undefined,
           endTime: endTime || undefined,

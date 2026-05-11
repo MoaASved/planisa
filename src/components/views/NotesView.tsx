@@ -57,9 +57,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-  const [newFolderColor, setNewFolderColor] = useState<PastelColor>('sky');
+  const [newFolderColor, setNewFolderColor] = useState<PastelColor>('peony');
   const [newNotebookName, setNewNotebookName] = useState('');
-  const [newNotebookColor, setNewNotebookColor] = useState<PastelColor>('lavender');
+  const [newNotebookColor, setNewNotebookColor] = useState<PastelColor>('rose');
   const [showSearch, setShowSearch] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -259,7 +259,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
             <div className="flex items-center justify-between gap-2 mt-auto pt-3">
               {note.folder ? (
-                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-gray', 'text-foreground/75')}>
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-taupe', 'text-foreground/75')}>
                   {note.folder}
                 </span>
               ) : <span />}
@@ -288,7 +288,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
               {note.folder && (
-                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-gray', 'text-foreground/75')}>
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-taupe', 'text-foreground/75')}>
                   {note.folder}
                 </span>
               )}
@@ -437,7 +437,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           {/* FAB for creating new notebook */}
           <div className="fixed bottom-[144px] right-4 z-[1100]">
             <button
-              onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('lavender'); setShowNotebookModal(true); }}
+              onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('rose'); setShowNotebookModal(true); }}
               className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
             >
               <Plus className="w-6 h-6 text-primary-foreground" />

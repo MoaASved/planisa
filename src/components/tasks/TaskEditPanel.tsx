@@ -89,7 +89,7 @@ export function TaskEditPanel({ task, onClose }: TaskEditPanelProps) {
               'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all',
               'bg-secondary hover:bg-muted'
             )}>
-              <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${currentCategory?.color || 'gray'}`)} />
+              <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${currentCategory?.color || 'taupe'}`)} />
               <Folder className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-foreground">{task.category}</span>
             </button>

@@ -63,32 +63,32 @@ input[type="time"]::-webkit-inner-spin-button {
     --radius: 1rem;
 
     /* Pastel palette - LIGHT (soft surfaces) — 11-color unified palette */
-    --pastel-coral: 84 44% 83%;      /* Fern #D8E8C0 */
-    --pastel-peach: 113 28% 82%;     /* Pistachio #C8DEC4 */
-    --pastel-amber: 203 47% 84%;     /* Lagune #C4DCEA */
-    --pastel-yellow: 228 60% 88%;    /* Sky #D0D8F0 */
-    --pastel-mint: 22 65% 87%;       /* Peach #F2D8C8 */
-    --pastel-teal: 44 64% 84%;       /* Honey #EEE0BE */
-    --pastel-sky: 327 32% 83%;       /* Peony #E0C8D4 */
-    --pastel-lavender: 351 53% 88%;  /* Rose #F0D4D8 */
-    --pastel-rose: 273 25% 84%;      /* Plum #D8CCE0 */
-    --pastel-gray: 36 24% 81%;       /* Taupe #D8D0C4 */
+    --pastel-fern: 84 44% 83%;      /* Fern #D8E8C0 */
+    --pastel-pistachio: 113 28% 82%;     /* Pistachio #C8DEC4 */
+    --pastel-lagune: 203 47% 84%;     /* Lagune #C4DCEA */
+    --pastel-sky: 228 60% 88%;    /* Sky #D0D8F0 */
+    --pastel-peach: 22 65% 87%;       /* Peach #F2D8C8 */
+    --pastel-honey: 44 64% 84%;       /* Honey #EEE0BE */
+    --pastel-peony: 327 32% 83%;       /* Peony #E0C8D4 */
+    --pastel-rose: 351 53% 88%;  /* Rose #F0D4D8 */
+    --pastel-plum: 273 25% 84%;      /* Plum #D8CCE0 */
+    --pastel-taupe: 36 24% 81%;       /* Taupe #D8D0C4 */
     --pastel-stone: 60 12% 83%;      /* Stone #D8D8D0 */
 
     /* Universal text/icon color on top of pastel surfaces */
     --on-pastel: 40 6% 17%;          /* #2C2C2A */
 
     /* Pastel palette - DARK ACCENT (icons, dots, indicators in light mode) */
-    --pastel-coral-accent: 119 11% 51%;    /* Fern #768F77 */
-    --pastel-peach-accent: 51 31% 69%;     /* Pistachio #C3BE9D */
-    --pastel-amber-accent: 194 28% 53%;    /* Lagune #6599AA */
-    --pastel-yellow-accent: 197 31% 87%;   /* Sky #D5E2E7 */
-    --pastel-mint-accent: 21 97% 75%;      /* Peach #FDAB82 */
-    --pastel-teal-accent: 36 99% 76%;      /* Honey #FEC987 */
-    --pastel-sky-accent: 353 49% 56%;      /* Peony #C45A66 */
-    --pastel-lavender-accent: 350 75% 85%; /* Rose #F2BEC8 */
-    --pastel-rose-accent: 286 18% 57%;     /* Plum #9A7FA5 */
-    --pastel-gray-accent: 33 19% 58%;      /* Taupe #A89780 */
+    --pastel-fern-accent: 119 11% 51%;    /* Fern #768F77 */
+    --pastel-pistachio-accent: 51 31% 69%;     /* Pistachio #C3BE9D */
+    --pastel-lagune-accent: 194 28% 53%;    /* Lagune #6599AA */
+    --pastel-sky-accent: 197 31% 87%;   /* Sky #D5E2E7 */
+    --pastel-peach-accent: 21 97% 75%;      /* Peach #FDAB82 */
+    --pastel-honey-accent: 36 99% 76%;      /* Honey #FEC987 */
+    --pastel-peony-accent: 353 49% 56%;      /* Peony #C45A66 */
+    --pastel-rose-accent: 350 75% 85%; /* Rose #F2BEC8 */
+    --pastel-plum-accent: 286 18% 57%;     /* Plum #9A7FA5 */
+    --pastel-taupe-accent: 33 19% 58%;      /* Taupe #A89780 */
     --pastel-stone-accent: 40 21% 84%;     /* Stone #DEDAD1 */
     
     --shadow-soft: 0 1px 2px 0 hsl(30 10% 10% / 0.04);
@@ -154,28 +154,28 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-ring: 0 0% 95%;
 
     /* Pastel palette - dark mode: same hues as light, boosted saturation, mid lightness */
-    --pastel-coral: 84 42% 58%;       /* Fern - medium green */
-    --pastel-peach: 113 30% 60%;      /* Pistachio - medium green */
-    --pastel-amber: 185 38% 50%;      /* Lagune - teal cyan-green */
-    --pastel-yellow: 215 40% 62%;     /* Sky - periwinkle blue */
-    --pastel-mint: 22 65% 68%;        /* Peach - soft apricot */
-    --pastel-teal: 44 72% 68%;        /* Honey - warm gold */
-    --pastel-sky: 327 38% 62%;        /* Peony - mauve pink */
-    --pastel-lavender: 351 55% 70%;   /* Rose - rose pink */
-    --pastel-rose: 273 28% 60%;       /* Plum - soft purple */
-    --pastel-gray: 36 22% 58%;        /* Taupe - warm brown-gray */
+    --pastel-fern: 84 42% 58%;       /* Fern - medium green */
+    --pastel-pistachio: 113 30% 60%;      /* Pistachio - medium green */
+    --pastel-lagune: 185 38% 50%;      /* Lagune - teal cyan-green */
+    --pastel-sky: 215 40% 62%;     /* Sky - periwinkle blue */
+    --pastel-peach: 22 65% 68%;        /* Peach - soft apricot */
+    --pastel-honey: 44 72% 68%;        /* Honey - warm gold */
+    --pastel-peony: 327 38% 62%;        /* Peony - mauve pink */
+    --pastel-rose: 351 55% 70%;   /* Rose - rose pink */
+    --pastel-plum: 273 28% 60%;       /* Plum - soft purple */
+    --pastel-taupe: 36 22% 58%;        /* Taupe - warm brown-gray */
     --pastel-stone: 60 14% 63%;       /* Stone - warm gray */
 
-    --pastel-coral-accent: 84 50% 38%;
-    --pastel-peach-accent: 113 38% 40%;
-    --pastel-amber-accent: 185 44% 36%;
-    --pastel-yellow-accent: 215 45% 47%;
-    --pastel-mint-accent: 22 75% 48%;
-    --pastel-teal-accent: 44 80% 48%;
-    --pastel-sky-accent: 327 48% 45%;
-    --pastel-lavender-accent: 351 65% 52%;
-    --pastel-rose-accent: 273 38% 45%;
-    --pastel-gray-accent: 36 28% 42%;
+    --pastel-fern-accent: 84 50% 38%;
+    --pastel-pistachio-accent: 113 38% 40%;
+    --pastel-lagune-accent: 185 44% 36%;
+    --pastel-sky-accent: 215 45% 47%;
+    --pastel-peach-accent: 22 75% 48%;
+    --pastel-honey-accent: 44 80% 48%;
+    --pastel-peony-accent: 327 48% 45%;
+    --pastel-rose-accent: 351 65% 52%;
+    --pastel-plum-accent: 273 38% 45%;
+    --pastel-taupe-accent: 36 28% 42%;
     --pastel-stone-accent: 60 18% 45%;
   }
 }
@@ -336,16 +336,16 @@ input[type="time"]::-webkit-inner-spin-button {
     @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium;
   }
 
-  .flow-badge-coral { @apply bg-[hsl(var(--pastel-coral))] text-[hsl(var(--pastel-coral-accent))]; }
-  .flow-badge-peach { @apply bg-[hsl(var(--pastel-peach))] text-[hsl(var(--pastel-peach-accent))]; }
-  .flow-badge-amber { @apply bg-[hsl(var(--pastel-amber))] text-[hsl(var(--pastel-amber-accent))]; }
-  .flow-badge-yellow { @apply bg-[hsl(var(--pastel-yellow))] text-[hsl(var(--pastel-yellow-accent))]; }
-  .flow-badge-mint { @apply bg-[hsl(var(--pastel-mint))] text-[hsl(var(--pastel-mint-accent))]; }
-  .flow-badge-teal { @apply bg-[hsl(var(--pastel-teal))] text-[hsl(var(--pastel-teal-accent))]; }
+  .flow-badge-fern { @apply bg-[hsl(var(--pastel-fern))] text-[hsl(var(--pastel-fern-accent))]; }
+  .flow-badge-pistachio { @apply bg-[hsl(var(--pastel-pistachio))] text-[hsl(var(--pastel-pistachio-accent))]; }
+  .flow-badge-lagune { @apply bg-[hsl(var(--pastel-lagune))] text-[hsl(var(--pastel-lagune-accent))]; }
   .flow-badge-sky { @apply bg-[hsl(var(--pastel-sky))] text-[hsl(var(--pastel-sky-accent))]; }
-  .flow-badge-lavender { @apply bg-[hsl(var(--pastel-lavender))] text-[hsl(var(--pastel-lavender-accent))]; }
+  .flow-badge-peach { @apply bg-[hsl(var(--pastel-peach))] text-[hsl(var(--pastel-peach-accent))]; }
+  .flow-badge-honey { @apply bg-[hsl(var(--pastel-honey))] text-[hsl(var(--pastel-honey-accent))]; }
+  .flow-badge-peony { @apply bg-[hsl(var(--pastel-peony))] text-[hsl(var(--pastel-peony-accent))]; }
   .flow-badge-rose { @apply bg-[hsl(var(--pastel-rose))] text-[hsl(var(--pastel-rose-accent))]; }
-  .flow-badge-gray { @apply bg-[hsl(var(--pastel-gray))] text-[hsl(var(--pastel-gray-accent))]; }
+  .flow-badge-plum { @apply bg-[hsl(var(--pastel-plum))] text-[hsl(var(--pastel-plum-accent))]; }
+  .flow-badge-taupe { @apply bg-[hsl(var(--pastel-taupe))] text-[hsl(var(--pastel-taupe-accent))]; }
   .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone))] text-[hsl(var(--pastel-stone-accent))]; }
   .flow-badge-primary { @apply bg-primary/10 text-primary; }
 

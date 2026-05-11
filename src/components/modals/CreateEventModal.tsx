@@ -21,7 +21,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState(eventCategories[0]?.name || 'Meetings');
-  const [color, setColor] = useState<PastelColor>(eventCategories[0]?.color || 'sky');
+  const [color, setColor] = useState<PastelColor>(eventCategories[0]?.color || 'peony');
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
   const endTimeManuallySet = useRef(false);
@@ -29,7 +29,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('sky');
+  const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('peony');
 
   // Set initial date/time when modal opens
   useEffect(() => {
@@ -95,7 +95,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     setStartTime('');
     setEndTime('');
     setCategory(eventCategories[0]?.name || 'Meetings');
-    setColor(eventCategories[0]?.color || 'sky');
+    setColor(eventCategories[0]?.color || 'peony');
     setIsAllDay(false);
     setDescription('');
     onClose();

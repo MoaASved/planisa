@@ -1,14 +1,14 @@
 export type PastelColor = 
-  | 'coral' 
-  | 'peach' 
-  | 'amber' 
-  | 'yellow' 
-  | 'mint' 
-  | 'teal' 
+  | 'fern' 
+  | 'pistachio' 
+  | 'lagune' 
   | 'sky' 
-  | 'lavender' 
+  | 'peach' 
+  | 'honey' 
+  | 'peony' 
   | 'rose' 
-  | 'gray'
+  | 'plum' 
+  | 'taupe'
   | 'stone';
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';

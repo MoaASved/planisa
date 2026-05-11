@@ -349,7 +349,7 @@ export function TaskRow({ task, onToggle, compact = false, showOverdue = false, 
             </div>
             <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
               <button
-                onClick={() => { updateTask(task.id, { category: '', color: 'gray' }); setSubMenu(null); }}
+                onClick={() => { updateTask(task.id, { category: '', color: 'taupe' }); setSubMenu(null); }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:bg-secondary transition-colors text-left"
               >
                 No list

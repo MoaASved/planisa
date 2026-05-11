@@ -22,21 +22,21 @@ interface StickyNoteEditorProps {
 }
 
 const getStickyBgClass = (color?: PastelColor): string => {
-  if (!color) return 'bg-pastel-yellow';
+  if (!color) return 'bg-pastel-sky';
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral',
-    peach: 'bg-pastel-peach',
-    amber: 'bg-pastel-amber',
-    yellow: 'bg-pastel-yellow',
-    mint: 'bg-pastel-mint',
-    teal: 'bg-pastel-teal',
+    fern: 'bg-pastel-fern',
+    pistachio: 'bg-pastel-pistachio',
+    lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    lavender: 'bg-pastel-lavender',
+    peach: 'bg-pastel-peach',
+    honey: 'bg-pastel-honey',
+    peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    gray: 'bg-pastel-gray',
+    plum: 'bg-pastel-plum',
+    taupe: 'bg-pastel-taupe',
     stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-yellow';
+  return colorMap[color] || 'bg-pastel-sky';
 };
 
 export function StickyNoteEditor({ note, onClose, initialDate, initialTime, initialContent, showCalendarToggle }: StickyNoteEditorProps) {
@@ -46,7 +46,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
   const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || initialContent || '');
   const [color, setColor] = useState<PastelColor>(() => {
     if (note?.color) return note.color;
-    const colors: PastelColor[] = ['coral', 'peach', 'amber', 'yellow', 'mint', 'teal', 'sky', 'lavender', 'rose', 'gray', 'stone'];
+    const colors: PastelColor[] = ['fern', 'pistachio', 'lagune', 'sky', 'peach', 'honey', 'peony', 'rose', 'plum', 'taupe', 'stone'];
     return colors[Math.floor(Math.random() * colors.length)];
   });
   const [folder, setFolder] = useState(note?.folder || '');

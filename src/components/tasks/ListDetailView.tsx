@@ -345,7 +345,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
           {category.id === '__priority' ? (
             <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
           ) : category.id === '__today' ? (
-            <CalendarIcon className="w-5 h-5 text-pastel-sky" />
+            <CalendarIcon className="w-5 h-5 text-pastel-peony" />
           ) : (
             <span className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${category.color}`)} />
           )}

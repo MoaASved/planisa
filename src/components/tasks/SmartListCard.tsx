@@ -14,17 +14,17 @@ interface SmartListCardProps {
 }
 
 const colorMap: Record<string, { bg: string; text: string; dot: string }> = {
-  coral: { bg: 'bg-pastel-coral', text: 'text-pastel-coral-accent', dot: 'bg-pastel-coral-accent' },
+  fern: { bg: 'bg-pastel-fern', text: 'text-pastel-fern-accent', dot: 'bg-pastel-fern-accent' },
+  pistachio: { bg: 'bg-pastel-pistachio', text: 'text-pastel-pistachio-accent', dot: 'bg-pastel-pistachio-accent' },
+  lagune: { bg: 'bg-pastel-lagune', text: 'text-pastel-lagune-accent', dot: 'bg-pastel-lagune-accent' },
+  sky: { bg: 'bg-pastel-sky', text: 'text-pastel-lagune-accent', dot: 'bg-pastel-sky-accent' },
   peach: { bg: 'bg-pastel-peach', text: 'text-pastel-peach-accent', dot: 'bg-pastel-peach-accent' },
-  amber: { bg: 'bg-pastel-amber', text: 'text-pastel-amber-accent', dot: 'bg-pastel-amber-accent' },
-  yellow: { bg: 'bg-pastel-yellow', text: 'text-pastel-amber-accent', dot: 'bg-pastel-yellow-accent' },
-  mint: { bg: 'bg-pastel-mint', text: 'text-pastel-mint-accent', dot: 'bg-pastel-mint-accent' },
-  teal: { bg: 'bg-pastel-teal', text: 'text-pastel-teal-accent', dot: 'bg-pastel-teal-accent' },
-  sky: { bg: 'bg-pastel-sky', text: 'text-pastel-sky-accent', dot: 'bg-pastel-sky-accent' },
-  lavender: { bg: 'bg-pastel-lavender', text: 'text-pastel-lavender-accent', dot: 'bg-pastel-lavender-accent' },
+  honey: { bg: 'bg-pastel-honey', text: 'text-pastel-honey-accent', dot: 'bg-pastel-honey-accent' },
+  peony: { bg: 'bg-pastel-peony', text: 'text-pastel-peony-accent', dot: 'bg-pastel-peony-accent' },
   rose: { bg: 'bg-pastel-rose', text: 'text-pastel-rose-accent', dot: 'bg-pastel-rose-accent' },
-  gray: { bg: 'bg-pastel-gray', text: 'text-pastel-gray-accent', dot: 'bg-pastel-gray-accent' },
-  stone: { bg: 'bg-pastel-stone', text: 'text-pastel-gray-accent', dot: 'bg-pastel-stone-accent' },
+  plum: { bg: 'bg-pastel-plum', text: 'text-pastel-plum-accent', dot: 'bg-pastel-plum-accent' },
+  taupe: { bg: 'bg-pastel-taupe', text: 'text-pastel-taupe-accent', dot: 'bg-pastel-taupe-accent' },
+  stone: { bg: 'bg-pastel-stone', text: 'text-pastel-taupe-accent', dot: 'bg-pastel-stone-accent' },
   'amber-warm': { bg: 'bg-amber-500/15', text: 'text-amber-500', dot: 'bg-amber-500' },
   primary: { bg: 'bg-primary/10', text: 'text-primary', dot: 'bg-primary' },
 };

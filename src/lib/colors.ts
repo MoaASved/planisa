@@ -1,16 +1,16 @@
 import { PastelColor } from '@/types';
 
 export const pastelColors: { value: PastelColor; label: string; class: string }[] = [
-  { value: 'coral', label: 'Fern', class: 'bg-pastel-coral' },
-  { value: 'peach', label: 'Pistachio', class: 'bg-pastel-peach' },
-  { value: 'amber', label: 'Lagune', class: 'bg-pastel-amber' },
-  { value: 'yellow', label: 'Sky', class: 'bg-pastel-yellow' },
-  { value: 'mint', label: 'Peach', class: 'bg-pastel-mint' },
-  { value: 'teal', label: 'Honey', class: 'bg-pastel-teal' },
-  { value: 'sky', label: 'Peony', class: 'bg-pastel-sky' },
-  { value: 'lavender', label: 'Rose', class: 'bg-pastel-lavender' },
-  { value: 'rose', label: 'Plum', class: 'bg-pastel-rose' },
-  { value: 'gray', label: 'Taupe', class: 'bg-pastel-gray' },
+  { value: 'fern', label: 'Fern', class: 'bg-pastel-fern' },
+  { value: 'pistachio', label: 'Pistachio', class: 'bg-pastel-pistachio' },
+  { value: 'lagune', label: 'Lagune', class: 'bg-pastel-lagune' },
+  { value: 'sky', label: 'Sky', class: 'bg-pastel-sky' },
+  { value: 'peach', label: 'Peach', class: 'bg-pastel-peach' },
+  { value: 'honey', label: 'Honey', class: 'bg-pastel-honey' },
+  { value: 'peony', label: 'Peony', class: 'bg-pastel-peony' },
+  { value: 'rose', label: 'Rose', class: 'bg-pastel-rose' },
+  { value: 'plum', label: 'Plum', class: 'bg-pastel-plum' },
+  { value: 'taupe', label: 'Taupe', class: 'bg-pastel-taupe' },
   { value: 'stone', label: 'Stone', class: 'bg-pastel-stone' },
 ];
 
@@ -52,52 +52,52 @@ export const getStickyTextClass = (_color?: PastelColor): string => {
 // Static color mapping for card backgrounds (40% opacity for sheer, calm appearance) - Tailwind JIT compatible
 export const getColorCardClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral',
-    peach: 'bg-pastel-peach',
-    amber: 'bg-pastel-amber',
-    yellow: 'bg-pastel-yellow',
-    mint: 'bg-pastel-mint',
-    teal: 'bg-pastel-teal',
+    fern: 'bg-pastel-fern',
+    pistachio: 'bg-pastel-pistachio',
+    lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    lavender: 'bg-pastel-lavender',
+    peach: 'bg-pastel-peach',
+    honey: 'bg-pastel-honey',
+    peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    gray: 'bg-pastel-gray',
+    plum: 'bg-pastel-plum',
+    taupe: 'bg-pastel-taupe',
     stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-sky';
+  return colorMap[color] || 'bg-pastel-peony';
 };
 
 // Static color mapping for dot indicators (full opacity) - Tailwind JIT compatible
 export const getColorDotClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral',
-    peach: 'bg-pastel-peach',
-    amber: 'bg-pastel-amber',
-    yellow: 'bg-pastel-yellow',
-    mint: 'bg-pastel-mint',
-    teal: 'bg-pastel-teal',
+    fern: 'bg-pastel-fern',
+    pistachio: 'bg-pastel-pistachio',
+    lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    lavender: 'bg-pastel-lavender',
+    peach: 'bg-pastel-peach',
+    honey: 'bg-pastel-honey',
+    peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    gray: 'bg-pastel-gray',
+    plum: 'bg-pastel-plum',
+    taupe: 'bg-pastel-taupe',
     stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-sky';
+  return colorMap[color] || 'bg-pastel-peony';
 };
 
 // Static color mapping for avatar backgrounds (30% opacity) - Tailwind JIT compatible
 export const getAvatarBgClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral',
-    peach: 'bg-pastel-peach',
-    amber: 'bg-pastel-amber',
-    yellow: 'bg-pastel-yellow',
-    mint: 'bg-pastel-mint',
-    teal: 'bg-pastel-teal',
+    fern: 'bg-pastel-fern',
+    pistachio: 'bg-pastel-pistachio',
+    lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    lavender: 'bg-pastel-lavender',
+    peach: 'bg-pastel-peach',
+    honey: 'bg-pastel-honey',
+    peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    gray: 'bg-pastel-gray',
+    plum: 'bg-pastel-plum',
+    taupe: 'bg-pastel-taupe',
     stone: 'bg-pastel-stone',
   };
   return colorMap[color] || 'bg-secondary';
@@ -106,16 +106,16 @@ export const getAvatarBgClass = (color: PastelColor): string => {
 // Static color mapping for avatar text colors - Tailwind JIT compatible
 export const getAvatarTextClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'text-pastel-coral',
-    peach: 'text-pastel-peach',
-    amber: 'text-pastel-amber',
-    yellow: 'text-pastel-yellow',
-    mint: 'text-pastel-mint',
-    teal: 'text-pastel-teal',
+    fern: 'text-pastel-fern',
+    pistachio: 'text-pastel-pistachio',
+    lagune: 'text-pastel-lagune',
     sky: 'text-pastel-sky',
-    lavender: 'text-pastel-lavender',
+    peach: 'text-pastel-peach',
+    honey: 'text-pastel-honey',
+    peony: 'text-pastel-peony',
     rose: 'text-pastel-rose',
-    gray: 'text-pastel-gray',
+    plum: 'text-pastel-plum',
+    taupe: 'text-pastel-taupe',
     stone: 'text-pastel-stone',
   };
   return colorMap[color] || 'text-muted-foreground';
@@ -124,19 +124,19 @@ export const getAvatarTextClass = (color: PastelColor): string => {
 // Static color mapping for stripe indicators (full opacity) - Tailwind JIT compatible
 export const getColorStripeClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral',
-    peach: 'bg-pastel-peach',
-    amber: 'bg-pastel-amber',
-    yellow: 'bg-pastel-yellow',
-    mint: 'bg-pastel-mint',
-    teal: 'bg-pastel-teal',
+    fern: 'bg-pastel-fern',
+    pistachio: 'bg-pastel-pistachio',
+    lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    lavender: 'bg-pastel-lavender',
+    peach: 'bg-pastel-peach',
+    honey: 'bg-pastel-honey',
+    peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    gray: 'bg-pastel-gray',
+    plum: 'bg-pastel-plum',
+    taupe: 'bg-pastel-taupe',
     stone: 'bg-pastel-stone',
   };
-  return colorMap[color] || 'bg-pastel-sky';
+  return colorMap[color] || 'bg-pastel-peony';
 };
 
 // Get CSS color value for inline styles (gradients etc.) - Tailwind JIT compatible
@@ -152,53 +152,53 @@ export const getColorVar = (color: PastelColor): string => {
 
 export const getAccentDotClass = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
-    coral: 'bg-pastel-coral-accent',
-    peach: 'bg-pastel-peach-accent',
-    amber: 'bg-pastel-amber-accent',
-    yellow: 'bg-pastel-yellow-accent',
-    mint: 'bg-pastel-mint-accent',
-    teal: 'bg-pastel-teal-accent',
+    fern: 'bg-pastel-fern-accent',
+    pistachio: 'bg-pastel-pistachio-accent',
+    lagune: 'bg-pastel-lagune-accent',
     sky: 'bg-pastel-sky-accent',
-    lavender: 'bg-pastel-lavender-accent',
+    peach: 'bg-pastel-peach-accent',
+    honey: 'bg-pastel-honey-accent',
+    peony: 'bg-pastel-peony-accent',
     rose: 'bg-pastel-rose-accent',
-    gray: 'bg-pastel-gray-accent',
+    plum: 'bg-pastel-plum-accent',
+    taupe: 'bg-pastel-taupe-accent',
     stone: 'bg-pastel-stone-accent',
   };
-  return map[color] || 'bg-pastel-sky-accent';
+  return map[color] || 'bg-pastel-peony-accent';
 };
 
 export const getAccentTextClass = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
-    coral: 'text-pastel-coral-accent',
-    peach: 'text-pastel-peach-accent',
-    amber: 'text-pastel-amber-accent',
-    yellow: 'text-pastel-yellow-accent',
-    mint: 'text-pastel-mint-accent',
-    teal: 'text-pastel-teal-accent',
+    fern: 'text-pastel-fern-accent',
+    pistachio: 'text-pastel-pistachio-accent',
+    lagune: 'text-pastel-lagune-accent',
     sky: 'text-pastel-sky-accent',
-    lavender: 'text-pastel-lavender-accent',
+    peach: 'text-pastel-peach-accent',
+    honey: 'text-pastel-honey-accent',
+    peony: 'text-pastel-peony-accent',
     rose: 'text-pastel-rose-accent',
-    gray: 'text-pastel-gray-accent',
+    plum: 'text-pastel-plum-accent',
+    taupe: 'text-pastel-taupe-accent',
     stone: 'text-pastel-stone-accent',
   };
-  return map[color] || 'text-pastel-sky-accent';
+  return map[color] || 'text-pastel-peony-accent';
 };
 
 export const getAccentBorderClass = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
-    coral: 'border-pastel-coral-accent',
-    peach: 'border-pastel-peach-accent',
-    amber: 'border-pastel-amber-accent',
-    yellow: 'border-pastel-yellow-accent',
-    mint: 'border-pastel-mint-accent',
-    teal: 'border-pastel-teal-accent',
+    fern: 'border-pastel-fern-accent',
+    pistachio: 'border-pastel-pistachio-accent',
+    lagune: 'border-pastel-lagune-accent',
     sky: 'border-pastel-sky-accent',
-    lavender: 'border-pastel-lavender-accent',
+    peach: 'border-pastel-peach-accent',
+    honey: 'border-pastel-honey-accent',
+    peony: 'border-pastel-peony-accent',
     rose: 'border-pastel-rose-accent',
-    gray: 'border-pastel-gray-accent',
+    plum: 'border-pastel-plum-accent',
+    taupe: 'border-pastel-taupe-accent',
     stone: 'border-pastel-stone-accent',
   };
-  return map[color] || 'border-pastel-sky-accent';
+  return map[color] || 'border-pastel-peony-accent';
 };
 
 export const getAccentBgClass = (color: PastelColor): string => getAccentDotClass(color);

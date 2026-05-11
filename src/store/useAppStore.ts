@@ -110,7 +110,7 @@ const initialWidgets: Widget[] = [
 const initialSettings: UserSettings = {
   language: 'en',
   theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light',
-  avatarColor: 'sky',
+  avatarColor: 'peony',
   avatarInitial: 'U',
   name: '',
 };

@@ -71,7 +71,7 @@ export function ProfileView() {
   const [showLanguageSelect, setShowLanguageSelect] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarInitial, setAvatarInitial] = useState(settings.avatarInitial || 'U');
-  const [avatarColor, setAvatarColor] = useState<PastelColor>(settings.avatarColor || 'sky');
+  const [avatarColor, setAvatarColor] = useState<PastelColor>(settings.avatarColor || 'peony');
   const [userName, setUserName] = useState(settings.name || '');
 
   // Section-wise category management
@@ -81,14 +81,14 @@ export function ProfileView() {
   const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [addDrawerSection, setAddDrawerSection] = useState<CategorySection>('calendar');
   const [newItemName, setNewItemName] = useState('');
-  const [newItemColor, setNewItemColor] = useState<PastelColor>('sky');
+  const [newItemColor, setNewItemColor] = useState<PastelColor>('peony');
 
   // Edit category/folder drawer
   const [showEditDrawer, setShowEditDrawer] = useState(false);
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [editItemSection, setEditItemSection] = useState<CategorySection>('calendar');
   const [editItemName, setEditItemName] = useState('');
-  const [editItemColor, setEditItemColor] = useState<PastelColor>('sky');
+  const [editItemColor, setEditItemColor] = useState<PastelColor>('peony');
 
   const toggleDarkMode = () => {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
@@ -101,7 +101,7 @@ export function ProfileView() {
     if (showAvatarModal) {
       setUserName(settings.name || '');
       setAvatarInitial(settings.avatarInitial || 'U');
-      setAvatarColor(settings.avatarColor || 'sky');
+      setAvatarColor(settings.avatarColor || 'peony');
     }
   }, [showAvatarModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -122,7 +122,7 @@ export function ProfileView() {
   const openAddDrawer = (section: CategorySection) => {
     setAddDrawerSection(section);
     setNewItemName('');
-    setNewItemColor('sky');
+    setNewItemColor('peony');
     setShowAddDrawer(true);
   };
 
@@ -208,8 +208,8 @@ export function ProfileView() {
         <div className="flow-card">
           <button onClick={() => setShowAvatarModal(true)} className="flex items-center gap-4 w-full text-left">
             <div
-              className={cn('w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold', getAccentTextClass(settings.avatarColor || 'sky'))}
-              style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'sky'}) / 0.3)` }}
+              className={cn('w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold', getAccentTextClass(settings.avatarColor || 'peony'))}
+              style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'peony'}) / 0.3)` }}
             >
               {settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || 'U'}
             </div>
@@ -349,8 +349,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-sky flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-pastel-sky-accent" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-peony flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-pastel-peony-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Calendar Categories</p>
@@ -401,8 +401,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-mint flex items-center justify-center">
-                    <CheckSquare className="w-5 h-5 text-pastel-mint-accent" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-peach flex items-center justify-center">
+                    <CheckSquare className="w-5 h-5 text-pastel-peach-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Tasks Lists</p>
@@ -453,8 +453,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-lavender flex items-center justify-center">
-                    <Folder className="w-5 h-5 text-pastel-lavender-accent" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-rose flex items-center justify-center">
+                    <Folder className="w-5 h-5 text-pastel-rose-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Notes Folders</p>
@@ -505,8 +505,8 @@ export function ProfileView() {
                 className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-pastel-coral flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-pastel-coral-accent" />
+                  <div className="w-10 h-10 rounded-xl bg-pastel-fern flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-pastel-fern-accent" />
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-foreground">Notebooks</p>

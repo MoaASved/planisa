@@ -17,7 +17,7 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
   const { folders, addFolder } = useAppStore();
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-  const [newFolderColor, setNewFolderColor] = useState<PastelColor>('sky');
+  const [newFolderColor, setNewFolderColor] = useState<PastelColor>('peony');
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
