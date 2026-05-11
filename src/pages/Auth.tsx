@@ -48,57 +48,84 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-background pt-safe pb-safe px-safe">
-      <div className="w-full max-w-sm bg-card rounded-3xl shadow-sm border border-border/40 p-8">
-        <h1 className="flow-page-title text-center mb-1">
-          {mode === 'signup' ? 'Create account' : 'Welcome back'}
-        </h1>
-        <p className="flow-meta text-center text-muted-foreground mb-6">
-          {mode === 'signup' ? 'Start your 14-day free trial' : 'Sign in to continue'}
-        </p>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <style>{`
+        @keyframes auth-nisa-float {
+          0%, 100% { transform: rotate(-6deg) translateY(0px); }
+          50%       { transform: rotate(-6deg) translateY(-9px); }
+        }
+      `}</style>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="flow-label block mb-1.5 text-muted-foreground">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-11 px-3 rounded-xl bg-secondary/60 border border-border/40 outline-none focus:border-foreground/30 transition-colors text-sm"
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <label className="flow-label block mb-1.5 text-muted-foreground">Password</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-11 px-3 rounded-xl bg-secondary/60 border border-border/40 outline-none focus:border-foreground/30 transition-colors text-sm"
-              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-            />
-          </div>
+      {/* NISA */}
+      <img
+        src="/nisa.png"
+        alt="NISA"
+        style={{
+          width: 110,
+          height: 110,
+          objectFit: 'contain',
+          borderRadius: 20,
+          boxShadow: '0 10px 36px rgba(0,0,0,0.13)',
+          animation: 'auth-nisa-float 2.6s ease-in-out infinite',
+          marginBottom: 24,
+        }}
+      />
+
+      {/* Card */}
+      <div className="w-full max-w-sm bg-card rounded-3xl shadow-sm p-8 flex flex-col gap-6">
+
+        {/* Wordmark + tagline */}
+        <div className="flex flex-col items-center gap-1.5">
+          <h1 className="text-[26px] font-semibold tracking-tight text-foreground">Planisa</h1>
+          <p className="text-[15px] text-muted-foreground">
+            {mode === 'signup' ? 'Start your 14-day free trial' : 'Sign in to continue'}
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            autoComplete="email"
+            className="w-full px-4 py-3.5 rounded-2xl bg-secondary border-0 text-foreground placeholder:text-muted-foreground/40 text-[15px] outline-none focus:ring-2 focus:ring-foreground/10 transition-shadow"
+          />
+          <input
+            type="password"
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            className="w-full px-4 py-3.5 rounded-2xl bg-secondary border-0 text-foreground placeholder:text-muted-foreground/40 text-[15px] outline-none focus:ring-2 focus:ring-foreground/10 transition-shadow"
+          />
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full h-11 rounded-xl bg-foreground text-background font-medium text-sm transition-opacity active:opacity-80 disabled:opacity-50 mt-2"
+            className="w-full py-4 rounded-2xl bg-foreground text-background text-[15px] font-semibold tracking-tight active:scale-[0.98] transition-transform disabled:opacity-60 mt-1"
           >
             {submitting ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Sign in'}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        {/* Switch mode */}
+        <div className="text-center">
           {mode === 'signup' ? (
-            <button onClick={() => switchMode('login')} className="text-sm text-muted-foreground hover:text-foreground">
-              Already have an account? <span className="text-foreground font-medium">Sign in</span>
+            <button onClick={() => switchMode('login')} className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <span className="text-foreground font-medium">Sign in</span>
             </button>
           ) : (
-            <button onClick={() => switchMode('signup')} className="text-sm text-muted-foreground hover:text-foreground">
-              No account? <span className="text-foreground font-medium">Create one</span>
+            <button onClick={() => switchMode('signup')} className="text-sm text-muted-foreground">
+              No account?{' '}
+              <span className="text-foreground font-medium">Create one</span>
             </button>
           )}
         </div>
