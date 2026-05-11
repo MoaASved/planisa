@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckSquare, FileText, Calendar } from 'lucide-react';
+import { CheckSquare, FileText, Calendar, Share, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,10 +10,9 @@ interface OnboardingFlowProps {
   onComplete: (name: string) => void;
 }
 
-const TOTAL_STEPS = 5;
-
 function NisaImage({ step, fading }: { step: number; fading: boolean }) {
   const animMap: Record<number, string> = {
+    0: 'nisa-float',
     1: 'nisa-float',
     2: 'nisa-nod',
     3: 'nisa-curious',
@@ -21,6 +20,7 @@ function NisaImage({ step, fading }: { step: number; fading: boolean }) {
     5: 'nisa-celebrate',
   };
   const rotateMap: Record<number, string> = {
+    0: '-8deg',
     1: '-8deg',
     2: '0deg',
     3: '10deg',
@@ -48,7 +48,20 @@ function NisaImage({ step, fading }: { step: number; fading: boolean }) {
 
 export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const { addNote, updateSettings } = useAppStore();
-  const [step, setStep] = useState(1);
+
+  // Detect standalone (already installed as PWA) — computed once
+  const [showInstallStep] = useState(() =>
+    !(window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true)
+  );
+  const firstStep = showInstallStep ? 0 : 1;
+  const totalSteps = showInstallStep ? 6 : 5;
+
+  // Device type for install instructions
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  const isAndroid = /Android/.test(navigator.userAgent);
+  const deviceType: 'ios' | 'android' | 'desktop' = isIOS ? 'ios' : isAndroid ? 'android' : 'desktop';
+
+  const [step, setStep] = useState(firstStep);
   const [fading, setFading] = useState(false);
   const [name, setName] = useState('');
   const [stickyText, setStickyText] = useState('');
@@ -107,6 +120,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   const ctaLabel =
+    step === 0 ? 'Done' :
     step === 1 ? "Let's go" :
     step === 4 ? 'Done' :
     step === 5 ? 'Start using Planisa' :
@@ -155,6 +169,40 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             fading && 'opacity-0'
           )}
         >
+          {step === 0 && (
+            <>
+              <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
+                Add Planisa to your home screen
+              </h1>
+              <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
+                For the best experience, install Planisa as an app on your device.
+              </p>
+              <div className="w-full mt-3 bg-secondary rounded-2xl px-4 py-4 flex items-start gap-3">
+                {deviceType === 'ios' && (
+                  <>
+                    <Share className="w-5 h-5 text-foreground/60 flex-shrink-0 mt-0.5" />
+                    <p className="text-[14px] text-foreground/80 leading-relaxed">
+                      Tap the share icon at the bottom of your browser, then tap <span className="font-medium">Add to Home Screen</span>.
+                    </p>
+                  </>
+                )}
+                {deviceType === 'android' && (
+                  <>
+                    <MoreVertical className="w-5 h-5 text-foreground/60 flex-shrink-0 mt-0.5" />
+                    <p className="text-[14px] text-foreground/80 leading-relaxed">
+                      Tap the menu icon in the top right of your browser, then tap <span className="font-medium">Add to Home Screen</span>.
+                    </p>
+                  </>
+                )}
+                {deviceType === 'desktop' && (
+                  <p className="text-[14px] text-foreground/80 leading-relaxed">
+                    Click the install icon in your browser's address bar to install Planisa.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+
           {step === 1 && (
             <>
               <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
@@ -293,8 +341,17 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {ctaLabel}
         </button>
 
+        {step === 0 && (
+          <button
+            onClick={goNext}
+            className="-mt-2 text-sm text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+          >
+            Skip
+          </button>
+        )}
+
         <div className="flex items-center gap-2">
-          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(i => (
+          {Array.from({ length: totalSteps }, (_, i) => i + firstStep).map(i => (
             <div
               key={i}
               className={cn(
