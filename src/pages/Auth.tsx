@@ -76,9 +76,9 @@ export default function Auth() {
       {/* Card */}
       <div className="w-full max-w-sm bg-card rounded-3xl shadow-sm p-8 flex flex-col gap-6">
 
-        {/* Wordmark + tagline */}
+        {/* Logo + tagline */}
         <div className="flex flex-col items-center gap-1.5">
-          <h1 className="text-[26px] font-semibold tracking-tight text-foreground">Planisa</h1>
+          <img src="/Planisa logo.png" alt="Planisa" className="h-8 w-auto" />
           <p className="text-[15px] text-muted-foreground">
             {mode === 'signup' ? 'Start your 14-day free trial' : 'Sign in to continue'}
           </p>
