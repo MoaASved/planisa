@@ -20,6 +20,7 @@ import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpShe
 import { HabitsEditSheet, HabitRow } from '../components/modals/HabitsEditSheet';
 import { CalendarNoteCreateSheet } from '../components/modals/CalendarNoteCreateSheet';
 import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark } from 'lucide-react';
+import { OnboardingFlow } from '../components/onboarding/OnboardingFlow';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { CalendarEvent, Note } from '../types';
@@ -662,11 +663,15 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { settings, setHighlightTaskId, events, notes } = useAppStore();
 
+  // Show onboarding once — determined synchronously from auth metadata so there's no flash
+  const [showOnboarding] = useState(() => !user?.user_metadata?.onboarding_completed);
+
   const [activeTab, setActiveTabRaw] = useState('home');
   const [userName, setUserName] = useState('');
   const [brainDumpText, setBrainDumpText] = useState('');
   const [showNisaBubble, setShowNisaBubble] = useState(true);
   const [nisaDismissedToday, setNisaDismissedToday] = useState(false);
+  const [onboardingVisible, setOnboardingVisible] = useState(showOnboarding);
 
   // Focus items — loaded from Supabase
   const [focusItems, setFocusItems] = useState<FocusItem[]>([]);
@@ -977,8 +982,16 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const handleOnboardingComplete = (completedName: string) => {
+    setOnboardingVisible(false);
+    if (completedName) setUserName(completedName.split(' ')[0]);
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      {onboardingVisible && (
+        <OnboardingFlow onComplete={handleOnboardingComplete} />
+      )}
       <main className="pb-24">{renderView()}</main>
 
       <QuickCreateMenu
