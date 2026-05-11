@@ -950,6 +950,18 @@ const Dashboard: React.FC = () => {
     const elapsed = (Date.now() - new Date(userRecord.trial_start_date).getTime()) / (1000 * 60 * 60 * 24);
     const day = Math.floor(elapsed);
 
+    if (day === 1) {
+      const key = `trial_d1_seen_${user.id}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        const firstName = ((user.user_metadata?.display_name as string | undefined) || user.email || 'there')
+          .split(' ')[0].split('@')[0];
+        setTrialNisaMessage(
+          `Hey ${firstName}! Great to have you here. Take a look around and explore, there's lots to discover. Tasks, notes, sticky notes, notebooks and your calendar are all waiting for you!`
+        );
+      }
+    }
+
     if (day === 2) {
       const key = `trial_d2_seen_${user.id}`;
       if (!localStorage.getItem(key)) {
