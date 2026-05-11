@@ -130,6 +130,15 @@ export default function Auth() {
           )}
         </div>
       </div>
+
+      <a
+        href="https://planisa.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-6 text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+      >
+        Learn more at planisa.app
+      </a>
     </div>
   );
 }
