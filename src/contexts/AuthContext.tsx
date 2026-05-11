@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-export type SubscriptionStatus = 'trialing' | 'active' | 'expired' | string;
+export type SubscriptionStatus = 'trialing' | 'active' | 'expired' | 'lifetime' | 'beta' | string;
 
 export interface UserRecord {
   id: string;
@@ -25,14 +25,21 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const TRIAL_DAYS = 14;
+const BETA_DAYS = 30;
 
 function computeFullAccess(record: UserRecord | null): boolean {
   if (!record) return false;
   if (record.subscription_status === 'active') return true;
+  if (record.subscription_status === 'lifetime') return true;
   if (record.subscription_status === 'trialing') {
     const start = new Date(record.trial_start_date).getTime();
     const elapsedDays = (Date.now() - start) / (1000 * 60 * 60 * 24);
     return elapsedDays <= TRIAL_DAYS;
+  }
+  if (record.subscription_status === 'beta') {
+    const start = new Date(record.trial_start_date).getTime();
+    const elapsedDays = (Date.now() - start) / (1000 * 60 * 60 * 24);
+    return elapsedDays <= BETA_DAYS;
   }
   return false;
 }

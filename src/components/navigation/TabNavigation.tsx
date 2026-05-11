@@ -1,4 +1,4 @@
-import { Home, Calendar, CheckSquare, FileText, Plus } from 'lucide-react';
+import { Home, Calendar, CheckSquare, FileText, Plus, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useHaptics } from '@/hooks/useHaptics';
 
@@ -7,6 +7,7 @@ interface TabNavigationProps {
   onTabChange: (tab: string) => void;
   onPlusClick: () => void;
   isPlusActive?: boolean;
+  lockedTabs?: string[];
 }
 
 const tabs = [
@@ -17,14 +18,15 @@ const tabs = [
   { id: 'notes', label: 'Notes', icon: FileText },
 ];
 
-export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive }: TabNavigationProps) {
+export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActive, lockedTabs = [] }: TabNavigationProps) {
   const haptics = useHaptics();
   return (
     <nav className="flow-nav-floating" role="navigation" aria-label="Main navigation">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
-        
+        const isLocked = lockedTabs.includes(tab.id);
+
         if (tab.isCenter) {
           return (
             <button
@@ -44,7 +46,7 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
             </button>
           );
         }
-        
+
         return (
           <button
             key={tab.id}
@@ -53,13 +55,16 @@ export function TabNavigation({ activeTab, onTabChange, onPlusClick, isPlusActiv
               onTabChange(tab.id);
             }}
             className={cn(
-              'flow-nav-icon transition-all duration-200 active:scale-90',
+              'flow-nav-icon transition-all duration-200 active:scale-90 relative',
               isActive && 'flow-nav-icon-active'
             )}
             aria-label={tab.label}
             aria-current={isActive ? 'page' : undefined}
           >
-            <Icon className="w-[22px] h-[22px]" />
+            <Icon className={cn('w-[22px] h-[22px]', isLocked && 'opacity-40')} />
+            {isLocked && (
+              <Lock className="absolute -top-0.5 -right-0.5 w-3 h-3 text-muted-foreground" />
+            )}
           </button>
         );
       })}

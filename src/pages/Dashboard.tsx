@@ -19,8 +19,9 @@ import { BrainDumpSortModal, BrainDumpSortType } from '../components/modals/Brai
 import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpSheet';
 import { HabitsEditSheet, HabitRow } from '../components/modals/HabitsEditSheet';
 import { CalendarNoteCreateSheet } from '../components/modals/CalendarNoteCreateSheet';
-import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark } from 'lucide-react';
+import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark, Lock } from 'lucide-react';
 import { OnboardingFlow } from '../components/onboarding/OnboardingFlow';
+import { TrialReminderModal } from '../components/modals/TrialReminderModal';
 import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { CalendarEvent, Note } from '../types';
@@ -137,6 +138,30 @@ function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
   );
 }
 
+// ─── UpgradePrompt component ──────────────────────────────────────────────────
+
+function UpgradePrompt({ onGoToProfile }: { onGoToProfile: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-8 pt-24 pb-32 gap-5 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center">
+        <Lock className="w-7 h-7 text-muted-foreground" />
+      </div>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold text-foreground">Your trial has ended</h2>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Subscribe to Planisa to unlock Tasks, Notes, and all features.
+        </p>
+      </div>
+      <button
+        onClick={onGoToProfile}
+        className="mt-2 px-6 py-3.5 rounded-2xl bg-foreground text-background text-[15px] font-semibold active:scale-[0.98] transition-transform"
+      >
+        View plans
+      </button>
+    </div>
+  );
+}
+
 // ─── DashboardHome component ──────────────────────────────────────────────────
 
 interface DashboardHomeProps {
@@ -165,6 +190,8 @@ interface DashboardHomeProps {
   onAddHabit: (name: string) => void;
   onUpdateHabit: (id: string, name: string) => void;
   onDeleteHabit: (id: string) => void;
+  trialNisaMessage?: string | null;
+  onTrialUpgrade?: (() => void) | null;
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -193,6 +220,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onAddHabit,
   onUpdateHabit,
   onDeleteHabit,
+  trialNisaMessage,
+  onTrialUpgrade,
 }) => {
   const { tasks } = useAppStore();
 
@@ -263,6 +292,12 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     nisaMessage = "Still time to knock out your focus items before the day ends 🌙";
   } else {
     nisaMessage = `You're all set for today, ${userName}. Let's make it count! 🌟`;
+  }
+
+  // Override with trial reminder when set (takes priority over all other messages)
+  if (trialNisaMessage) {
+    nisaMessage = trialNisaMessage;
+    nisaAction = onTrialUpgrade ?? null;
   }
 
   // Brain dump sheet + sort modal state
@@ -602,7 +637,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                       onClick={() => { onCloseNisaBubble(); nisaAction!(); }}
                       className="text-xs text-primary font-medium hover:opacity-80 transition-opacity"
                     >
-                      Sort now →
+                      {trialNisaMessage ? 'Upgrade →' : 'Sort now →'}
                     </button>
                   )}
                   <button
@@ -660,8 +695,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 // ─── Dashboard (root) ─────────────────────────────────────────────────────────
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasFullAccess, userRecord } = useAuth();
   const { settings, setHighlightTaskId, events, notes } = useAppStore();
+  console.log('[Dashboard] mounted/rendered — userRecord:', userRecord, '| user:', user?.id ?? null);
 
   // Show onboarding once — determined synchronously from auth metadata so there's no flash
   const [showOnboarding] = useState(() => !user?.user_metadata?.onboarding_completed);
@@ -704,6 +740,10 @@ const Dashboard: React.FC = () => {
   const [showCalendarTaskCreate, setShowCalendarTaskCreate] = useState(false);
 
   const setActiveTab = (tab: string) => setActiveTabRaw(tab);
+
+  // Trial reminder state
+  const [trialNisaMessage, setTrialNisaMessage] = useState<string | null>(null);
+  const [showTrialModal, setShowTrialModal] = useState(false);
 
   // ── Load focus items for today ──────────────────────────────────────────────
   const todayDate = new Date().toISOString().split('T')[0];
@@ -905,6 +945,31 @@ const Dashboard: React.FC = () => {
     loadCompletions();
   }, [user, settings.name]);
 
+  // ── Trial reminders ────────────────────────────────────────────────────────
+  useEffect(() => {
+    console.log('[Trial] useEffect fired — userRecord:', userRecord, '| user:', user?.id ?? null);
+    if (!userRecord || userRecord.subscription_status !== 'trialing' || !user) return;
+    const elapsed = (Date.now() - new Date(userRecord.trial_start_date).getTime()) / (1000 * 60 * 60 * 24);
+    const day = Math.floor(elapsed);
+    console.log('[Trial] trial_start_date:', userRecord.trial_start_date, '| elapsedDays:', elapsed, '| day:', day);
+
+    if (day === 10) {
+      const key = `trial_d10_seen_${user.id}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        setTrialNisaMessage('Your trial ends in 4 days. Upgrade to keep full access to Tasks and Notes.');
+      }
+    }
+
+    if (elapsed >= 13) {
+      const key = `trial_d13_seen_${user.id}`;
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1');
+        setShowTrialModal(true);
+      }
+    }
+  }, [userRecord, user]);
+
   // Scroll to top on tab change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -949,6 +1014,8 @@ const Dashboard: React.FC = () => {
             onAddHabit={addHabit}
             onUpdateHabit={updateHabit}
             onDeleteHabit={deleteHabit}
+            trialNisaMessage={trialNisaMessage}
+            onTrialUpgrade={() => setActiveTab('profile')}
           />
         );
       case 'calendar':
@@ -959,6 +1026,7 @@ const Dashboard: React.FC = () => {
           />
         );
       case 'tasks':
+        if (!hasFullAccess) return <UpgradePrompt onGoToProfile={() => setActiveTab('profile')} />;
         return (
           <TasksView
             isCreatingNewTask={isCreatingNewTask}
@@ -968,6 +1036,7 @@ const Dashboard: React.FC = () => {
           />
         );
       case 'notes':
+        if (!hasFullAccess) return <UpgradePrompt onGoToProfile={() => setActiveTab('profile')} />;
         return (
           <NotesView
             isCreatingNew={isCreatingNewNote}
@@ -1061,8 +1130,15 @@ const Dashboard: React.FC = () => {
           onTabChange={setActiveTab}
           onPlusClick={() => setShowQuickCreate(v => !v)}
           isPlusActive={showQuickCreate}
+          lockedTabs={hasFullAccess ? [] : ['tasks', 'notes']}
         />
       )}
+
+      <TrialReminderModal
+        isOpen={showTrialModal}
+        onUpgrade={() => { setShowTrialModal(false); setActiveTab('profile'); }}
+        onDismiss={() => setShowTrialModal(false)}
+      />
     </div>
   );
 };
