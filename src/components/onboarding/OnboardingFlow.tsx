@@ -242,12 +242,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {step === 5 && (
             <>
               <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
-                You're all set!
+                {displayName ? `You're all set, ${displayName}!` : "You're all set!"}
               </h1>
               <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
-                {displayName
-                  ? `You're all set, ${displayName}! I'll be here if you need me.`
-                  : "You're all set! I'll be here if you need me."}
+                I'll be here if you need me.
               </p>
             </>
           )}
