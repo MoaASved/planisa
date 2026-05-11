@@ -633,6 +633,17 @@ export function ProfileView() {
           Sign Out
         </button>
 
+        {/* DEV ONLY — remove before launch */}
+        <button
+          onClick={async () => {
+            await supabase.auth.updateUser({ data: { onboarding_completed: false } });
+            window.location.reload();
+          }}
+          className="w-full p-3 rounded-2xl border border-dashed border-muted-foreground/30 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+        >
+          Reset onboarding (dev only)
+        </button>
+
         <p className="text-center text-sm text-muted-foreground">Planisa v1.0.0</p>
       </div>
 
