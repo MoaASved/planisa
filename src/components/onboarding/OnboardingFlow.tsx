@@ -30,12 +30,12 @@ function NisaImage({ step, fading }: { step: number; fading: boolean }) {
     <img
       src="/nisa.png"
       alt="NISA"
-      className={cn('transition-opacity duration-200', fading && 'opacity-0')}
+      className={cn('transition-opacity duration-200 flex-shrink-0', fading && 'opacity-0')}
       style={{
-        width: 130,
-        height: 130,
+        width: 120,
+        height: 120,
         objectFit: 'contain',
-        borderRadius: 22,
+        borderRadius: 20,
         boxShadow: '0 10px 36px rgba(0,0,0,0.13)',
         transform: `rotate(${rotateMap[step]})`,
         animation: `${animMap[step]} 2.6s ease-in-out infinite`,
@@ -137,121 +137,130 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         }
       `}</style>
 
-      {/* Top safe area spacer */}
-      <div className="pt-safe h-16 flex-shrink-0" />
-
-      {/* NISA */}
-      <div className="flex-shrink-0 mt-4">
-        <NisaImage step={step} fading={fading} />
-      </div>
-
-      {/* Content area */}
-      <div
-        className={cn(
-          'flex-1 flex flex-col items-center px-8 pt-10 w-full max-w-sm transition-opacity duration-200',
-          fading && 'opacity-0'
-        )}
+      {/* Vertically centered main body */}
+      <div className="flex-1 w-full max-w-sm flex flex-col items-center justify-center px-8 gap-8"
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
-        {step === 1 && (
-          <>
-            <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
-              Welcome to Planisa
-            </h1>
-            <p className="mt-3 text-[15px] text-center text-muted-foreground leading-relaxed">
-              Hey! I'm NISA, I'll help you stay on top of everything. Let's get you set up.
-            </p>
-          </>
-        )}
+        <NisaImage step={step} fading={fading} />
 
-        {step === 2 && (
-          <>
-            <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
-              Everything in one place
-            </h1>
-            <p className="mt-3 text-[15px] text-center text-muted-foreground leading-relaxed">
-              Planisa is your space for tasks, notes, and calendar — all in one place. Powerful but never overwhelming.
-            </p>
-            <div className="flex items-start gap-8 mt-8">
-              {[
-                { icon: CheckSquare, label: 'Tasks' },
-                { icon: FileText, label: 'Notes' },
-                { icon: Calendar, label: 'Calendar' },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-[14px] bg-secondary flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-foreground/70" />
+        {/* Step content */}
+        <div
+          className={cn(
+            'w-full flex flex-col items-center gap-3 transition-opacity duration-200',
+            fading && 'opacity-0'
+          )}
+        >
+          {step === 1 && (
+            <>
+              <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
+                Welcome to Planisa
+              </h1>
+              <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
+                Hey! I'm NISA, I'll help you stay on top of everything. Let's get you set up.
+              </p>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
+                Everything in one place
+              </h1>
+              <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
+                Planisa is your space for tasks, notes, and calendar, all in one place. Powerful but never overwhelming.
+              </p>
+              <div className="flex items-start gap-8 mt-4">
+                {[
+                  { icon: CheckSquare, label: 'Tasks' },
+                  { icon: FileText, label: 'Notes' },
+                  { icon: Calendar, label: 'Calendar' },
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex flex-col items-center gap-2">
+                    <div className="w-12 h-12 rounded-[14px] bg-secondary flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-foreground/70" />
+                    </div>
+                    <span className="text-xs text-muted-foreground">{label}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">{label}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+                ))}
+              </div>
+            </>
+          )}
 
-        {step === 3 && (
-          <>
-            <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
-              First things first
-            </h1>
-            <p className="mt-3 text-[15px] text-center text-muted-foreground leading-relaxed">
-              What should I call you?
-            </p>
-            <input
-              ref={nameRef}
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && goNext()}
-              placeholder="Your name"
-              className="w-full mt-6 px-4 py-3.5 rounded-2xl bg-secondary border-0 text-foreground placeholder:text-muted-foreground/40 text-[15px] outline-none focus:ring-2 focus:ring-foreground/10 transition-shadow"
-            />
-          </>
-        )}
-
-        {step === 4 && (
-          <>
-            <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
-              Let's create something
-            </h1>
-            <p className="mt-3 text-[15px] text-center text-muted-foreground leading-relaxed">
-              Create your first sticky note. Add anything — a thought, a reminder, something you don't want to forget.
-            </p>
-            <div
-              className="w-full mt-6 rounded-2xl p-4"
-              style={{ background: 'hsl(var(--pastel-peach) / 0.3)', minHeight: 120 }}
-            >
-              <textarea
-                ref={stickyRef}
-                value={stickyText}
-                onChange={e => setStickyText(e.target.value)}
-                placeholder="Write something..."
-                rows={4}
-                className="w-full bg-transparent border-0 outline-none resize-none text-[15px] text-foreground placeholder:text-foreground/35 leading-relaxed"
+          {step === 3 && (
+            <>
+              <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
+                First things first
+              </h1>
+              <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
+                What should I call you?
+              </p>
+              <input
+                ref={nameRef}
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && goNext()}
+                placeholder="Your name"
+                className="w-full mt-3 px-4 py-3.5 rounded-2xl bg-secondary border-0 text-foreground placeholder:text-muted-foreground/40 text-[15px] outline-none focus:ring-2 focus:ring-foreground/10 transition-shadow"
               />
-            </div>
-          </>
-        )}
+            </>
+          )}
 
-        {step === 5 && (
-          <>
-            <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
-              You're all set!
-            </h1>
-            <p className="mt-3 text-[15px] text-center text-muted-foreground leading-relaxed">
-              {displayName
-                ? `You're all set, ${displayName}! I'll be here if you need me.`
-                : "You're all set! I'll be here if you need me."}
-            </p>
-          </>
-        )}
+          {step === 4 && (
+            <>
+              <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
+                Let's create something
+              </h1>
+              <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
+                Create your first sticky note.<br />
+                Add anything, a thought, a reminder, something you don't want to forget.
+              </p>
+              {/* Sticky note matching the app's StickyNoteCard design */}
+              <div
+                className="w-full mt-3 rounded-2xl p-4 relative overflow-hidden"
+                style={{
+                  background: 'hsl(var(--pastel-peach))',
+                  boxShadow: '2px 3px 8px rgba(0,0,0,0.08)',
+                  minHeight: 120,
+                }}
+              >
+                {/* Folded corner — same as StickyNoteCard */}
+                <div className="absolute top-0 right-0 w-6 h-6 bg-gradient-to-br from-white/30 to-transparent rounded-bl-xl" />
+                <div className="absolute top-0 right-0 w-0 h-0 border-l-[12px] border-l-transparent border-t-[12px] border-t-black/5" />
+                <textarea
+                  ref={stickyRef}
+                  value={stickyText}
+                  onChange={e => setStickyText(e.target.value)}
+                  placeholder="Write something..."
+                  rows={4}
+                  className="w-full bg-transparent border-0 outline-none resize-none text-[15px] text-[#2C2C2A] placeholder:text-[#2C2C2A]/35 leading-relaxed font-medium"
+                />
+              </div>
+            </>
+          )}
+
+          {step === 5 && (
+            <>
+              <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
+                You're all set!
+              </h1>
+              <p className="text-[15px] text-center text-muted-foreground leading-relaxed">
+                {displayName
+                  ? `You're all set, ${displayName}! I'll be here if you need me.`
+                  : "You're all set! I'll be here if you need me."}
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* CTA + dots */}
+      {/* CTA + dots — always pinned at bottom */}
       <div
         className={cn(
-          'w-full max-w-sm px-8 flex flex-col items-center gap-5 pb-safe mb-10 flex-shrink-0 transition-opacity duration-200',
+          'w-full max-w-sm px-8 flex flex-col items-center gap-5 flex-shrink-0 transition-opacity duration-200',
           fading && 'opacity-0'
         )}
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 32px)', marginBottom: 8 }}
       >
         <button
           onClick={goNext}

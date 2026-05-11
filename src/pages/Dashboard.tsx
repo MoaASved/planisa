@@ -1055,12 +1055,14 @@ const Dashboard: React.FC = () => {
         onConfirm={handleFocusConfirm}
       />
 
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onPlusClick={() => setShowQuickCreate(v => !v)}
-        isPlusActive={showQuickCreate}
-      />
+      {!onboardingVisible && (
+        <TabNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onPlusClick={() => setShowQuickCreate(v => !v)}
+          isPlusActive={showQuickCreate}
+        />
+      )}
     </div>
   );
 };
