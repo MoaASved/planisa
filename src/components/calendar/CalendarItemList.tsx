@@ -629,7 +629,7 @@ export function CalendarItemList({
   const formattedDate = format(date, 'MMMM d');
 
   return (
-    <div className="flex flex-col h-full bg-background dark:bg-card pt-4">
+    <div className="flex flex-col h-full bg-background pt-4">
       {/* White card lifts from the beige background */}
       <div
         className="flex flex-col flex-grow min-h-0"
@@ -742,10 +742,10 @@ export function CalendarItemList({
                   className="absolute w-full flex"
                   style={{ top: hour * HOUR_HEIGHT }}
                 >
-                  <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/35 text-right pr-3 -mt-2 font-light">
+                  <div className="w-12 flex-shrink-0 text-[10px] text-muted-foreground/35 dark:text-muted-foreground text-right pr-3 -mt-2 font-light">
                     {format(new Date().setHours(hour, 0), 'HH:mm')}
                   </div>
-                  <div className="flex-1 border-t border-foreground/[0.06]" />
+                  <div className="flex-1 border-t border-foreground/[0.06] dark:border-border" />
                 </div>
               ))}
 
