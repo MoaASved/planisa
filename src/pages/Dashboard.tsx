@@ -1077,7 +1077,7 @@ const Dashboard: React.FC = () => {
       {onboardingVisible && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
-      <main className={`pb-24${activeTab === 'calendar' ? ' dark:bg-[#1C1A18]' : ''}`}>{renderView()}</main>
+      <main className={`pb-24${activeTab === 'calendar' ? ' bg-background dark:bg-[#1C1A18]' : ''}`}>{renderView()}</main>
 
       <QuickCreateMenu
         isOpen={showQuickCreate}
