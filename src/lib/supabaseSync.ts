@@ -73,15 +73,16 @@ export function subtaskToRow(s: Subtask, taskId: string, userId: string, orderIn
 
 // ────────────── TASK LISTS ──────────────
 export function rowToTaskCategory(row: Row): TaskCategory {
+  const isDefault = row.title === 'Unsorted' || row.title === 'No list';
   return {
     id: row.id,
-    name: row.title,
+    name: isDefault ? 'Unsorted' : row.title,
     color: (asColor(row.color) ?? 'peony') as PastelColor,
     pinned: !!row.pinned,
     sortMode: (row.sort_mode ?? 'manual') as TaskCategory['sortMode'],
     order: row.order_index ?? 0,
     showCompleted: !!row.show_completed,
-    isDefault: row.title === 'Unsorted' || row.title === 'No list',
+    isDefault,
   };
 }
 export function taskCategoryToRow(c: Partial<TaskCategory>, userId: string): Row {
