@@ -41,6 +41,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
   const [smartView, setSmartView] = useState<SmartView>(null);
   const [showCreateList, setShowCreateList] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [addTaskListId, setAddTaskListId] = useState<string | undefined>(undefined);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
@@ -49,6 +50,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
 
   useEffect(() => {
     if (isCreatingNewTask) {
+      setAddTaskListId(selectedList?.id);
       setShowAddTask(true);
       onCreatingTaskComplete?.();
     }
@@ -239,7 +241,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
       </div>
 
       <CreateListModal isOpen={showCreateList} onClose={() => setShowCreateList(false)} />
-      <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} />
+      <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} defaultListId={addTaskListId} />
     </div>
   );
 }

@@ -1047,9 +1047,8 @@ const Dashboard: React.FC = () => {
         return (
           <TasksView
             isCreatingNewTask={isCreatingNewTask}
-            setIsCreatingNewTask={setIsCreatingNewTask}
+            onCreatingTaskComplete={() => setIsCreatingNewTask(false)}
             defaultTaskDate={defaultTaskDate}
-            setDefaultTaskDate={setDefaultTaskDate}
           />
         );
       case 'notes':
