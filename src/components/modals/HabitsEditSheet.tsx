@@ -68,7 +68,7 @@ export function HabitsEditSheet({ isOpen, habits, onClose, onAdd, onUpdate, onDe
         <div className="flex-1 overflow-y-auto px-5 space-y-2 pb-4">
           {habits.map((habit) => (
             <div key={habit.id} className="flex items-center gap-3 bg-secondary rounded-2xl px-4 py-3">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: habit.color }} />
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 bg-foreground/50" />
               <input
                 type="text"
                 defaultValue={habit.name}
