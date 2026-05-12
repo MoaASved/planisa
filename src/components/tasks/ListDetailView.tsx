@@ -46,6 +46,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     pinTaskCategory,
     unpinTaskCategory,
     taskSections,
+    taskCategories,
     addTaskSection,
     deleteTaskSection,
     updateTaskSection,
@@ -166,15 +167,19 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   const mainCompleted = sortTasks(isVirtualList ? completed : completed.filter((t) => !t.sectionId));
 
   const handleCreate = (title: string, sectionId?: string) => {
+    // Virtual list IDs (e.g. '__priority') are not real UUIDs — resolve to a real list
+    const targetList = isVirtualList
+      ? (taskCategories.find((c) => c.isDefault) ?? taskCategories.find((c) => !c.isDefault))
+      : category;
     addTask({
       title,
       completed: false,
-      category: category.name,
-      color: category.color,
+      category: targetList?.name ?? '',
+      color: targetList?.color ?? 'stone',
       subtasks: [],
       priority: 'none',
       sectionId,
-      listId: category.id,
+      listId: targetList?.id,
       // Seconds-since-epoch fits in int4; large enough to keep insertion order monotonic
       order: Math.floor(Date.now() / 1000),
     });
