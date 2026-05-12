@@ -177,7 +177,8 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
       category: targetList?.name ?? '',
       color: targetList?.color ?? 'stone',
       subtasks: [],
-      priority: 'none',
+      priority: category.id === '__priority' ? 'medium' : 'none',
+      date: category.id === '__today' ? new Date() : undefined,
       sectionId,
       listId: targetList?.id,
       // Seconds-since-epoch fits in int4; large enough to keep insertion order monotonic
