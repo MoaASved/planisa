@@ -97,12 +97,15 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
              (liveCategory.isDefault && !t.listId),
     );
     return (
-      <ListDetailView
-        category={liveCategory}
-        tasks={listTasks}
-        onBack={() => setSelectedList(null)}
-        highlightTaskId={highlightTaskId ?? undefined}
-      />
+      <>
+        <ListDetailView
+          category={liveCategory}
+          tasks={listTasks}
+          onBack={() => setSelectedList(null)}
+          highlightTaskId={highlightTaskId ?? undefined}
+        />
+        <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} defaultListId={addTaskListId} />
+      </>
     );
   }
 
@@ -122,11 +125,14 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
           );
 
     return (
-      <ListDetailView
-        category={virtual}
-        tasks={filtered}
-        onBack={() => setSmartView(null)}
-      />
+      <>
+        <ListDetailView
+          category={virtual}
+          tasks={filtered}
+          onBack={() => setSmartView(null)}
+        />
+        <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} defaultListId={addTaskListId} />
+      </>
     );
   }
 
