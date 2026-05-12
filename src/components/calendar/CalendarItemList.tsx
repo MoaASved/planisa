@@ -713,15 +713,12 @@ export function CalendarItemList({
             {allDayItems.length > 0 && (
               <button
                 onClick={() => setAllDayExpanded(v => !v)}
-                className="absolute top-2 right-3 z-40 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95"
-                style={{
-                  background: '#1C1C1E',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
-                }}
+                className="absolute top-2 right-3 z-40 flex items-center gap-0.5 h-7 px-2 rounded-full transition-all active:scale-95 bg-[#1C1C1E] dark:bg-muted"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.22)' }}
               >
-                <span className="text-[12px] font-semibold text-white tabular-nums leading-none">{allDayItems.length}</span>
+                <span className="text-[12px] font-semibold text-white dark:text-foreground tabular-nums leading-none">{allDayItems.length}</span>
                 <ChevronDown
-                  className={cn('w-3 h-3 text-white/80 transition-transform duration-200', allDayExpanded && 'rotate-180')}
+                  className={cn('w-3 h-3 text-white/80 dark:text-foreground transition-transform duration-200', allDayExpanded && 'rotate-180')}
                 />
               </button>
             )}
