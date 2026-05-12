@@ -81,7 +81,7 @@ export function rowToTaskCategory(row: Row): TaskCategory {
     sortMode: (row.sort_mode ?? 'manual') as TaskCategory['sortMode'],
     order: row.order_index ?? 0,
     showCompleted: !!row.show_completed,
-    isDefault: row.title === 'No list',
+    isDefault: row.title === 'Unsorted' || row.title === 'No list',
   };
 }
 export function taskCategoryToRow(c: Partial<TaskCategory>, userId: string): Row {

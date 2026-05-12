@@ -15,6 +15,7 @@ interface CreateListModalProps {
 export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalProps) {
   const { addTaskCategory, updateTaskCategory, taskCategories } = useAppStore();
   const editing = editingId ? taskCategories.find((c) => c.id === editingId) : undefined;
+  const isDefault = editing?.isDefault ?? false;
   const [name, setName] = useState('');
   const [color, setColor] = useState<PastelColor>('peony');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -23,18 +24,18 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
     if (isOpen) {
       setName(editing?.name ?? '');
       setColor(editing?.color ?? 'peony');
-      setTimeout(() => inputRef.current?.focus(), 80);
+      if (!isDefault) setTimeout(() => inputRef.current?.focus(), 80);
     }
   }, [isOpen, editing]);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
     if (editing) {
-      updateTaskCategory(editing.id, { name: trimmed, color });
+      updateTaskCategory(editing.id, { name: isDefault ? editing.name : name.trim(), color });
     } else {
+      const trimmed = name.trim();
+      if (!trimmed) return;
       addTaskCategory({ name: trimmed, color, sortMode: 'manual' });
     }
     onClose();
@@ -57,7 +58,7 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="flow-modal-title">
-              {editing ? 'Edit list' : 'New list'}
+              {isDefault ? 'Unsorted' : editing ? 'Edit list' : 'New list'}
             </h2>
             <button
               onClick={onClose}
@@ -67,15 +68,17 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
             </button>
           </div>
 
-          <input
-            ref={inputRef}
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-            placeholder="List name"
-            className="w-full bg-secondary border-0 rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 mb-4"
-          />
+          {!isDefault && (
+            <input
+              ref={inputRef}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              placeholder="List name"
+              className="w-full bg-secondary border-0 rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/20 mb-4"
+            />
+          )}
 
           <p className="flow-label mb-2.5 px-1">Color</p>
           <div className="grid grid-cols-6 gap-2.5 mb-5">
@@ -97,7 +100,7 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
 
           <button
             onClick={handleSave}
-            disabled={!name.trim()}
+            disabled={!isDefault && !name.trim()}
             className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-medium disabled:opacity-40 transition-opacity"
           >
             {editing ? 'Save' : 'Create list'}

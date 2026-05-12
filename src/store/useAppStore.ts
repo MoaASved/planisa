@@ -588,7 +588,7 @@ export const useAppStore = create<AppState>()((set, get) => {
         const categories = (listsR.data ?? []).map(rowToTaskCategory);
         if (!categories.some((c) => c.isDefault)) {
           const defaultList: TaskCategory = {
-            id: newId(), name: 'No list', color: 'stone', order: 9999, isDefault: true,
+            id: newId(), name: 'Unsorted', color: 'stone', order: 9999, isDefault: true,
           };
           (supabase.from('task_lists') as any)
             .insert(taskCategoryToRow(defaultList, userId))
