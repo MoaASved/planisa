@@ -86,7 +86,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
       endTimeManual.current = false;
       setCompleted(false);
       setPriority(false);
-      setListId(defaultListId ?? taskCategories[0]?.id ?? '');
+      setListId(defaultListId ?? taskCategories.find((c) => !c.isDefault)?.id ?? taskCategories[0]?.id ?? '');
       setSubs([]);
     }
     setNewSub('');
@@ -117,7 +117,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
     if (!editing) return;
     const trimmed = title.trim();
     if (!trimmed) return;
-    const cat = taskCategories.find((c) => c.id === listId);
+    const cat = taskCategories.find((c) => c.id === listId) ?? taskCategories.find((c) => c.isDefault);
     updateTask(editing.id, {
       title: trimmed,
       completed,
@@ -145,7 +145,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
     cancelAutoSave();
     const trimmed = title.trim();
     if (!trimmed) return;
-    const cat = taskCategories.find((c) => c.id === listId);
+    const cat = taskCategories.find((c) => c.id === listId) ?? taskCategories.find((c) => c.isDefault);
     const payload: Omit<Task, 'id' | 'createdAt'> = {
       title: trimmed,
       completed,

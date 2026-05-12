@@ -324,17 +324,21 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                     )} />
                   </div>
                 </button>
-                <div className="h-px bg-border/40" />
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    deleteTaskCategory(category.id);
-                    onBack();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 text-left"
-                >
-                  <Trash2 className="w-4 h-4" /> Delete list
-                </button>
+                {!category.isDefault && (
+                  <>
+                    <div className="h-px bg-border/40" />
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        deleteTaskCategory(category.id);
+                        onBack();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 text-left"
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete list
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </button>

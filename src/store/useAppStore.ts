@@ -420,6 +420,7 @@ export const useAppStore = create<AppState>()((set, get) => {
       });
     },
     deleteTaskCategory: (id) => {
+      if (get().taskCategories.find((c) => c.id === id)?.isDefault) return;
       set((s) => ({ taskCategories: s.taskCategories.filter((c) => c.id !== id) }));
       (supabase.from('task_lists') as any).delete().eq('id', id).then(swallow('deleteTaskCategory'));
     },
@@ -580,7 +581,19 @@ export const useAppStore = create<AppState>()((set, get) => {
       const subs = subsR.data ?? [];
       const update: Record<string, any> = {};
       if (!tasksR.error) update.tasks = (tasksR.data ?? []).map((r: any) => rowToTask(r, subs));
-      if (!listsR.error) update.taskCategories = (listsR.data ?? []).map(rowToTaskCategory);
+      if (!listsR.error) {
+        const categories = (listsR.data ?? []).map(rowToTaskCategory);
+        if (!categories.some((c) => c.isDefault)) {
+          const defaultList: TaskCategory = {
+            id: newId(), name: 'No list', color: 'stone', order: 9999, isDefault: true,
+          };
+          (supabase.from('task_lists') as any)
+            .insert(taskCategoryToRow(defaultList, userId))
+            .then(() => {});
+          categories.push(defaultList);
+        }
+        update.taskCategories = categories;
+      }
       if (!sectionsR.error) update.taskSections = (sectionsR.data ?? []).map(rowToTaskSection);
       if (!eventsR.error) update.events = (eventsR.data ?? []).map(rowToEvent);
       if (!calCatsR.error) update.eventCategories = (calCatsR.data ?? []).map(rowToEventCategory);

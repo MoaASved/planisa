@@ -6,6 +6,7 @@ import { Task, TaskCategory } from '@/types';
 import { SmartListCard } from '../tasks/SmartListCard';
 
 import { SortableMyListRow } from '../tasks/SortableMyListRow';
+import { MyListRow } from '../tasks/MyListRow';
 import { ListDetailView } from '../tasks/ListDetailView';
 import { CreateListModal } from '../tasks/CreateListModal';
 import { AddTaskModal } from '../tasks/AddTaskModal';
@@ -79,16 +80,19 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
 
   const pinned = taskCategories.filter((c) => c.pinned).slice(0, 2);
 
-  const myLists = [...taskCategories].sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0),
-  );
+  const myLists = [...taskCategories]
+    .filter((c) => !c.isDefault)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const defaultList = taskCategories.find((c) => c.isDefault);
 
   // ── List detail view
   if (selectedList) {
     // Use the live store entry so settings (e.g. showCompleted) update reactively
     const liveCategory = taskCategories.find((c) => c.id === selectedList.id) ?? selectedList;
     const listTasks = visible.filter(
-      (t) => t.listId === liveCategory.id || (!t.listId && t.category === liveCategory.name),
+      (t) => t.listId === liveCategory.id ||
+             (!t.listId && t.category === liveCategory.name) ||
+             (liveCategory.isDefault && !t.listId),
     );
     return (
       <ListDetailView
@@ -163,7 +167,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
             <div key={slot.id} className="stagger-item">
               <SmartListCard
                 title={slot.name}
-                count={incomplete.filter((t) => t.listId === slot.id || (!t.listId && t.category === slot.name)).length}
+                count={incomplete.filter((t) => t.listId === slot.id || (!t.listId && t.category === slot.name) || (slot.isDefault && !t.listId)).length}
                 color={slot.color}
                 dotOnly
                 onClick={() => setSelectedList(slot)}
@@ -208,7 +212,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
                 </div>
               ))}
 
-              {myLists.length === 0 && (
+              {myLists.length === 0 && !defaultList && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <p className="text-sm text-muted-foreground mb-3">No lists yet</p>
                   <button
@@ -222,6 +226,16 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
             </div>
           </SortableContext>
         </DndContext>
+
+        {defaultList && (
+          <div className="mt-2">
+            <MyListRow
+              category={defaultList}
+              count={incomplete.filter((t) => !t.listId).length}
+              onClick={() => setSelectedList(defaultList)}
+            />
+          </div>
+        )}
       </div>
 
       <CreateListModal isOpen={showCreateList} onClose={() => setShowCreateList(false)} />

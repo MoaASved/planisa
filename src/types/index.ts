@@ -89,6 +89,7 @@ export interface TaskCategory {
   sortMode?: 'manual' | 'date' | 'created';
   order?: number;
   showCompleted?: boolean;
+  isDefault?: boolean;
 }
 
 export interface EventCategory {
