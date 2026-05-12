@@ -1073,11 +1073,11 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-background${activeTab === 'calendar' ? ' bg-[#F5F3F0] dark:bg-[#1C1A18]' : ''}`}>
+    <div className={`min-h-screen bg-background${activeTab === 'calendar' ? ' bg-white dark:bg-[#1C1A18]' : ''}`}>
       {onboardingVisible && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
-      <main className={`pb-24${activeTab === 'calendar' ? ' bg-[#F5F3F0] dark:bg-[#1C1A18]' : ''}`}>{renderView()}</main>
+      <main className={`pb-24${activeTab === 'calendar' ? ' bg-white dark:bg-[#1C1A18]' : ''}`}>{renderView()}</main>
 
       <QuickCreateMenu
         isOpen={showQuickCreate}
