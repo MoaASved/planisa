@@ -90,7 +90,11 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum-accent: 286 18% 57%;     /* Plum #9A7FA5 */
     --pastel-taupe-accent: 33 19% 58%;      /* Taupe #A89780 */
     --pastel-stone-accent: 40 21% 84%;     /* Stone #DEDAD1 */
-    
+
+    /* Smart list icon accents — palette-native hues, tuned for standalone icon contrast */
+    --smart-today: 96 36% 42%;      /* Fern-inspired green, hue between Fern(84) and Pistachio(113) */
+    --smart-priority: 36 88% 50%;   /* Honey-inspired amber, hue from Honey/Peach range */
+
     --shadow-soft: 0 1px 2px 0 hsl(30 10% 10% / 0.04);
     --shadow-card: 0 1px 2px 0 hsl(30 10% 10% / 0.04), 0 4px 12px -4px hsl(30 10% 10% / 0.06);
     --shadow-elevated: 0 2px 4px -1px hsl(30 10% 10% / 0.05), 0 12px 24px -6px hsl(30 10% 10% / 0.10);
@@ -177,6 +181,10 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum-accent: 273 38% 45%;
     --pastel-taupe-accent: 36 28% 42%;
     --pastel-stone-accent: 60 18% 45%;
+
+    /* Smart list icon accents — lighter for dark bg contrast */
+    --smart-today: 96 38% 60%;
+    --smart-priority: 36 82% 64%;
   }
 }
 

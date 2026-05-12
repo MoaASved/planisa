@@ -60,6 +60,8 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        'smart-today': 'hsl(var(--smart-today))',
+        'smart-priority': 'hsl(var(--smart-priority))',
         pastel: {
           fern: { DEFAULT: "hsl(var(--pastel-fern))", accent: "hsl(var(--pastel-fern-accent))" },
           pistachio: { DEFAULT: "hsl(var(--pastel-pistachio))", accent: "hsl(var(--pastel-pistachio-accent))" },

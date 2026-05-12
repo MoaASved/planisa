@@ -6,7 +6,7 @@ interface SmartListCardProps {
   title: string;
   count: number;
   icon?: LucideIcon;
-  color: PastelColor | 'amber-warm' | 'emerald' | 'primary';
+  color: PastelColor | 'amber-warm' | 'emerald' | 'smart-today' | 'smart-priority' | 'primary';
   onClick: () => void;
   empty?: boolean;
   emptyLabel?: string;
@@ -27,6 +27,8 @@ const colorMap: Record<string, { bg: string; text: string; dot: string; iconClas
   stone: { bg: 'bg-pastel-stone', text: 'text-pastel-taupe-accent', dot: 'bg-pastel-stone-accent' },
   'amber-warm': { bg: 'bg-amber-500/15', text: 'text-amber-500', dot: 'bg-amber-500', iconClass: 'fill-amber-500 text-amber-500' },
   emerald: { bg: 'bg-emerald-500/15', text: 'text-emerald-500', dot: 'bg-emerald-500' },
+  'smart-today': { bg: 'bg-smart-today/15', text: 'text-smart-today', dot: 'bg-smart-today' },
+  'smart-priority': { bg: 'bg-smart-priority/15', text: 'text-smart-priority', dot: 'bg-smart-priority', iconClass: 'fill-smart-priority text-smart-priority' },
   primary: { bg: 'bg-primary/10', text: 'text-primary', dot: 'bg-primary' },
 };
 
