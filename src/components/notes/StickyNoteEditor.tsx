@@ -160,10 +160,10 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
             onClick={handleTogglePin}
             className={cn(
               'p-2 rounded-xl transition-all active:scale-95',
-              isPinned ? 'bg-white/30' : 'bg-white/20'
+              isPinned ? 'bg-white/40' : 'bg-white/20'
             )}
           >
-            <Pin className="w-5 h-5" />
+            <Pin className={cn('w-5 h-5 transition-opacity', isPinned ? 'fill-current opacity-100' : 'opacity-40')} />
           </button>
           
           <button
