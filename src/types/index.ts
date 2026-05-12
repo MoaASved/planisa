@@ -30,6 +30,7 @@ export interface Task {
   note?: string;
   priority: Priority;
   createdAt: Date;
+  completedAt?: Date;
   order?: number;
   sectionId?: string;
   listId?: string;

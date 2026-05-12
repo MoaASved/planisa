@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { isToday } from 'date-fns';
 import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory, Task } from '@/types';
@@ -52,7 +53,10 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     reorderTaskSections,
   } = useAppStore();
 
-  const showCompleted = category.showCompleted ?? false;
+  const isVirtualList = category.id.startsWith('__');
+  // Smart lists use local state (default true) since virtual categories don't persist
+  const [smartShowCompleted, setSmartShowCompleted] = useState(true);
+  const showCompleted = isVirtualList ? smartShowCompleted : (category.showCompleted ?? false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
@@ -152,9 +156,12 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     [taskSections, category.id],
   );
 
-  const isVirtualList = category.id.startsWith('__');
   const incomplete = tasks.filter((t) => !t.completed);
-  const completed = tasks.filter((t) => t.completed);
+  const allCompleted = tasks.filter((t) => t.completed);
+  // Smart lists only show tasks completed today (they disappear at midnight)
+  const completed = isVirtualList
+    ? allCompleted.filter((t) => t.completedAt && isToday(t.completedAt))
+    : allCompleted;
   const mainTasks = sortTasks(isVirtualList ? incomplete : incomplete.filter((t) => !t.sectionId));
   const mainCompleted = sortTasks(isVirtualList ? completed : completed.filter((t) => !t.sectionId));
 
@@ -279,36 +286,43 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                 style={{ zIndex: 50 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                {!isVirtualList && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        setEditingList(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                    >
+                      <Pencil className="w-4 h-4 text-muted-foreground" /> Edit list
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        if (category.pinned) unpinTaskCategory(category.id);
+                        else pinTaskCategory(category.id);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                    >
+                      {category.pinned ? (
+                        <>
+                          <PinOff className="w-4 h-4 text-muted-foreground" /> Unpin
+                        </>
+                      ) : (
+                        <>
+                          <Pin className="w-4 h-4 text-muted-foreground" /> Pin to top
+                        </>
+                      )}
+                    </button>
+                    <div className="h-px bg-border/40" />
+                  </>
+                )}
                 <button
                   onClick={() => {
-                    setShowMenu(false);
-                    setEditingList(true);
+                    if (isVirtualList) setSmartShowCompleted((v) => !v);
+                    else updateTaskCategory(category.id, { showCompleted: !showCompleted });
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
-                >
-                  <Pencil className="w-4 h-4 text-muted-foreground" /> Edit list
-                </button>
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    if (category.pinned) unpinTaskCategory(category.id);
-                    else pinTaskCategory(category.id);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
-                >
-                  {category.pinned ? (
-                    <>
-                      <PinOff className="w-4 h-4 text-muted-foreground" /> Unpin
-                    </>
-                  ) : (
-                    <>
-                      <Pin className="w-4 h-4 text-muted-foreground" /> Pin to top
-                    </>
-                  )}
-                </button>
-                <div className="h-px bg-border/40" />
-                <button
-                  onClick={() => updateTaskCategory(category.id, { showCompleted: !showCompleted })}
                   className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-secondary text-left"
                 >
                   <span>Show completed tasks</span>
@@ -324,7 +338,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                     )} />
                   </div>
                 </button>
-                {!category.isDefault && (
+                {!isVirtualList && !category.isDefault && (
                   <>
                     <div className="h-px bg-border/40" />
                     <button
@@ -380,7 +394,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               highlight={task.id === highlightTaskId}
             />
           ))}
-          {showCompleted && mainCompleted.map((task) => (
+          {!isVirtualList && showCompleted && mainCompleted.map((task) => (
             <SortableTaskCell
               key={task.id}
               task={task}
@@ -397,7 +411,22 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
           />
         )}
 
-        {!showCompleted && mainCompleted.length > 0 && (
+        {/* Smart list: inline always-expanded completed section */}
+        {isVirtualList && showCompleted && mainCompleted.length > 0 && (
+          <div className="pt-3">
+            <div className="flex items-center gap-2 px-1 pb-2">
+              <span className="text-[13px] font-semibold tracking-tight text-muted-foreground">Completed</span>
+              <span className="text-xs text-muted-foreground/60">{mainCompleted.length}</span>
+            </div>
+            <div className="space-y-2 opacity-70">
+              {mainCompleted.map((t) => (
+                <TaskCell key={t.id} task={t} onClick={() => setEditingTaskId(t.id)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!isVirtualList && !showCompleted && mainCompleted.length > 0 && (
           <div className="pt-1">
             <button
               onClick={() => toggleCompleted('main')}
@@ -563,7 +592,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
         </DndContext>
 
         {/* New section input */}
-        {adding === 'new-section' && (
+        {!isVirtualList && adding === 'new-section' && (
           <div className="flex items-center gap-2 pt-3 px-1">
             <input
               autoFocus
@@ -593,12 +622,14 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               <Plus className="w-4 h-4" /> Add task
             </button>
           )}
-          <button
-            onClick={() => setAdding('new-section')}
-            className="px-4 py-3 bg-card rounded-2xl text-sm font-medium text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:text-foreground transition-all"
-          >
-            + Section
-          </button>
+          {!isVirtualList && (
+            <button
+              onClick={() => setAdding('new-section')}
+              className="px-4 py-3 bg-card rounded-2xl text-sm font-medium text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:text-foreground transition-all"
+            >
+              + Section
+            </button>
+          )}
         </div>
 
         {tasks.length === 0 && adding === null && (

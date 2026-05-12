@@ -31,6 +31,7 @@ export function rowToTask(row: Row, subtaskRows: Row[] = []): Task {
     note: row.note ?? undefined,
     priority: (row.priority ?? 'none') as Priority,
     createdAt: new Date(row.created_at),
+    completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
     order: row.order_index ?? undefined,
     sectionId: row.section_id ?? undefined,
     listId: row.list_id ?? undefined,
@@ -42,6 +43,7 @@ export function taskToRow(task: Partial<Task>, userId: string): Row {
   if (task.id !== undefined) r.id = task.id;
   if (task.title !== undefined) r.title = task.title;
   if (task.completed !== undefined) r.completed = task.completed;
+  if ('completedAt' in (task as object)) r.completed_at = task.completedAt ? task.completedAt.toISOString() : null;
   if (task.hidden !== undefined) r.hidden = task.hidden;
   if (task.date !== undefined) r.due_date = task.date ? new Date(task.date).toISOString() : null;
   if (task.time !== undefined) r.time_text = task.time ?? null;

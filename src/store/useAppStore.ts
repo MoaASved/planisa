@@ -262,9 +262,12 @@ export const useAppStore = create<AppState>()((set, get) => {
       const task = get().tasks.find((t) => t.id === id);
       if (!task) return;
       const completed = !task.completed;
-      set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed } : t)) }));
+      const completedAt = completed ? new Date() : undefined;
+      set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed, completedAt } : t)) }));
       queueOrRun(uid(), () => {
-        (supabase.from('tasks') as any).update({ completed }).eq('id', id).then(swallow('toggleTask'));
+        (supabase.from('tasks') as any)
+          .update({ completed, completed_at: completed ? completedAt!.toISOString() : null })
+          .eq('id', id).then(swallow('toggleTask'));
       });
     },
     toggleSubtask: (taskId, subtaskId) => {
