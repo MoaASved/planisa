@@ -360,7 +360,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   };
 
   const today = new Date();
-  const todayString = today.toLocaleDateString('sv-SE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const todayString = today.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   const isTaskCompleted = (item: FocusItem) => {
     if (item.item_type !== 'task') return false;
