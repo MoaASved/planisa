@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
-import { X, Calendar as CalendarIcon, Eye, EyeOff, Clock, Folder, Star, Trash2 } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Eye, EyeOff, Clock, Folder, Pin, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor } from '@/types';
@@ -163,7 +163,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
               isPinned ? 'bg-white/30' : 'bg-white/20'
             )}
           >
-            <Star className={cn('w-5 h-5', isPinned && 'fill-current')} />
+            <Pin className="w-5 h-5" />
           </button>
           
           <button

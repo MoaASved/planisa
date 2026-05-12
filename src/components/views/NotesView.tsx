@@ -4,7 +4,7 @@ import {
   FolderOpen, 
   FolderPlus,
   ChevronRight,
-  Star,
+  Pin,
   LayoutGrid,
   LayoutList,
   X,
@@ -248,7 +248,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               <div className="flex items-start justify-between gap-2">
                 {header && <h4 className="flow-card-title">{header}</h4>}
                 {note.isPinned && (
-                  <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
+                  <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
                 )}
               </div>
               {preview && (
@@ -275,7 +275,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               {(header || note.isPinned) && (
                 <div className="flex items-center gap-1.5">
                   {note.isPinned && (
-                    <Star className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" fill="currentColor" />
+                    <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
                   )}
                   {header && <h4 className="flow-card-title truncate">{header}</h4>}
                 </div>

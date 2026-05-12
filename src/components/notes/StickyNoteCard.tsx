@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Star } from 'lucide-react';
+import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Note, PastelColor } from '@/types';
 import { getStickyTextClass } from '@/lib/colors';
@@ -73,7 +73,7 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
               {getPreview(note.content) || note.title || 'Empty note'}
             </p>
             {note.isPinned && (
-              <Star className={cn('w-4 h-4 flex-shrink-0', getStickyTextClass(note.color))} fill="currentColor" />
+              <Pin className={cn('w-4 h-4 flex-shrink-0', getStickyTextClass(note.color))} />
             )}
           </div>
         </div>
