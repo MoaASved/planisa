@@ -397,7 +397,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             {focusItems.length < 3 && (
               <button
                 onClick={onAddFocus}
-                className="text-purple-400 text-sm flex items-center space-x-1"
+                className="text-foreground/60 text-sm flex items-center space-x-1"
               >
                 <Plus className="w-4 h-4" />
                 <span>add focus</span>
