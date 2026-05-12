@@ -552,7 +552,7 @@ export function CalendarItemList({
           <span className={cn('font-semibold block truncate', compact ? 'text-xs' : 'text-sm')}>
             {event.title}
           </span>
-          {showTime && time && (
+          {time && (
             <span className="text-xs text-[#2C2C2A]/60 font-light mt-0.5 block">
               {time}{endTime && ` - ${endTime}`}
             </span>
