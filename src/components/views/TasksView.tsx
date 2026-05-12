@@ -167,7 +167,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
               title="Today"
               count={todayCount}
               icon={CalIcon}
-              color="sky"
+              color="emerald"
               onClick={() => setSmartView('today')}
             />
           </div>
