@@ -102,7 +102,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
       <div
         ref={scrollRef}
         onScroll={checkScroll}
-        className="absolute inset-0 overflow-y-auto overflow-x-hidden px-5 pb-6 space-y-2"
+        className="absolute inset-0 overflow-y-auto overflow-x-hidden px-5 pb-28 space-y-2"
       >
         {children}
       </div>
