@@ -9,7 +9,7 @@ import { newId } from '@/lib/supabaseSync';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { getColorDotClass, getAccentDotClass } from '@/lib/colors';
+import { getColorDotClass } from '@/lib/colors';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -324,7 +324,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                 <button className="flex items-center gap-1.5 h-8 px-2.5 rounded-full bg-secondary hover:bg-secondary/70 transition-colors">
                   {selectedList ? (
                     <>
-                      <span className={cn('w-2 h-2 rounded-full', getAccentDotClass(selectedList.color))} />
+                      <span className={cn('w-2 h-2 rounded-full', getColorDotClass(selectedList.color))} />
                       <span className="text-xs font-medium text-foreground">{selectedList.name}</span>
                     </>
                   ) : (
@@ -343,7 +343,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                       onClick={() => { setListId(c.id); setListPopoverOpen(false); }}
                       className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-secondary transition-colors"
                     >
-                      <span className={cn('w-2.5 h-2.5 rounded-full', getAccentDotClass(c.color))} />
+                      <span className={cn('w-2.5 h-2.5 rounded-full', getColorDotClass(c.color))} />
                       <span className="flex-1 text-left text-sm text-foreground">{c.name}</span>
                       {listId === c.id && <Check className="w-4 h-4 text-primary" />}
                     </button>
