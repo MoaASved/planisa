@@ -91,6 +91,16 @@ export function ProfileView() {
   const [editItemColor, setEditItemColor] = useState<PastelColor>('peony');
   const [editItemIsDefault, setEditItemIsDefault] = useState(false);
 
+  // NISA resting state
+  const [nisaLastMessage, setNisaLastMessage] = useState<string | null>(null);
+  const [nisaDismissed, setNisaDismissed] = useState(false);
+  const [showNisaMessage, setShowNisaMessage] = useState(false);
+
+  useEffect(() => {
+    setNisaLastMessage(localStorage.getItem('nisa_last_message'));
+    setNisaDismissed(!!localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`));
+  }, []);
+
   const toggleDarkMode = () => {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
     updateSettings({ theme: newTheme });
@@ -222,6 +232,55 @@ export function ProfileView() {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
+        </div>
+
+        {/* NISA Resting State */}
+        <div className="flow-card">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowNisaMessage(v => !v)}
+              className="relative flex-shrink-0"
+            >
+              <img
+                src="/nisa.png"
+                alt="Nisa"
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 14,
+                  opacity: nisaDismissed ? 0.55 : 1,
+                  transform: nisaDismissed ? 'rotate(-8deg)' : 'none',
+                  transition: 'all 0.3s ease',
+                }}
+              />
+            </button>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground text-sm">
+                {nisaDismissed ? 'Tyst för idag 🤫' : 'Din assistent'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {nisaDismissed ? 'Tryck för att se senaste meddelandet' : 'Tryck för att se vad NISA sa'}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowNisaMessage(v => !v)}
+              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0"
+            >
+              <ChevronDown
+                className={cn('w-4 h-4 text-muted-foreground transition-transform duration-200', showNisaMessage && 'rotate-180')}
+              />
+            </button>
+          </div>
+          {showNisaMessage && nisaLastMessage && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-sm text-foreground leading-relaxed">{nisaLastMessage}</p>
+            </div>
+          )}
+          {showNisaMessage && !nisaLastMessage && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-sm text-muted-foreground italic">Inget meddelande än...</p>
+            </div>
+          )}
         </div>
 
         {/* Account Settings */}

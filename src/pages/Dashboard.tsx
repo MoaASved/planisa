@@ -300,6 +300,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     nisaAction = onTrialUpgrade ?? null;
   }
 
+  // Persist nisa message so ProfileView can read it even after navigation
+  useEffect(() => {
+    localStorage.setItem('nisa_last_message', nisaMessage);
+  }, [nisaMessage]);
+
   // Brain dump sheet + sort modal state
   const [showBrainDumpSheet, setShowBrainDumpSheet] = useState(false);
   const [sortModal, setSortModal] = useState<{ text: string; type: 'event' | 'note'; itemId: string | null } | null>(null);
