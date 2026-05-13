@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { TabNavigation } from '../components/navigation/TabNavigation';
+import { Sidebar } from '../components/navigation/Sidebar';
 import { useAppStore } from '../store/useAppStore';
 import { CalendarViewComponent } from '../components/views/CalendarView';
 import { TasksView } from '../components/views/TasksView';
@@ -1146,13 +1147,26 @@ const Dashboard: React.FC = () => {
       />
 
       {!onboardingVisible && (
-        <TabNavigation
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onPlusClick={() => setShowQuickCreate(v => !v)}
-          isPlusActive={showQuickCreate}
-          lockedTabs={hasFullAccess ? [] : ['tasks', 'notes']}
-        />
+        <>
+          <div className="hidden md:block">
+            <Sidebar
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onPlusClick={() => setShowQuickCreate(v => !v)}
+              isPlusActive={showQuickCreate}
+              onProfileClick={() => setActiveTab('profile')}
+            />
+          </div>
+          <div className="md:hidden">
+            <TabNavigation
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              onPlusClick={() => setShowQuickCreate(v => !v)}
+              isPlusActive={showQuickCreate}
+              lockedTabs={hasFullAccess ? [] : ['tasks', 'notes']}
+            />
+          </div>
+        </>
       )}
 
       <TrialReminderModal
