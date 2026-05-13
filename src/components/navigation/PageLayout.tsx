@@ -1,5 +1,6 @@
 import React from 'react';
 import { TabNavigation } from './TabNavigation';
+import { Sidebar } from './Sidebar';
 
 interface PageLayoutProps {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ interface PageLayoutProps {
   isPlusActive?: boolean;
   showNavigation?: boolean;
   className?: string;
+  onProfileClick?: () => void;
 }
 
 /**
@@ -24,22 +26,35 @@ export function PageLayout({
   isPlusActive = false,
   showNavigation = true,
   className = '',
+  onProfileClick = () => {},
 }: PageLayoutProps) {
   return (
     <>
-      {/* Content wrapper with fixed positioning for navbar */}
-      <div className={`relative min-h-screen ${className}`}>
-        {children}
-      </div>
-
-      {/* Navigation - always positioned at the bottom with safe area insets */}
-      {showNavigation && (
-        <TabNavigation
+      {/* Desktop sidebar - hidden on mobile */}
+      <div className="hidden md:block">
+        <Sidebar
           activeTab={activeTab}
           onTabChange={onTabChange}
           onPlusClick={onPlusClick}
-          isPlusActive={isPlusActive}
+          onProfileClick={onProfileClick}
         />
+      </div>
+
+      {/* Content wrapper - offset on desktop to account for sidebar */}
+      <div className={`relative min-h-screen md:pl-16 ${className}`}>
+        {children}
+      </div>
+
+      {/* Bottom nav - mobile only */}
+      {showNavigation && (
+        <div className="md:hidden">
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+            onPlusClick={onPlusClick}
+            isPlusActive={isPlusActive}
+          />
+        </div>
       )}
     </>
   );
