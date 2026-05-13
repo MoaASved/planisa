@@ -227,7 +227,7 @@ export function ProfileView() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">{settings.name || 'Planisa User'}</h3>
-              <p className="text-sm text-muted-foreground">{user?.email ?? 'Ingen e-post registrerad'}</p>
+              <p className="text-sm text-muted-foreground">{user?.email ?? 'No email registered'}</p>
               <span className="text-xs text-muted-foreground">Tap to edit profile</span>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -256,10 +256,10 @@ export function ProfileView() {
             </button>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground text-sm">
-                {nisaDismissed ? 'Tyst för idag 🤫' : 'Din assistent'}
+                {nisaDismissed ? 'Quiet for today 🤫' : 'Your assistant'}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {nisaDismissed ? 'Tryck för att se senaste meddelandet' : 'Tryck för att se vad NISA sa'}
+                {nisaDismissed ? 'Tap to see the last message' : 'Tap to see what NISA said'}
               </p>
             </div>
             <button
@@ -278,7 +278,7 @@ export function ProfileView() {
           )}
           {showNisaMessage && !nisaLastMessage && (
             <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-sm text-muted-foreground italic">Inget meddelande än...</p>
+              <p className="text-sm text-muted-foreground italic">No message yet...</p>
             </div>
           )}
         </div>
@@ -294,7 +294,7 @@ export function ProfileView() {
                 </div>
                 <div className="text-left">
                   <p className="font-medium text-foreground">Email</p>
-                  <p className="text-sm text-muted-foreground">{user?.email ?? 'Ingen e-post registrerad'}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email ?? 'No email registered'}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
