@@ -63,18 +63,18 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
       })),
   ];
 
-  // Get effective color: manual color > category color
+  // Get effective color: live category color > stored item color > default
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
-    if (item.color) return item.color;
-    
     if (type === 'task') {
       const task = item as Task;
-      const category = taskCategories.find(c => c.name === task.category);
-      return category?.color || 'peony';
+      const category = task.listId
+        ? taskCategories.find(c => c.id === task.listId)
+        : taskCategories.find(c => c.name === task.category);
+      return category?.color || item.color || 'peony';
     } else {
       const event = item as CalendarEvent;
       const category = eventCategories.find(c => c.name === event.category);
-      return category?.color || 'peony';
+      return category?.color || item.color || 'peony';
     }
   };
 
