@@ -19,6 +19,7 @@ interface CategoryEditDrawerProps {
   placeholder?: string;
   saveLabel?: string;
   showDelete?: boolean;
+  hideNameInput?: boolean;
 }
 
 export function CategoryEditDrawer({
@@ -34,19 +35,20 @@ export function CategoryEditDrawer({
   placeholder = 'Enter name',
   saveLabel = 'Save Changes',
   showDelete = false,
+  hideNameInput = false,
 }: CategoryEditDrawerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { modalTop, maxHeight } = useVisualViewport(70);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !hideNameInput) {
       const timer = setTimeout(() => inputRef.current?.focus(), 100);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, hideNameInput]);
 
   const handleSave = () => {
-    if (itemName.trim()) onSave();
+    if (hideNameInput || itemName.trim()) onSave();
   };
 
   if (!isOpen) return null;
@@ -102,15 +104,17 @@ export function CategoryEditDrawer({
             </div>
 
             {/* Name input */}
-            <input
-              ref={inputRef}
-              type="text"
-              value={itemName}
-              onChange={(e) => onNameChange(e.target.value)}
-              placeholder={placeholder}
-              className="flow-input mb-4 w-full"
-              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-            />
+            {!hideNameInput && (
+              <input
+                ref={inputRef}
+                type="text"
+                value={itemName}
+                onChange={(e) => onNameChange(e.target.value)}
+                placeholder={placeholder}
+                className="flow-input mb-4 w-full"
+                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              />
+            )}
 
             {/* Color picker */}
             <p className="text-sm font-medium text-muted-foreground mb-2">Color</p>
@@ -148,7 +152,7 @@ export function CategoryEditDrawer({
             {/* Save */}
             <button
               onClick={handleSave}
-              disabled={!itemName.trim()}
+              disabled={!hideNameInput && !itemName.trim()}
               className="w-full flow-button-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saveLabel}

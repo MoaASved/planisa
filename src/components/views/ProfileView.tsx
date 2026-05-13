@@ -89,6 +89,7 @@ export function ProfileView() {
   const [editItemSection, setEditItemSection] = useState<CategorySection>('calendar');
   const [editItemName, setEditItemName] = useState('');
   const [editItemColor, setEditItemColor] = useState<PastelColor>('peony');
+  const [editItemIsDefault, setEditItemIsDefault] = useState(false);
 
   const toggleDarkMode = () => {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
@@ -148,11 +149,12 @@ export function ProfileView() {
     setShowAddDrawer(false);
   };
 
-  const openEditDrawer = (section: CategorySection, id: string, name: string, color: PastelColor) => {
+  const openEditDrawer = (section: CategorySection, id: string, name: string, color: PastelColor, isDefault = false) => {
     setEditItemSection(section);
     setEditItemId(id);
     setEditItemName(name);
     setEditItemColor(color);
+    setEditItemIsDefault(isDefault);
     setShowEditDrawer(true);
   };
 
@@ -414,25 +416,29 @@ export function ProfileView() {
 
               {expandedSection === 'tasks' && (
                 <div className="mt-2 space-y-1 animate-fade-in">
-                  {taskCategories.map((cat) => (
+                  {[...taskCategories]
+                    .sort((a, b) => (a.isDefault ? 1 : 0) - (b.isDefault ? 1 : 0))
+                    .map((cat) => (
                     <div key={cat.id} className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-secondary">
                       <div className="flex items-center gap-3">
                         <div className={cn('w-4 h-4 rounded-full', `bg-pastel-${cat.color}`)} />
                         <span className="font-medium text-foreground">{cat.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <button 
-                          onClick={() => openEditDrawer('tasks', cat.id, cat.name, cat.color)}
+                        <button
+                          onClick={() => openEditDrawer('tasks', cat.id, cat.name, cat.color, cat.isDefault)}
                           className="p-1.5 rounded-lg hover:bg-muted"
                         >
                           <Edit3 className="w-4 h-4 text-muted-foreground" />
                         </button>
-                        <button 
-                          onClick={() => handleDeleteItem('tasks', cat.id)}
-                          className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        {!cat.isDefault && (
+                          <button
+                            onClick={() => handleDeleteItem('tasks', cat.id)}
+                            className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -777,7 +783,8 @@ export function ProfileView() {
         onDelete={() => editItemId && handleDeleteItem(editItemSection, editItemId)}
         placeholder={editItemSection === 'notes' ? 'Folder name' : editItemSection === 'notebooks' ? 'Notebook name' : editItemSection === 'tasks' ? 'List name' : 'Category name'}
         saveLabel="Save Changes"
-        showDelete={true}
+        showDelete={!editItemIsDefault}
+        hideNameInput={editItemIsDefault}
       />
     </div>
   );
