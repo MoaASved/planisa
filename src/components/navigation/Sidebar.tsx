@@ -33,7 +33,7 @@ export function Sidebar({
     <nav
       className={cn(
         'fixed left-0 top-0 h-full z-50 flex flex-col py-6 px-2',
-        'bg-white border-r border-border',
+        'bg-white border-r border-gray-100 shadow-sm',
         'transition-all duration-300 ease-in-out',
         isExpanded ? 'w-56' : 'w-16',
       )}
