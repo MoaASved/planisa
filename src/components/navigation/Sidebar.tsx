@@ -62,7 +62,7 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className="flex items-center gap-3 px-3 mb-4">
+      <div className="flex items-center gap-3 px-3 mb-8">
         <button
           onClick={onPlusClick}
           className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
