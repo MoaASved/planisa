@@ -47,15 +47,15 @@ export function Sidebar({
       }}
     >
       {/* Logo */}
-      <div className={cn('flex items-center mb-8 h-8 px-1', isExpanded ? 'justify-between' : 'justify-center')}>
-        {isExpanded && (
-          <>
-            <div className="w-8 h-8 rounded-full bg-[#1C1C1E] flex-shrink-0" />
-            <span className="font-semibold text-foreground whitespace-nowrap flex-1 ml-3">
-              Planisa
-            </span>
-          </>
-        )}
+      <div className="flex items-center justify-between mb-8 h-8 px-1">
+        <span
+          className={cn(
+            'font-semibold text-foreground whitespace-nowrap transition-opacity duration-200',
+            isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
+          )}
+        >
+          Planisa
+        </span>
         <button
           onClick={() => setIsExpanded(v => !v)}
           className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground/30 hover:text-foreground/60 hover:bg-black/5 transition-all flex-shrink-0"
@@ -65,7 +65,7 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className="flex items-center px-1 mb-6">
+      <div className={cn('flex items-center px-1 mb-6', !isExpanded && 'justify-center')}>
         <button
           onClick={onPlusClick}
           className="w-10 h-10 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:opacity-80"
