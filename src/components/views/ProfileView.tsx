@@ -255,12 +255,7 @@ export function ProfileView() {
               />
             </button>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground text-sm">
-                {nisaDismissed ? 'Quiet for today 🤫' : 'Nisa'}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {nisaDismissed ? 'Tap to see the last message' : 'Tap to see what NISA said'}
-              </p>
+              <p className="text-sm text-foreground/40">Nisa</p>
             </div>
             <button
               onClick={() => setShowNisaMessage(v => !v)}
