@@ -375,14 +375,14 @@ export function CalendarItemList({
     const resolvedTime = time !== undefined ? time : getTimeFromY(clientY);
     const menuW = 160;
     const menuH = 176;
-    // Measure the actual bottom nav bar to get a reliable safe zone
+    // Bottom boundary = top of navbar with 8px gap
     // Use the specific class to avoid matching the desktop Sidebar <nav> element
     const nav = document.querySelector('.flow-nav-floating');
-    const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 120;
-    const safeBottom = window.innerHeight - navTop + 8;
+    const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 80;
+    const maxBottom = navTop - 8;
     // Offset menu away from the exact click point so no button sits directly under the cursor
     const x = Math.min(clientX - 8, window.innerWidth - menuW - 8);
-    const y = Math.min(clientY - 40, window.innerHeight - menuH - safeBottom);
+    const y = Math.min(clientY - 40, maxBottom - menuH);
     setContextMenu({ x: Math.max(8, x), y: Math.max(8, y), time: resolvedTime });
     // Short interaction delay — prevents the trailing click of a fast double-tap from
     // immediately triggering a menu option before the user perceives the menu.
