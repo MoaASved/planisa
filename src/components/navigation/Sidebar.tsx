@@ -51,7 +51,7 @@ export function Sidebar({
         <img
           src="/Planisa-logo.png"
           alt="Planisa"
-          className={cn('h-8 w-auto transition-opacity duration-200', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
+          className={cn('h-6 w-auto transition-opacity duration-200', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
         />
         <button
           onClick={() => setIsExpanded(v => !v)}
@@ -62,17 +62,17 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className="mb-2">
+      <div className="flex items-center gap-3 px-3 mb-2">
         <button
           onClick={onPlusClick}
-          className="w-full h-11 flex items-center gap-3 px-3 rounded-2xl transition-all duration-200 bg-[#1C1C1E] text-white hover:opacity-80"
+          className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
         >
-          <Plus className="w-5 h-5 flex-shrink-0" />
-          <span className={cn(
-            'text-sm font-medium whitespace-nowrap transition-opacity duration-200 delay-100',
-            isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-          )}>New</span>
+          <Plus className="w-4 h-4 text-white" />
         </button>
+        <span className={cn(
+          'text-sm font-medium text-foreground/60 whitespace-nowrap transition-opacity duration-200 delay-100',
+          isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
+        )}>New</span>
       </div>
 
       {/* Nav items */}
