@@ -1083,7 +1083,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className={`transition-all duration-300 ${sidebarExpanded ? 'md:ml-56' : 'md:ml-16'} md:rounded-l-2xl md:shadow-lg md:bg-white min-h-screen${activeTab === 'calendar' ? ' dark:bg-[#1C1A18]' : ''}`}>
+      <div className={`transition-all duration-300 ${sidebarExpanded ? 'md:ml-56' : 'md:ml-16'} md:rounded-l-2xl md:shadow-lg min-h-screen${activeTab === 'calendar' ? ' dark:bg-[#1C1A18]' : ''}`}>
       {onboardingVisible && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
