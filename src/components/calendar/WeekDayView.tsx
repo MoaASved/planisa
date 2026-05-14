@@ -85,7 +85,7 @@ export function WeekDayView({
     <div className="animate-fade-in flex flex-col h-full overflow-x-hidden">
       {/* Week header - swipe left/right changes the whole week */}
       <div
-        className="flex-shrink-0 px-3 pb-3 bg-background"
+        className="flex-shrink-0 px-3 pb-1 bg-background"
         onTouchStart={handleHeaderTouchStart}
         onTouchEnd={handleHeaderTouchEnd}
       >

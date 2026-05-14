@@ -110,7 +110,7 @@ function ListScrollContainer({ children }: { children: React.ReactNode }) {
         <div
           className="absolute top-0 left-0 right-0 pointer-events-none"
           style={{
-            height: '70px',
+            height: '24px',
             zIndex: 20,
             background: 'linear-gradient(to bottom, var(--calendar-panel-bg), transparent)',
           }}
@@ -630,7 +630,7 @@ export function CalendarItemList({
   const formattedDate = format(date, 'MMMM d');
 
   return (
-    <div className="flex flex-col flex-1 bg-background pt-4">
+    <div className="flex flex-col flex-1 bg-background pt-2">
       {/* White card lifts from the beige background */}
       <div
         className="flex flex-col flex-1 min-h-0"
@@ -641,7 +641,7 @@ export function CalendarItemList({
         }}
       >
       {/* Filter toolbar */}
-      <div className="flex items-center justify-between px-5 py-4">
+      <div className="flex items-center justify-between px-5 py-2">
         {/* Date display on left */}
         <span className="flow-section-title">
           {formattedDate}
@@ -892,7 +892,7 @@ export function CalendarItemList({
             <div
               className="absolute top-0 left-0 right-0 pointer-events-none"
               style={{
-                height: '70px',
+                height: '24px',
                 zIndex: 25,
                 background: 'linear-gradient(to bottom, var(--calendar-panel-bg), transparent)',
               }}

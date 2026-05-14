@@ -112,7 +112,7 @@ export function MonthView({
     <div className="animate-fade-in flex flex-col h-full overflow-x-hidden">
       {/* Calendar grid - swipe left/right changes the whole month */}
       <div
-        className="flex-shrink-0 px-3 pb-3 bg-background"
+        className="flex-shrink-0 px-3 pb-1 bg-background"
         onTouchStart={handleHeaderTouchStart}
         onTouchEnd={handleHeaderTouchEnd}
       >
