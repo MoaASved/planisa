@@ -395,7 +395,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         </div>
       </div>
 
-      <div className="px-4 space-y-4 pb-32">
+      <div className="px-4 pb-32">
+        <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
         {/* ── Today's Focus ─────────────────────────────────────────────── */}
         <div className="flow-widget">
           <div className="flex items-center justify-between mb-4">
@@ -427,54 +428,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 onTap={() => onTapFocus(item)}
               />
             ))}
-          </div>
-        </div>
-
-        {/* ── Brain dump ────────────────────────────────────────────────── */}
-        <div className="flow-widget">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Brain dump</h2>
-            {brainDumpItems.length > 0 && (
-              <button
-                onClick={() => setShowBrainDumpSheet(true)}
-                className="w-6 h-6 rounded-full flex items-center justify-center bg-foreground"
-                aria-label={`${brainDumpItems.length} saved items`}
-              >
-                <span className="text-background text-[10px] font-bold leading-none">
-                  {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
-                </span>
-              </button>
-            )}
-          </div>
-          <textarea
-            value={brainDumpText}
-            onChange={e => setBrainDumpText(e.target.value)}
-            placeholder="Write anything… sort later."
-            className="w-full h-24 p-3 bg-secondary border-0 rounded-xl resize-none mb-4 flow-input"
-          />
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-4">
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('task')}>
-                <CheckSquare className="w-5 h-5" /><span className="flow-meta">Task</span>
-              </button>
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
-                <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
-              </button>
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('note')}>
-                <FileText className="w-5 h-5" /><span className="flow-meta">Note</span>
-              </button>
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('sticky')}>
-                <Pin className="w-5 h-5" /><span className="flow-meta">Sticky</span>
-              </button>
-            </div>
-            <button
-              onClick={handleSaveForLater}
-              disabled={!brainDumpText.trim()}
-              className="flex items-center gap-1.5 text-foreground text-sm font-medium disabled:opacity-30"
-            >
-              <Bookmark className="w-4 h-4" />
-              Save
-            </button>
           </div>
         </div>
 
@@ -549,6 +502,55 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               </div>
             </>
           )}
+        </div>
+
+        {/* ── Brain dump ────────────────────────────────────────────────── */}
+        <div className="flow-widget md:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="flow-section-title">Brain dump</h2>
+            {brainDumpItems.length > 0 && (
+              <button
+                onClick={() => setShowBrainDumpSheet(true)}
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-foreground"
+                aria-label={`${brainDumpItems.length} saved items`}
+              >
+                <span className="text-background text-[10px] font-bold leading-none">
+                  {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
+                </span>
+              </button>
+            )}
+          </div>
+          <textarea
+            value={brainDumpText}
+            onChange={e => setBrainDumpText(e.target.value)}
+            placeholder="Write anything… sort later."
+            className="w-full h-24 p-3 bg-secondary border-0 rounded-xl resize-none mb-4 flow-input"
+          />
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-4">
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('task')}>
+                <CheckSquare className="w-5 h-5" /><span className="flow-meta">Task</span>
+              </button>
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
+                <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
+              </button>
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('note')}>
+                <FileText className="w-5 h-5" /><span className="flow-meta">Note</span>
+              </button>
+              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('sticky')}>
+                <Pin className="w-5 h-5" /><span className="flow-meta">Sticky</span>
+              </button>
+            </div>
+            <button
+              onClick={handleSaveForLater}
+              disabled={!brainDumpText.trim()}
+              className="flex items-center gap-1.5 text-foreground text-sm font-medium disabled:opacity-30"
+            >
+              <Bookmark className="w-4 h-4" />
+              Save
+            </button>
+          </div>
+        </div>
         </div>
 
       </div>
