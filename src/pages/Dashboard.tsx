@@ -629,7 +629,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         onDelete={onDeleteHabit}
       />
 
-      {/* Nisa — fixed top-right, below profile avatar */}
+      {/* Nisa — fixed top-right, below profile avatar (mobile only) */}
+      <div className="md:hidden">
       {nisaVisible && (
         <div ref={nisaRef} className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
           {/* Speech bubble — appears to the left */}
@@ -694,6 +695,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           />
         </div>
       )}
+      </div>
     </div>
   );
 };

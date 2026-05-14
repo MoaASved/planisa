@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { getAccentTextClass } from '@/lib/colors';
 import { PastelColor } from '@/types';
+import { NisaAssistant } from './NisaAssistant';
 
 interface SidebarProps {
   activeTab: string;
@@ -103,6 +104,14 @@ export function Sidebar({
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Nisa */}
+      <div className={cn(
+        'transition-all duration-300 overflow-hidden mb-6',
+        isExpanded ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0',
+      )}>
+        <NisaAssistant />
+      </div>
 
       {/* Profile button */}
       <button
