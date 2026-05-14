@@ -74,7 +74,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     } else {
       const event = item as CalendarEvent;
       const category = eventCategories.find(c => c.name === event.category);
-      return category?.color || item.color || 'peony';
+      return item.color || category?.color || 'peony';
     }
   };
 
