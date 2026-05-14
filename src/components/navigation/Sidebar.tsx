@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Home, Calendar, CheckSquare, FileText, Plus, User } from 'lucide-react';
+import { Home, Calendar, CheckSquare, FileText, Plus, User, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { getAccentTextClass } from '@/lib/colors';
@@ -26,13 +26,11 @@ export function Sidebar({
   onPlusClick,
   onProfileClick,
 }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const { settings } = useAppStore();
 
   return (
     <nav
-      onMouseEnter={() => setIsExpanded(true)}
-      onMouseLeave={() => setIsExpanded(false)}
       className={cn(
         'fixed left-0 top-0 h-full z-50 flex flex-col py-6 px-2',
         'bg-white border-r border-border',
@@ -42,15 +40,23 @@ export function Sidebar({
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-1 mb-8 h-8">
-        <div className="w-8 h-8 rounded-full bg-[#1C1C1E] flex-shrink-0" />
-        <span
-          className={cn(
-            'font-semibold text-foreground whitespace-nowrap transition-opacity duration-200',
-            isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-          )}
-        >
-          Planisa
-        </span>
+        <div
+          className={cn('w-8 h-8 rounded-full bg-[#1C1C1E] flex-shrink-0', !isExpanded && 'cursor-pointer')}
+          onClick={!isExpanded ? () => setIsExpanded(true) : undefined}
+        />
+        {isExpanded && (
+          <>
+            <span className="font-semibold text-foreground whitespace-nowrap flex-1">
+              Planisa
+            </span>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="text-foreground/30 hover:text-foreground/60 transition-colors"
+            >
+              <PanelLeftClose className="w-5 h-5" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Plus button */}
