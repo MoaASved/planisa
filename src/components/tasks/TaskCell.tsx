@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { format, isToday, isTomorrow, isYesterday } from 'date-fns';
 import { Star, Calendar as CalIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,7 @@ function formatDate(d: Date) {
   return format(d, 'MMM d');
 }
 
-export function TaskCell({ task, onClick, showListDot = false, highlight }: TaskCellProps) {
+export const TaskCell = memo(function TaskCell({ task, onClick, showListDot = false, highlight }: TaskCellProps) {
   const { toggleTask, updateTask } = useAppStore();
   const haptics = useHaptics();
   const ref = useRef<HTMLButtonElement>(null);
@@ -123,4 +123,4 @@ export function TaskCell({ task, onClick, showListDot = false, highlight }: Task
       </div>
     </button>
   );
-}
+});

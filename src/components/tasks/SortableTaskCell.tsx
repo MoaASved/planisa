@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Task } from '@/types';
@@ -10,7 +11,7 @@ interface SortableTaskCellProps {
   highlight?: boolean;
 }
 
-export function SortableTaskCell({ task, onClick, highlight }: SortableTaskCellProps) {
+export const SortableTaskCell = memo(function SortableTaskCell({ task, onClick, highlight }: SortableTaskCellProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
   });
@@ -35,4 +36,4 @@ export function SortableTaskCell({ task, onClick, highlight }: SortableTaskCellP
       <TaskCell task={task} onClick={onClick} highlight={highlight} />
     </div>
   );
-}
+});

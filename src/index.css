@@ -13,6 +13,12 @@ html, body { overflow-x: hidden; }
   -webkit-backface-visibility: hidden;
 }
 
+/* iOS momentum scrolling for all overflow containers */
+.overflow-y-auto,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Ensure native time/date pickers work inside backdrop-filter containers */
 input[type="time"],
 input[type="date"] {
