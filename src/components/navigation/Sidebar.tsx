@@ -107,7 +107,7 @@ export function Sidebar({
 
       {/* Nisa */}
       <div className={cn(
-        'transition-all duration-300 overflow-hidden mb-6',
+        'transition-all duration-300 overflow-hidden px-3 mb-6',
         isExpanded ? 'opacity-100 max-h-40' : 'opacity-0 max-h-0',
       )}>
         <NisaAssistant />

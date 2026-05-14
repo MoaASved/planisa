@@ -31,10 +31,10 @@ export function NisaAssistant() {
           />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-foreground truncate">
-              {dismissed ? 'Quiet for today' : 'Your assistant'}
+              {dismissed ? 'Quiet for today' : 'Nisa'}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              {dismissed ? 'Tap to see message' : 'NISA'}
+              {dismissed ? 'Tap to see message' : 'Your assistant'}
             </p>
           </div>
           <button
