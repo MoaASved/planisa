@@ -1079,7 +1079,8 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-background md:pl-56${activeTab === 'calendar' ? ' bg-white dark:bg-[#1C1A18]' : ''}`}>
+    <div className="min-h-screen bg-[#F5F3F0]">
+      <div className={`md:pl-56 md:rounded-l-2xl md:shadow-lg bg-white min-h-screen${activeTab === 'calendar' ? ' dark:bg-[#1C1A18]' : ''}`}>
       {onboardingVisible && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
@@ -1174,6 +1175,7 @@ const Dashboard: React.FC = () => {
         onUpgrade={() => { setShowTrialModal(false); setActiveTab('profile'); }}
         onDismiss={() => setShowTrialModal(false)}
       />
+      </div>
     </div>
   );
 };
