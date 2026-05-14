@@ -376,7 +376,8 @@ export function CalendarItemList({
     const menuW = 160;
     const menuH = 176;
     // Measure the actual bottom nav bar to get a reliable safe zone
-    const nav = document.querySelector('nav');
+    // Use the specific class to avoid matching the desktop Sidebar <nav> element
+    const nav = document.querySelector('.flow-nav-floating');
     const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 120;
     const safeBottom = window.innerHeight - navTop + 8;
     // Offset menu away from the exact click point so no button sits directly under the cursor
