@@ -39,24 +39,21 @@ export function Sidebar({
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-1 mb-8 h-8">
-        <div
-          className={cn('w-8 h-8 rounded-full bg-[#1C1C1E] flex-shrink-0', !isExpanded && 'cursor-pointer')}
-          onClick={!isExpanded ? () => setIsExpanded(true) : undefined}
-        />
+      <div className={cn('flex items-center mb-8 h-8 px-1', isExpanded ? 'justify-between' : 'justify-center')}>
         {isExpanded && (
           <>
-            <span className="font-semibold text-foreground whitespace-nowrap flex-1">
+            <div className="w-8 h-8 rounded-full bg-[#1C1C1E] flex-shrink-0" />
+            <span className="font-semibold text-foreground whitespace-nowrap flex-1 ml-3">
               Planisa
             </span>
-            <button
-              onClick={() => setIsExpanded(false)}
-              className="text-foreground/30 hover:text-foreground/60 transition-colors"
-            >
-              <PanelLeftClose className="w-5 h-5" />
-            </button>
           </>
         )}
+        <button
+          onClick={() => setIsExpanded(v => !v)}
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground/30 hover:text-foreground/60 hover:bg-black/5 transition-all flex-shrink-0"
+        >
+          {isExpanded ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Plus button */}
