@@ -38,7 +38,7 @@ export function Sidebar({
       )}
       style={{
         height: '100vh',
-        background: 'linear-gradient(160deg, rgba(229, 204, 255, 0.12) 0%, rgba(255, 218, 204, 0.08) 100%)',
+        background: 'linear-gradient(160deg, rgba(229, 204, 255, 0.35) 0%, rgba(255, 218, 204, 0.25) 100%)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         borderRight: '1px solid rgba(200, 180, 220, 0.15)',
