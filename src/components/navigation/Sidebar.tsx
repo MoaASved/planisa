@@ -46,8 +46,8 @@ export function Sidebar({
         boxShadow: '4px 0 24px rgba(180, 150, 210, 0.08)',
       }}
     >
-      {/* Logo */}
-      <div className={cn('flex items-center mb-8 h-8', isExpanded ? 'justify-between px-3' : 'justify-center px-0')}>
+      {/* Logo / toggle */}
+      <div className={cn('flex items-center mb-8 h-8', isExpanded ? 'justify-between px-3' : 'justify-center')}>
         <img
           src="/Planisa-logo.png"
           alt="Planisa"
@@ -62,21 +62,20 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className={cn('flex items-center gap-3 mb-8 w-full', isExpanded ? 'px-3' : 'px-0 justify-center')}>
+      <div className={cn('flex items-center mb-8 w-full', isExpanded ? 'gap-3 px-3' : 'justify-center')}>
         <button
           onClick={onPlusClick}
           className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
         >
           <Plus className="w-4 h-4 text-white" />
         </button>
-        <span className={cn(
-          'text-sm font-medium text-foreground/60 whitespace-nowrap transition-opacity duration-200 delay-100',
-          isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-        )}>New</span>
+        {isExpanded && (
+          <span className="text-sm font-medium text-foreground/60 whitespace-nowrap">New</span>
+        )}
       </div>
 
       {/* Nav items */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full">
         {navItems.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
@@ -84,22 +83,17 @@ export function Sidebar({
               key={id}
               onClick={() => onTabChange(id)}
               className={cn(
-                'w-full h-11 flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer',
-                isExpanded ? 'px-3' : 'px-0 justify-center',
+                'w-full h-11 flex items-center rounded-2xl transition-all duration-200 cursor-pointer',
+                isExpanded ? 'gap-3 px-3' : 'justify-center',
                 isActive
                   ? 'bg-[#ede8f5] text-foreground font-medium'
                   : 'text-foreground/40 hover:text-foreground/70',
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
-              <span
-                className={cn(
-                  'text-sm font-medium whitespace-nowrap transition-opacity duration-200 delay-100',
-                  isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-                )}
-              >
-                {label}
-              </span>
+              {isExpanded && (
+                <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+              )}
             </button>
           );
         })}
@@ -112,8 +106,8 @@ export function Sidebar({
       <button
         onClick={onProfileClick}
         className={cn(
-          'w-full h-11 flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer',
-          isExpanded ? 'px-3' : 'px-0 justify-center',
+          'w-full h-11 flex items-center rounded-2xl transition-all duration-200 cursor-pointer',
+          isExpanded ? 'gap-3 px-3' : 'justify-center',
           activeTab === 'profile'
             ? 'bg-[#ede8f5] text-foreground font-medium'
             : 'text-foreground/40 hover:text-foreground/70',
@@ -136,14 +130,9 @@ export function Sidebar({
             <User className="w-4 h-4" />
           )}
         </div>
-        <span
-          className={cn(
-            'text-sm font-medium whitespace-nowrap transition-opacity duration-200 delay-100',
-            isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-          )}
-        >
-          Profile
-        </span>
+        {isExpanded && (
+          <span className="text-sm font-medium whitespace-nowrap">Profile</span>
+        )}
       </button>
     </nav>
   );
