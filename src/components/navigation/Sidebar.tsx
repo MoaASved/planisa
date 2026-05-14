@@ -62,7 +62,7 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className="flex items-center gap-3 px-3 mb-8">
+      <div className={cn('flex items-center gap-3 mb-8', isExpanded ? 'px-3' : 'px-0 justify-center')}>
         <button
           onClick={onPlusClick}
           className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
@@ -84,7 +84,8 @@ export function Sidebar({
               key={id}
               onClick={() => onTabChange(id)}
               className={cn(
-                'w-full h-11 flex items-center gap-3 px-3 rounded-2xl transition-all duration-200 cursor-pointer',
+                'w-full h-11 flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer',
+                isExpanded ? 'px-3' : 'px-0 justify-center',
                 isActive
                   ? 'bg-[#ede8f5] text-foreground font-medium'
                   : 'text-foreground/40 hover:text-foreground/70',
@@ -111,7 +112,8 @@ export function Sidebar({
       <button
         onClick={onProfileClick}
         className={cn(
-          'w-full h-11 flex items-center gap-3 px-3 rounded-2xl transition-all duration-200 cursor-pointer',
+          'w-full h-11 flex items-center gap-3 rounded-2xl transition-all duration-200 cursor-pointer',
+          isExpanded ? 'px-3' : 'px-0 justify-center',
           activeTab === 'profile'
             ? 'bg-[#ede8f5] text-foreground font-medium'
             : 'text-foreground/40 hover:text-foreground/70',
