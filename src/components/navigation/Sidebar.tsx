@@ -32,11 +32,19 @@ export function Sidebar({
   return (
     <nav
       className={cn(
-        'fixed left-0 top-0 h-full z-50 flex flex-col py-6 px-2',
-        'bg-white border-r border-gray-100 shadow-sm',
+        'fixed left-0 top-0 z-50 flex flex-col py-6 px-2',
         'transition-all duration-300 ease-in-out',
         isExpanded ? 'w-56' : 'w-16',
       )}
+      style={{
+        height: '100vh',
+        background: 'linear-gradient(160deg, rgba(229, 204, 255, 0.18) 0%, rgba(255, 218, 204, 0.13) 100%)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderRight: '1px solid rgba(200, 180, 220, 0.15)',
+        borderRadius: '0 20px 20px 0',
+        boxShadow: '4px 0 24px rgba(180, 150, 210, 0.08)',
+      }}
     >
       {/* Logo */}
       <div className={cn('flex items-center mb-8 h-8 px-1', isExpanded ? 'justify-between' : 'justify-center')}>
