@@ -32,9 +32,9 @@ export function Sidebar({
   return (
     <nav
       className={cn(
-        'fixed left-0 top-0 z-50 flex flex-col py-6 px-2',
+        'fixed left-0 top-0 z-50 flex flex-col py-6',
         'transition-all duration-300 ease-in-out',
-        isExpanded ? 'w-56' : 'w-16',
+        isExpanded ? 'w-56 px-2' : 'w-16 px-0',
       )}
       style={{
         height: '100vh',
@@ -47,7 +47,7 @@ export function Sidebar({
       }}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between mb-8 h-8 px-3">
+      <div className={cn('flex items-center mb-8 h-8', isExpanded ? 'justify-between px-3' : 'justify-center px-0')}>
         <img
           src="/Planisa-logo.png"
           alt="Planisa"
@@ -62,7 +62,7 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className={cn('flex items-center gap-3 mb-8', isExpanded ? 'px-3' : 'px-0 justify-center')}>
+      <div className={cn('flex items-center gap-3 mb-8 w-full', isExpanded ? 'px-3' : 'px-0 justify-center')}>
         <button
           onClick={onPlusClick}
           className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
