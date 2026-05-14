@@ -261,13 +261,26 @@ export const useAppStore = create<AppState>()((set, get) => {
     toggleTask: (id) => {
       const task = get().tasks.find((t) => t.id === id);
       if (!task) return;
-      const completed = !task.completed;
+      const prevCompleted = task.completed;
+      const prevCompletedAt = task.completedAt;
+      const completed = !prevCompleted;
       const completedAt = completed ? new Date() : undefined;
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed, completedAt } : t)) }));
       queueOrRun(uid(), () => {
         (supabase.from('tasks') as any)
           .update({ completed, completed_at: completed ? completedAt!.toISOString() : null })
-          .eq('id', id).then(swallow('toggleTask'));
+          .eq('id', id)
+          .then((res: any) => {
+            if (res?.error) {
+              console.error('[supabase:toggleTask]', res.error.message ?? res.error, res.error);
+              // Revert optimistic update so UI reflects actual DB state
+              set((s) => ({
+                tasks: s.tasks.map((t) =>
+                  t.id === id ? { ...t, completed: prevCompleted, completedAt: prevCompletedAt } : t,
+                ),
+              }));
+            }
+          });
       });
     },
     toggleSubtask: (taskId, subtaskId) => {
