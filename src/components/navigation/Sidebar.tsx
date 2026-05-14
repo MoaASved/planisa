@@ -47,10 +47,10 @@ export function Sidebar({
       }}
     >
       {/* Logo */}
-      <div className="flex items-center justify-between mb-8 h-8 px-1">
+      <div className="flex items-center justify-between mb-8 h-8 px-3">
         <span
           className={cn(
-            'font-semibold text-foreground whitespace-nowrap transition-opacity duration-200',
+            'text-xl font-bold text-foreground whitespace-nowrap transition-opacity duration-200',
             isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
           )}
         >
@@ -65,21 +65,17 @@ export function Sidebar({
       </div>
 
       {/* Plus button */}
-      <div className={cn('flex items-center px-1 mb-6', !isExpanded && 'justify-center')}>
+      <div className="mb-2">
         <button
           onClick={onPlusClick}
-          className="w-10 h-10 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 transition-all duration-200 hover:opacity-80"
+          className="w-full h-11 flex items-center gap-3 px-3 rounded-2xl transition-all duration-200 text-foreground/40 hover:text-foreground/70 hover:bg-black/5"
         >
-          <Plus className="w-5 h-5 text-white" />
-        </button>
-        <span
-          className={cn(
-            'text-sm font-medium text-white whitespace-nowrap transition-opacity duration-200 delay-100 ml-3',
+          <Plus className="w-5 h-5 flex-shrink-0" />
+          <span className={cn(
+            'text-sm font-medium whitespace-nowrap transition-opacity duration-200 delay-100',
             isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden',
-          )}
-        >
-          New
-        </span>
+          )}>New</span>
+        </button>
       </div>
 
       {/* Nav items */}
