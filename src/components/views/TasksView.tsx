@@ -98,12 +98,14 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
     );
     return (
       <>
-        <ListDetailView
-          category={liveCategory}
-          tasks={listTasks}
-          onBack={() => setSelectedList(null)}
-          highlightTaskId={highlightTaskId ?? undefined}
-        />
+        <div className="md:max-w-3xl md:mx-auto">
+          <ListDetailView
+            category={liveCategory}
+            tasks={listTasks}
+            onBack={() => setSelectedList(null)}
+            highlightTaskId={highlightTaskId ?? undefined}
+          />
+        </div>
         <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} defaultListId={addTaskListId} />
       </>
     );
@@ -126,11 +128,13 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
 
     return (
       <>
-        <ListDetailView
-          category={virtual}
-          tasks={filtered}
-          onBack={() => setSmartView(null)}
-        />
+        <div className="md:max-w-3xl md:mx-auto">
+          <ListDetailView
+            category={virtual}
+            tasks={filtered}
+            onBack={() => setSmartView(null)}
+          />
+        </div>
         <AddTaskModal isOpen={showAddTask} onClose={() => setShowAddTask(false)} defaultDate={defaultTaskDate} defaultListId={addTaskListId} />
       </>
     );
@@ -138,7 +142,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
 
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
-      <div className="px-4 pb-6">
+      <div className="px-4 pb-6 md:max-w-3xl md:mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5 px-1">
           <h1 className="flow-page-title">Tasks</h1>
