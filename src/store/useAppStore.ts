@@ -265,22 +265,28 @@ export const useAppStore = create<AppState>()((set, get) => {
       const prevCompletedAt = task.completedAt;
       const completed = !prevCompleted;
       const completedAt = completed ? new Date() : undefined;
+      // Optimistic update — UI responds immediately
       set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, completed, completedAt } : t)) }));
-      queueOrRun(uid(), () => {
-        (supabase.from('tasks') as any)
+      queueOrRun(uid(), async () => {
+        // First attempt: include completed_at
+        let res = await (supabase.from('tasks') as any)
           .update({ completed, completed_at: completed ? completedAt!.toISOString() : null })
-          .eq('id', id)
-          .then((res: any) => {
-            if (res?.error) {
-              console.error('[supabase:toggleTask]', res.error.message ?? res.error, res.error);
-              // Revert optimistic update so UI reflects actual DB state
-              set((s) => ({
-                tasks: s.tasks.map((t) =>
-                  t.id === id ? { ...t, completed: prevCompleted, completedAt: prevCompletedAt } : t,
-                ),
-              }));
-            }
-          });
+          .eq('id', id);
+        // If that failed (e.g. completed_at column not in production), retry with just completed
+        if (res.error) {
+          res = await (supabase.from('tasks') as any)
+            .update({ completed })
+            .eq('id', id);
+        }
+        if (res.error) {
+          console.error('[supabase:toggleTask]', res.error.message ?? res.error, res.error);
+          // Both attempts failed — revert optimistic update
+          set((s) => ({
+            tasks: s.tasks.map((t) =>
+              t.id === id ? { ...t, completed: prevCompleted, completedAt: prevCompletedAt } : t,
+            ),
+          }));
+        }
       });
     },
     toggleSubtask: (taskId, subtaskId) => {
