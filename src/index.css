@@ -105,7 +105,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --shadow-card: 0 1px 2px 0 hsl(30 10% 10% / 0.04), 0 4px 12px -4px hsl(30 10% 10% / 0.06);
     --shadow-elevated: 0 2px 4px -1px hsl(30 10% 10% / 0.05), 0 12px 24px -6px hsl(30 10% 10% / 0.10);
     --shadow-nav: 0 8px 24px -6px hsl(30 10% 10% / 0.12);
-    --calendar-panel-shadow: none;
+    --calendar-panel-shadow: 0 -2px 8px rgba(0,0,0,0.06);
     --calendar-panel-bg: hsl(var(--card));
 
     --sidebar-background: 0 0% 100%;
