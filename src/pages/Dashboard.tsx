@@ -397,7 +397,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       <div className="px-4 space-y-4 pb-32">
         {/* ── Today's Focus ─────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl p-5">
+        <div className="flow-widget">
           <div className="flex items-center justify-between mb-4">
             <h2 className="flow-section-title">Today's focus</h2>
             {focusItems.length < 3 && (
