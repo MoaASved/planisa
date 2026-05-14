@@ -749,6 +749,7 @@ const Dashboard: React.FC = () => {
   // Trial reminder state
   const [trialNisaMessage, setTrialNisaMessage] = useState<string | null>(null);
   const [showTrialModal, setShowTrialModal] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   // ── Load focus items for today ──────────────────────────────────────────────
   const todayDate = new Date().toISOString().split('T')[0];
@@ -1080,7 +1081,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className={`md:pl-56 md:rounded-l-2xl md:shadow-lg md:bg-white min-h-screen${activeTab === 'calendar' ? ' dark:bg-[#1C1A18]' : ''}`}>
+      <div className={`transition-all duration-300 ${sidebarExpanded ? 'md:ml-56' : 'md:ml-16'} md:rounded-l-2xl md:shadow-lg md:bg-white min-h-screen${activeTab === 'calendar' ? ' dark:bg-[#1C1A18]' : ''}`}>
       {onboardingVisible && (
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       )}
@@ -1156,6 +1157,8 @@ const Dashboard: React.FC = () => {
               onPlusClick={() => setShowQuickCreate(v => !v)}
               isPlusActive={showQuickCreate}
               onProfileClick={() => setActiveTab('profile')}
+              isExpanded={sidebarExpanded}
+              onExpandedChange={setSidebarExpanded}
             />
           </div>
           <div className="md:hidden">

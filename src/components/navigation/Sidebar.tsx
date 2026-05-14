@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Home, Calendar, CheckSquare, FileText, Plus, User, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -11,6 +10,8 @@ interface SidebarProps {
   onPlusClick: () => void;
   isPlusActive?: boolean;
   onProfileClick: () => void;
+  isExpanded: boolean;
+  onExpandedChange: (expanded: boolean) => void;
 }
 
 const navItems = [
@@ -25,8 +26,9 @@ export function Sidebar({
   onTabChange,
   onPlusClick,
   onProfileClick,
+  isExpanded,
+  onExpandedChange,
 }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
   const { settings } = useAppStore();
 
   return (
@@ -54,7 +56,7 @@ export function Sidebar({
           className={cn('h-6 w-auto transition-opacity duration-200', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
         />
         <button
-          onClick={() => setIsExpanded(v => !v)}
+          onClick={() => onExpandedChange(!isExpanded)}
           className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground/30 hover:text-foreground/60 hover:bg-black/5 transition-all flex-shrink-0"
         >
           {isExpanded ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
