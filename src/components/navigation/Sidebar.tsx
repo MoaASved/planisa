@@ -93,7 +93,7 @@ export function Sidebar({
               className={cn(
                 'w-full h-11 flex items-center gap-3 px-3 rounded-2xl transition-all duration-200 cursor-pointer',
                 isActive
-                  ? 'bg-[#F5F3F0] text-foreground'
+                  ? 'bg-[#ede8f5] text-foreground font-medium'
                   : 'text-foreground/40 hover:text-foreground/70',
               )}
             >
@@ -120,7 +120,7 @@ export function Sidebar({
         className={cn(
           'w-full h-11 flex items-center gap-3 px-3 rounded-2xl transition-all duration-200 cursor-pointer',
           activeTab === 'profile'
-            ? 'bg-[#F5F3F0] text-foreground'
+            ? 'bg-[#ede8f5] text-foreground font-medium'
             : 'text-foreground/40 hover:text-foreground/70',
         )}
       >
