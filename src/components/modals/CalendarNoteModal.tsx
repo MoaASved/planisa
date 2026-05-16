@@ -14,7 +14,7 @@ interface CalendarNoteModalProps {
 }
 
 export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: CalendarNoteModalProps) {
-  const { updateNote, deleteNote } = useAppStore();
+  const { updateNote, deleteNote, updateNotebookPage } = useAppStore();
   const [title, setTitle] = useState('');
   const [localDate, setLocalDate] = useState<Date | undefined>(undefined);
   const [localTime, setLocalTime] = useState<string | undefined>(undefined);
@@ -42,7 +42,11 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   const isNotebookPage = note.id.startsWith('nbp-');
 
   const handleSave = () => {
-    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
+    if (isNotebookPage) {
+      updateNotebookPage(note.id.slice(4), { title: title.trim() || undefined });
+    } else {
+      updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
+    }
     onClose();
   };
 
@@ -52,7 +56,11 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   };
 
   const handleOpen = () => {
-    if (!isNotebookPage) updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
+    if (isNotebookPage) {
+      updateNotebookPage(note.id.slice(4), { title: title.trim() || undefined });
+    } else {
+      updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
+    }
     onOpenFullEditor(note);
   };
 
@@ -167,9 +175,8 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder=""
-            disabled={isNotebookPage}
-            className="w-full bg-transparent text-lg font-semibold text-foreground placeholder:text-muted-foreground/40 border-0 outline-none disabled:opacity-60"
+            placeholder="Add title..."
+            className="w-full bg-transparent text-lg font-semibold text-foreground placeholder:text-muted-foreground/40 border-0 outline-none"
           />
         </div>
 
