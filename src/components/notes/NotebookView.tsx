@@ -27,11 +27,14 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
     return () => { if (titlePendingTimerRef.current) clearTimeout(titlePendingTimerRef.current); };
   }, []);
 
-  // Returns the display name: custom title if set, otherwise first words of content.
+  // Returns the display name: custom title if set, otherwise first non-empty line of content.
   const getDisplayName = (page: NotebookPage) => {
     if (page.title) return page.title;
-    const plain = page.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    return plain.slice(0, 60) || 'Untitled page';
+    const firstLine = page.content
+      .replace(/<\/p>/gi, '\n').replace(/<\/h[1-6]>/gi, '\n').replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .split('\n').map(l => l.trim()).find(l => l.length > 0);
+    return firstLine || 'Untitled page';
   };
 
   const startEditing = (page: NotebookPage) => {
@@ -97,8 +100,6 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
           </div>
         ) : (
           pages.map((page, index) => {
-            const plainText = page.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-            const preview = page.title ? plainText.slice(0, 60) : '';
             const isEditing = editingPageId === page.id;
             return (
               <button
@@ -159,11 +160,6 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
                       >
                         {getDisplayName(page)}
                       </h4>
-                    )}
-                    {preview && (
-                      <p className="flow-meta truncate">
-                        {preview}
-                      </p>
                     )}
                   </div>
                   <span className="shrink-0 flow-meta-sm">
