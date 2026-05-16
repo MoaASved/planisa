@@ -618,7 +618,7 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
 
                   <div className={cn('px-2 py-1.5', !folder && 'opacity-40')}>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground">Hide from All Notes</span>
+                      <span className="text-sm text-foreground">Hide from Board</span>
                       <button
                         onClick={() => folder && setHideFromAllNotes(!hideFromAllNotes)}
                         className={cn(toggleStyle(hideFromAllNotes), !folder && 'cursor-not-allowed')}
