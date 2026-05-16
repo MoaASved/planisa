@@ -77,9 +77,11 @@ interface NotesViewProps {
   onCloseEditor?: () => void;
   initialNoteId?: string;
   onInitialNoteConsumed?: () => void;
+  initialNotebookPage?: { notebookId: string; pageId: string };
+  onInitialNotebookPageConsumed?: () => void;
 }
 
-export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
+export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed, initialNotebookPage, onInitialNotebookPageConsumed }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('folders');
@@ -108,6 +110,21 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [editModalNotebook, setEditModalNotebook] = useState<Notebook | null>(null);
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
+
+  const [pendingPageId, setPendingPageId] = useState<string | null>(null);
+
+  // Navigate to a specific notebook page when initialNotebookPage is provided
+  useEffect(() => {
+    if (!initialNotebookPage) return;
+    const nb = notebooks.find(n => n.id === initialNotebookPage.notebookId);
+    if (nb) {
+      setViewTab('notebooks');
+      setSelectedNotebook(nb);
+      setPendingPageId(initialNotebookPage.pageId);
+      onInitialNotebookPageConsumed?.();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialNotebookPage]);
 
   // Drag-and-drop sensors for folder reordering
   const sensors = useSensors(
@@ -371,7 +388,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   }
 
   if (selectedNotebook) {
-    return <NotebookView notebook={selectedNotebook} onClose={() => setSelectedNotebook(null)} />;
+    return (
+      <NotebookView
+        notebook={selectedNotebook}
+        onClose={() => setSelectedNotebook(null)}
+        initialPageId={pendingPageId ?? undefined}
+        onInitialPageConsumed={() => setPendingPageId(null)}
+      />
+    );
   }
 
   // Inside folder view - separate from tabs

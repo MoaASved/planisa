@@ -8,9 +8,11 @@ import { NotebookPageEditor } from './NotebookPageEditor';
 interface NotebookViewProps {
   notebook: Notebook;
   onClose: () => void;
+  initialPageId?: string;
+  onInitialPageConsumed?: () => void;
 }
 
-export function NotebookView({ notebook, onClose }: NotebookViewProps) {
+export function NotebookView({ notebook, onClose, initialPageId, onInitialPageConsumed }: NotebookViewProps) {
   const { notebookPages, addNotebookPage, updateNotebookPage } = useAppStore();
   const [selectedPage, setSelectedPage] = useState<NotebookPage | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
@@ -26,6 +28,17 @@ export function NotebookView({ notebook, onClose }: NotebookViewProps) {
   useEffect(() => {
     return () => { if (titlePendingTimerRef.current) clearTimeout(titlePendingTimerRef.current); };
   }, []);
+
+  useEffect(() => {
+    if (!initialPageId) return;
+    const page = notebookPages.find(p => p.id === initialPageId && p.notebookId === notebook.id);
+    if (page) {
+      setSelectedPage(page);
+      onInitialPageConsumed?.();
+    }
+  // Run once when initialPageId is provided
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPageId]);
 
   // Returns the display name: custom title if set, otherwise first non-empty line of content.
   const getDisplayName = (page: NotebookPage) => {

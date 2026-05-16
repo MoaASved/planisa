@@ -201,7 +201,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             onClick={handleOpen}
             className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
           >
-            Open in Notes
+            {isNotebookPage ? 'Open page' : 'Open in Notes'}
           </button>
           <button
             onClick={handleSave}

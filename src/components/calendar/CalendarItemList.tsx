@@ -3,7 +3,7 @@ import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getColorVar, getAccentVar } from '@/lib/colors';
-import { Check, FileText, Clock, List, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
+import { Check, FileText, BookOpen, Clock, List, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -565,6 +565,7 @@ export function CalendarItemList({
     // Note
     const note = item as Note;
     const isSticky = note.type === 'sticky';
+    const isUncoloredNotebookPage = note.id.startsWith('nbp-') && !note.color;
     // Only apply physical sticky styling outside of list view (i.e. in timeline/compact contexts)
     const stickyStyled = isSticky && (showTimeline || compact);
 
@@ -593,7 +594,9 @@ export function CalendarItemList({
         className={cn(
           'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
           stickyStyled && 'relative overflow-hidden',
-          getColorCardClass(color),
+          isUncoloredNotebookPage
+            ? 'bg-white dark:bg-card border border-border/40'
+            : getColorCardClass(color),
           compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5',
           fillHeight && 'h-full',
           isDragging && 'opacity-50 scale-95'
@@ -608,7 +611,9 @@ export function CalendarItemList({
         )}
         {isSticky
           ? <Pin className={cn(compact ? 'w-3 h-3' : 'w-3.5 h-3.5', 'text-[#2C2C2A]/45 flex-shrink-0 mt-0.5')} />
-          : <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
+          : note.id.startsWith('nbp-')
+            ? <BookOpen className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
+            : <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
         }
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>

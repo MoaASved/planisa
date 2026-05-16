@@ -16,7 +16,7 @@ import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 
 type SimpleView = 'month' | 'weekday';
 
-export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void }) {
+export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenNotebookPage }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; onOpenNotebookPage?: (notebookId: string, pageId: string) => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
@@ -45,9 +45,14 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     // Include notebook pages with showInCalendar as Note-like objects
     ...notebookPages
       .filter(p => p.showInCalendar)
-      .map(p => ({
+      .map(p => {
+        const firstLine = p.content
+          .replace(/<\/p>/gi, '\n').replace(/<\/h[1-6]>/gi, '\n').replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<[^>]+>/g, '')
+          .split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0);
+        return {
         id: `nbp-${p.id}`,
-        title: p.title || 'Untitled',
+        title: p.title || firstLine || 'Untitled',
         content: p.content,
         type: 'note' as const,
         tags: [],
@@ -60,7 +65,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         isPinned: false,
         showInCalendar: true,
         hideDate: p.hideDate,
-      })),
+      }; }),
   ];
 
   // Get effective color: live category color > stored item color > default
@@ -80,6 +85,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
 
   const getNoteColor = (note: Note): PastelColor => {
     if (note.color) return note.color;
+    if (note.id.startsWith('nbp-')) return 'stone';
     const folder = folders.find(f => f.name === note.folder);
     return folder?.color || 'peony';
   };
@@ -137,6 +143,15 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   };
 
   const handleOpenFullNoteEditor = (note: Note) => {
+    if (note.id.startsWith('nbp-')) {
+      const pageId = note.id.slice(4);
+      const page = notebookPages.find(p => p.id === pageId);
+      if (page && onOpenNotebookPage) {
+        handleCloseNoteModal();
+        onOpenNotebookPage(page.notebookId, page.id);
+      }
+      return;
+    }
     if (note.type === 'sticky') {
       setEditingNote(null);
       setEditingStickyNote(note);

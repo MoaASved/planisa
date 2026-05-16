@@ -750,6 +750,13 @@ const Dashboard: React.FC = () => {
 
   const setActiveTab = (tab: string) => setActiveTabRaw(tab);
 
+  const [pendingNotebookPage, setPendingNotebookPage] = useState<{ notebookId: string; pageId: string } | null>(null);
+
+  const handleOpenNotebookPage = (notebookId: string, pageId: string) => {
+    setPendingNotebookPage({ notebookId, pageId });
+    setActiveTab('notes');
+  };
+
   // Trial reminder state
   const [trialNisaMessage, setTrialNisaMessage] = useState<string | null>(null);
   const [showTrialModal, setShowTrialModal] = useState(false);
@@ -1051,6 +1058,7 @@ const Dashboard: React.FC = () => {
           <CalendarViewComponent
             onDateChange={setSelectedCalendarDate}
             onNavigateToTasks={task => { setHighlightTaskId(task.id); setActiveTab('tasks'); }}
+            onOpenNotebookPage={handleOpenNotebookPage}
           />
         );
       case 'tasks':
@@ -1069,6 +1077,8 @@ const Dashboard: React.FC = () => {
             isCreatingNew={isCreatingNewNote}
             isCreatingStickyNote={isCreatingStickyNote}
             onCloseEditor={() => { setIsCreatingNewNote(false); setIsCreatingStickyNote(false); setIsEditingNote(false); }}
+            initialNotebookPage={pendingNotebookPage ?? undefined}
+            onInitialNotebookPageConsumed={() => setPendingNotebookPage(null)}
           />
         );
       case 'profile':
