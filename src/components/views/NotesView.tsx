@@ -32,7 +32,7 @@ import { NotebookEditModal } from '@/components/notes/NotebookEditModal';
 import { useHaptics } from '@/hooks/useHaptics';
 
 
-type ViewTab = 'notes' | 'folders' | 'sticky' | 'notebooks';
+type ViewTab = 'folders' | 'boards' | 'notebooks';
 type LayoutMode = 'list' | 'grid';
 
 interface NotesViewProps {
@@ -47,7 +47,7 @@ interface NotesViewProps {
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery } = useAppStore();
   const haptics = useHaptics();
-  const [viewTab, setViewTab] = useState<ViewTab>('notes');
+  const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -358,25 +358,25 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       
       {/* Centered navigation tabs */}
       <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5">
-        {(['notes', 'folders', 'sticky', 'notebooks'] as ViewTab[]).map((tab) => (
+        {(['folders', 'boards', 'notebooks'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setViewTab(tab)}
             className={cn(
               'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
-              viewTab === tab 
-                ? 'bg-card shadow-sm text-foreground' 
+              viewTab === tab
+                ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {tab === 'notes' ? 'Notes' : tab === 'folders' ? 'Folders' : tab === 'sticky' ? 'Sticky' : 'Notebooks'}
+            {tab === 'folders' ? 'Folders' : tab === 'boards' ? 'Boards' : 'Notebooks'}
           </button>
         ))}
       </div>
 
       {/* Right controls */}
       <div className="flex-1 flex justify-end gap-2">
-        {(viewTab === 'notes' || viewTab === 'sticky') ? (
+        {viewTab === 'boards' ? (
           <button
             onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
@@ -500,44 +500,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     );
   }
 
-  // Sticky notes view
-  if (viewTab === 'sticky') {
-    return (
-      <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-4 pb-4">
-          <TabsHeader />
-          
-          {showSearch && (
-            <div className="mb-4 animate-fade-in">
-              <input
-                type="text"
-                placeholder="Search sticky notes..."
-                value={localSearchQuery}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
-                className="w-full flow-input"
-              />
-            </div>
-          )}
-
-          <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-            {filteredStickyNotes.map((note, index) => (
-              <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
-                <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-              </div>
-            ))}
-          </div>
-
-          {filteredStickyNotes.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No sticky notes yet</p>
-            </div>
-          )}
-        </div>
-
-      </div>
-    );
-  }
-
   // Folders view - macOS style icons
   if (viewTab === 'folders') {
     return (
@@ -631,7 +593,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     );
   }
 
-  // Notes view (default) - all notes and sticky notes, regular notes without color
+  // Boards view (default) - all notes and sticky notes
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
       <div className="px-4 pb-4">
@@ -641,7 +603,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           <div className="mb-4 animate-fade-in">
             <input
               type="text"
-              placeholder="Search notes..."
+              placeholder="Search boards..."
               value={localSearchQuery}
               onChange={(e) => setLocalSearchQuery(e.target.value)}
               className="w-full flow-input"
@@ -662,7 +624,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
         {filteredAllNotes.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No notes yet</p>
+            <p className="text-muted-foreground">No boards yet</p>
           </div>
         )}
       </div>
