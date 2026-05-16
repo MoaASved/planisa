@@ -56,15 +56,16 @@ import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
 interface NoteEditorProps {
   note?: Note;
   onClose: () => void;
+  defaultFolder?: string;
 }
 
 
-export function NoteEditor({ note, onClose }: NoteEditorProps) {
+export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
 
   const [title, setTitle] = useState(note?.title || '');
-  const [folder, setFolder] = useState<string | undefined>(note?.folder);
+  const [folder, setFolder] = useState<string | undefined>(note?.folder ?? defaultFolder);
   const [date, setDate] = useState<Date>(note?.date ? new Date(note.date) : new Date());
   const [time, setTime] = useState<string | undefined>(note?.time);
   const [endTime, setEndTime] = useState<string | undefined>(note?.endTime);

@@ -19,6 +19,7 @@ interface StickyNoteEditorProps {
   initialTime?: string;
   initialContent?: string;
   showCalendarToggle?: boolean;
+  defaultFolder?: string;
 }
 
 const getStickyBgClass = (color?: PastelColor): string => {
@@ -39,7 +40,7 @@ const getStickyBgClass = (color?: PastelColor): string => {
   return colorMap[color] || 'bg-pastel-sky';
 };
 
-export function StickyNoteEditor({ note, onClose, initialDate, initialTime, initialContent, showCalendarToggle }: StickyNoteEditorProps) {
+export function StickyNoteEditor({ note, onClose, initialDate, initialTime, initialContent, showCalendarToggle, defaultFolder }: StickyNoteEditorProps) {
   const { addNote, updateNote, togglePinNote, folders } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
 
@@ -49,7 +50,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
     const colors: PastelColor[] = ['fern', 'pistachio', 'lagune', 'sky', 'peach', 'honey', 'peony', 'rose', 'plum', 'taupe', 'stone'];
     return colors[Math.floor(Math.random() * colors.length)];
   });
-  const [folder, setFolder] = useState(note?.folder || '');
+  const [folder, setFolder] = useState(note?.folder || defaultFolder || '');
   const [date, setDate] = useState<Date>(note?.date || initialDate || new Date());
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const [showInCalendar, setShowInCalendar] = useState(note?.showInCalendar ?? !!initialDate);

@@ -29,7 +29,9 @@ import {
   Plus,
   ArrowLeft,
   MoreHorizontal,
-  SlidersHorizontal
+  SlidersHorizontal,
+  FileText,
+  StickyNote as StickyNoteIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -91,6 +93,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
   const [boardsFilter, setBoardsFilter] = useState<'all' | 'notes-only' | 'sticky-only'>('all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [showFolderActionMenu, setShowFolderActionMenu] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -363,11 +366,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Show editors
   if (selectedNote || (isCreatingNew && !externalIsCreatingStickyNote)) {
-    return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} />;
+    return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} defaultFolder={selectedFolder?.name} />;
   }
 
   if (selectedStickyNote || isCreatingStickyNote || (isCreatingNew && externalIsCreatingStickyNote)) {
-    return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} showCalendarToggle />;
+    return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} showCalendarToggle defaultFolder={selectedFolder?.name} />;
   }
 
   if (selectedNotebook) {
@@ -399,11 +402,42 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           ) : (
             folderNotes.map(note => (
-              note.type === 'sticky' 
+              note.type === 'sticky'
                 ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
                 : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
             ))
           )}
+        </div>
+
+        {/* FAB — create note or sticky inside this folder */}
+        {showFolderActionMenu && (
+          <div className="fixed inset-0 z-[1099]" onClick={() => setShowFolderActionMenu(false)} />
+        )}
+        <div className="fixed bottom-[144px] right-4 z-[1100] flex flex-col items-end gap-2">
+          {showFolderActionMenu && (
+            <>
+              <button
+                onClick={() => { setShowFolderActionMenu(false); handleCreateStickyNote(); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card shadow-lg text-sm font-medium text-foreground"
+              >
+                <StickyNoteIcon className="w-4 h-4" />
+                Sticky note
+              </button>
+              <button
+                onClick={() => { setShowFolderActionMenu(false); handleCreateNote(); }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card shadow-lg text-sm font-medium text-foreground"
+              >
+                <FileText className="w-4 h-4" />
+                Note
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setShowFolderActionMenu(v => !v)}
+            className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
+          >
+            <Plus className={cn('w-6 h-6 text-primary-foreground transition-transform duration-200', showFolderActionMenu && 'rotate-45')} />
+          </button>
         </div>
 
       </div>
