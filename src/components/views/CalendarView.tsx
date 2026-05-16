@@ -45,14 +45,9 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     // Include notebook pages with showInCalendar as Note-like objects
     ...notebookPages
       .filter(p => p.showInCalendar)
-      .map(p => {
-        const firstLine = p.content
-          .replace(/<\/p>/gi, '\n').replace(/<\/h[1-6]>/gi, '\n').replace(/<br\s*\/?>/gi, '\n')
-          .replace(/<[^>]+>/g, '')
-          .split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0);
-        return {
+      .map(p => ({
         id: `nbp-${p.id}`,
-        title: p.title || firstLine || 'Untitled',
+        title: p.title || 'Untitled',
         content: p.content,
         type: 'note' as const,
         tags: [],
@@ -65,7 +60,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
         isPinned: false,
         showInCalendar: true,
         hideDate: p.hideDate,
-      }; }),
+      })),
   ];
 
   // Get effective color: live category color > stored item color > default
