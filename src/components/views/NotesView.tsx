@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
-import { 
-  FolderOpen, 
+import {
+  FolderOpen,
   FolderPlus,
   ChevronRight,
   Pin,
@@ -12,7 +12,8 @@ import {
   BookOpen,
   Plus,
   ArrowLeft,
-  MoreHorizontal
+  MoreHorizontal,
+  SlidersHorizontal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -54,6 +55,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [selectedStickyNote, setSelectedStickyNote] = useState<Note | null>(null);
   const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
   const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
+  const [boardsFilter, setBoardsFilter] = useState<'all' | 'notes-only' | 'sticky-only'>('all');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -113,6 +116,12 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     if (!localSearchQuery) return true;
     const query = localSearchQuery.toLowerCase();
     return note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query);
+  });
+
+  const filteredBoardsNotes = filteredAllNotes.filter(note => {
+    if (boardsFilter === 'notes-only') return note.type !== 'sticky';
+    if (boardsFilter === 'sticky-only') return note.type === 'sticky';
+    return true;
   });
 
   // Notes in selected folder (both regular and sticky)
@@ -351,12 +360,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     );
   }
 
-  // Navigation tabs - centered with smooth button styling
+  // Navigation tabs - left-aligned with action icons on the right
   const TabsHeader = () => (
     <div className="flex items-center justify-between mb-4">
-      <div className="flex-1" />
-      
-      {/* Centered navigation tabs */}
+      {/* Left-aligned tabs */}
       <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5">
         {(['folders', 'boards', 'notebooks'] as ViewTab[]).map((tab) => (
           <button
@@ -375,17 +382,60 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       </div>
 
       {/* Right controls */}
-      <div className="flex-1 flex justify-end gap-2">
-        {viewTab === 'boards' ? (
-          <button
-            onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
-          </button>
-        ) : (
-          <div className="w-8 h-8" aria-hidden="true" />
+      <div className="flex items-center gap-2">
+        {viewTab === 'boards' && (
+          <>
+            {/* Filter */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFilterMenu(v => !v)}
+                className={cn(
+                  'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
+                  showFilterMenu || boardsFilter !== 'all'
+                    ? 'text-foreground bg-secondary'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                {boardsFilter !== 'all' && (
+                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary pointer-events-none" />
+                )}
+              </button>
+              {showFilterMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
+                  <div
+                    className="absolute right-0 top-full mt-1 z-20 bg-card rounded-xl border border-border/50 p-1 min-w-[140px]"
+                    style={{ boxShadow: 'var(--shadow-elevated)' }}
+                  >
+                    {(['all', 'notes-only', 'sticky-only'] as const).map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => { setBoardsFilter(f); setShowFilterMenu(false); }}
+                        className={cn(
+                          'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+                          boardsFilter === f
+                            ? 'bg-secondary text-foreground font-medium'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                        )}
+                      >
+                        {f === 'all' ? 'All' : f === 'notes-only' ? 'Notes only' : 'Sticky only'}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            {/* View toggle */}
+            <button
+              onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
+            </button>
+          </>
         )}
+        {/* Search */}
         <button
           onClick={() => setShowSearch(!showSearch)}
           className={cn(
@@ -612,9 +662,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         )}
 
         <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
-          {filteredAllNotes.map((note, index) => (
+          {filteredBoardsNotes.map((note, index) => (
             <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
-              {note.type === 'sticky' 
+              {note.type === 'sticky'
                 ? <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
                 : <NoteCard note={note} isGrid={layoutMode === 'grid'} />
               }
@@ -622,9 +672,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           ))}
         </div>
 
-        {filteredAllNotes.length === 0 && (
+        {filteredBoardsNotes.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No boards yet</p>
+            <p className="text-muted-foreground">
+              {boardsFilter === 'notes-only' ? 'No notes yet' : boardsFilter === 'sticky-only' ? 'No sticky notes yet' : 'No boards yet'}
+            </p>
           </div>
         )}
       </div>
