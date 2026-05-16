@@ -48,7 +48,7 @@ interface NotesViewProps {
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery } = useAppStore();
   const haptics = useHaptics();
-  const [viewTab, setViewTab] = useState<ViewTab>('boards');
+  const [viewTab, setViewTab] = useState<ViewTab>('folders');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
