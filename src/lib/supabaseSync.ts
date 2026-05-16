@@ -211,6 +211,7 @@ export function rowToFolder(row: Row): Folder {
     id: row.id,
     name: row.title,
     color: (asColor(row.color) ?? 'peony') as PastelColor,
+    position: row.position ?? undefined,
   };
 }
 export function folderToRow(f: Partial<Folder>, userId: string): Row {
@@ -218,6 +219,7 @@ export function folderToRow(f: Partial<Folder>, userId: string): Row {
   if (f.id !== undefined) r.id = f.id;
   if (f.name !== undefined) r.title = f.name;
   if (f.color !== undefined) r.color = f.color;
+  if (f.position !== undefined) r.position = f.position;
   return r;
 }
 

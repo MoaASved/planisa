@@ -61,6 +61,7 @@ interface AppState {
   addFolder: (folder: Omit<Folder, 'id'>) => void;
   updateFolder: (id: string, updates: Partial<Folder>) => void;
   deleteFolder: (id: string) => void;
+  reorderFolders: (orderedIds: string[]) => void;
 
   // Task Categories
   taskCategories: TaskCategory[];
@@ -424,6 +425,17 @@ export const useAppStore = create<AppState>()((set, get) => {
       set((s) => ({ folders: s.folders.filter((f) => f.id !== id) }));
       (supabase.from('note_folders') as any).delete().eq('id', id).then(swallow('deleteFolder'));
     },
+    reorderFolders: (orderedIds) => {
+      const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
+      set((s) => ({
+        folders: s.folders
+          .map((f) => indexMap.has(f.id) ? { ...f, position: indexMap.get(f.id)! } : f)
+          .sort((a, b) => (a.position ?? Infinity) - (b.position ?? Infinity)),
+      }));
+      orderedIds.forEach((id, i) => {
+        (supabase.from('note_folders') as any).update({ position: i }).eq('id', id).then(swallow('reorderFolders'));
+      });
+    },
 
     // ─────────────────────────── TASK CATEGORIES (lists) ───────────────────────────
     addTaskCategory: (category) => {
@@ -620,7 +632,9 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (!eventsR.error) update.events = (eventsR.data ?? []).map(rowToEvent);
       if (!calCatsR.error) update.eventCategories = (calCatsR.data ?? []).map(rowToEventCategory);
       if (!notesR.error) update.notes = (notesR.data ?? []).map(rowToNote);
-      if (!foldersR.error) update.folders = (foldersR.data ?? []).map(rowToFolder);
+      if (!foldersR.error) update.folders = (foldersR.data ?? [])
+        .map(rowToFolder)
+        .sort((a, b) => (a.position ?? Infinity) - (b.position ?? Infinity));
       if (!notebooksR.error) update.notebooks = (notebooksR.data ?? []).map(rowToNotebook);
       if (!pagesR.error) update.notebookPages = (pagesR.data ?? []).map(rowToNotebookPage);
       set(update);

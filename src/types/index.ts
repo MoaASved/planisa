@@ -103,6 +103,7 @@ export interface Folder {
   id: string;
   name: string;
   color: PastelColor;
+  position?: number;
 }
 
 // Notebook types

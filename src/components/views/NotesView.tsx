@@ -1,4 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, CSSProperties } from 'react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { format } from 'date-fns';
 import {
   FolderOpen,
@@ -34,6 +50,24 @@ import { useHaptics } from '@/hooks/useHaptics';
 
 
 type ViewTab = 'folders' | 'boards' | 'notebooks';
+
+// ── Sortable folder card (used in Folders tab drag-and-drop) ──────────────────
+function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onClick: () => void; onEdit: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    scale: isDragging ? '1.05' : undefined,
+    boxShadow: isDragging ? '0 12px 32px rgba(0,0,0,0.18)' : undefined,
+    opacity: isDragging ? 0.92 : undefined,
+  };
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+      <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
+    </div>
+  );
+}
 type LayoutMode = 'list' | 'grid';
 
 interface NotesViewProps {
@@ -46,7 +80,7 @@ interface NotesViewProps {
 }
 
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
-  const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery } = useAppStore();
+  const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('folders');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
@@ -74,6 +108,22 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [editModalNotebook, setEditModalNotebook] = useState<Notebook | null>(null);
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
+
+  // Drag-and-drop sensors for folder reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
+
+  const handleFolderDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = folders.findIndex((f) => f.id === active.id);
+    const newIndex = folders.findIndex((f) => f.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const newOrder = arrayMove(folders, oldIndex, newIndex);
+    reorderFolders(newOrder.map((f) => f.id));
+  };
 
   // Scroll to top when editor closes
   useEffect(() => {
@@ -569,21 +619,20 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
-            {folders.map((folder, index) => (
-              <div 
-                key={folder.id} 
-                className="stagger-item" 
-                style={{ animationDelay: `${index * 40}ms` }}
-              >
-                <FolderGridCard
-                  folder={folder}
-                  onClick={() => setSelectedFolder(folder)}
-                  onEdit={() => setEditModalFolder(folder)}
-                />
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
+            <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
+                {folders.map((folder) => (
+                  <SortableFolderCard
+                    key={folder.id}
+                    folder={folder}
+                    onClick={() => setSelectedFolder(folder)}
+                    onEdit={() => setEditModalFolder(folder)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
 
 
           {folders.length === 0 && (
