@@ -545,11 +545,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4" style={{ margin: '-16px' }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
             {notebooks.map((notebook, index) => (
-              <div 
-                key={notebook.id} 
-                className="stagger-item" 
+              <div
+                key={notebook.id}
+                className="stagger-item md:max-w-[200px] md:w-full"
                 style={{ animationDelay: `${index * 40}ms` }}
               >
                 <NotebookCard 
