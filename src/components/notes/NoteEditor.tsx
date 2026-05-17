@@ -376,13 +376,13 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
 
   return (
     <div
-      className="fixed left-0 right-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
+      className="fixed left-0 md:left-[var(--sidebar-w,0px)] right-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
       style={{ top: `${viewportOffset}px`, height: `${viewportHeight}px` }}
     >
 
       {/* Top bar — three floating elements */}
       <div
-        className="fixed left-0 right-0 z-[1250] flex items-center"
+        className="fixed left-0 md:left-[var(--sidebar-w,0px)] right-0 z-[1250] flex items-center"
         style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 12}px)`, pointerEvents: 'none' }}
       >
 
