@@ -439,9 +439,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Navigation tabs - left-aligned with action icons on the right
   const TabsHeader = () => (
-    <div className="flex items-center justify-between mb-4">
-      {/* Left-aligned tabs */}
-      <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5">
+    <div className="flex items-center justify-between mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
+      {/* Tabs — centered on desktop */}
+      <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5 md:col-start-2">
         {(['folders', 'boards', 'notebooks'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
@@ -459,7 +459,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       </div>
 
       {/* Right controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 md:col-start-3 md:justify-self-end">
         {viewTab === 'boards' && (
           <>
             {/* Filter */}
