@@ -648,7 +648,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
             <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 p-4" style={{ margin: '-16px' }}>
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
                 {folders.map((folder) => (
                   <SortableFolderCard
                     key={folder.id}
