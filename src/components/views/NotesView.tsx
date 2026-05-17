@@ -85,13 +85,13 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('folders');
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectedStickyNote, setSelectedStickyNote] = useState<Note | null>(null);
   const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
   const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
-  const [boardsFilter, setBoardsFilter] = useState<'all' | 'notes-only' | 'sticky-only'>('all');
+  const [boardsFilter, setBoardsFilter] = useState<'all' | 'notes-only' | 'sticky-only'>(() => (localStorage.getItem('boards-filter') as 'all' | 'notes-only' | 'sticky-only') || 'all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showNotebookModal, setShowNotebookModal] = useState(false);
@@ -112,6 +112,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
 
   const [pendingPageId, setPendingPageId] = useState<string | null>(null);
+
+  useEffect(() => { localStorage.setItem('boards-view', layoutMode); }, [layoutMode]);
+  useEffect(() => { localStorage.setItem('boards-filter', boardsFilter); }, [boardsFilter]);
 
   // Navigate to a specific notebook page when initialNotebookPage is provided
   useEffect(() => {
