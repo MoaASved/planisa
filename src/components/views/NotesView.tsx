@@ -737,7 +737,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </div>
         )}
 
-        <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+        <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-3')}>
           {filteredBoardsNotes.map((note, index) => (
             <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
               {note.type === 'sticky'
