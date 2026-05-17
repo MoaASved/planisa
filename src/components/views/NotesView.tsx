@@ -418,7 +418,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         </div>
 
         {/* Notes in folder */}
-        <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 gap-3' : 'space-y-2')}>
+        <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
           {folderNotes.length === 0 ? (
             <div className="col-span-2 text-center py-12 text-muted-foreground">
               <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
