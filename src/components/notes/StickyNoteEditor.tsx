@@ -182,7 +182,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           className={cn(
             'w-full bg-transparent border-none outline-none resize-none text-lg',
             'placeholder:text-[#2C2C2A]/40 text-[#2C2C2A]/90',
-            'min-h-[150px] max-h-[300px] md:flex-1 md:min-h-0 md:max-h-none md:overflow-y-auto'
+            'min-h-[150px] max-h-[300px] md:flex-1 md:min-h-[300px] md:max-h-none md:overflow-y-auto'
           )}
           
         />
