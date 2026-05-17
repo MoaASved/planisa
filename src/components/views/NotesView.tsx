@@ -63,7 +63,7 @@ function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onCli
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none md:h-48 md:overflow-hidden md:rounded-[12px]">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
       <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
     </div>
   );
