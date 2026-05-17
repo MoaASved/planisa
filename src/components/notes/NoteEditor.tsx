@@ -816,6 +816,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
           overscrollBehavior: 'contain',
         }}
       >
+        <div className="md:max-w-2xl md:mx-auto">
         {/* Date + folder on same line */}
         {(!hideDate || folder) && (
           <div className="flex items-center gap-2 mb-3">
@@ -835,6 +836,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
 
         {/* TipTap editor */}
         <EditorContent editor={editor} className="tiptap-content" />
+        </div>
       </div>
 
       <VoiceRecordingModal
