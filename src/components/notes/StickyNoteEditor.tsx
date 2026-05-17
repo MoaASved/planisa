@@ -146,6 +146,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
       <div 
         className={cn(
           'fixed left-4 right-4 md:left-1/2 md:right-auto md:w-[460px] md:-translate-x-1/2 z-[1200] rounded-3xl p-6 shadow-xl',
+          'md:flex md:flex-col md:overflow-hidden',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           getStickyBgClass(color),
           getStickyTextClass(color)
@@ -156,7 +157,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
         }}
       >
         {/* Top actions */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 md:flex-shrink-0">
           <button
             onClick={handleTogglePin}
             className={cn(
@@ -183,13 +184,13 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           className={cn(
             'w-full bg-transparent border-none outline-none resize-none text-lg',
             'placeholder:text-[#2C2C2A]/40 text-[#2C2C2A]/90',
-            'min-h-[150px] max-h-[300px]'
+            'min-h-[150px] max-h-[300px] md:flex-1 md:min-h-0 md:max-h-none md:overflow-y-auto'
           )}
           
         />
 
         {/* Bottom actions */}
-        <div className="pt-4 border-t border-foreground/10 space-y-2">
+        <div className="pt-4 border-t border-foreground/10 space-y-2 md:flex-shrink-0">
           {/* Row 1: color, folder */}
           <div className="flex items-center gap-2">
             {/* Color picker */}
