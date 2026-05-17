@@ -6,6 +6,7 @@ import { CalendarHeader } from '@/components/calendar/CalendarHeader';
 import { YearView } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
+import { DesktopWeekGrid } from '@/components/calendar/DesktopWeekGrid';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
@@ -15,6 +16,7 @@ import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 
 type SimpleView = 'month' | 'weekday';
+type DesktopView = 'day' | 'week' | 'month' | 'year';
 
 export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenNotebookPage }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; onOpenNotebookPage?: (notebookId: string, pageId: string) => void }) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -22,7 +24,12 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
   const [showTimeline, setShowTimeline] = useState(true);
-  
+
+  // Desktop view defaults to 'week' on wide screens, 'month' on narrow (matches mobile default)
+  const [desktopView, setDesktopView] = useState<DesktopView>(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 768 ? 'week' : 'month'
+  );
+
   const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages } = useAppStore();
 
   // Edit modal states
@@ -42,7 +49,6 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   // Filter notes to only show those with showInCalendar enabled
   const calendarNotes: Note[] = [
     ...notes.filter(n => n.showInCalendar),
-    // Include notebook pages with showInCalendar as Note-like objects
     ...notebookPages
       .filter(p => p.showInCalendar)
       .map(p => ({
@@ -63,7 +69,10 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
       })),
   ];
 
-  // Get effective color: live category color > stored item color > default
+  // Week days for the desktop week/day grid
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
   const getItemColor = (item: Task | CalendarEvent, type: 'task' | 'event'): PastelColor => {
     if (type === 'task') {
       const task = item as Task;
@@ -86,7 +95,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   };
 
   const handlePrev = () => {
-    if (view === 'month') {
+    if (desktopView === 'day') {
+      const d = addDays(currentDate, -1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    } else if (desktopView === 'year') {
+      setCurrentDate(new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1));
+    } else if (desktopView === 'month') {
       setCurrentDate(subMonths(currentDate, 1));
     } else {
       setCurrentDate(subWeeks(currentDate, 1));
@@ -94,21 +109,49 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   };
 
   const handleNext = () => {
-    if (view === 'month') {
+    if (desktopView === 'day') {
+      const d = addDays(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    } else if (desktopView === 'year') {
+      setCurrentDate(new Date(currentDate.getFullYear() + 1, currentDate.getMonth(), 1));
+    } else if (desktopView === 'month') {
       setCurrentDate(addMonths(currentDate, 1));
     } else {
       setCurrentDate(addWeeks(currentDate, 1));
     }
   };
 
+  // Mobile-only: toggle year overlay
   const handleMonthClick = () => {
     setShowYearView(!showYearView);
   };
 
+  // Mobile year overlay: selecting a month closes the overlay
   const handleYearMonthSelect = (date: Date) => {
     setCurrentDate(date);
     setSelectedDate(date);
     setShowYearView(false);
+  };
+
+  // Desktop year view: selecting a month switches to month view
+  const handleYearMonthSelectDesktop = (date: Date) => {
+    setCurrentDate(date);
+    setSelectedDate(date);
+    setDesktopView('month');
+    setView('month');
+  };
+
+  const handleDesktopViewChange = (v: DesktopView) => {
+    setDesktopView(v);
+    if (v === 'month') setView('month');
+    else if (v === 'week' || v === 'day') setView('weekday');
+  };
+
+  // Mobile icon buttons: sync desktopView so prev/next navigation stays correct
+  const handleViewChange = (v: SimpleView) => {
+    setView(v);
+    setDesktopView(v === 'month' ? 'month' : 'week');
   };
 
   const handleTodayClick = () => {
@@ -169,32 +212,19 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
 
   const handleCreateFromTimeline = (type: 'event' | 'task' | 'note' | 'sticky', time: string) => {
     setTimelineCreateTime(time);
-    if (type === 'event') {
-      setShowTimelineCreateEvent(true);
-    } else if (type === 'task') {
-      setShowTimelineCreateTask(true);
-    } else if (type === 'note') {
-      setShowTimelineCreateNote(true);
-    } else if (type === 'sticky') {
-      setShowTimelineCreateSticky(true);
-    }
+    if (type === 'event') setShowTimelineCreateEvent(true);
+    else if (type === 'task') setShowTimelineCreateTask(true);
+    else if (type === 'note') setShowTimelineCreateNote(true);
+    else if (type === 'sticky') setShowTimelineCreateSticky(true);
   };
 
   const handleMonthChange = (direction: 'prev' | 'next') => {
-    if (direction === 'prev') {
-      setCurrentDate(subMonths(currentDate, 1));
-    } else {
-      setCurrentDate(addMonths(currentDate, 1));
-    }
+    setCurrentDate(direction === 'prev' ? subMonths(currentDate, 1) : addMonths(currentDate, 1));
   };
 
   const handleWeekChange = (direction: 'prev' | 'next') => {
-    const newDate = direction === 'prev'
-      ? subWeeks(currentDate, 1)
-      : addWeeks(currentDate, 1);
+    const newDate = direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1);
     setCurrentDate(newDate);
-
-    // Update selected date to same day of week in new week
     const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 });
     const currentDayOffset = selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1;
     const newSelectedDate = new Date(newWeekStart);
@@ -206,12 +236,23 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     const newDate = direction === 'prev' ? addDays(selectedDate, -1) : addDays(selectedDate, 1);
     setSelectedDate(newDate);
     onDateChange?.(newDate);
-    // Sync currentDate on week boundary (week view) or month boundary (month view)
     const curWeekStart = startOfWeek(currentDate, { weekStartsOn: 1 }).getTime();
     const newWeekStart = startOfWeek(newDate, { weekStartsOn: 1 }).getTime();
     const curMonthStart = startOfMonth(currentDate).getTime();
     const newMonthStart = startOfMonth(newDate).getTime();
     if (curWeekStart !== newWeekStart || curMonthStart !== newMonthStart) setCurrentDate(newDate);
+  };
+
+  const sharedGridProps = {
+    events,
+    tasks,
+    notes: calendarNotes,
+    selectedDate,
+    onDateSelect: handleDateSelect,
+    getItemColor,
+    getNoteColor,
+    onItemClick: handleItemClick,
+    onTaskToggle: handleTaskToggle,
   };
 
   return (
@@ -224,17 +265,16 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
         onPrev={handlePrev}
         onNext={handleNext}
         onMonthClick={handleMonthClick}
-        onViewChange={setView}
+        onViewChange={handleViewChange}
         onTodayClick={handleTodayClick}
+        desktopView={desktopView}
+        onDesktopViewChange={handleDesktopViewChange}
       />
 
-      {/* Main content — overflow-hidden so only CalendarItemList's internal scroll container moves */}
-      <div className="flex-1 overflow-hidden">
+      {/* Mobile content — unchanged */}
+      <div className="md:hidden flex-1 overflow-hidden">
         {showYearView ? (
-          <YearView
-            currentDate={currentDate}
-            onMonthClick={handleYearMonthSelect}
-          />
+          <YearView currentDate={currentDate} onMonthClick={handleYearMonthSelect} />
         ) : view === 'month' ? (
           <MonthView
             currentDate={currentDate}
@@ -271,6 +311,38 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
             showTimeline={showTimeline}
             onTimelineChange={setShowTimeline}
           />
+        )}
+      </div>
+
+      {/* Desktop content — driven by desktopView */}
+      <div className="hidden md:flex flex-col flex-1 min-h-0 overflow-hidden">
+        {desktopView === 'year' && (
+          <YearView currentDate={currentDate} onMonthClick={handleYearMonthSelectDesktop} />
+        )}
+        {desktopView === 'month' && (
+          <MonthView
+            currentDate={currentDate}
+            selectedDate={selectedDate}
+            events={events}
+            tasks={tasks}
+            notes={calendarNotes}
+            getItemColor={getItemColor}
+            getNoteColor={getNoteColor}
+            onItemClick={handleItemClick}
+            onTaskToggle={handleTaskToggle}
+            onMonthChange={handleMonthChange}
+            onDayChange={handleDayChange}
+            onDateSelect={handleDateSelect}
+            onCreateFromTimeline={handleCreateFromTimeline}
+            showTimeline={showTimeline}
+            onTimelineChange={setShowTimeline}
+          />
+        )}
+        {desktopView === 'week' && (
+          <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} />
+        )}
+        {desktopView === 'day' && (
+          <DesktopWeekGrid weekDays={[selectedDate]} {...sharedGridProps} />
         )}
       </div>
 
@@ -326,21 +398,21 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
         isOpen={!!editingEvent}
         onClose={() => setEditingEvent(null)}
       />
-      
+
       <CalendarNoteModal
         note={editingNote}
         isOpen={!!editingNote && !showNoteEditor}
         onClose={handleCloseNoteModal}
         onOpenFullEditor={handleOpenFullNoteEditor}
       />
-      
+
       {showNoteEditor && editingNote && (
         <NoteEditor
           note={editingNote}
           onClose={handleCloseNoteModal}
         />
       )}
-      
+
       {editingStickyNote && (
         <StickyNoteEditor
           note={editingStickyNote}
