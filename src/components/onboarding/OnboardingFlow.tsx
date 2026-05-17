@@ -12,20 +12,20 @@ interface OnboardingFlowProps {
 
 function NisaImage({ step, fading }: { step: number; fading: boolean }) {
   const animMap: Record<number, string> = {
-    0: 'nisa-float',
     1: 'nisa-float',
     2: 'nisa-nod',
     3: 'nisa-curious',
     4: 'nisa-excited',
     5: 'nisa-celebrate',
+    6: 'nisa-float',
   };
   const rotateMap: Record<number, string> = {
-    0: '-8deg',
     1: '-8deg',
     2: '0deg',
     3: '10deg',
     4: '-6deg',
     5: '0deg',
+    6: '-8deg',
   };
 
   return (
@@ -53,8 +53,9 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [showInstallStep] = useState(() =>
     !(window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true)
   );
-  const firstStep = showInstallStep ? 0 : 1;
+  const firstStep = 1;
   const totalSteps = showInstallStep ? 6 : 5;
+  const lastStep = showInstallStep ? 6 : 5;
 
   // Device type for install instructions
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -105,7 +106,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       }
     }
 
-    if (step === 5) {
+    if (step === lastStep) {
       setSaving(true);
       await supabase.auth.updateUser({ data: { onboarding_completed: true } });
       onComplete(name.trim());
@@ -120,10 +121,9 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   const ctaLabel =
-    step === 0 ? 'Done' :
     step === 1 ? "Let's go" :
     step === 4 ? 'Done' :
-    step === 5 ? 'Start using Planisa' :
+    step === lastStep ? (showInstallStep ? 'Done' : 'Start using Planisa') :
     'Next';
 
   const displayName = name.trim();
@@ -169,7 +169,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             fading && 'opacity-0'
           )}
         >
-          {step === 0 && (
+          {step === 6 && (
             <>
               <h1 className="text-[26px] font-semibold tracking-tight text-center text-foreground">
                 Add Planisa to your home screen
@@ -344,7 +344,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {ctaLabel}
         </button>
 
-        {step === 0 && (
+        {step === 6 && (
           <button
             onClick={goNext}
             className="-mt-2 text-sm text-muted-foreground/50 hover:text-muted-foreground transition-colors"
