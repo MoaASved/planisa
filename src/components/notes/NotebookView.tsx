@@ -88,6 +88,7 @@ export function NotebookView({ notebook, onClose, initialPageId, onInitialPageCo
 
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
+      <div className="md:max-w-3xl md:mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pb-3 border-b border-border/30">
         <button
@@ -184,9 +185,10 @@ export function NotebookView({ notebook, onClose, initialPageId, onInitialPageCo
           })
         )}
       </div>
+      </div>
 
       {/* Add page FAB */}
-      <div className="fixed bottom-[144px] right-4 z-[1100]">
+      <div className="fixed bottom-[144px] md:bottom-8 right-4 z-[1100]">
         <button
           onClick={handleAddPage}
           className={cn(
