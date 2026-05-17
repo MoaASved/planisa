@@ -396,9 +396,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       </div>
 
       <div className="px-4 pb-32">
-        <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
+        <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
         {/* ── Today's Focus ─────────────────────────────────────────────── */}
-        <div className="flow-widget">
+        <div className="flow-widget order-1 md:order-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="flow-section-title">Today's focus</h2>
             {focusItems.length < 3 && (
@@ -432,7 +432,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         </div>
 
         {/* ── Habits ───────────────────────────────────────────────────── */}
-        <div className="flow-widget">
+        <div className="flow-widget order-3 md:order-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="flow-section-title">Habits</h2>
             <button
@@ -505,7 +505,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         </div>
 
         {/* ── Brain dump ────────────────────────────────────────────────── */}
-        <div className="flow-widget md:col-span-2">
+        <div className="flow-widget md:col-span-2 order-2 md:order-3">
           <div className="flex items-center justify-between mb-4">
             <h2 className="flow-section-title">Brain dump</h2>
             {brainDumpItems.length > 0 && (
