@@ -545,7 +545,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 p-4" style={{ margin: '-16px' }}>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4" style={{ margin: '-16px' }}>
             {notebooks.map((notebook, index) => (
               <div 
                 key={notebook.id} 
