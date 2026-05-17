@@ -63,7 +63,7 @@ function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onCli
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none md:max-w-[200px] md:w-full">
       <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
     </div>
   );
@@ -648,7 +648,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
             <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
+              <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-start gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
                 {folders.map((folder) => (
                   <SortableFolderCard
                     key={folder.id}
