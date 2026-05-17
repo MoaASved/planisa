@@ -337,13 +337,13 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
 
   return (
     <div
-      className="fixed left-0 right-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
+      className="fixed left-0 md:left-[var(--sidebar-w,0px)] right-0 z-[1100] bg-[#F8F7F4] dark:bg-background flex flex-col animate-fade-in"
       style={{ top: `${viewportOffset}px`, height: `${viewportHeight}px` }}
     >
 
       {/* Top bar — three floating elements */}
       <div
-        className="fixed left-0 right-0 z-[1250] flex items-center"
+        className="fixed left-0 md:left-[var(--sidebar-w,0px)] right-0 z-[1250] flex items-center"
         style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 12}px)`, pointerEvents: 'none' }}
       >
 
@@ -677,6 +677,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
           overscrollBehavior: 'contain',
         }}
       >
+        <div className="md:max-w-2xl md:mx-auto">
         {!hideDate && (
           <div className="mb-1">
             <span className="text-xs text-muted-foreground">
@@ -686,6 +687,7 @@ export function NotebookPageEditor({ notebook, page, onClose }: NotebookPageEdit
         )}
 
         <EditorContent editor={editor} className="tiptap-content" />
+        </div>
       </div>
 
       <VoiceRecordingModal
