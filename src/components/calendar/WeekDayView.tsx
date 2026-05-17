@@ -151,7 +151,7 @@ export function WeekDayView({
       </div>
 
       {/* ── Desktop 7-column time grid ── */}
-      <div className="hidden md:flex flex-col h-full animate-fade-in">
+      <div className="hidden md:flex flex-col h-full min-h-0 animate-fade-in">
         <DesktopWeekGrid
           weekDays={weekDays}
           events={events}

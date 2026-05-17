@@ -126,7 +126,7 @@ export function DesktopWeekGrid({
   const hasAllDay = dayData.some(d => d.allDay.length > 0);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#1C1A18] select-none">
+    <div className="flex flex-col h-full min-h-0 bg-white dark:bg-[#1C1A18] select-none">
 
       {/* Day header row */}
       <div className="flex flex-shrink-0 border-b border-border/40 bg-white dark:bg-[#1C1A18]" style={{ zIndex: 10 }}>
@@ -200,7 +200,7 @@ export function DesktopWeekGrid({
               hour === 0 ? null : (
                 <div
                   key={hour}
-                  className="absolute right-2 text-[10px] text-muted-foreground/40 font-light"
+                  className="absolute right-2 text-xs text-muted-foreground/60 font-normal"
                   style={{ top: hour * HOUR_HEIGHT - 8 }}
                 >
                   {String(hour).padStart(2, '0')}:00
