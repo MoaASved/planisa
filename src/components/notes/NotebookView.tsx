@@ -88,12 +88,24 @@ export function NotebookView({ notebook, onClose, initialPageId, onInitialPageCo
 
   return (
     <div className="min-h-screen pb-24 pt-safe-2">
+      {/* Desktop-only fixed back button — matches NoteEditor */}
+      <button
+        onClick={onClose}
+        className="hidden md:flex fixed z-[1250] w-10 h-10 rounded-full bg-card shadow-md items-center justify-center text-foreground active:scale-95 transition-all"
+        style={{
+          top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          left: 'calc(var(--sidebar-w, 0px) + 16px)',
+        }}
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </button>
+
       <div className="md:max-w-3xl md:mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pb-3 border-b border-border/30">
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-card flex items-center justify-center active:scale-95 transition-all"
+          className="md:hidden w-10 h-10 rounded-full bg-card flex items-center justify-center active:scale-95 transition-all"
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}
         >
           <ArrowLeft className="w-5 h-5" />
