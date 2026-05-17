@@ -210,8 +210,12 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     toggleTask(taskId);
   };
 
-  const handleCreateFromTimeline = (type: 'event' | 'task' | 'note' | 'sticky', time: string) => {
+  const handleCreateFromTimeline = (type: 'event' | 'task' | 'note' | 'sticky', time: string, date?: Date) => {
     setTimelineCreateTime(time);
+    if (date) {
+      setSelectedDate(date);
+      onDateChange?.(date);
+    }
     if (type === 'event') setShowTimelineCreateEvent(true);
     else if (type === 'task') setShowTimelineCreateTask(true);
     else if (type === 'note') setShowTimelineCreateNote(true);
@@ -253,6 +257,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     getNoteColor,
     onItemClick: handleItemClick,
     onTaskToggle: handleTaskToggle,
+    onCreateFromTimeline: handleCreateFromTimeline,
   };
 
   return (

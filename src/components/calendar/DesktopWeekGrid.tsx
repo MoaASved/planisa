@@ -1,9 +1,10 @@
 import { useRef, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getAccentVar } from '@/lib/colors';
-import { Check } from 'lucide-react';
+import { Check, CalendarPlus, CheckSquare, FileText, StickyNote } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -49,6 +50,80 @@ function computeOverlap(items: { id: string; start: number; end: number }[]) {
   return result;
 }
 
+// ── Slot context menu ─────────────────────────────────────────────────────────
+
+const SLOT_ACTIONS = [
+  { id: 'event' as const, label: 'Event', icon: CalendarPlus },
+  { id: 'task' as const, label: 'Task', icon: CheckSquare },
+  { id: 'note' as const, label: 'Note', icon: FileText },
+  { id: 'sticky' as const, label: 'Sticky Note', icon: StickyNote },
+];
+
+interface SlotMenuState {
+  x: number;
+  y: number;
+  date: Date;
+  time: string;
+}
+
+function SlotContextMenu({
+  x, y, time, onClose, onCreate,
+}: {
+  x: number;
+  y: number;
+  time: string;
+  onClose: () => void;
+  onCreate: (type: 'event' | 'task' | 'note' | 'sticky') => void;
+}) {
+  const menuW = 168;
+  const menuH = 218;
+  const left = Math.min(x + 6, window.innerWidth - menuW - 8);
+  const top = Math.max(Math.min(y - 8, window.innerHeight - menuH - 8), 8);
+
+  return createPortal(
+    <>
+      {/* Invisible backdrop to catch outside clicks */}
+      <div className="fixed inset-0 z-[500]" onClick={onClose} />
+      <div
+        className="fixed z-[501] rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
+        style={{
+          left,
+          top,
+          minWidth: menuW,
+          background: '#1C1C1E',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
+        }}
+      >
+        <div className="px-4 py-2.5 border-b border-white/10">
+          <span className="text-[11px] font-medium tracking-wide" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {time}
+          </span>
+        </div>
+        {SLOT_ACTIONS.map((action, index) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              onClick={() => { onCreate(action.id); onClose(); }}
+              className="flex items-center gap-3 w-full text-left transition-colors duration-100 hover:bg-white/10 active:bg-white/15"
+              style={{
+                padding: '11px 20px',
+                borderBottom: index < SLOT_ACTIONS.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+              }}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} />
+              <span className="text-sm font-medium text-white">{action.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </>,
+    document.body
+  );
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 interface DesktopWeekGridProps {
   weekDays: Date[];
   events: CalendarEvent[];
@@ -60,14 +135,17 @@ interface DesktopWeekGridProps {
   getNoteColor: (note: Note) => PastelColor;
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
+  onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string, date?: Date) => void;
 }
 
 export function DesktopWeekGrid({
   weekDays, events, tasks, notes,
   selectedDate, onDateSelect,
-  getItemColor, getNoteColor, onItemClick, onTaskToggle,
+  getItemColor, getNoteColor, onItemClick, onTaskToggle, onCreateFromTimeline,
 }: DesktopWeekGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [slotMenu, setSlotMenu] = useState<SlotMenuState | null>(null);
+  const [hoverSlot, setHoverSlot] = useState<{ dayIndex: number; top: number } | null>(null);
 
   const getNowPos = () => {
     const n = new Date();
@@ -83,11 +161,38 @@ export function DesktopWeekGrid({
     return () => { clearTimeout(t); clearInterval(id); };
   }, []);
 
-  // Scroll to current time on mount
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, nowPos - 120);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Snap pixel Y to 15-minute increments, return "HH:MM"
+  const pixelToTime = (pixelY: number) => {
+    const totalMinutes = Math.floor(Math.max(pixelY, 0) / HOUR_HEIGHT * 60 / 15) * 15;
+    const hours = Math.min(Math.floor(totalMinutes / 60), 23);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  };
+
+  const handleColumnClick = (e: React.MouseEvent<HTMLDivElement>, day: Date) => {
+    if (!onCreateFromTimeline) return;
+    if ((e.target as HTMLElement).closest('[data-calendar-item]')) return;
+    setHoverSlot(null);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const time = pixelToTime(e.clientY - rect.top);
+    setSlotMenu({ x: e.clientX, y: e.clientY, date: day, time });
+  };
+
+  const handleColumnMouseMove = (e: React.MouseEvent<HTMLDivElement>, dayIndex: number) => {
+    if (!onCreateFromTimeline) return;
+    if ((e.target as HTMLElement).closest('[data-calendar-item]')) {
+      setHoverSlot(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const snappedMinutes = Math.floor(Math.max(e.clientY - rect.top, 0) / HOUR_HEIGHT * 60 / 15) * 15;
+    setHoverSlot({ dayIndex, top: snappedMinutes * HOUR_HEIGHT / 60 });
+  };
 
   // Per-day data
   const dayData = weekDays.map(day => {
@@ -175,6 +280,7 @@ export function DesktopWeekGrid({
                 return (
                   <div
                     key={item.id}
+                    data-calendar-item="true"
                     onClick={() => onItemClick(item, type)}
                     className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity', getColorCardClass(color))}
                   >
@@ -218,13 +324,17 @@ export function DesktopWeekGrid({
                 className={cn(
                   'flex-1 relative border-l',
                   isTodayCol ? 'border-border/30 bg-primary/[0.025]' : 'border-border/20',
+                  onCreateFromTimeline && 'cursor-pointer',
                 )}
+                onClick={(e) => handleColumnClick(e, day)}
+                onMouseMove={(e) => handleColumnMouseMove(e, di)}
+                onMouseLeave={() => setHoverSlot(null)}
               >
                 {/* Hour lines */}
                 {HOURS.map(hour => (
                   <div
                     key={hour}
-                    className="absolute left-0 right-0 border-t border-border/[0.10]"
+                    className="absolute left-0 right-0 border-t border-border/[0.10] pointer-events-none"
                     style={{ top: hour * HOUR_HEIGHT }}
                   />
                 ))}
@@ -232,10 +342,18 @@ export function DesktopWeekGrid({
                 {HOURS.map(hour => (
                   <div
                     key={`h${hour}`}
-                    className="absolute left-0 right-0 border-t border-border/[0.05]"
+                    className="absolute left-0 right-0 border-t border-border/[0.05] pointer-events-none"
                     style={{ top: hour * HOUR_HEIGHT + HOUR_HEIGHT / 2 }}
                   />
                 ))}
+
+                {/* Hover slot highlight */}
+                {hoverSlot?.dayIndex === di && (
+                  <div
+                    className="absolute left-0 right-0 bg-primary/[0.07] pointer-events-none rounded-sm"
+                    style={{ top: hoverSlot.top + 1, height: HOUR_HEIGHT / 2 - 1, zIndex: 1 }}
+                  />
+                )}
 
                 {/* Now indicator */}
                 {isTodayCol && (
@@ -265,7 +383,8 @@ export function DesktopWeekGrid({
                     return (
                       <div
                         key={item.id}
-                        onClick={() => onItemClick(item, type)}
+                        data-calendar-item="true"
+                        onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
                         className={cn(
                           'absolute overflow-hidden cursor-pointer rounded-[5px] transition-opacity hover:opacity-85',
                           getColorCardClass(color),
@@ -327,6 +446,20 @@ export function DesktopWeekGrid({
           })}
         </div>
       </div>
+
+      {/* Slot context menu */}
+      {slotMenu && (
+        <SlotContextMenu
+          x={slotMenu.x}
+          y={slotMenu.y}
+          time={slotMenu.time}
+          onClose={() => setSlotMenu(null)}
+          onCreate={(type) => {
+            onCreateFromTimeline?.(type, slotMenu.time, slotMenu.date);
+            setSlotMenu(null);
+          }}
+        />
+      )}
     </div>
   );
 }
