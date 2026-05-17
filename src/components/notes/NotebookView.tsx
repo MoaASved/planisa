@@ -191,11 +191,12 @@ export function NotebookView({ notebook, onClose, initialPageId, onInitialPageCo
           onClick={handleAddPage}
           className={cn(
             'w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95',
-            `bg-[hsl(var(--pastel-${notebook.color}))]`
+            `bg-[hsl(var(--pastel-${notebook.color}))]`,
+            'dark:bg-card dark:border dark:border-border'
           )}
           style={{ boxShadow: '0 -2px 8px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.12)' }}
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-6 h-6 dark:text-foreground" />
         </button>
       </div>
     </div>
