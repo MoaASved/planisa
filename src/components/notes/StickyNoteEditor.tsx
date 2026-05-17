@@ -146,15 +146,13 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
       <div 
         className={cn(
           'fixed left-4 right-4 md:left-1/2 md:right-auto md:w-[460px] md:-translate-x-1/2 z-[1200] rounded-3xl p-6 shadow-xl',
+          'max-h-[45vh] md:max-h-[70vh]',
           'md:flex md:flex-col md:overflow-hidden',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           getStickyBgClass(color),
           getStickyTextClass(color)
         )}
-        style={{
-          top: '15%',
-          maxHeight: '45vh',
-        }}
+        style={{ top: '15%' }}
       >
         {/* Top actions */}
         <div className="flex items-center justify-between mb-4 md:flex-shrink-0">
