@@ -145,7 +145,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
       {/* Sticky Note Modal */}
       <div 
         className={cn(
-          'fixed left-4 right-4 z-[1200] rounded-3xl p-6 shadow-xl',
+          'fixed left-4 right-4 md:left-1/2 md:right-auto md:w-[460px] md:-translate-x-1/2 z-[1200] rounded-3xl p-6 shadow-xl',
           'animate-in fade-in-0 zoom-in-95 duration-200',
           getStickyBgClass(color),
           getStickyTextClass(color)
