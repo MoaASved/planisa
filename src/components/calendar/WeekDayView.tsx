@@ -3,6 +3,7 @@ import { format, startOfWeek, addDays, isToday, isSameDay, getWeek } from 'date-
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { CalendarItemList } from './CalendarItemList';
+import { DesktopWeekGrid } from './DesktopWeekGrid';
 
 interface WeekDayViewProps {
   currentDate: Date;
@@ -82,69 +83,88 @@ export function WeekDayView({
   }, [onDayChange]);
 
   return (
-    <div className="animate-fade-in flex flex-col h-full overflow-x-hidden">
-      {/* Week header - swipe left/right changes the whole week */}
-      <div
-        className="flex-shrink-0 px-3 pb-1 bg-background"
-        onTouchStart={handleHeaderTouchStart}
-        onTouchEnd={handleHeaderTouchEnd}
-      >
-        <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-1">
-          {/* Week number */}
-          <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 py-2">
-            v{weekNumber}
+    <>
+      {/* ── Mobile layout (unchanged) ── */}
+      <div className="md:hidden animate-fade-in flex flex-col h-full overflow-x-hidden">
+        {/* Week header - swipe left/right changes the whole week */}
+        <div
+          className="flex-shrink-0 px-3 pb-1 bg-background"
+          onTouchStart={handleHeaderTouchStart}
+          onTouchEnd={handleHeaderTouchEnd}
+        >
+          <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-1">
+            {/* Week number */}
+            <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 py-2">
+              v{weekNumber}
+            </div>
+
+            {weekDays.map((day, i) => {
+              const isSelected = isSameDay(day, selectedDate);
+              const isTodayDate = isToday(day);
+
+              return (
+                <button
+                  key={i}
+                  onClick={() => onDateSelect(day)}
+                  className={cn(
+                    'py-2 text-center transition-all rounded-2xl',
+                    !isSelected && 'hover:bg-secondary/40'
+                  )}
+                >
+                  <span className="text-[10px] font-medium text-muted-foreground/50 uppercase block tracking-wide">
+                    {format(day, 'EEE')}
+                  </span>
+                  <span className={cn(
+                    'text-lg mt-0.5 w-9 h-9 rounded-full flex items-center justify-center mx-auto transition-all',
+                    isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
+                    isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-muted font-medium text-foreground dark:text-foreground',
+                    !isTodayDate && !isSelected && 'font-light text-foreground/80'
+                  )}>
+                    {format(day, 'd')}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          
-          {weekDays.map((day, i) => {
-            const isSelected = isSameDay(day, selectedDate);
-            const isTodayDate = isToday(day);
-            
-            return (
-              <button
-                key={i}
-                onClick={() => onDateSelect(day)}
-                className={cn(
-                  'py-2 text-center transition-all rounded-2xl',
-                  !isSelected && 'hover:bg-secondary/40'
-                )}
-              >
-                <span className="text-[10px] font-medium text-muted-foreground/50 uppercase block tracking-wide">
-                  {format(day, 'EEE')}
-                </span>
-                <span className={cn(
-                  'text-lg mt-0.5 w-9 h-9 rounded-full flex items-center justify-center mx-auto transition-all',
-                  isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
-                  isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-muted font-medium text-foreground dark:text-foreground',
-                  !isTodayDate && !isSelected && 'font-light text-foreground/80'
-                )}>
-                  {format(day, 'd')}
-                </span>
-              </button>
-            );
-          })}
+        </div>
+
+        {/* Lower section - swipe left/right changes one day at a time */}
+        <div
+          className="flex-1 overflow-hidden flex flex-col relative bg-background"
+          onTouchStart={handleBodyTouchStart}
+          onTouchEnd={handleBodyTouchEnd}
+        >
+          <CalendarItemList
+            date={selectedDate}
+            events={events}
+            tasks={tasks}
+            notes={notes}
+            getItemColor={getItemColor}
+            getNoteColor={getNoteColor}
+            onItemClick={onItemClick}
+            onTaskToggle={onTaskToggle}
+            onCreateFromTimeline={onCreateFromTimeline}
+            showTimeline={showTimeline}
+            onTimelineChange={onTimelineChange}
+          />
         </div>
       </div>
 
-      {/* Lower section - swipe left/right changes one day at a time */}
-      <div
-        className="flex-1 overflow-hidden flex flex-col relative bg-background"
-        onTouchStart={handleBodyTouchStart}
-        onTouchEnd={handleBodyTouchEnd}
-      >
-        <CalendarItemList
-          date={selectedDate}
+      {/* ── Desktop 7-column time grid ── */}
+      <div className="hidden md:flex flex-col h-full animate-fade-in">
+        <DesktopWeekGrid
+          weekDays={weekDays}
           events={events}
           tasks={tasks}
           notes={notes}
+          selectedDate={selectedDate}
+          onDateSelect={onDateSelect}
           getItemColor={getItemColor}
           getNoteColor={getNoteColor}
           onItemClick={onItemClick}
           onTaskToggle={onTaskToggle}
-          onCreateFromTimeline={onCreateFromTimeline}
-          showTimeline={showTimeline}
-          onTimelineChange={onTimelineChange}
         />
       </div>
-    </div>
+    </>
   );
 }
