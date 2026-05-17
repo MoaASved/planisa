@@ -182,13 +182,13 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           className={cn(
             'w-full bg-transparent border-none outline-none resize-none text-lg',
             'placeholder:text-[#2C2C2A]/40 text-[#2C2C2A]/90',
-            'min-h-[150px] max-h-[300px] md:flex-1 md:min-h-[300px] md:max-h-none md:overflow-y-auto'
+            'min-h-[150px] max-h-[300px] md:flex-1 md:min-h-[200px] md:max-h-none md:overflow-y-auto'
           )}
           
         />
 
         {/* Bottom actions */}
-        <div className="pt-4 border-t border-foreground/10 space-y-2 md:flex-shrink-0">
+        <div className="pt-4 border-t border-foreground/10 space-y-2 md:flex-shrink-0 md:pb-4">
           {/* Row 1: color, folder */}
           <div className="flex items-center gap-2">
             {/* Color picker */}
