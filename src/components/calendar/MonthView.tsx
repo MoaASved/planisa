@@ -243,7 +243,9 @@ export function MonthView({
       <div className="hidden md:flex flex-col h-full min-h-0 bg-white dark:bg-[#1C1A18] select-none">
 
         {/* Day-of-week header */}
-        <div className="grid grid-cols-7 flex-shrink-0 border-b border-border/40">
+        <div className="grid grid-cols-[32px_repeat(7,1fr)] flex-shrink-0 border-b border-border/40">
+          {/* Week-number gutter placeholder */}
+          <div className="border-r border-border/20" />
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => (
             <div
               key={i}
@@ -261,6 +263,12 @@ export function MonthView({
               key={weekIndex}
               className="flex-1 flex min-h-0 border-b border-border/20 last:border-b-0"
             >
+              {/* Week number */}
+              <div className="w-8 flex-shrink-0 flex items-start justify-center pt-2 border-r border-border/20">
+                <span className="text-[10px] font-normal text-muted-foreground/30 leading-none">
+                  {getWeek(week[0], { weekStartsOn: 1 })}
+                </span>
+              </div>
               {week.map((day, dayIndex) => {
                 const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
                 const isCurrentMonth = isSameMonth(day, currentDate);
