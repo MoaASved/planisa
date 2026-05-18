@@ -237,7 +237,22 @@ export function DesktopWeekGrid({
       {/* Day header row */}
       <div className="flex flex-shrink-0 border-b border-border/40 bg-white dark:bg-[#1C1A18]" style={{ zIndex: 10 }}>
         <div style={{ width: GUTTER_W, flexShrink: 0 }} />
-        {weekDays.map((day, i) => {
+        {isDayView ? (() => {
+          const day = weekDays[0];
+          const todayDay = isToday(day);
+          return (
+            <div className={cn('flex-1 border-l border-border/20 flex items-center pl-5 py-3', todayDay && 'bg-primary/[0.025]')}>
+              <div>
+                <span className={cn('text-[10px] font-medium uppercase tracking-widest block', todayDay ? 'text-primary' : 'text-muted-foreground/40')}>
+                  {format(day, 'EEEE')}
+                </span>
+                <span className="text-xl font-semibold text-foreground leading-tight tracking-tight">
+                  {format(day, 'MMMM d, yyyy')}
+                </span>
+              </div>
+            </div>
+          );
+        })() : weekDays.map((day, i) => {
           const todayDay = isToday(day);
           const sel = isSameDay(day, selectedDate);
           return (
@@ -267,7 +282,6 @@ export function DesktopWeekGrid({
             </button>
           );
         })}
-        {isDayView && <div style={{ width: 32, flexShrink: 0 }} />}
       </div>
 
       {/* All-day / untimed row */}
@@ -296,7 +310,6 @@ export function DesktopWeekGrid({
               )}
             </div>
           ))}
-          {isDayView && <div style={{ width: 32, flexShrink: 0 }} />}
         </div>
       )}
 
@@ -448,7 +461,6 @@ export function DesktopWeekGrid({
               </div>
             );
           })}
-          {isDayView && <div style={{ width: 32, flexShrink: 0 }} />}
         </div>
       </div>
 
