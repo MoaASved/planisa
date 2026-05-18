@@ -97,7 +97,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum-accent: 256 50% 45%;
     --pastel-flamingo-accent: 341 52% 40%;
     --pastel-stone-accent: 34 28% 45%;
-    --pastel-none-accent: 34 15% 78%;  /* None border ~#d8d0c6 */
+    --pastel-none-accent: 35 11% 83%;  /* None border #d8d4ce — warm beige */
 
     /* Smart list icon accents — palette-native hues, tuned for standalone icon contrast */
     --smart-today: 96 36% 42%;      /* Fern-inspired green, hue between Fern(84) and Pistachio(113) */
@@ -365,7 +365,7 @@ input[type="time"]::-webkit-inner-spin-button {
   .flow-badge-plum { @apply bg-[hsl(var(--pastel-plum))] text-[hsl(var(--pastel-plum-accent))]; }
   .flow-badge-flamingo { @apply bg-[hsl(var(--pastel-flamingo))] text-[hsl(var(--pastel-flamingo-accent))]; }
   .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone))] text-[hsl(var(--pastel-stone-accent))]; }
-  .flow-badge-none { @apply bg-[hsl(var(--pastel-none))] text-[hsl(var(--pastel-none-accent))] border border-[hsl(var(--pastel-none-accent))]; }
+  .flow-badge-none { @apply bg-[hsl(var(--pastel-none))] text-muted-foreground border border-[hsl(var(--pastel-none-accent))]; }
   .flow-badge-primary { @apply bg-primary/10 text-primary; }
 
   /* Bottom Sheet */

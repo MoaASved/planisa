@@ -246,7 +246,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
               <button
                 onClick={() => setColor('none')}
                 className={cn('w-8 h-8 rounded-full transition-all', color === 'none' && 'ring-2 ring-offset-2 ring-primary')}
-                style={{ background: '#faf8f4', border: '1px solid #d8d0c6' }}
+                style={{ background: '#faf8f4', border: '1px solid #d8d4ce' }}
               />
             </div>
           </div>

@@ -229,7 +229,7 @@ export const getDeepTextColor = (color: PastelColor): string => {
     rose:      'hsl(340, 60%, 32%)',
     flamingo:  'hsl(341, 55%, 35%)',
     stone:     'hsl(34,  28%, 35%)',
-    none:      'hsl(34,  20%, 35%)',
+    none:      'hsl(27,  5%, 40%)',
   };
   return map[color] || 'hsl(0, 0%, 20%)';
 };
