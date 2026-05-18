@@ -341,6 +341,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
             onCreateFromTimeline={handleCreateFromTimeline}
             showTimeline={showTimeline}
             onTimelineChange={setShowTimeline}
+            onDesktopDayClick={() => handleDesktopViewChange('day')}
           />
         )}
         {desktopView === 'week' && (
