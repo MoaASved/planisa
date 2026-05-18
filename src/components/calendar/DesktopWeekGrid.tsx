@@ -9,6 +9,8 @@ import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin, BookOpen }
 const HOUR_HEIGHT = 56;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const GUTTER_W = 52;
+// Visual height of a sticky note card (12px tape + 84px card body) converted to minutes
+const STICKY_VISUAL_MINS = Math.ceil((12 + 84) / HOUR_HEIGHT * 60);
 
 const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 
@@ -219,11 +221,16 @@ export function DesktopWeekGrid({
       })),
     ].sort((a, b) => a.time.localeCompare(b.time));
 
-    const cols = computeOverlap(timed.map(i => ({
-      id: i.item.id,
-      start: toMin(i.time),
-      end: toMin(i.endTime || addMins(i.time, 30)),
-    })));
+    const cols = computeOverlap(timed.map(i => {
+      const isSticky = i.type === 'note' && (i.item as Note).type === 'sticky';
+      return {
+        id: i.item.id,
+        start: toMin(i.time),
+        end: isSticky
+          ? toMin(i.time) + STICKY_VISUAL_MINS
+          : toMin(i.endTime || addMins(i.time, 30)),
+      };
+    }));
 
     return { day, allDay, timed, cols };
   });
