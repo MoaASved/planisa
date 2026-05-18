@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import {
   format,
   startOfMonth,
@@ -13,6 +13,10 @@ import {
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+export interface YearViewHandle {
+  scrollToToday: () => void;
+}
+
 interface YearViewProps {
   currentDate: Date;
   onMonthClick: (date: Date) => void;
@@ -21,7 +25,10 @@ interface YearViewProps {
 const YEARS_BEFORE = 5;
 const YEARS_AFTER = 6;
 
-export function YearView({ currentDate, onMonthClick }: YearViewProps) {
+export const YearView = forwardRef<YearViewHandle, YearViewProps>(function YearView(
+  { currentDate, onMonthClick },
+  ref,
+) {
   const today = new Date();
   const activeYear = getYear(currentDate);
   const activeMonth = getMonth(currentDate);
@@ -31,6 +38,15 @@ export function YearView({ currentDate, onMonthClick }: YearViewProps) {
   );
 
   const isMountRef = useRef(true);
+
+  useImperativeHandle(ref, () => ({
+    scrollToToday: () => {
+      const t = new Date();
+      document
+        .getElementById(`ycal-month-${getYear(t)}-${getMonth(t)}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    },
+  }));
 
   useEffect(() => {
     const behavior = isMountRef.current ? 'instant' : 'smooth';
@@ -69,7 +85,7 @@ export function YearView({ currentDate, onMonthClick }: YearViewProps) {
       ))}
     </div>
   );
-}
+});
 
 interface MiniMonthProps {
   id: string;

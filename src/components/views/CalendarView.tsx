@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { addMonths, subMonths, addWeeks, subWeeks, addDays, startOfWeek, startOfMonth } from 'date-fns';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor, Task, CalendarEvent, Note } from '@/types';
 import { CalendarHeader } from '@/components/calendar/CalendarHeader';
-import { YearView } from '@/components/calendar/YearView';
+import { YearView, YearViewHandle } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { DesktopWeekGrid } from '@/components/calendar/DesktopWeekGrid';
@@ -19,6 +19,8 @@ type SimpleView = 'month' | 'weekday';
 type DesktopView = 'day' | 'week' | 'month' | 'year';
 
 export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenNotebookPage }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; onOpenNotebookPage?: (notebookId: string, pageId: string) => void }) {
+  const yearViewRef = useRef<YearViewHandle>(null);
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState<SimpleView>('month');
@@ -158,6 +160,9 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     const today = new Date();
     setCurrentDate(today);
     setSelectedDate(today);
+    if (desktopView === 'year') {
+      yearViewRef.current?.scrollToToday();
+    }
   };
 
   const handleDateSelect = (date: Date) => {
@@ -323,7 +328,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
       <div className="hidden md:flex flex-col flex-1 min-h-0 px-4 pb-4 pt-1">
         <div className="flex flex-col flex-1 min-h-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1C1C1E] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.07),0_16px_40px_-8px_rgba(0,0,0,0.12)] border border-black/[0.04] dark:border-white/[0.05]">
           {desktopView === 'year' && (
-            <YearView currentDate={currentDate} onMonthClick={handleYearMonthSelectDesktop} />
+            <YearView ref={yearViewRef} currentDate={currentDate} onMonthClick={handleYearMonthSelectDesktop} />
           )}
           {desktopView === 'month' && (
             <MonthView
