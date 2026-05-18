@@ -80,6 +80,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum: 256 87% 94%;       /* Plum #e9e2fd */
     --pastel-flamingo: 341 69% 82%;   /* Flamingo #f1b3c7 */
     --pastel-stone: 34 33% 85%;       /* Stone #e6dbcd */
+    --pastel-none: 34 25% 97%;        /* None (off-white) ~#faf8f6 */
 
     /* Universal text/icon color on top of pastel surfaces */
     --on-pastel: 40 6% 17%;          /* #2C2C2A */
@@ -96,6 +97,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum-accent: 256 50% 45%;
     --pastel-flamingo-accent: 341 52% 40%;
     --pastel-stone-accent: 34 28% 45%;
+    --pastel-none-accent: 34 15% 78%;  /* None border ~#d8d0c6 */
 
     /* Smart list icon accents — palette-native hues, tuned for standalone icon contrast */
     --smart-today: 96 36% 42%;      /* Fern-inspired green, hue between Fern(84) and Pistachio(113) */
@@ -175,6 +177,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum: 256 60% 68%;
     --pastel-flamingo: 341 52% 60%;
     --pastel-stone: 34 25% 60%;
+    --pastel-none: 34 10% 18%;
 
     --pastel-fern-accent: 87 38% 40%;
     --pastel-pistachio-accent: 98 25% 38%;
@@ -187,6 +190,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum-accent: 256 42% 48%;
     --pastel-flamingo-accent: 341 48% 44%;
     --pastel-stone-accent: 34 20% 42%;
+    --pastel-none-accent: 34 12% 48%;
 
     /* Smart list icon accents — lighter for dark bg contrast */
     --smart-today: 96 38% 60%;
@@ -361,6 +365,7 @@ input[type="time"]::-webkit-inner-spin-button {
   .flow-badge-plum { @apply bg-[hsl(var(--pastel-plum))] text-[hsl(var(--pastel-plum-accent))]; }
   .flow-badge-flamingo { @apply bg-[hsl(var(--pastel-flamingo))] text-[hsl(var(--pastel-flamingo-accent))]; }
   .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone))] text-[hsl(var(--pastel-stone-accent))]; }
+  .flow-badge-none { @apply bg-[hsl(var(--pastel-none))] text-[hsl(var(--pastel-none-accent))] border border-[hsl(var(--pastel-none-accent))]; }
   .flow-badge-primary { @apply bg-primary/10 text-primary; }
 
   /* Bottom Sheet */

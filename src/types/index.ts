@@ -9,7 +9,8 @@ export type PastelColor =
   | 'peony'
   | 'rose'
   | 'flamingo'
-  | 'stone';
+  | 'stone'
+  | 'none';
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 

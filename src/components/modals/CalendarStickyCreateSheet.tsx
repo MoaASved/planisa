@@ -25,6 +25,7 @@ const getStickyBgClass = (color: PastelColor): string => {
     plum: 'bg-pastel-plum',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
+    none: 'bg-pastel-none',
   };
   return colorMap[color] || 'bg-pastel-sky';
 };
