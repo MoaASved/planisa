@@ -378,8 +378,8 @@ export function DesktopWeekGrid({
                     className="absolute left-0 right-0 flex items-center pointer-events-none"
                     style={{ top: nowPos, zIndex: 5 }}
                   >
-                    <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 flex-shrink-0" />
-                    <div className="flex-1 h-[1.5px] bg-red-500 opacity-70" />
+                    <div className="w-2 h-2 rounded-full bg-foreground/50 -ml-1 flex-shrink-0" />
+                    <div className="flex-1 h-[1.5px] bg-foreground/40" />
                   </div>
                 )}
 
