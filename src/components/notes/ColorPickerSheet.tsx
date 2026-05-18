@@ -51,7 +51,7 @@ export function ColorPickerSheet({ isOpen, onClose, selectedColor, onSelectColor
                 onClick={() => onSelectColor(color.value)}
                 className={cn(
                   'aspect-square rounded-2xl transition-all relative',
-                  `bg-pastel-${color.value}/30`,
+                  `bg-pastel-${color.value}`,
                   selectedColor === color.value && 'ring-2 ring-offset-2 ring-primary'
                 )}
               >
@@ -68,7 +68,7 @@ export function ColorPickerSheet({ isOpen, onClose, selectedColor, onSelectColor
               <p className="text-xs text-muted-foreground mb-2">Preview</p>
               <div className={cn(
                 'rounded-2xl p-4 transition-all',
-                `bg-pastel-${selectedColor}/30`
+                `bg-pastel-${selectedColor}`
               )}>
                 <h4 className="font-semibold text-foreground">Sample Note</h4>
                 <p className="text-sm text-muted-foreground mt-1">This is how your note will look in the list...</p>

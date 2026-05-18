@@ -133,7 +133,7 @@ export function Sidebar({
           )}
           style={
             settings.avatarColor
-              ? { backgroundColor: `hsl(var(--pastel-${settings.avatarColor}) / 0.3)` }
+              ? { backgroundColor: `hsl(var(--pastel-${settings.avatarColor}))` }
               : undefined
           }
         >

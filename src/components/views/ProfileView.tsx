@@ -221,7 +221,7 @@ export function ProfileView() {
           <button onClick={() => setShowAvatarModal(true)} className="flex items-center gap-4 w-full text-left">
             <div
               className={cn('w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold', getAccentTextClass(settings.avatarColor || 'peony'))}
-              style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'peony'}) / 0.3)` }}
+              style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'peony'}))` }}
             >
               {settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || 'U'}
             </div>
@@ -754,7 +754,7 @@ export function ProfileView() {
                 <div className="flex justify-center mb-5">
                   <div
                     className={cn('w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold', getAccentTextClass(avatarColor))}
-                    style={{ backgroundColor: `hsl(var(--pastel-${avatarColor}) / 0.3)` }}
+                    style={{ backgroundColor: `hsl(var(--pastel-${avatarColor}))` }}
                   >
                     {avatarInitial || '?'}
                   </div>
