@@ -10,8 +10,9 @@ export const pastelColors: { value: PastelColor; label: string; class: string }[
   { value: 'peony', label: 'Peony', class: 'bg-pastel-peony' },
   { value: 'rose', label: 'Rose', class: 'bg-pastel-rose' },
   { value: 'plum', label: 'Plum', class: 'bg-pastel-plum' },
-  { value: 'taupe', label: 'Taupe', class: 'bg-pastel-taupe' },
+  { value: 'flamingo', label: 'Flamingo', class: 'bg-pastel-flamingo' },
   { value: 'stone', label: 'Stone', class: 'bg-pastel-stone' },
+  { value: 'pearl', label: 'Pearl', class: 'bg-pastel-pearl' },
 ];
 
 export const getColorClass = (color: PastelColor): string => {
@@ -32,24 +33,14 @@ export const getBadgeClass = (color: PastelColor): string => {
 
 /**
  * Returns the appropriate Tailwind text-color class for content rendered on top
- * of a pastel sticky-note background. All pastel surfaces are light enough in
- * both light mode (L 81–88%) and dark mode (L 51–87%) that the dark neutral
- * #2C2C2A gives better contrast than theme-foreground (which becomes near-white
- * in dark mode and would be unreadable on the lighter pastels).
- *
- * Light-in-dark-mode pastels that especially need this (L ≥ 65%):
- *   yellow (Sky, 87%), lavender (Rose, 85%), stone (84%), teal (Honey, 76%),
- *   mint (Peach, 75%), peach (Pistachio, 69%)
- *
- * Medium-in-dark-mode pastels where dark text still wins on contrast (L 51–58%):
- *   coral (Fern, 51%), amber (Lagune, 53%), sky (Peony, 56%),
- *   rose (Plum, 57%), gray (Taupe, 58%)
+ * of a pastel sticky-note background. All pastel surfaces are light enough that
+ * the dark neutral #2C2C2A gives better contrast than theme-foreground.
  */
 export const getStickyTextClass = (_color?: PastelColor): string => {
   return 'text-[#2C2C2A]';
 };
 
-// Static color mapping for card backgrounds (40% opacity for sheer, calm appearance) - Tailwind JIT compatible
+// Static color mapping for card backgrounds - Tailwind JIT compatible
 export const getColorCardClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
     fern: 'bg-pastel-fern',
@@ -61,13 +52,14 @@ export const getColorCardClass = (color: PastelColor): string => {
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
     plum: 'bg-pastel-plum',
-    taupe: 'bg-pastel-taupe',
+    flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
+    pearl: 'bg-pastel-pearl ring-1 ring-inset ring-black/[0.06]',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
 
-// Static color mapping for dot indicators (full opacity) - Tailwind JIT compatible
+// Static color mapping for dot indicators - Tailwind JIT compatible
 export const getColorDotClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
     fern: 'bg-pastel-fern',
@@ -79,13 +71,14 @@ export const getColorDotClass = (color: PastelColor): string => {
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
     plum: 'bg-pastel-plum',
-    taupe: 'bg-pastel-taupe',
+    flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
+    pearl: 'bg-pastel-pearl',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
 
-// Static color mapping for avatar backgrounds (30% opacity) - Tailwind JIT compatible
+// Static color mapping for avatar backgrounds - Tailwind JIT compatible
 export const getAvatarBgClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
     fern: 'bg-pastel-fern',
@@ -97,8 +90,9 @@ export const getAvatarBgClass = (color: PastelColor): string => {
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
     plum: 'bg-pastel-plum',
-    taupe: 'bg-pastel-taupe',
+    flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
+    pearl: 'bg-pastel-pearl',
   };
   return colorMap[color] || 'bg-secondary';
 };
@@ -115,13 +109,14 @@ export const getAvatarTextClass = (color: PastelColor): string => {
     peony: 'text-pastel-peony',
     rose: 'text-pastel-rose',
     plum: 'text-pastel-plum',
-    taupe: 'text-pastel-taupe',
+    flamingo: 'text-pastel-flamingo',
     stone: 'text-pastel-stone',
+    pearl: 'text-pastel-pearl',
   };
   return colorMap[color] || 'text-muted-foreground';
 };
 
-// Static color mapping for stripe indicators (full opacity) - Tailwind JIT compatible
+// Static color mapping for stripe indicators - Tailwind JIT compatible
 export const getColorStripeClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
     fern: 'bg-pastel-fern',
@@ -133,8 +128,9 @@ export const getColorStripeClass = (color: PastelColor): string => {
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
     plum: 'bg-pastel-plum',
-    taupe: 'bg-pastel-taupe',
+    flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
+    pearl: 'bg-pastel-pearl',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -147,7 +143,6 @@ export const getColorVar = (color: PastelColor): string => {
 // ============================================================
 // ACCENT (Dark palette) helpers — for icons, dots, indicators,
 // tags, badges, thin elements, and active states even in Light Mode.
-// Light surfaces stay soft; details get crisp dark accents.
 // ============================================================
 
 export const getAccentDotClass = (color: PastelColor): string => {
@@ -161,8 +156,9 @@ export const getAccentDotClass = (color: PastelColor): string => {
     peony: 'bg-pastel-peony-accent',
     rose: 'bg-pastel-rose-accent',
     plum: 'bg-pastel-plum-accent',
-    taupe: 'bg-pastel-taupe-accent',
+    flamingo: 'bg-pastel-flamingo-accent',
     stone: 'bg-pastel-stone-accent',
+    pearl: 'bg-pastel-pearl-accent',
   };
   return map[color] || 'bg-pastel-peony-accent';
 };
@@ -178,8 +174,9 @@ export const getAccentTextClass = (color: PastelColor): string => {
     peony: 'text-pastel-peony-accent',
     rose: 'text-pastel-rose-accent',
     plum: 'text-pastel-plum-accent',
-    taupe: 'text-pastel-taupe-accent',
+    flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone-accent',
+    pearl: 'text-pastel-pearl-accent',
   };
   return map[color] || 'text-pastel-peony-accent';
 };
@@ -195,8 +192,9 @@ export const getAccentBorderClass = (color: PastelColor): string => {
     peony: 'border-pastel-peony-accent',
     rose: 'border-pastel-rose-accent',
     plum: 'border-pastel-plum-accent',
-    taupe: 'border-pastel-taupe-accent',
+    flamingo: 'border-pastel-flamingo-accent',
     stone: 'border-pastel-stone-accent',
+    pearl: 'border-pastel-pearl-accent',
   };
   return map[color] || 'border-pastel-peony-accent';
 };
@@ -209,7 +207,6 @@ export const getAccentVar = (color: PastelColor): string => {
 
 // Soft vertical gradient using ONLY the card's own color:
 // top = lighter tint (mixed with white), bottom = full color.
-// No black, grey, or dark overlays.
 export const getColorGradient = (color: PastelColor): string => {
   const base = `hsl(var(--pastel-${color}))`;
   const lighter = `color-mix(in srgb, ${base} 55%, white)`;
@@ -217,22 +214,21 @@ export const getColorGradient = (color: PastelColor): string => {
 };
 
 // Dark hue-tinted text color for use on pastel card backgrounds.
-// Same hue as the pastel but at ~L28-32% so it reads clearly without being flat black.
+// Same hue as the pastel but at ~L30-35% so it reads clearly without being flat black.
 export const getDeepTextColor = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
-    fern:       'hsl(84,  40%, 28%)',
-    pistachio:  'hsl(113, 35%, 28%)',
-    lagune:     'hsl(185, 45%, 25%)',
-    sky:        'hsl(215, 45%, 28%)',
-    peach:      'hsl(22,  55%, 28%)',
-    honey:      'hsl(44,  65%, 25%)',
-    peony:      'hsl(327, 40%, 28%)',
-    rose:       'hsl(351, 50%, 30%)',
-    plum:       'hsl(273, 30%, 28%)',
-    taupe:      'hsl(36,  25%, 28%)',
-    stone:      'hsl(55,  15%, 28%)',
+    fern:       'hsl(87,  45%, 28%)',
+    pistachio:  'hsl(98,  35%, 28%)',
+    lagune:     'hsl(205, 55%, 28%)',
+    sky:        'hsl(232, 55%, 32%)',
+    peach:      'hsl(36,  65%, 30%)',
+    honey:      'hsl(39,  70%, 28%)',
+    peony:      'hsl(275, 45%, 30%)',
+    rose:       'hsl(340, 60%, 32%)',
+    plum:       'hsl(256, 50%, 30%)',
+    flamingo:   'hsl(341, 55%, 35%)',
+    stone:      'hsl(34,  28%, 35%)',
+    pearl:      'hsl(36,  20%, 45%)',
   };
   return map[color] || 'hsl(0, 0%, 20%)';
 };
-
-

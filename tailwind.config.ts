@@ -72,8 +72,9 @@ export default {
           peony: { DEFAULT: "hsl(var(--pastel-peony))", accent: "hsl(var(--pastel-peony-accent))" },
           rose: { DEFAULT: "hsl(var(--pastel-rose))", accent: "hsl(var(--pastel-rose-accent))" },
           plum: { DEFAULT: "hsl(var(--pastel-plum))", accent: "hsl(var(--pastel-plum-accent))" },
-          taupe: { DEFAULT: "hsl(var(--pastel-taupe))", accent: "hsl(var(--pastel-taupe-accent))" },
+          flamingo: { DEFAULT: "hsl(var(--pastel-flamingo))", accent: "hsl(var(--pastel-flamingo-accent))" },
           stone: { DEFAULT: "hsl(var(--pastel-stone))", accent: "hsl(var(--pastel-stone-accent))" },
+          pearl: { DEFAULT: "hsl(var(--pastel-pearl))", accent: "hsl(var(--pastel-pearl-accent))" },
         },
       },
       borderRadius: {

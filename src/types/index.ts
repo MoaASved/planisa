@@ -1,15 +1,16 @@
-export type PastelColor = 
-  | 'fern' 
-  | 'pistachio' 
-  | 'lagune' 
-  | 'sky' 
-  | 'peach' 
-  | 'honey' 
-  | 'peony' 
-  | 'rose' 
-  | 'plum' 
-  | 'taupe'
-  | 'stone';
+export type PastelColor =
+  | 'fern'
+  | 'pistachio'
+  | 'lagune'
+  | 'sky'
+  | 'peach'
+  | 'honey'
+  | 'peony'
+  | 'rose'
+  | 'plum'
+  | 'flamingo'
+  | 'stone'
+  | 'pearl';
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 
