@@ -172,6 +172,14 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     onDateChange?.(date);
   };
 
+  const handleDesktopDayHeaderClick = (date: Date) => {
+    setSelectedDate(date);
+    setCurrentDate(date);
+    setDesktopView('day');
+    setView('weekday');
+    onDateChange?.(date);
+  };
+
   const handleItemClick = (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => {
     if (type === 'event') {
       setEditingEvent(item as CalendarEvent);
@@ -356,7 +364,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
           )}
           {desktopView === 'week' && (desktopListMode
             ? <DesktopListView weekDays={weekDays} events={events} tasks={tasks} notes={calendarNotes} getItemColor={getItemColor} getNoteColor={getNoteColor} onItemClick={handleItemClick} onTaskToggle={handleTaskToggle} />
-            : <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} />
+            : <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} onDayHeaderClick={handleDesktopDayHeaderClick} />
           )}
           {desktopView === 'day' && (desktopListMode
             ? <DesktopListView weekDays={[selectedDate]} events={events} tasks={tasks} notes={calendarNotes} getItemColor={getItemColor} getNoteColor={getNoteColor} onItemClick={handleItemClick} onTaskToggle={handleTaskToggle} />

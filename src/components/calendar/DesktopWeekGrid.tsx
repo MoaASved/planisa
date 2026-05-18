@@ -138,12 +138,13 @@ interface DesktopWeekGridProps {
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string, date?: Date) => void;
+  onDayHeaderClick?: (date: Date) => void;
 }
 
 export function DesktopWeekGrid({
   weekDays, events, tasks, notes,
   selectedDate, onDateSelect,
-  getItemColor, getNoteColor, onItemClick, onTaskToggle, onCreateFromTimeline,
+  getItemColor, getNoteColor, onItemClick, onTaskToggle, onCreateFromTimeline, onDayHeaderClick,
 }: DesktopWeekGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slotMenu, setSlotMenu] = useState<SlotMenuState | null>(null);
@@ -265,7 +266,7 @@ export function DesktopWeekGrid({
           return (
             <button
               key={i}
-              onClick={() => onDateSelect(day)}
+              onClick={() => onDayHeaderClick ? onDayHeaderClick(day) : onDateSelect(day)}
               className={cn(
                 'flex-1 py-2 text-center border-l border-border/20 transition-colors hover:bg-secondary/20',
                 sel && !todayDay && 'bg-secondary/30',
