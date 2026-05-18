@@ -417,8 +417,8 @@ export function DesktopWeekGrid({
                           className="absolute"
                           style={{
                             top: top + 2,
-                            left: `${(stickyColInfo.col / stickyColInfo.totalCols) * 100}%`,
-                            width: `calc(${100 / stickyColInfo.totalCols}% - 2px)`,
+                            left: `calc(${(stickyColInfo.col / stickyColInfo.totalCols) * 100}% + 3px)`,
+                            width: `calc(${100 / stickyColInfo.totalCols}% - 6px)`,
                             zIndex: 3,
                           }}
                         >
@@ -458,10 +458,10 @@ export function DesktopWeekGrid({
                         onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
                         className={cn("absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90", getColorCardClass(color))}
                         style={{
-                          top: top + 1,
-                          height: height - 2,
-                          left: `${(colInfo.col / colInfo.totalCols) * 100}%`,
-                          width: `calc(${100 / colInfo.totalCols}% - 2px)`,
+                          top: top + 2,
+                          height: Math.max(height - 4, 12),
+                          left: `calc(${(colInfo.col / colInfo.totalCols) * 100}% + 3px)`,
+                          width: `calc(${100 / colInfo.totalCols}% - 6px)`,
                           zIndex: 2,
                           boxShadow: '0 1px 3px rgba(0,0,0,0.09)',
                           borderLeft: isEvent ? `2.5px solid ${getAccentVar(color)}` : undefined,
