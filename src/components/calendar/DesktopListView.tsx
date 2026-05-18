@@ -1,7 +1,7 @@
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getAccentVar } from '@/lib/colors';
+import { getColorCardClass, getAccentVar, getDeepTextColor } from '@/lib/colors';
 import { Check } from 'lucide-react';
 
 interface DesktopListViewProps {
@@ -119,6 +119,7 @@ export function DesktopListView({
                   const isTask = type === 'task';
                   const isEvent = type === 'event';
                   const completed = isTask && (item as Task).completed;
+                  const deepText = getDeepTextColor(color);
 
                   return (
                     <button
@@ -137,7 +138,7 @@ export function DesktopListView({
                           'flex-1 flex items-center gap-2 rounded-lg px-3 py-2 min-w-0',
                           getColorCardClass(color),
                         )}
-                        style={isEvent ? { borderLeft: `2.5px solid ${getAccentVar(color)}` } : undefined}
+                        style={isEvent ? { borderLeft: `2.5px solid ${getAccentVar(color)}`, color: deepText } : { color: deepText }}
                       >
                         {isTask && (
                           <div
@@ -151,13 +152,13 @@ export function DesktopListView({
                           </div>
                         )}
                         <span className={cn(
-                          'text-sm font-medium text-[#2C2C2A] truncate',
+                          'text-sm font-medium truncate',
                           completed && 'line-through opacity-50',
                         )}>
                           {label || ' '}
                         </span>
                         {endTime && (
-                          <span className="text-xs text-[#2C2C2A]/50 flex-shrink-0 ml-auto pl-2">
+                          <span className="text-xs flex-shrink-0 ml-auto pl-2" style={{ opacity: 0.5 }}>
                             {time}–{endTime}
                           </span>
                         )}

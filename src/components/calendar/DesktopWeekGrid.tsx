@@ -309,7 +309,7 @@ export function DesktopWeekGrid({
                     onClick={() => onItemClick(item, type)}
                     className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity', getColorCardClass(color))}
                   >
-                    <span className="text-[10px] font-medium text-[#2C2C2A] block truncate">{label}</span>
+                    <span className="text-[10px] font-medium block truncate" style={{ color: getDeepTextColor(color) }}>{label}</span>
                   </div>
                 );
               })}

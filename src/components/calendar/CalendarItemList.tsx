@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getColorVar, getAccentVar } from '@/lib/colors';
+import { getColorCardClass, getColorVar, getAccentVar, getDeepTextColor } from '@/lib/colors';
 import { Check, FileText, BookOpen, Clock, List, ChevronDown, CalendarPlus, CheckSquare, StickyNote, Pin } from 'lucide-react';
 import {
   DropdownMenu,
@@ -465,9 +465,10 @@ export function CalendarItemList({
     fillHeight?: boolean,
     centerContent?: boolean
   ) => {
-    const color = type === 'note' 
+    const color = type === 'note'
       ? getNoteColor(item as Note)
       : getItemColor(item as Task | CalendarEvent, type);
+    const deepText = getDeepTextColor(color);
 
     const showTime = time && !showTimeline;
     const showTimelineIndicator = type !== 'note' && hasTimeRange(item as CalendarEvent | Task, type);
@@ -481,9 +482,9 @@ export function CalendarItemList({
           onDragStart={() => handleDragStart(task.id, 'task')}
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(task, 'task')}
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', color: deepText }}
           className={cn(
-            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex gap-3 relative text-[#2C2C2A]',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex gap-3 relative',
             centerContent ? 'items-center px-2.5' : 'items-start',
             !centerContent && (compact ? 'p-2.5 pt-2.5' : 'p-3.5 pt-3.5'),
             getColorCardClass(color),
@@ -513,13 +514,13 @@ export function CalendarItemList({
                 {task.title}
               </span>
               {task.subtasks.length > 0 && (
-                <span className={cn('text-[#2C2C2A]/60 flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')}>
+                <span className={cn('flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
                   {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
                 </span>
               )}
             </div>
             {showTime && time && (
-              <span className="text-xs text-[#2C2C2A]/70">
+              <span className="text-xs" style={{ opacity: 0.7 }}>
                 {time}{endTime && ` - ${endTime}`}
               </span>
             )}
@@ -536,9 +537,9 @@ export function CalendarItemList({
           onDragStart={() => handleDragStart(event.id, 'event')}
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(event, 'event')}
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', color: deepText }}
           className={cn(
-            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden text-[#2C2C2A]',
+            'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
             compact ? 'p-2.5 pl-3' : 'p-3.5 pl-4',
             fillHeight && 'h-full',
@@ -554,7 +555,7 @@ export function CalendarItemList({
             {event.title}
           </span>
           {time && (
-            <span className="text-xs text-[#2C2C2A]/60 font-light mt-0.5 block">
+            <span className="text-xs font-light mt-0.5 block" style={{ opacity: 0.6 }}>
               {time}{endTime && ` - ${endTime}`}
             </span>
           )}
@@ -590,9 +591,10 @@ export function CalendarItemList({
         style={{
           boxShadow: stickyStyled ? '2px 3px 10px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.08)',
           transform: stickyStyled ? `rotate(${stickyRotation.toFixed(2)}deg)` : undefined,
+          color: deepText,
         }}
         className={cn(
-          'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2 text-[#2C2C2A]',
+          'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] flex items-start gap-2',
           stickyStyled && 'relative overflow-hidden',
           isUncoloredNotebookPage
             ? 'bg-white dark:bg-card border border-border/40'
@@ -610,15 +612,15 @@ export function CalendarItemList({
           </>
         )}
         {isSticky
-          ? <Pin className={cn(compact ? 'w-3 h-3' : 'w-3.5 h-3.5', 'text-[#2C2C2A]/45 flex-shrink-0 mt-0.5')} />
+          ? <Pin className={cn(compact ? 'w-3 h-3' : 'w-3.5 h-3.5', 'flex-shrink-0 mt-0.5')} style={{ opacity: 0.45 }} />
           : note.id.startsWith('nbp-')
-            ? <BookOpen className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
-            : <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'text-[#2C2C2A]/70 flex-shrink-0 mt-0.5')} />
+            ? <BookOpen className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'flex-shrink-0 mt-0.5')} style={{ opacity: 0.7 }} />
+            : <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'flex-shrink-0 mt-0.5')} style={{ opacity: 0.7 }} />
         }
         <div className="flex-1 min-w-0">
           <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
           {noteShowTime && time && (
-            <span className="text-xs text-[#2C2C2A]/70">
+            <span className="text-xs" style={{ opacity: 0.7 }}>
               {time}{endTime && ` - ${endTime}`}
             </span>
           )}
@@ -775,7 +777,9 @@ export function CalendarItemList({
                   if (type === 'note' && (item as Note).type === 'sticky') {
                     const note = item as Note;
                     const stickyIsDragging = draggedItem?.id === note.id;
-                    const colorClass = getColorCardClass(getNoteColor(note));
+                    const stickyColor = getNoteColor(note);
+                    const colorClass = getColorCardClass(stickyColor);
+                    const stickyDeepText = getDeepTextColor(stickyColor);
 
                     // Deterministic rotation 2–4 deg, direction based on id hash
                     let hash = 0;
@@ -831,12 +835,12 @@ export function CalendarItemList({
                             <div className="absolute top-0 right-0 w-5 h-5 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                             <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
                             {/* Title — up to 3 lines */}
-                            <p className="text-xs font-medium text-[#2C2C2A] line-clamp-3 leading-[1.35]">
+                            <p className="text-xs font-medium line-clamp-3 leading-[1.35]" style={{ color: stickyDeepText }}>
                               {getNoteDisplayTitle(note) || '—'}
                             </p>
                             {/* Time — pinned to bottom */}
                             {time && (
-                              <span className="absolute bottom-2 left-2.5 right-2.5 text-[10px] text-[#2C2C2A]/50 truncate block">
+                              <span className="absolute bottom-2 left-2.5 right-2.5 text-[10px] truncate block" style={{ color: stickyDeepText, opacity: 0.5 }}>
                                 {time}{endTime && ` – ${endTime}`}
                               </span>
                             )}

@@ -13,7 +13,7 @@ import {
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorDotClass, getColorCardClass } from '@/lib/colors';
+import { getColorDotClass, getColorCardClass, getDeepTextColor } from '@/lib/colors';
 import { CalendarItemList } from './CalendarItemList';
 
 interface MonthViewProps {
@@ -313,7 +313,7 @@ export function MonthView({
                           key={i}
                           className={cn('rounded px-1.5 py-[2px] flex-shrink-0', getColorCardClass(color))}
                         >
-                          <span className="text-[10px] font-medium text-[#2C2C2A] block truncate leading-tight">
+                          <span className="text-[10px] font-medium block truncate leading-tight" style={{ color: getDeepTextColor(color) }}>
                             {label || ' '}
                           </span>
                         </div>

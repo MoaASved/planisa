@@ -97,7 +97,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-plum-accent: 256 50% 45%;
     --pastel-flamingo-accent: 341 52% 40%;
     --pastel-stone-accent: 34 28% 45%;
-    --pastel-none-accent: 35 11% 83%;  /* None border #d8d4ce — warm beige */
+    --pastel-none-accent: 27 5% 40%;   /* None — matches text color #6b6560 */
 
     /* Smart list icon accents — palette-native hues, tuned for standalone icon contrast */
     --smart-today: 96 36% 42%;      /* Fern-inspired green, hue between Fern(84) and Pistachio(113) */

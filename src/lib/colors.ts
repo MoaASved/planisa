@@ -55,7 +55,7 @@ export const getColorCardClass = (color: PastelColor): string => {
     rose: 'bg-pastel-rose',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    none: 'bg-pastel-none border border-pastel-none-accent',
+    none: 'bg-pastel-none',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -74,7 +74,7 @@ export const getColorDotClass = (color: PastelColor): string => {
     rose: 'bg-pastel-rose',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    none: 'bg-pastel-none border border-pastel-none-accent',
+    none: 'bg-pastel-none',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
