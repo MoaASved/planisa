@@ -22,7 +22,7 @@ export function rowToTask(row: Row, subtaskRows: Row[] = []): Task {
     time: row.time_text ?? undefined,
     endTime: row.end_time_text ?? undefined,
     category: row.category_name ?? '',
-    color: (asColor(row.color) ?? 'peony') as PastelColor,
+    color: asColor(row.color),
     subtasks: subtaskRows
       .filter((s) => s.task_id === row.id)
       .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
@@ -77,7 +77,7 @@ export function rowToTaskCategory(row: Row): TaskCategory {
   return {
     id: row.id,
     name: isDefault ? 'Unsorted' : row.title,
-    color: (asColor(row.color) ?? 'peony') as PastelColor,
+    color: asColor(row.color),
     pinned: !!row.pinned,
     sortMode: (row.sort_mode ?? 'manual') as TaskCategory['sortMode'],
     order: row.order_index ?? 0,
@@ -126,7 +126,7 @@ export function rowToEvent(row: Row): CalendarEvent {
     startTime: row.time_text ?? undefined,
     endTime: row.end_time_text ?? undefined,
     category: row.category_name ?? '',
-    color: (asColor(row.color) ?? 'peony') as PastelColor,
+    color: asColor(row.color),
     description: row.description ?? undefined,
     isAllDay: !!row.all_day,
   };
@@ -143,7 +143,7 @@ export function eventToRow(e: Partial<CalendarEvent>, userId: string): Row {
   if (e.startTime !== undefined) r.time_text = e.startTime ?? null;
   if (e.endTime !== undefined) r.end_time_text = e.endTime ?? null;
   if (e.category !== undefined) r.category_name = e.category ?? null;
-  if (e.color !== undefined) r.color = e.color ?? null;
+  if ('color' in e) r.color = e.color ?? null;
   if (e.description !== undefined) r.description = e.description ?? null;
   if (e.isAllDay !== undefined) r.all_day = e.isAllDay;
   return r;
@@ -154,7 +154,7 @@ export function rowToEventCategory(row: Row): EventCategory {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'peony') as PastelColor,
+    color: asColor(row.color),
   };
 }
 export function eventCategoryToRow(c: Partial<EventCategory>, userId: string): Row {
@@ -210,7 +210,7 @@ export function rowToFolder(row: Row): Folder {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'peony') as PastelColor,
+    color: asColor(row.color),
     position: row.position ?? undefined,
   };
 }
@@ -228,7 +228,7 @@ export function rowToNotebook(row: Row): Notebook {
   return {
     id: row.id,
     name: row.title,
-    color: (asColor(row.color) ?? 'peony') as PastelColor,
+    color: asColor(row.color),
     createdAt: new Date(row.created_at),
   };
 }

@@ -24,13 +24,12 @@ const getStickyBgClass = (color: PastelColor): string => {
     rose: 'bg-pastel-rose',
     plum: 'bg-pastel-plum',
     flamingo: 'bg-pastel-flamingo',
-    pearl: 'bg-pastel-pearl',
     stone: 'bg-pastel-stone',
   };
   return colorMap[color] || 'bg-pastel-sky';
 };
 
-const COLORS: PastelColor[] = ['fern', 'pistachio', 'lagune', 'sky', 'peach', 'honey', 'peony', 'rose', 'plum', 'flamingo', 'stone', 'pearl'];
+const COLORS: PastelColor[] = ['fern', 'pistachio', 'lagune', 'sky', 'peach', 'honey', 'peony', 'rose', 'plum', 'flamingo', 'stone'];
 
 export function CalendarStickyCreateSheet({ date, time, isOpen, onClose }: CalendarStickyCreateSheetProps) {
   const { addNote } = useAppStore();

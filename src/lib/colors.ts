@@ -5,14 +5,13 @@ export const pastelColors: { value: PastelColor; label: string; class: string }[
   { value: 'pistachio', label: 'Pistachio', class: 'bg-pastel-pistachio' },
   { value: 'lagune', label: 'Lagune', class: 'bg-pastel-lagune' },
   { value: 'sky', label: 'Sky', class: 'bg-pastel-sky' },
-  { value: 'peach', label: 'Peach', class: 'bg-pastel-peach' },
   { value: 'honey', label: 'Honey', class: 'bg-pastel-honey' },
+  { value: 'peach', label: 'Peach', class: 'bg-pastel-peach' },
+  { value: 'plum', label: 'Plum', class: 'bg-pastel-plum' },
   { value: 'peony', label: 'Peony', class: 'bg-pastel-peony' },
   { value: 'rose', label: 'Rose', class: 'bg-pastel-rose' },
-  { value: 'plum', label: 'Plum', class: 'bg-pastel-plum' },
   { value: 'flamingo', label: 'Flamingo', class: 'bg-pastel-flamingo' },
   { value: 'stone', label: 'Stone', class: 'bg-pastel-stone' },
-  { value: 'pearl', label: 'Pearl', class: 'bg-pastel-pearl' },
 ];
 
 export const getColorClass = (color: PastelColor): string => {
@@ -47,14 +46,13 @@ export const getColorCardClass = (color: PastelColor): string => {
     pistachio: 'bg-pastel-pistachio',
     lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    peach: 'bg-pastel-peach',
     honey: 'bg-pastel-honey',
+    peach: 'bg-pastel-peach',
+    plum: 'bg-pastel-plum',
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    plum: 'bg-pastel-plum',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    pearl: 'bg-pastel-pearl ring-1 ring-inset ring-black/[0.06]',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -66,14 +64,13 @@ export const getColorDotClass = (color: PastelColor): string => {
     pistachio: 'bg-pastel-pistachio',
     lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    peach: 'bg-pastel-peach',
     honey: 'bg-pastel-honey',
+    peach: 'bg-pastel-peach',
+    plum: 'bg-pastel-plum',
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    plum: 'bg-pastel-plum',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    pearl: 'bg-pastel-pearl',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -85,14 +82,13 @@ export const getAvatarBgClass = (color: PastelColor): string => {
     pistachio: 'bg-pastel-pistachio',
     lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    peach: 'bg-pastel-peach',
     honey: 'bg-pastel-honey',
+    peach: 'bg-pastel-peach',
+    plum: 'bg-pastel-plum',
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    plum: 'bg-pastel-plum',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    pearl: 'bg-pastel-pearl',
   };
   return colorMap[color] || 'bg-secondary';
 };
@@ -104,14 +100,13 @@ export const getAvatarTextClass = (color: PastelColor): string => {
     pistachio: 'text-pastel-pistachio',
     lagune: 'text-pastel-lagune',
     sky: 'text-pastel-sky',
-    peach: 'text-pastel-peach',
     honey: 'text-pastel-honey',
+    peach: 'text-pastel-peach',
+    plum: 'text-pastel-plum',
     peony: 'text-pastel-peony',
     rose: 'text-pastel-rose',
-    plum: 'text-pastel-plum',
     flamingo: 'text-pastel-flamingo',
     stone: 'text-pastel-stone',
-    pearl: 'text-pastel-pearl',
   };
   return colorMap[color] || 'text-muted-foreground';
 };
@@ -123,14 +118,13 @@ export const getColorStripeClass = (color: PastelColor): string => {
     pistachio: 'bg-pastel-pistachio',
     lagune: 'bg-pastel-lagune',
     sky: 'bg-pastel-sky',
-    peach: 'bg-pastel-peach',
     honey: 'bg-pastel-honey',
+    peach: 'bg-pastel-peach',
+    plum: 'bg-pastel-plum',
     peony: 'bg-pastel-peony',
     rose: 'bg-pastel-rose',
-    plum: 'bg-pastel-plum',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    pearl: 'bg-pastel-pearl',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -151,14 +145,13 @@ export const getAccentDotClass = (color: PastelColor): string => {
     pistachio: 'bg-pastel-pistachio-accent',
     lagune: 'bg-pastel-lagune-accent',
     sky: 'bg-pastel-sky-accent',
-    peach: 'bg-pastel-peach-accent',
     honey: 'bg-pastel-honey-accent',
+    peach: 'bg-pastel-peach-accent',
+    plum: 'bg-pastel-plum-accent',
     peony: 'bg-pastel-peony-accent',
     rose: 'bg-pastel-rose-accent',
-    plum: 'bg-pastel-plum-accent',
     flamingo: 'bg-pastel-flamingo-accent',
     stone: 'bg-pastel-stone-accent',
-    pearl: 'bg-pastel-pearl-accent',
   };
   return map[color] || 'bg-pastel-peony-accent';
 };
@@ -169,14 +162,13 @@ export const getAccentTextClass = (color: PastelColor): string => {
     pistachio: 'text-pastel-pistachio-accent',
     lagune: 'text-pastel-lagune-accent',
     sky: 'text-pastel-sky-accent',
-    peach: 'text-pastel-peach-accent',
     honey: 'text-pastel-honey-accent',
+    peach: 'text-pastel-peach-accent',
+    plum: 'text-pastel-plum-accent',
     peony: 'text-pastel-peony-accent',
     rose: 'text-pastel-rose-accent',
-    plum: 'text-pastel-plum-accent',
     flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone-accent',
-    pearl: 'text-pastel-pearl-accent',
   };
   return map[color] || 'text-pastel-peony-accent';
 };
@@ -187,14 +179,13 @@ export const getAccentBorderClass = (color: PastelColor): string => {
     pistachio: 'border-pastel-pistachio-accent',
     lagune: 'border-pastel-lagune-accent',
     sky: 'border-pastel-sky-accent',
-    peach: 'border-pastel-peach-accent',
     honey: 'border-pastel-honey-accent',
+    peach: 'border-pastel-peach-accent',
+    plum: 'border-pastel-plum-accent',
     peony: 'border-pastel-peony-accent',
     rose: 'border-pastel-rose-accent',
-    plum: 'border-pastel-plum-accent',
     flamingo: 'border-pastel-flamingo-accent',
     stone: 'border-pastel-stone-accent',
-    pearl: 'border-pastel-pearl-accent',
   };
   return map[color] || 'border-pastel-peony-accent';
 };
@@ -217,18 +208,17 @@ export const getColorGradient = (color: PastelColor): string => {
 // Same hue as the pastel but at ~L30-35% so it reads clearly without being flat black.
 export const getDeepTextColor = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
-    fern:       'hsl(87,  45%, 28%)',
-    pistachio:  'hsl(98,  35%, 28%)',
-    lagune:     'hsl(205, 55%, 28%)',
-    sky:        'hsl(232, 55%, 32%)',
-    peach:      'hsl(36,  65%, 30%)',
-    honey:      'hsl(39,  70%, 28%)',
-    peony:      'hsl(275, 45%, 30%)',
-    rose:       'hsl(340, 60%, 32%)',
-    plum:       'hsl(256, 50%, 30%)',
-    flamingo:   'hsl(341, 55%, 35%)',
-    stone:      'hsl(34,  28%, 35%)',
-    pearl:      'hsl(36,  20%, 45%)',
+    fern:      'hsl(87,  45%, 28%)',
+    pistachio: 'hsl(98,  35%, 28%)',
+    lagune:    'hsl(205, 55%, 28%)',
+    sky:       'hsl(232, 55%, 32%)',
+    honey:     'hsl(45,  70%, 28%)',
+    peach:     'hsl(36,  65%, 30%)',
+    plum:      'hsl(256, 50%, 30%)',
+    peony:     'hsl(275, 45%, 30%)',
+    rose:      'hsl(340, 60%, 32%)',
+    flamingo:  'hsl(341, 55%, 35%)',
+    stone:     'hsl(34,  28%, 35%)',
   };
   return map[color] || 'hsl(0, 0%, 20%)';
 };

@@ -3,14 +3,13 @@ export type PastelColor =
   | 'pistachio'
   | 'lagune'
   | 'sky'
-  | 'peach'
   | 'honey'
+  | 'peach'
+  | 'plum'
   | 'peony'
   | 'rose'
-  | 'plum'
   | 'flamingo'
-  | 'stone'
-  | 'pearl';
+  | 'stone';
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 
@@ -58,7 +57,7 @@ export interface CalendarEvent {
   startTime?: string;
   endTime?: string;
   category: string;
-  color: PastelColor;
+  color?: PastelColor;
   description?: string;
   isAllDay: boolean;
 }

@@ -74,13 +74,12 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-lagune: 205 100% 94%;    /* Lagune #e0f2ff */
     --pastel-sky: 232 100% 90%;       /* Sky #cdd4ff */
     --pastel-peach: 36 100% 83%;      /* Peach #ffdba7 */
-    --pastel-honey: 39 96% 90%;       /* Honey #feedcd */
+    --pastel-honey: 45 100% 87%;      /* Honey #ffefbe */
     --pastel-peony: 275 100% 91%;     /* Peony #ebcfff */
     --pastel-rose: 340 100% 95%;      /* Rose #ffe4ed */
     --pastel-plum: 256 87% 94%;       /* Plum #e9e2fd */
     --pastel-flamingo: 341 69% 82%;   /* Flamingo #f1b3c7 */
     --pastel-stone: 34 33% 85%;       /* Stone #e6dbcd */
-    --pastel-pearl: 36 33% 97%;       /* Pearl #faf8f5 */
 
     /* Universal text/icon color on top of pastel surfaces */
     --on-pastel: 40 6% 17%;          /* #2C2C2A */
@@ -91,13 +90,12 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-lagune-accent: 205 55% 35%;
     --pastel-sky-accent: 232 55% 45%;
     --pastel-peach-accent: 36 75% 40%;
-    --pastel-honey-accent: 39 75% 38%;
+    --pastel-honey-accent: 45 75% 38%;
     --pastel-peony-accent: 275 55% 45%;
     --pastel-rose-accent: 340 55% 45%;
     --pastel-plum-accent: 256 50% 45%;
     --pastel-flamingo-accent: 341 52% 40%;
     --pastel-stone-accent: 34 28% 45%;
-    --pastel-pearl-accent: 36 25% 52%;
 
     /* Smart list icon accents — palette-native hues, tuned for standalone icon contrast */
     --smart-today: 96 36% 42%;      /* Fern-inspired green, hue between Fern(84) and Pistachio(113) */
@@ -171,26 +169,24 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-lagune: 205 65% 65%;
     --pastel-sky: 232 70% 64%;
     --pastel-peach: 36 75% 60%;
-    --pastel-honey: 39 68% 65%;
+    --pastel-honey: 45 75% 63%;
     --pastel-peony: 275 72% 68%;
     --pastel-rose: 340 72% 70%;
     --pastel-plum: 256 60% 68%;
     --pastel-flamingo: 341 52% 60%;
     --pastel-stone: 34 25% 60%;
-    --pastel-pearl: 36 15% 78%;
 
     --pastel-fern-accent: 87 38% 40%;
     --pastel-pistachio-accent: 98 25% 38%;
     --pastel-lagune-accent: 205 42% 40%;
     --pastel-sky-accent: 232 45% 46%;
     --pastel-peach-accent: 36 65% 42%;
-    --pastel-honey-accent: 39 62% 44%;
+    --pastel-honey-accent: 45 65% 44%;
     --pastel-peony-accent: 275 45% 50%;
     --pastel-rose-accent: 340 55% 50%;
     --pastel-plum-accent: 256 42% 48%;
     --pastel-flamingo-accent: 341 48% 44%;
     --pastel-stone-accent: 34 20% 42%;
-    --pastel-pearl-accent: 36 18% 55%;
 
     /* Smart list icon accents — lighter for dark bg contrast */
     --smart-today: 96 38% 60%;
@@ -365,7 +361,6 @@ input[type="time"]::-webkit-inner-spin-button {
   .flow-badge-plum { @apply bg-[hsl(var(--pastel-plum))] text-[hsl(var(--pastel-plum-accent))]; }
   .flow-badge-flamingo { @apply bg-[hsl(var(--pastel-flamingo))] text-[hsl(var(--pastel-flamingo-accent))]; }
   .flow-badge-stone { @apply bg-[hsl(var(--pastel-stone))] text-[hsl(var(--pastel-stone-accent))]; }
-  .flow-badge-pearl { @apply bg-[hsl(var(--pastel-pearl))] text-[hsl(var(--pastel-pearl-accent))] ring-1 ring-inset ring-black/[0.06]; }
   .flow-badge-primary { @apply bg-primary/10 text-primary; }
 
   /* Bottom Sheet */

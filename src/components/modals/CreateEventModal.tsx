@@ -21,7 +21,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState(eventCategories[0]?.name || 'Meetings');
-  const [color, setColor] = useState<PastelColor>(eventCategories[0]?.color || 'peony');
+  const [color, setColor] = useState<PastelColor | undefined>(undefined);
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
   const endTimeManuallySet = useRef(false);
@@ -95,7 +95,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     setStartTime('');
     setEndTime('');
     setCategory(eventCategories[0]?.name || 'Meetings');
-    setColor(eventCategories[0]?.color || 'peony');
+    setColor(undefined);
     setIsAllDay(false);
     setDescription('');
     onClose();
@@ -247,6 +247,12 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Color (override)</label>
             <div className="flex flex-wrap gap-2">
+              {/* None / default option */}
+              <button
+                onClick={() => setColor(undefined)}
+                className={cn('w-8 h-8 rounded-full transition-all', color === undefined && 'ring-2 ring-offset-2 ring-primary')}
+                style={{ background: '#faf8f4', border: '1px solid #e0dbd4' }}
+              />
               {pastelColors.map((c) => (
                 <button
                   key={c.value}

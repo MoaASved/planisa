@@ -22,7 +22,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState('');
-  const [color, setColor] = useState<PastelColor>('peony');
+  const [color, setColor] = useState<PastelColor | undefined>(undefined);
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
 
@@ -235,6 +235,12 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Color (override)</label>
             <div className="flex flex-wrap gap-2">
+              {/* None / default option */}
+              <button
+                onClick={() => setColor(undefined)}
+                className={cn('w-8 h-8 rounded-full transition-all', color === undefined && 'ring-2 ring-offset-2 ring-primary')}
+                style={{ background: '#faf8f4', border: '1px solid #e0dbd4' }}
+              />
               {pastelColors.map((c) => (
                 <button
                   key={c.value}

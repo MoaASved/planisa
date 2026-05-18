@@ -74,7 +74,6 @@ export default {
           plum: { DEFAULT: "hsl(var(--pastel-plum))", accent: "hsl(var(--pastel-plum-accent))" },
           flamingo: { DEFAULT: "hsl(var(--pastel-flamingo))", accent: "hsl(var(--pastel-flamingo-accent))" },
           stone: { DEFAULT: "hsl(var(--pastel-stone))", accent: "hsl(var(--pastel-stone-accent))" },
-          pearl: { DEFAULT: "hsl(var(--pastel-pearl))", accent: "hsl(var(--pastel-pearl-accent))" },
         },
       },
       borderRadius: {

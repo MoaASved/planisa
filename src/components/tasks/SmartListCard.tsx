@@ -24,7 +24,6 @@ const colorMap: Record<string, { bg: string; text: string; dot: string; iconClas
   rose: { bg: 'bg-pastel-rose', text: 'text-pastel-rose-accent', dot: 'bg-pastel-rose-accent' },
   plum: { bg: 'bg-pastel-plum', text: 'text-pastel-plum-accent', dot: 'bg-pastel-plum-accent' },
   flamingo: { bg: 'bg-pastel-flamingo', text: 'text-pastel-flamingo-accent', dot: 'bg-pastel-flamingo-accent' },
-  pearl: { bg: 'bg-pastel-pearl', text: 'text-pastel-pearl-accent', dot: 'bg-pastel-pearl-accent' },
   stone: { bg: 'bg-pastel-stone', text: 'text-pastel-stone-accent', dot: 'bg-pastel-stone-accent' },
   'amber-warm': { bg: 'bg-amber-500/15', text: 'text-amber-500', dot: 'bg-amber-500', iconClass: 'fill-amber-500 text-amber-500' },
   emerald: { bg: 'bg-emerald-500/15', text: 'text-emerald-500', dot: 'bg-emerald-500' },
