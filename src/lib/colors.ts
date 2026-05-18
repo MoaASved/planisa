@@ -55,7 +55,7 @@ export const getColorCardClass = (color: PastelColor): string => {
     rose: 'bg-pastel-rose',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    none: 'bg-pastel-none border border-pastel-none-accent',
+    none: 'bg-pastel-none border border-[hsl(27_6%_65%)]',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
