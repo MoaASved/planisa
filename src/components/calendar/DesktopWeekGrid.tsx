@@ -4,7 +4,7 @@ import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getAccentVar, getColorGradient, getDeepTextColor } from '@/lib/colors';
-import { Check, CalendarPlus, CheckSquare, FileText, StickyNote } from 'lucide-react';
+import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin, BookOpen } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -219,11 +219,13 @@ export function DesktopWeekGrid({
       })),
     ].sort((a, b) => a.time.localeCompare(b.time));
 
-    const cols = computeOverlap(timed.map(i => ({
-      id: i.item.id,
-      start: toMin(i.time),
-      end: toMin(i.endTime || addMins(i.time, 30)),
-    })));
+    const cols = computeOverlap(timed
+      .filter(i => !(i.type === 'note' && (i.item as Note).type === 'sticky'))
+      .map(i => ({
+        id: i.item.id,
+        start: toMin(i.time),
+        end: toMin(i.endTime || addMins(i.time, 30)),
+      })));
 
     return { day, allDay, timed, cols };
   });
@@ -387,17 +389,51 @@ export function DesktopWeekGrid({
                 <div className="absolute inset-0 px-0.5">
                   {timed.map(({ type, item, time, endTime, label }) => {
                     const top = toMin(time) * HOUR_HEIGHT / 60;
+                    const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
+                    const isTask = type === 'task';
+                    const isEvent = type === 'event';
+                    const isNote = type === 'note';
+                    const isSticky = isNote && (item as Note).type === 'sticky';
+                    const isNbp = isNote && item.id.startsWith('nbp-');
+
+                    // ── Sticky note: physical card (same as mobile timeline) ──────────
+                    if (isSticky) {
+                      const note = item as Note;
+                      let hash = 0;
+                      for (let ci = 0; ci < note.id.length; ci++) hash = (hash * 31 + note.id.charCodeAt(ci)) | 0;
+                      const dirSign = hash % 2 === 0 ? 1 : -1;
+                      const mag = 2 + (Math.abs(hash >> 4) % 200) / 100;
+                      const rotation = dirSign * mag;
+                      return (
+                        <div key={item.id} data-calendar-item="true" className="absolute" style={{ top: top + 2, right: 2, width: 90, zIndex: 3 }}>
+                          <div style={{ transform: `rotate(${rotation.toFixed(1)}deg)`, position: 'relative', paddingTop: 12 }}>
+                            {/* Tape */}
+                            <div className="absolute pointer-events-none" style={{ top: 2, left: '50%', transform: 'translateX(-50%)', width: 28, height: 10, background: 'rgba(255,255,255,0.52)', borderRadius: 3, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35), 0 1px 3px rgba(0,0,0,0.08)' }} />
+                            {/* Card */}
+                            <div
+                              onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
+                              className={cn('relative overflow-hidden cursor-pointer active:scale-[0.97] transition-transform', getColorCardClass(color))}
+                              style={{ borderRadius: 7, boxShadow: '2px 3px 10px rgba(0,0,0,0.13)', padding: '6px 8px 16px', height: 84 }}
+                            >
+                              <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
+                              <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />
+                              <p className="text-[10px] font-medium text-[#2C2C2A] line-clamp-3 leading-[1.35]">{label || '—'}</p>
+                              {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] text-[#2C2C2A]/50 truncate block">{time}{endTime && ` – ${endTime}`}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // ── Regular block (event / task / note) ───────────────────────────
                     const effEnd = endTime || addMins(time, 30);
                     const durMin = Math.max(toMin(effEnd) - toMin(time), 15);
                     const height = Math.max(durMin * HOUR_HEIGHT / 60, 18);
                     const colInfo = cols.get(item.id) || { col: 0, totalCols: 1 };
-                    const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
-                    const isTask = type === 'task';
-                    const isEvent = type === 'event';
                     const completed = isTask && (item as Task).completed;
                     const short = height < 30;
-
                     const deepText = getDeepTextColor(color);
+                    const TypeIcon = isEvent ? CalendarPlus : isNbp ? BookOpen : isNote ? FileText : null;
 
                     return (
                       <div
@@ -418,37 +454,34 @@ export function DesktopWeekGrid({
                       >
                         {short ? (
                           <div className="flex items-center gap-0.5 px-1 h-full">
-                            {isTask && (
+                            {isTask ? (
                               <div
                                 onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
                                 className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
                               >
                                 {completed && <Check className="w-1.5 h-1.5 text-white" />}
                               </div>
+                            ) : TypeIcon && (
+                              <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: deepText }} />
                             )}
-                            <span
-                              className={cn('text-[10px] font-medium truncate', completed && 'line-through opacity-60')}
-                              style={{ color: deepText }}
-                            >{label}</span>
+                            <span className={cn('text-[10px] font-medium truncate', completed && 'line-through opacity-60')} style={{ color: deepText }}>{label}</span>
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
                             <div className="flex items-start gap-1">
-                              {isTask && (
+                              {isTask ? (
                                 <div
                                   onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
                                   className={cn('w-3 h-3 rounded-full border flex-shrink-0 mt-0.5 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
                                 >
                                   {completed && <Check className="w-2 h-2 text-white" />}
                                 </div>
+                              ) : TypeIcon && (
+                                <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 mt-0.5 opacity-55" style={{ color: deepText }} />
                               )}
                               <div className="min-w-0">
                                 <p
-                                  className={cn(
-                                    'text-[11px] font-semibold leading-tight',
-                                    completed && 'line-through opacity-60',
-                                    height < 48 ? 'truncate' : 'line-clamp-2',
-                                  )}
+                                  className={cn('text-[11px] font-semibold leading-tight', completed && 'line-through opacity-60', height < 48 ? 'truncate' : 'line-clamp-2')}
                                   style={{ color: deepText }}
                                 >{label}</p>
                                 {height >= 46 && (
