@@ -95,7 +95,7 @@ export function WeekDayView({
           <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-1">
             {/* Week number */}
             <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 py-2">
-              v{weekNumber}
+              W{weekNumber}
             </div>
 
             {weekDays.map((day, i) => {
