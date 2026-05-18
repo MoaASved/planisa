@@ -122,7 +122,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const ctaLabel =
     step === 1 ? "Let's go" :
-    step === 4 ? 'Done' :
     step === lastStep ? (showInstallStep ? 'Done' : 'Start using Planisa') :
     'Next';
 
