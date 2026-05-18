@@ -1,0 +1,175 @@
+import { format, isToday } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Task, CalendarEvent, Note, PastelColor } from '@/types';
+import { getColorCardClass, getAccentVar } from '@/lib/colors';
+import { Check } from 'lucide-react';
+
+interface DesktopListViewProps {
+  weekDays: Date[];
+  events: CalendarEvent[];
+  tasks: Task[];
+  notes: Note[];
+  getItemColor: (item: Task | CalendarEvent, type: 'task' | 'event') => PastelColor;
+  getNoteColor: (note: Note) => PastelColor;
+  onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
+  onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
+}
+
+const getNoteTitle = (note: Note) => {
+  if (note.title && note.title !== 'Untitled') return note.title;
+  if (!note.content) return '';
+  return note.content
+    .replace(/<\/p>/gi, '\n').replace(/<\/h[1-6]>/gi, '\n')
+    .replace(/<\/li>/gi, '\n').replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ')
+    .split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0) || '';
+};
+
+function getItemsForDay(
+  day: Date,
+  events: CalendarEvent[],
+  tasks: Task[],
+  notes: Note[],
+) {
+  const ds = format(day, 'yyyy-MM-dd');
+  const de = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === ds);
+  const dt = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === ds);
+  const dn = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === ds);
+
+  const allDay = [
+    ...de.filter(e => e.isAllDay || !e.startTime).map(e => ({
+      type: 'event' as const, item: e as any, label: e.title, time: null as string | null, endTime: null as string | null,
+    })),
+    ...dt.filter(t => !t.time).map(t => ({
+      type: 'task' as const, item: t as any, label: t.title, time: null as string | null, endTime: null as string | null,
+    })),
+    ...dn.filter(n => !n.time).map(n => ({
+      type: 'note' as const, item: n as any, label: getNoteTitle(n), time: null as string | null, endTime: null as string | null,
+    })),
+  ];
+
+  const timed = [
+    ...de.filter(e => !e.isAllDay && e.startTime).map(e => ({
+      type: 'event' as const, item: e as any, label: e.title, time: e.startTime!, endTime: e.endTime ?? null,
+    })),
+    ...dt.filter(t => t.time).map(t => ({
+      type: 'task' as const, item: t as any, label: t.title, time: t.time!, endTime: t.endTime ?? null,
+    })),
+    ...dn.filter(n => n.time).map(n => ({
+      type: 'note' as const, item: n as any, label: getNoteTitle(n), time: n.time!, endTime: n.endTime ?? null,
+    })),
+  ].sort((a, b) => a.time.localeCompare(b.time));
+
+  return [...allDay, ...timed];
+}
+
+export function DesktopListView({
+  weekDays, events, tasks, notes, getItemColor, getNoteColor, onItemClick, onTaskToggle,
+}: DesktopListViewProps) {
+  const isDayView = weekDays.length === 1;
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      {weekDays.map((day, di) => {
+        const items = getItemsForDay(day, events, tasks, notes);
+        const todayDay = isToday(day);
+
+        return (
+          <div key={di}>
+            {/* Day header — shown in week view, or as date label in day view */}
+            <div className={cn(
+              'flex items-center gap-3 px-6 py-3 border-b border-border/20 sticky top-0 bg-white dark:bg-[#1C1C1E] z-10',
+              di > 0 && 'border-t border-border/20',
+            )}>
+              <span className={cn(
+                'text-[11px] font-semibold uppercase tracking-widest',
+                todayDay ? 'text-primary' : 'text-muted-foreground/50',
+              )}>
+                {format(day, 'EEE')}
+              </span>
+              <span className={cn(
+                'text-sm font-semibold w-7 h-7 rounded-full flex items-center justify-center',
+                todayDay
+                  ? 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]'
+                  : 'text-foreground',
+              )}>
+                {format(day, 'd')}
+              </span>
+              {!isDayView && (
+                <span className="text-xs text-muted-foreground/40 font-normal">
+                  {format(day, 'MMMM')}
+                </span>
+              )}
+              {isDayView && (
+                <span className="text-sm text-muted-foreground/50 font-normal">
+                  {format(day, 'MMMM yyyy')}
+                </span>
+              )}
+            </div>
+
+            {/* Items */}
+            {items.length === 0 ? (
+              <div className="px-6 py-4">
+                <span className="text-sm text-muted-foreground/30">No items</span>
+              </div>
+            ) : (
+              <div className="py-1">
+                {items.map(({ type, item, label, time, endTime }, ii) => {
+                  const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
+                  const isTask = type === 'task';
+                  const isEvent = type === 'event';
+                  const completed = isTask && (item as Task).completed;
+
+                  return (
+                    <button
+                      key={`${item.id}-${ii}`}
+                      onClick={() => onItemClick(item, type)}
+                      className="w-full flex items-center gap-4 px-6 py-2.5 hover:bg-secondary/10 transition-colors text-left group"
+                    >
+                      {/* Time column */}
+                      <span className="w-14 flex-shrink-0 text-xs text-muted-foreground/50 font-medium tabular-nums pt-0.5">
+                        {time ?? 'All day'}
+                      </span>
+
+                      {/* Item pill */}
+                      <div
+                        className={cn(
+                          'flex-1 flex items-center gap-2 rounded-lg px-3 py-2 min-w-0',
+                          getColorCardClass(color),
+                        )}
+                        style={isEvent ? { borderLeft: `2.5px solid ${getAccentVar(color)}` } : undefined}
+                      >
+                        {isTask && (
+                          <div
+                            onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
+                            className={cn(
+                              'w-3.5 h-3.5 rounded-full border flex-shrink-0 flex items-center justify-center',
+                              completed ? 'bg-primary border-primary' : 'border-current opacity-40',
+                            )}
+                          >
+                            {completed && <Check className="w-2 h-2 text-white" />}
+                          </div>
+                        )}
+                        <span className={cn(
+                          'text-sm font-medium text-[#2C2C2A] truncate',
+                          completed && 'line-through opacity-50',
+                        )}>
+                          {label || ' '}
+                        </span>
+                        {endTime && (
+                          <span className="text-xs text-[#2C2C2A]/50 flex-shrink-0 ml-auto pl-2">
+                            {time}–{endTime}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

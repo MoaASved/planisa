@@ -1,5 +1,5 @@
 import { format, getWeek, startOfWeek } from 'date-fns';
-import { ChevronLeft, ChevronRight, Grid3X3, List } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Grid3X3, List, LayoutList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type SimpleView = 'month' | 'weekday';
@@ -16,6 +16,8 @@ interface CalendarHeaderProps {
   onTodayClick: () => void;
   desktopView?: DesktopView;
   onDesktopViewChange?: (view: DesktopView) => void;
+  isListMode?: boolean;
+  onListModeToggle?: () => void;
 }
 
 export function CalendarHeader({
@@ -29,6 +31,8 @@ export function CalendarHeader({
   onTodayClick,
   desktopView,
   onDesktopViewChange,
+  isListMode,
+  onListModeToggle,
 }: CalendarHeaderProps) {
   const weekNumber = view === 'weekday'
     ? getWeek(startOfWeek(currentDate, { weekStartsOn: 1 }), { weekStartsOn: 1 })
@@ -123,7 +127,7 @@ export function CalendarHeader({
         </div>
       )}
 
-      {/* Desktop controls (pill segmented control + Today) */}
+      {/* Desktop controls (pill segmented control + list toggle + Today) */}
       <div className="hidden md:flex items-center gap-2">
         <div className="flex items-center rounded-full bg-secondary/30 p-0.5">
           {(['day', 'week', 'month', 'year'] as DesktopView[]).map(v => (
@@ -141,6 +145,21 @@ export function CalendarHeader({
             </button>
           ))}
         </div>
+
+        {(desktopView === 'week' || desktopView === 'day') && (
+          <button
+            onClick={onListModeToggle}
+            title={isListMode ? 'Switch to grid' : 'Switch to list'}
+            className={cn(
+              'p-1.5 rounded-lg transition-colors',
+              isListMode
+                ? 'bg-[#1C1C1E] dark:bg-muted text-white dark:text-foreground'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-secondary/40'
+            )}
+          >
+            <LayoutList className="w-4 h-4" />
+          </button>
+        )}
 
         <button
           onClick={onTodayClick}

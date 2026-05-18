@@ -7,6 +7,7 @@ import { YearView, YearViewHandle } from '@/components/calendar/YearView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { WeekDayView } from '@/components/calendar/WeekDayView';
 import { DesktopWeekGrid } from '@/components/calendar/DesktopWeekGrid';
+import { DesktopListView } from '@/components/calendar/DesktopListView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
@@ -26,6 +27,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   const [view, setView] = useState<SimpleView>('month');
   const [showYearView, setShowYearView] = useState(false);
   const [showTimeline, setShowTimeline] = useState(true);
+  const [desktopListMode, setDesktopListMode] = useState(false);
 
   // Desktop view defaults to 'week' on wide screens, 'month' on narrow (matches mobile default)
   const [desktopView, setDesktopView] = useState<DesktopView>(() =>
@@ -279,6 +281,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
         onTodayClick={handleTodayClick}
         desktopView={desktopView}
         onDesktopViewChange={handleDesktopViewChange}
+        isListMode={desktopListMode}
+        onListModeToggle={() => setDesktopListMode(m => !m)}
       />
 
       {/* Mobile content — unchanged */}
@@ -350,11 +354,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
               onDesktopDayClick={() => handleDesktopViewChange('day')}
             />
           )}
-          {desktopView === 'week' && (
-            <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} />
+          {desktopView === 'week' && (desktopListMode
+            ? <DesktopListView weekDays={weekDays} events={events} tasks={tasks} notes={calendarNotes} getItemColor={getItemColor} getNoteColor={getNoteColor} onItemClick={handleItemClick} onTaskToggle={handleTaskToggle} />
+            : <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} />
           )}
-          {desktopView === 'day' && (
-            <DesktopWeekGrid weekDays={[selectedDate]} {...sharedGridProps} />
+          {desktopView === 'day' && (desktopListMode
+            ? <DesktopListView weekDays={[selectedDate]} events={events} tasks={tasks} notes={calendarNotes} getItemColor={getItemColor} getNoteColor={getNoteColor} onItemClick={handleItemClick} onTaskToggle={handleTaskToggle} />
+            : <DesktopWeekGrid weekDays={[selectedDate]} {...sharedGridProps} />
           )}
         </div>
       </div>
