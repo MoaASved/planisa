@@ -55,7 +55,7 @@ export const getColorCardClass = (color: PastelColor): string => {
     rose: 'bg-pastel-rose',
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
-    none: 'bg-pastel-none',
+    none: 'bg-pastel-none border border-pastel-none-accent',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -229,7 +229,7 @@ export const getDeepTextColor = (color: PastelColor): string => {
     rose:      'hsl(340, 60%, 32%)',
     flamingo:  'hsl(341, 55%, 35%)',
     stone:     'hsl(34,  28%, 35%)',
-    none:      'hsl(27,  5%, 40%)',
+    none:      'hsl(27,  8%, 28%)',
   };
   return map[color] || 'hsl(0, 0%, 20%)';
 };
