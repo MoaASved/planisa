@@ -218,7 +218,7 @@ export const getColorGradient = (color: PastelColor): string => {
 // Same hue as the pastel but at ~L30-35% so it reads clearly without being flat black.
 export const getDeepTextColor = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
-    fern:      'hsl(87,  45%, 28%)',
+    fern:      'hsl(86,  38%, 28%)',
     pistachio: 'hsl(98,  35%, 28%)',
     lagune:    'hsl(205, 55%, 28%)',
     sky:       'hsl(232, 55%, 32%)',
@@ -227,7 +227,7 @@ export const getDeepTextColor = (color: PastelColor): string => {
     plum:      'hsl(256, 50%, 30%)',
     peony:     'hsl(275, 45%, 30%)',
     rose:      'hsl(340, 60%, 32%)',
-    flamingo:  'hsl(341, 55%, 35%)',
+    flamingo:  'hsl(342, 58%, 36%)',
     stone:     'hsl(34,  28%, 35%)',
     none:      'hsl(27,  8%, 28%)',
   };

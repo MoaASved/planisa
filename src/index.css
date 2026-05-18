@@ -69,7 +69,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --radius: 1rem;
 
     /* Pastel palette - LIGHT (soft surfaces) — 12-color unified palette */
-    --pastel-fern: 87 74% 89%;        /* Fern #e6f8d0 */
+    --pastel-fern: 86 44% 83%;        /* Fern #d7e7c2 */
     --pastel-pistachio: 98 28% 79%;   /* Pistachio #c5d8ba */
     --pastel-lagune: 205 100% 94%;    /* Lagune #e0f2ff */
     --pastel-sky: 232 100% 90%;       /* Sky #cdd4ff */
@@ -78,7 +78,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-peony: 275 100% 91%;     /* Peony #ebcfff */
     --pastel-rose: 340 100% 95%;      /* Rose #ffe4ed */
     --pastel-plum: 256 87% 94%;       /* Plum #e9e2fd */
-    --pastel-flamingo: 341 69% 82%;   /* Flamingo #f1b3c7 */
+    --pastel-flamingo: 342 73% 87%;   /* Flamingo #f6c5d4 */
     --pastel-stone: 34 33% 85%;       /* Stone #e6dbcd */
     --pastel-none: 34 25% 97%;        /* None (off-white) ~#faf8f6 */
 
@@ -86,7 +86,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --on-pastel: 40 6% 17%;          /* #2C2C2A */
 
     /* Pastel palette - DARK ACCENT (icons, dots, indicators in light mode) */
-    --pastel-fern-accent: 87 45% 35%;
+    --pastel-fern-accent: 86 42% 33%;
     --pastel-pistachio-accent: 98 30% 32%;
     --pastel-lagune-accent: 205 55% 35%;
     --pastel-sky-accent: 232 55% 45%;
@@ -95,7 +95,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-peony-accent: 275 55% 45%;
     --pastel-rose-accent: 340 55% 45%;
     --pastel-plum-accent: 256 50% 45%;
-    --pastel-flamingo-accent: 341 52% 40%;
+    --pastel-flamingo-accent: 342 55% 42%;
     --pastel-stone-accent: 34 28% 45%;
     --pastel-none-accent: 27 8% 28%;   /* None border/text — dark warm gray */
 
@@ -166,7 +166,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-ring: 0 0% 95%;
 
     /* Pastel palette - dark mode: same hues as light, mid lightness */
-    --pastel-fern: 87 55% 60%;
+    --pastel-fern: 86 35% 57%;
     --pastel-pistachio: 98 22% 55%;
     --pastel-lagune: 205 65% 65%;
     --pastel-sky: 232 70% 64%;
@@ -175,11 +175,11 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-peony: 275 72% 68%;
     --pastel-rose: 340 72% 70%;
     --pastel-plum: 256 60% 68%;
-    --pastel-flamingo: 341 52% 60%;
+    --pastel-flamingo: 342 56% 63%;
     --pastel-stone: 34 25% 60%;
     --pastel-none: 34 10% 18%;
 
-    --pastel-fern-accent: 87 38% 40%;
+    --pastel-fern-accent: 86 32% 38%;
     --pastel-pistachio-accent: 98 25% 38%;
     --pastel-lagune-accent: 205 42% 40%;
     --pastel-sky-accent: 232 45% 46%;
@@ -188,7 +188,7 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-peony-accent: 275 45% 50%;
     --pastel-rose-accent: 340 55% 50%;
     --pastel-plum-accent: 256 42% 48%;
-    --pastel-flamingo-accent: 341 48% 44%;
+    --pastel-flamingo-accent: 342 50% 46%;
     --pastel-stone-accent: 34 20% 42%;
     --pastel-none-accent: 34 12% 48%;
 
