@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getAccentVar } from '@/lib/colors';
+import { getColorCardClass, getAccentVar, getColorGradient, getDeepTextColor } from '@/lib/colors';
 import { Check, CalendarPlus, CheckSquare, FileText, StickyNote } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
@@ -397,21 +397,21 @@ export function DesktopWeekGrid({
                     const completed = isTask && (item as Task).completed;
                     const short = height < 30;
 
+                    const deepText = getDeepTextColor(color);
+
                     return (
                       <div
                         key={item.id}
                         data-calendar-item="true"
                         onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
-                        className={cn(
-                          'absolute overflow-hidden cursor-pointer rounded-[5px] transition-opacity hover:opacity-85',
-                          getColorCardClass(color),
-                        )}
+                        className="absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90"
                         style={{
                           top: top + 1,
                           height: height - 2,
                           left: `${(colInfo.col / colInfo.totalCols) * 100}%`,
                           width: `calc(${100 / colInfo.totalCols}% - 2px)`,
                           zIndex: 2,
+                          background: getColorGradient(color),
                           boxShadow: '0 1px 3px rgba(0,0,0,0.09)',
                           borderLeft: isEvent ? `2.5px solid ${getAccentVar(color)}` : undefined,
                         }}
@@ -426,7 +426,10 @@ export function DesktopWeekGrid({
                                 {completed && <Check className="w-1.5 h-1.5 text-white" />}
                               </div>
                             )}
-                            <span className={cn('text-[10px] font-medium text-[#2C2C2A] truncate', completed && 'line-through opacity-60')}>{label}</span>
+                            <span
+                              className={cn('text-[10px] font-medium truncate', completed && 'line-through opacity-60')}
+                              style={{ color: deepText }}
+                            >{label}</span>
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
@@ -440,13 +443,16 @@ export function DesktopWeekGrid({
                                 </div>
                               )}
                               <div className="min-w-0">
-                                <p className={cn(
-                                  'text-[11px] font-semibold text-[#2C2C2A] leading-tight',
-                                  completed && 'line-through opacity-60',
-                                  height < 48 ? 'truncate' : 'line-clamp-2',
-                                )}>{label}</p>
+                                <p
+                                  className={cn(
+                                    'text-[11px] font-semibold leading-tight',
+                                    completed && 'line-through opacity-60',
+                                    height < 48 ? 'truncate' : 'line-clamp-2',
+                                  )}
+                                  style={{ color: deepText }}
+                                >{label}</p>
                                 {height >= 46 && (
-                                  <p className="text-[10px] text-[#2C2C2A]/55 mt-0.5 leading-none">
+                                  <p className="text-[10px] mt-0.5 leading-none" style={{ color: deepText, opacity: 0.55 }}>
                                     {time}{endTime && ` – ${endTime}`}
                                   </p>
                                 )}
