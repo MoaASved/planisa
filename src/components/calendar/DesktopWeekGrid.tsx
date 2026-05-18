@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getAccentVar, getColorGradient, getDeepTextColor } from '@/lib/colors';
+import { getColorCardClass, getAccentVar, getDeepTextColor } from '@/lib/colors';
 import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin, BookOpen } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
@@ -449,21 +449,20 @@ export function DesktopWeekGrid({
                     const completed = isTask && (item as Task).completed;
                     const short = height < 30;
                     const deepText = getDeepTextColor(color);
-                    const TypeIcon = isEvent ? CalendarPlus : isNbp ? BookOpen : isNote ? FileText : null;
+                    const TypeIcon = isEvent ? null : isNbp ? BookOpen : isNote ? FileText : null;
 
                     return (
                       <div
                         key={item.id}
                         data-calendar-item="true"
                         onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
-                        className="absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90"
+                        className={cn("absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90", getColorCardClass(color))}
                         style={{
                           top: top + 1,
                           height: height - 2,
                           left: `${(colInfo.col / colInfo.totalCols) * 100}%`,
                           width: `calc(${100 / colInfo.totalCols}% - 2px)`,
                           zIndex: 2,
-                          background: getColorGradient(color),
                           boxShadow: '0 1px 3px rgba(0,0,0,0.09)',
                           borderLeft: isEvent ? `2.5px solid ${getAccentVar(color)}` : undefined,
                         }}
