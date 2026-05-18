@@ -321,7 +321,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
 
       {/* Desktop content — driven by desktopView */}
       <div className="hidden md:flex flex-col flex-1 min-h-0 px-4 pb-4 pt-1">
-        <div className="flex flex-col flex-1 min-h-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1C1C1E] shadow-[0_2px_16px_rgba(0,0,0,0.07)] border border-black/[0.05] dark:border-white/[0.06]">
+        <div className="flex flex-col flex-1 min-h-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1C1C1E] shadow-[var(--shadow-elevated)] border border-black/[0.04] dark:border-white/[0.05]">
           {desktopView === 'year' && (
             <YearView currentDate={currentDate} onMonthClick={handleYearMonthSelectDesktop} />
           )}
