@@ -219,13 +219,11 @@ export function DesktopWeekGrid({
       })),
     ].sort((a, b) => a.time.localeCompare(b.time));
 
-    const cols = computeOverlap(timed
-      .filter(i => !(i.type === 'note' && (i.item as Note).type === 'sticky'))
-      .map(i => ({
-        id: i.item.id,
-        start: toMin(i.time),
-        end: toMin(i.endTime || addMins(i.time, 30)),
-      })));
+    const cols = computeOverlap(timed.map(i => ({
+      id: i.item.id,
+      start: toMin(i.time),
+      end: toMin(i.endTime || addMins(i.time, 30)),
+    })));
 
     return { day, allDay, timed, cols };
   });
@@ -404,8 +402,19 @@ export function DesktopWeekGrid({
                       const dirSign = hash % 2 === 0 ? 1 : -1;
                       const mag = 2 + (Math.abs(hash >> 4) % 200) / 100;
                       const rotation = dirSign * mag;
+                      const stickyColInfo = cols.get(item.id) || { col: 0, totalCols: 1 };
                       return (
-                        <div key={item.id} data-calendar-item="true" className="absolute" style={{ top: top + 2, right: 2, width: 90, zIndex: 3 }}>
+                        <div
+                          key={item.id}
+                          data-calendar-item="true"
+                          className="absolute"
+                          style={{
+                            top: top + 2,
+                            left: `${(stickyColInfo.col / stickyColInfo.totalCols) * 100}%`,
+                            width: `calc(${100 / stickyColInfo.totalCols}% - 2px)`,
+                            zIndex: 3,
+                          }}
+                        >
                           <div style={{ transform: `rotate(${rotation.toFixed(1)}deg)`, position: 'relative', paddingTop: 12 }}>
                             {/* Tape */}
                             <div className="absolute pointer-events-none" style={{ top: 2, left: '50%', transform: 'translateX(-50%)', width: 28, height: 10, background: 'rgba(255,255,255,0.52)', borderRadius: 3, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.35), 0 1px 3px rgba(0,0,0,0.08)' }} />
