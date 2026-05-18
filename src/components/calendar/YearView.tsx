@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   format,
   startOfMonth,
@@ -9,6 +9,7 @@ import {
   isSameMonth,
   isToday,
   getYear,
+  getMonth,
 } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -23,17 +24,21 @@ const YEARS_AFTER = 6;
 export function YearView({ currentDate, onMonthClick }: YearViewProps) {
   const today = new Date();
   const activeYear = getYear(currentDate);
+  const activeMonth = getMonth(currentDate);
   const years = Array.from(
     { length: YEARS_BEFORE + YEARS_AFTER + 1 },
     (_, i) => activeYear - YEARS_BEFORE + i
   );
 
-  // Scroll to the active year instantly on mount
+  const isMountRef = useRef(true);
+
   useEffect(() => {
+    const behavior = isMountRef.current ? 'instant' : 'smooth';
+    isMountRef.current = false;
     document
-      .getElementById(`ycal-${activeYear}`)
-      ?.scrollIntoView({ behavior: 'instant', block: 'start' });
-  }, []);
+      .getElementById(`ycal-month-${activeYear}-${activeMonth}`)
+      ?.scrollIntoView({ behavior, block: 'center' });
+  }, [activeYear, activeMonth]);
 
   return (
     <div className="animate-fade-in h-full overflow-y-auto pb-24">
@@ -51,6 +56,7 @@ export function YearView({ currentDate, onMonthClick }: YearViewProps) {
               return (
                 <MiniMonth
                   key={m}
+                  id={`ycal-month-${year}-${m}`}
                   month={monthDate}
                   isSelected={isSameMonth(monthDate, currentDate)}
                   isTodayMonth={isSameMonth(monthDate, today)}
@@ -66,13 +72,14 @@ export function YearView({ currentDate, onMonthClick }: YearViewProps) {
 }
 
 interface MiniMonthProps {
+  id: string;
   month: Date;
   isSelected: boolean;
   isTodayMonth: boolean;
   onClick: () => void;
 }
 
-function MiniMonth({ month, isSelected, isTodayMonth, onClick }: MiniMonthProps) {
+function MiniMonth({ id, month, isSelected, isTodayMonth, onClick }: MiniMonthProps) {
   const monthStart = startOfMonth(month);
   const days = eachDayOfInterval({
     start: startOfWeek(monthStart, { weekStartsOn: 1 }),
@@ -84,6 +91,7 @@ function MiniMonth({ month, isSelected, isTodayMonth, onClick }: MiniMonthProps)
 
   return (
     <button
+      id={id}
       onClick={onClick}
       className={cn(
         'text-left px-2 pt-2 pb-2.5 rounded-2xl transition-all duration-150 active:scale-[0.97]',
