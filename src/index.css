@@ -165,19 +165,19 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-border: 30 8% 18%;
     --sidebar-ring: 0 0% 95%;
 
-    /* Pastel palette - dark mode: same hues as light, mid lightness */
-    --pastel-fern: 86 35% 57%;
-    --pastel-pistachio: 98 22% 55%;
-    --pastel-lagune: 205 65% 65%;
-    --pastel-sky: 232 70% 64%;
-    --pastel-peach: 36 75% 60%;
-    --pastel-honey: 45 75% 63%;
-    --pastel-peony: 275 72% 68%;
-    --pastel-rose: 340 72% 70%;
-    --pastel-plum: 256 60% 68%;
-    --pastel-flamingo: 342 56% 63%;
-    --pastel-stone: 34 25% 60%;
-    --pastel-none: 34 10% 18%;
+    /* Pastel palette - dark mode: same as light mode values (temporary review) */
+    --pastel-fern: 86 44% 83%;
+    --pastel-pistachio: 98 28% 79%;
+    --pastel-lagune: 205 100% 94%;
+    --pastel-sky: 232 100% 90%;
+    --pastel-peach: 36 100% 83%;
+    --pastel-honey: 45 100% 87%;
+    --pastel-peony: 275 100% 91%;
+    --pastel-rose: 340 100% 95%;
+    --pastel-plum: 256 87% 94%;
+    --pastel-flamingo: 342 73% 87%;
+    --pastel-stone: 34 33% 85%;
+    --pastel-none: 34 25% 97%;
 
     --pastel-fern-accent: 86 32% 38%;
     --pastel-pistachio-accent: 98 25% 38%;
