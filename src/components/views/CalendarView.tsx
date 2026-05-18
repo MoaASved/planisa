@@ -261,7 +261,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-100px)] md:h-dvh overflow-hidden bg-white dark:bg-[#1C1A18]">
+    <div className="flex flex-col h-[calc(100dvh-100px)] md:h-dvh overflow-hidden bg-white md:bg-[#F5F3F0] dark:bg-[#1C1A18]">
       {/* Header */}
       <CalendarHeader
         currentDate={currentDate}
@@ -320,36 +320,38 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
       </div>
 
       {/* Desktop content — driven by desktopView */}
-      <div className="hidden md:flex flex-col flex-1 min-h-0 overflow-hidden">
-        {desktopView === 'year' && (
-          <YearView currentDate={currentDate} onMonthClick={handleYearMonthSelectDesktop} />
-        )}
-        {desktopView === 'month' && (
-          <MonthView
-            currentDate={currentDate}
-            selectedDate={selectedDate}
-            events={events}
-            tasks={tasks}
-            notes={calendarNotes}
-            getItemColor={getItemColor}
-            getNoteColor={getNoteColor}
-            onItemClick={handleItemClick}
-            onTaskToggle={handleTaskToggle}
-            onMonthChange={handleMonthChange}
-            onDayChange={handleDayChange}
-            onDateSelect={handleDateSelect}
-            onCreateFromTimeline={handleCreateFromTimeline}
-            showTimeline={showTimeline}
-            onTimelineChange={setShowTimeline}
-            onDesktopDayClick={() => handleDesktopViewChange('day')}
-          />
-        )}
-        {desktopView === 'week' && (
-          <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} />
-        )}
-        {desktopView === 'day' && (
-          <DesktopWeekGrid weekDays={[selectedDate]} {...sharedGridProps} />
-        )}
+      <div className="hidden md:flex flex-col flex-1 min-h-0 px-4 pb-4 pt-1">
+        <div className="flex flex-col flex-1 min-h-0 rounded-2xl overflow-hidden bg-white dark:bg-[#1C1C1E] shadow-[0_2px_16px_rgba(0,0,0,0.07)] border border-black/[0.05] dark:border-white/[0.06]">
+          {desktopView === 'year' && (
+            <YearView currentDate={currentDate} onMonthClick={handleYearMonthSelectDesktop} />
+          )}
+          {desktopView === 'month' && (
+            <MonthView
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              events={events}
+              tasks={tasks}
+              notes={calendarNotes}
+              getItemColor={getItemColor}
+              getNoteColor={getNoteColor}
+              onItemClick={handleItemClick}
+              onTaskToggle={handleTaskToggle}
+              onMonthChange={handleMonthChange}
+              onDayChange={handleDayChange}
+              onDateSelect={handleDateSelect}
+              onCreateFromTimeline={handleCreateFromTimeline}
+              showTimeline={showTimeline}
+              onTimelineChange={setShowTimeline}
+              onDesktopDayClick={() => handleDesktopViewChange('day')}
+            />
+          )}
+          {desktopView === 'week' && (
+            <DesktopWeekGrid weekDays={weekDays} {...sharedGridProps} />
+          )}
+          {desktopView === 'day' && (
+            <DesktopWeekGrid weekDays={[selectedDate]} {...sharedGridProps} />
+          )}
+        </div>
       </div>
 
       {/* Calendar Task Modal */}
