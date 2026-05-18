@@ -1,7 +1,7 @@
 import { format, isToday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getAccentVar, getDeepTextColor } from '@/lib/colors';
+import { getColorCardClass, getDeepTextColor } from '@/lib/colors';
 import { Check } from 'lucide-react';
 
 interface DesktopListViewProps {
@@ -138,7 +138,7 @@ export function DesktopListView({
                           'flex-1 flex items-center gap-2 rounded-lg px-3 py-2 min-w-0',
                           getColorCardClass(color),
                         )}
-                        style={isEvent ? { borderLeft: `2.5px solid ${getAccentVar(color)}`, color: deepText } : { color: deepText }}
+                        style={{ color: deepText }}
                       >
                         {isTask && (
                           <div

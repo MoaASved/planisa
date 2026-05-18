@@ -546,11 +546,6 @@ export function CalendarItemList({
             isDragging && 'opacity-50 scale-95'
           )}
         >
-          {/* Solid colored left border — always present on events */}
-          <div
-            className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-[12px] pointer-events-none"
-            style={{ background: getAccentVar(color) }}
-          />
           <span className={cn('font-semibold block truncate', compact ? 'text-xs' : 'text-sm')}>
             {event.title}
           </span>

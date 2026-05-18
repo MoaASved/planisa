@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getAccentVar, getDeepTextColor } from '@/lib/colors';
+import { getColorCardClass, getDeepTextColor } from '@/lib/colors';
 import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin, BookOpen } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
@@ -465,7 +465,7 @@ export function DesktopWeekGrid({
                           width: `calc(${100 / colInfo.totalCols}% - 6px)`,
                           zIndex: 2,
                           boxShadow: '0 1px 3px rgba(0,0,0,0.09)',
-                          borderLeft: isEvent ? `2.5px solid ${getAccentVar(color)}` : undefined,
+                          borderLeft: undefined,
                         }}
                       >
                         {short ? (
