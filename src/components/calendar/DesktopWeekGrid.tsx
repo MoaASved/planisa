@@ -229,6 +229,7 @@ export function DesktopWeekGrid({
   });
 
   const hasAllDay = dayData.some(d => d.allDay.length > 0);
+  const isDayView = weekDays.length === 1;
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-white dark:bg-[#1C1A18] select-none">
@@ -246,6 +247,7 @@ export function DesktopWeekGrid({
               className={cn(
                 'flex-1 py-2 text-center border-l border-border/20 transition-colors hover:bg-secondary/20',
                 sel && !todayDay && 'bg-secondary/30',
+                todayDay && 'bg-primary/[0.025]',
               )}
             >
               <span className={cn(
@@ -265,6 +267,7 @@ export function DesktopWeekGrid({
             </button>
           );
         })}
+        {isDayView && <div style={{ width: 32, flexShrink: 0 }} />}
       </div>
 
       {/* All-day / untimed row */}
@@ -273,8 +276,8 @@ export function DesktopWeekGrid({
           <div style={{ width: GUTTER_W, flexShrink: 0 }} className="flex items-center justify-end pr-2">
             <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wide text-right leading-tight">all<br />day</span>
           </div>
-          {dayData.map(({ allDay }, i) => (
-            <div key={i} className="flex-1 border-l border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px]">
+          {dayData.map(({ day, allDay }, i) => (
+            <div key={i} className={cn('flex-1 border-l border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px]', isToday(day) && 'bg-primary/[0.025]')}>
               {allDay.slice(0, 2).map(({ type, item, label }) => {
                 const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
                 return (
@@ -293,6 +296,7 @@ export function DesktopWeekGrid({
               )}
             </div>
           ))}
+          {isDayView && <div style={{ width: 32, flexShrink: 0 }} />}
         </div>
       )}
 
@@ -444,6 +448,7 @@ export function DesktopWeekGrid({
               </div>
             );
           })}
+          {isDayView && <div style={{ width: 32, flexShrink: 0 }} />}
         </div>
       </div>
 
