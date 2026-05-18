@@ -302,14 +302,31 @@ export function DesktopWeekGrid({
             <div key={i} className={cn('flex-1 border-l border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px]', isToday(day) && 'bg-primary/[0.025]')}>
               {allDay.slice(0, 2).map(({ type, item, label }) => {
                 const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
+                const deepText = getDeepTextColor(color);
+                const isTask = type === 'task';
+                const isNote = type === 'note';
+                const isNbp = isNote && (item as Note).id.startsWith('nbp-');
+                const completed = isTask && (item as Task).completed;
+                const TypeIcon = isNote ? (isNbp ? BookOpen : FileText) : null;
                 return (
                   <div
                     key={item.id}
                     data-calendar-item="true"
                     onClick={() => onItemClick(item, type)}
-                    className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity', getColorCardClass(color))}
+                    className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color))}
                   >
-                    <span className="text-[10px] font-medium block truncate" style={{ color: getDeepTextColor(color) }}>{label}</span>
+                    {isTask ? (
+                      <div
+                        onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
+                        className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
+                        style={{ color: deepText }}
+                      >
+                        {completed && <Check className="w-1.5 h-1.5 text-white" />}
+                      </div>
+                    ) : TypeIcon ? (
+                      <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-55" style={{ color: deepText }} />
+                    ) : null}
+                    <span className="text-[10px] font-medium truncate" style={{ color: deepText }}>{label}</span>
                   </div>
                 );
               })}
