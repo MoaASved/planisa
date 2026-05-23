@@ -333,14 +333,14 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                 >
                   <span>Show completed tasks</span>
                   <div className={cn(
-                    'w-8 h-4.5 rounded-full transition-colors relative flex-shrink-0',
-                    showCompleted ? 'bg-primary' : 'bg-muted-foreground/30'
+                    'w-8 h-4.5 rounded-full transition-colors relative flex-shrink-0 border',
+                    showCompleted ? 'bg-primary/20 border-primary/40' : 'bg-muted-foreground/20 border-border'
                   )}
                   style={{ width: '2rem', height: '1.125rem' }}
                   >
                     <div className={cn(
-                      'absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow transition-transform',
-                      showCompleted ? 'translate-x-3.5' : 'translate-x-0.5'
+                      'absolute top-0.5 w-3.5 h-3.5 rounded-full shadow transition-transform',
+                      showCompleted ? 'translate-x-3.5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/40'
                     )} />
                   </div>
                 </button>

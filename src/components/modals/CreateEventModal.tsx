@@ -144,8 +144,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">All Day</span>
                 <button onClick={() => setIsAllDay(!isAllDay)}>
-                  <div className={cn('w-11 h-6 rounded-full transition-all duration-300 relative', isAllDay ? 'bg-primary' : 'bg-muted')}>
-                    <div className={cn('absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all duration-300', isAllDay ? 'left-5' : 'left-0.5')} />
+                  <div className={cn('w-11 h-6 rounded-full transition-all duration-300 relative border', isAllDay ? 'bg-primary/20 border-primary/40' : 'bg-muted border-border')}>
+                    <div className={cn('absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300', isAllDay ? 'left-5 bg-primary' : 'left-0.5 bg-muted-foreground/40')} />
                   </div>
                 </button>
               </div>
