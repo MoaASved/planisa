@@ -339,7 +339,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                   style={{ width: '2rem', height: '1.125rem' }}
                   >
                     <div className={cn(
-                      'absolute top-0.5 w-3.5 h-3.5 rounded-full shadow transition-transform',
+                      'absolute top-[1px] w-3.5 h-3.5 rounded-full shadow transition-transform',
                       showCompleted ? 'translate-x-3.5 bg-primary' : 'translate-x-0.5 bg-muted-foreground/40'
                     )} />
                   </div>
