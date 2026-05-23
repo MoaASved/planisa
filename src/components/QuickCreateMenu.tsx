@@ -63,8 +63,8 @@ export function QuickCreateMenu({
         }}
       >
         <div
+          className="bg-[#1C1C1E] dark:bg-[#1C1A18]"
           style={{
-            background: '#1C1C1E',
             borderRadius: 20,
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
             overflow: 'hidden',
@@ -79,15 +79,13 @@ export function QuickCreateMenu({
                 onClick={() => handleAction(action.id)}
                 className={cn(
                   'flex items-center gap-3 w-full text-left transition-colors duration-150',
-                  'hover:bg-white/10 active:bg-white/15'
+                  'hover:bg-white/10 active:bg-white/15',
+                  index < actions.length - 1 && 'border-b border-white/10 dark:border-border'
                 )}
-                style={{
-                  padding: '14px 24px',
-                  borderBottom: index < actions.length - 1 ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                }}
+                style={{ padding: '14px 24px' }}
               >
-                <Icon className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
-                <span className="text-sm font-medium" style={{ color: '#ffffff' }}>
+                <Icon className="w-5 h-5 text-white/70 dark:text-foreground/70" />
+                <span className="text-sm font-medium text-white dark:text-foreground">
                   {action.label}
                 </span>
               </button>
