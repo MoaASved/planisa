@@ -313,7 +313,7 @@ export function DesktopWeekGrid({
                     key={item.id}
                     data-calendar-item="true"
                     onClick={() => onItemClick(item, type)}
-                    className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color))}
+                    className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color), completed && 'opacity-60')}
                   >
                     {isTask ? (
                       <div
@@ -326,7 +326,7 @@ export function DesktopWeekGrid({
                     ) : TypeIcon ? (
                       <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-55" style={{ color: deepText }} />
                     ) : null}
-                    <span className="text-[10px] font-medium truncate" style={{ color: deepText }}>{label}</span>
+                    <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
                   </div>
                 );
               })}
@@ -474,7 +474,7 @@ export function DesktopWeekGrid({
                         key={item.id}
                         data-calendar-item="true"
                         onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
-                        className={cn("absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90", getColorCardClass(color))}
+                        className={cn("absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90", getColorCardClass(color), completed && 'opacity-60')}
                         style={{
                           top: top + 2,
                           height: Math.max(height - 4, 12),
@@ -497,7 +497,7 @@ export function DesktopWeekGrid({
                             ) : TypeIcon && (
                               <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: deepText }} />
                             )}
-                            <span className={cn('text-[10px] font-medium truncate', completed && 'line-through opacity-60')} style={{ color: deepText }}>{label}</span>
+                            <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
@@ -514,7 +514,7 @@ export function DesktopWeekGrid({
                               )}
                               <div className="min-w-0">
                                 <p
-                                  className={cn('text-[11px] font-semibold leading-tight', completed && 'line-through opacity-60', height < 48 ? 'truncate' : 'line-clamp-2')}
+                                  className={cn('text-[11px] font-semibold leading-tight', completed && 'line-through', height < 48 ? 'truncate' : 'line-clamp-2')}
                                   style={{ color: deepText }}
                                 >{label}</p>
                                 {height >= 46 && (
