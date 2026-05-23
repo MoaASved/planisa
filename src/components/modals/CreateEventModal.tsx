@@ -188,7 +188,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                       : 'bg-secondary text-muted-foreground hover:bg-muted'
                   )}
                 >
-                  <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${cat.color}`)} />
+                  <div className={cn('w-3.5 h-3.5 rounded-full ring-1 ring-black/10', `bg-pastel-${cat.color}`)} />
                   {cat.name}
                 </button>
               ))}
