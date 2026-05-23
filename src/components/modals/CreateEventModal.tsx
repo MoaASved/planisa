@@ -182,13 +182,13 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                   key={cat.id}
                   onClick={() => { setCategory(cat.name); setColor(cat.color); }}
                   className={cn(
-                    'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2',
+                    'px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 border',
                     category === cat.name
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:bg-muted'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-white dark:bg-white/[0.06] text-muted-foreground border-border/40 hover:border-border/70'
                   )}
                 >
-                  <div className={cn('w-3.5 h-3.5 rounded-full ring-1 ring-black/10', `bg-pastel-${cat.color}`)} />
+                  <div className={cn('w-3.5 h-3.5 rounded-full', `bg-pastel-${cat.color}`)} />
                   {cat.name}
                 </button>
               ))}
