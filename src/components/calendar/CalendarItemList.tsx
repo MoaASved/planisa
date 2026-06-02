@@ -505,7 +505,7 @@ export function CalendarItemList({
             {task.completed && <Check className={cn(compact ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-primary-foreground')} />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-1">
+            <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
               <span className={cn(
                 'font-medium truncate',
                 compact ? 'text-xs' : 'text-sm',
@@ -513,15 +513,15 @@ export function CalendarItemList({
               )}>
                 {task.title}
               </span>
-              {task.subtasks.length > 0 && (
-                <span className={cn('flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
-                  {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+              {time && (
+                <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
+                  {time}{endTime && ` - ${endTime}`}
                 </span>
               )}
             </div>
-            {time && (
-              <span className="text-xs font-light mt-0.5 block" style={{ opacity: 0.6 }}>
-                {time}{endTime && ` - ${endTime}`}
+            {!centerContent && task.subtasks.length > 0 && (
+              <span className={cn('flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
+                {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
               </span>
             )}
           </div>
@@ -546,14 +546,16 @@ export function CalendarItemList({
             isDragging && 'opacity-50 scale-95'
           )}
         >
-          <span className={cn('font-semibold block truncate', compact ? 'text-xs' : 'text-sm')}>
-            {event.title}
-          </span>
-          {time && (
-            <span className="text-xs font-light mt-0.5 block" style={{ opacity: 0.6 }}>
-              {time}{endTime && ` - ${endTime}`}
+          <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
+            <span className={cn('font-semibold truncate', compact ? 'text-xs' : 'text-sm')}>
+              {event.title}
             </span>
-          )}
+            {time && (
+              <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
+                {time}{endTime && ` - ${endTime}`}
+              </span>
+            )}
+          </div>
         </div>
       );
     }
@@ -870,7 +872,7 @@ export function CalendarItemList({
                     ? `calc(${widthPercent}% - ${(widthPercent * STICKY_RESERVE_PX / 100).toFixed(1)}px - ${gapPx}px)`
                     : `calc(${widthPercent}% - ${gapPx}px)`;
 
-                  const shortBlock = type === 'task' && height <= HOUR_HEIGHT * 0.5;
+                  const shortBlock = height <= HOUR_HEIGHT * 1.0;
                   return (
                     <div
                       key={item.id}
