@@ -51,6 +51,12 @@ export interface Subtask {
   completed: boolean;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -61,6 +67,7 @@ export interface CalendarEvent {
   color?: PastelColor;
   description?: string;
   isAllDay: boolean;
+  checklist?: ChecklistItem[];
 }
 
 export interface Note {

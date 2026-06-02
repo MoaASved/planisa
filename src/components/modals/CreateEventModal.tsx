@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Plus, Calendar, Clock, Tag } from 'lucide-react';
+import { X, Plus, Calendar, Clock, Tag, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { PastelColor } from '@/types';
+import { PastelColor, ChecklistItem } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { format } from 'date-fns';
 
@@ -24,6 +24,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [color, setColor] = useState<PastelColor | undefined>(undefined);
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [checklistInput, setChecklistInput] = useState('');
   const endTimeManuallySet = useRef(false);
 
   // New category creation state
@@ -37,6 +39,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
       endTimeManuallySet.current = false;
       setTitle(initialTitle ?? '');
       setDescription('');
+      setChecklist([]);
+      setChecklistInput('');
       setIsAllDay(false);
       setDate(initialDate ? format(initialDate, 'yyyy-MM-dd') : '');
       if (initialTime) {
@@ -65,6 +69,20 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   };
 
 
+  const addChecklistItem = () => {
+    if (!checklistInput.trim()) return;
+    setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: checklistInput.trim(), completed: false }]);
+    setChecklistInput('');
+  };
+
+  const toggleChecklistItem = (id: string) => {
+    setChecklist(prev => prev.map(item => item.id === id ? { ...item, completed: !item.completed } : item));
+  };
+
+  const removeChecklistItem = (id: string) => {
+    setChecklist(prev => prev.filter(item => item.id !== id));
+  };
+
   const handleCreateCategory = () => {
     if (newCategoryName.trim()) {
       addEventCategory({ name: newCategoryName.trim(), color: newCategoryColor });
@@ -87,6 +105,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
       color,
       isAllDay,
       description: description.trim() || undefined,
+      checklist: checklist.length > 0 ? checklist : undefined,
     });
 
     // Reset form
@@ -98,6 +117,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     setColor(undefined);
     setIsAllDay(false);
     setDescription('');
+    setChecklist([]);
+    setChecklistInput('');
     onClose();
   };
 
@@ -277,6 +298,57 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
               rows={3}
               className="flow-input resize-none"
             />
+          </div>
+
+          {/* Checklist */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Checklist</label>
+            {checklist.length > 0 && (
+              <div className="mb-2 space-y-1">
+                {checklist.map(item => (
+                  <div key={item.id} className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-secondary">
+                    <button
+                      type="button"
+                      onClick={() => toggleChecklistItem(item.id)}
+                      className={cn(
+                        'w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all',
+                        item.completed ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+                      )}
+                    >
+                      {item.completed && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                    </button>
+                    <span className={cn('flex-1 text-sm', item.completed && 'line-through text-muted-foreground')}>
+                      {item.text}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeChecklistItem(item.id)}
+                      className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={checklistInput}
+                onChange={(e) => setChecklistInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addChecklistItem())}
+                placeholder="Add item..."
+                className="flex-1 flow-input"
+              />
+              <button
+                type="button"
+                onClick={addChecklistItem}
+                disabled={!checklistInput.trim()}
+                className="px-3 py-2 rounded-xl bg-secondary text-primary text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 

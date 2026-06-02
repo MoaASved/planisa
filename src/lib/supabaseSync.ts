@@ -129,6 +129,7 @@ export function rowToEvent(row: Row): CalendarEvent {
     color: asColor(row.color),
     description: row.description ?? undefined,
     isAllDay: !!row.all_day,
+    checklist: Array.isArray(row.checklist) ? row.checklist : [],
   };
 }
 export function eventToRow(e: Partial<CalendarEvent>, userId: string): Row {
@@ -146,6 +147,7 @@ export function eventToRow(e: Partial<CalendarEvent>, userId: string): Row {
   if ('color' in e) r.color = e.color ?? null;
   if (e.description !== undefined) r.description = e.description ?? null;
   if (e.isAllDay !== undefined) r.all_day = e.isAllDay;
+  if ('checklist' in e) r.checklist = e.checklist ?? [];
   return r;
 }
 

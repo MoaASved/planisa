@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
-import { X, Plus, Calendar, Clock, Tag, Trash2 } from 'lucide-react';
+import { X, Plus, Calendar, Clock, Tag, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { CalendarEvent, PastelColor } from '@/types';
+import { CalendarEvent, PastelColor, ChecklistItem } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -25,6 +25,8 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   const [color, setColor] = useState<PastelColor | undefined>(undefined);
   const [isAllDay, setIsAllDay] = useState(false);
   const [description, setDescription] = useState('');
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [checklistInput, setChecklistInput] = useState('');
 
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -49,6 +51,8 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       setColor(event.color);
       setIsAllDay(event.isAllDay);
       setDescription(event.description || '');
+      setChecklist(event.checklist || []);
+      setChecklistInput('');
       endTimeManuallySet.current = false;
     }
   }, [event]);
@@ -74,9 +78,28 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       color,
       isAllDay,
       description: description.trim() || undefined,
+      checklist,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event, title, date, startTime, endTime, isAllDay, category, color, description]));
+  }, [event, title, date, startTime, endTime, isAllDay, category, color, description, checklist]));
+
+  const addChecklistItem = () => {
+    if (!checklistInput.trim()) return;
+    setChecklist(prev => [...prev, { id: crypto.randomUUID(), text: checklistInput.trim(), completed: false }]);
+    setChecklistInput('');
+    triggerAutoSave();
+  };
+
+  const toggleChecklistItem = (id: string) => {
+    const updated = checklist.map(item => item.id === id ? { ...item, completed: !item.completed } : item);
+    setChecklist(updated);
+    if (event) updateEvent(event.id, { checklist: updated });
+  };
+
+  const removeChecklistItem = (id: string) => {
+    setChecklist(prev => prev.filter(item => item.id !== id));
+    triggerAutoSave();
+  };
 
   const handleClose = () => {
     flushAutoSave();
@@ -96,6 +119,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       color,
       isAllDay,
       description: description.trim() || undefined,
+      checklist,
     });
 
     onClose();
@@ -260,6 +284,57 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
               rows={3}
               className="flow-input resize-none"
             />
+          </div>
+
+          {/* Checklist */}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Checklist</label>
+            {checklist.length > 0 && (
+              <div className="mb-2 space-y-1">
+                {checklist.map(item => (
+                  <div key={item.id} className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-secondary">
+                    <button
+                      type="button"
+                      onClick={() => toggleChecklistItem(item.id)}
+                      className={cn(
+                        'w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all',
+                        item.completed ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+                      )}
+                    >
+                      {item.completed && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
+                    </button>
+                    <span className={cn('flex-1 text-sm', item.completed && 'line-through text-muted-foreground')}>
+                      {item.text}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeChecklistItem(item.id)}
+                      className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={checklistInput}
+                onChange={(e) => setChecklistInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addChecklistItem())}
+                placeholder="Add item..."
+                className="flex-1 flow-input"
+              />
+              <button
+                type="button"
+                onClick={addChecklistItem}
+                disabled={!checklistInput.trim()}
+                className="px-3 py-2 rounded-xl bg-secondary text-primary text-sm font-medium disabled:opacity-40 hover:bg-muted transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
