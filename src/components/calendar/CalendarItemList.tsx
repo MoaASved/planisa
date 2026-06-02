@@ -519,8 +519,8 @@ export function CalendarItemList({
                 </span>
               )}
             </div>
-            {showTime && time && (
-              <span className="text-xs" style={{ opacity: 0.7 }}>
+            {time && (
+              <span className="text-xs font-light mt-0.5 block" style={{ opacity: 0.6 }}>
                 {time}{endTime && ` - ${endTime}`}
               </span>
             )}
