@@ -465,7 +465,7 @@ export function DesktopWeekGrid({
                     const height = Math.max(durMin * HOUR_HEIGHT / 60, 18);
                     const colInfo = cols.get(item.id) || { col: 0, totalCols: 1 };
                     const completed = isTask && (item as Task).completed;
-                    const short = height < 50;
+                    const short = durMin < 60;
                     const deepText = getDeepTextColor(color);
                     const TypeIcon = isEvent ? null : isNbp ? BookOpen : isNote ? FileText : null;
 
