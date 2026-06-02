@@ -465,7 +465,7 @@ export function DesktopWeekGrid({
                     const height = Math.max(durMin * HOUR_HEIGHT / 60, 18);
                     const colInfo = cols.get(item.id) || { col: 0, totalCols: 1 };
                     const completed = isTask && (item as Task).completed;
-                    const short = height < 30;
+                    const short = height < 50;
                     const deepText = getDeepTextColor(color);
                     const TypeIcon = isEvent ? null : isNbp ? BookOpen : isNote ? FileText : null;
 
@@ -486,7 +486,7 @@ export function DesktopWeekGrid({
                         }}
                       >
                         {short ? (
-                          <div className="flex items-center gap-0.5 px-1 h-full">
+                          <div className="flex items-center gap-0.5 px-1 h-full min-w-0">
                             {isTask ? (
                               <div
                                 onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
@@ -497,7 +497,12 @@ export function DesktopWeekGrid({
                             ) : TypeIcon && (
                               <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: deepText }} />
                             )}
-                            <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
+                            <span className={cn('text-[10px] font-medium truncate flex-1', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
+                            {time && (
+                              <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: deepText, opacity: 0.6 }}>
+                                {time}{endTime && ` – ${endTime}`}
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
