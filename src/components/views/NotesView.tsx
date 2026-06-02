@@ -84,7 +84,7 @@ interface NotesViewProps {
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed, initialNotebookPage, onInitialNotebookPageConsumed }: NotesViewProps) {
   const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
   const haptics = useHaptics();
-  const [viewTab, setViewTab] = useState<ViewTab>('folders');
+  const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -442,7 +442,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     <div className="flex items-center justify-between mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
       {/* Tabs — centered on desktop */}
       <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5 md:col-start-2">
-        {(['folders', 'boards', 'notebooks'] as ViewTab[]).map((tab) => (
+        {(['boards', 'folders', 'notebooks'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setViewTab(tab)}
@@ -453,7 +453,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {tab === 'folders' ? 'Folders' : tab === 'boards' ? 'Boards' : 'Notebooks'}
+            {tab === 'folders' ? 'Folders' : tab === 'boards' ? 'Board' : 'Notebooks'}
           </button>
         ))}
       </div>
@@ -729,7 +729,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           <div className="mb-4 animate-fade-in">
             <input
               type="text"
-              placeholder="Search boards..."
+              placeholder="Search board..."
               value={localSearchQuery}
               onChange={(e) => setLocalSearchQuery(e.target.value)}
               className="w-full flow-input"
@@ -751,7 +751,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         {filteredBoardsNotes.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
-              {boardsFilter === 'notes-only' ? 'No notes yet' : boardsFilter === 'sticky-only' ? 'No sticky notes yet' : 'No boards yet'}
+              {boardsFilter === 'notes-only' ? 'No notes yet' : boardsFilter === 'sticky-only' ? 'No sticky notes yet' : 'No board items yet'}
             </p>
           </div>
         )}
