@@ -73,7 +73,7 @@ function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onCli
   );
 }
 // ── Sortable note/sticky item (used inside folder custom-order drag-and-drop) ──
-function SortableNoteItem({ id, children }: { id: string; children: React.ReactNode }) {
+function SortableNoteItem({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -82,7 +82,7 @@ function SortableNoteItem({ id, children }: { id: string; children: React.ReactN
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('touch-none', className)}>
       {children}
     </div>
   );
@@ -618,10 +618,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             >
               <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
                 {sortedFolderItems.map(item => (
-                  <SortableNoteItem key={item.id} id={item.id}>
+                  <SortableNoteItem key={item.id} id={item.id} className={item.kind === 'subfolder' && layoutMode === 'grid' ? 'self-start' : undefined}>
                     {item.kind === 'subfolder'
                       ? layoutMode === 'grid'
-                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
+                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact />
                         : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                       : item.note.type === 'sticky'
                         ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
@@ -636,7 +636,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             {sortedFolderItems.map(item => (
               item.kind === 'subfolder'
                 ? layoutMode === 'grid'
-                  ? <FolderGridCard key={item.id} folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
+                  ? <div key={item.id} className="self-start"><FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact /></div>
                   : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                 : item.note.type === 'sticky'
                   ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
