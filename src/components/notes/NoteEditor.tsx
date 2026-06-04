@@ -674,17 +674,32 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                       <div className="h-px bg-border my-1" />
                     </>
                   )}
-                  {folders.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => { setFolder(f.name); setMoreView('main'); setMorePopoverOpen(false); }}
-                      className={cn('w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-secondary', folder === f.name && 'bg-secondary')}
-                    >
-                      <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
-                      <span>{f.name}</span>
-                      {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
-                    </button>
-                  ))}
+                  {folders.filter(f => !f.parentId).flatMap((f) => {
+                    const subfolders = folders.filter(sf => sf.parentId === f.id);
+                    return [
+                      <button
+                        key={f.id}
+                        onClick={() => { setFolder(f.name); setMoreView('main'); setMorePopoverOpen(false); }}
+                        className={cn('w-full text-left flex items-center px-2 py-1.5 text-sm rounded-md hover:bg-secondary', folder === f.name && 'bg-secondary')}
+                      >
+                        <div className={cn('w-2.5 h-2.5 rounded-full mr-2 shrink-0', `bg-pastel-${f.color}`)} />
+                        <span>{f.name}</span>
+                        {folder === f.name && <Check className="w-4 h-4 ml-auto" />}
+                      </button>,
+                      ...subfolders.map(sf => (
+                        <button
+                          key={sf.id}
+                          onClick={() => { setFolder(sf.name); setMoreView('main'); setMorePopoverOpen(false); }}
+                          className={cn('w-full text-left flex items-center pl-6 pr-2 py-1.5 text-sm rounded-md hover:bg-secondary text-muted-foreground', folder === sf.name && 'bg-secondary')}
+                        >
+                          <ChevronRight className="w-3 h-3 mr-1.5 shrink-0" />
+                          <div className={cn('w-2 h-2 rounded-full mr-2 shrink-0', `bg-pastel-${sf.color}`)} />
+                          <span>{sf.name}</span>
+                          {folder === sf.name && <Check className="w-4 h-4 ml-auto" />}
+                        </button>
+                      )),
+                    ];
+                  })}
                   {folders.length > 0 && <div className="h-px bg-border my-1" />}
                   <button
                     onClick={() => setMoreView('folder-create')}
