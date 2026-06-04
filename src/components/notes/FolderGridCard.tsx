@@ -55,10 +55,9 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           </div>
         </button>
 
-        {/* Desktop only: name + count + three-dot over gradient at bottom of h-44 */}
+        {/* Desktop only: name + count + three-dot at bottom of h-44 */}
         <div
           className="hidden md:flex absolute bottom-0 left-0 right-0 items-end justify-between px-3 pb-2 pt-8 pointer-events-none"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.18), transparent)' }}
         >
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground leading-tight truncate">{folder.name}</p>
