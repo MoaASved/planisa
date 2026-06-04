@@ -8,6 +8,10 @@ import TaskList from '@tiptap/extension-task-list';
 import { NoFocusTaskItem } from './NoFocusTaskItem';
 import TextAlign from '@tiptap/extension-text-align';
 import { DraggableImage } from './DraggableImage';
+import TableExtension from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -33,6 +37,7 @@ import {
   Check,
   MoreHorizontal,
   ChevronRight,
+  Table as TableIcon,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -130,6 +135,10 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       DraggableImage,
       VoiceNoteExtension,
+      TableExtension.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: note?.content || '',
     editorProps: {
@@ -429,6 +438,10 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
               <DropdownMenuItem onClick={() => editor?.chain().focus().toggleTaskList().run()} className={cn(editor?.isActive('taskList') && 'bg-secondary')}>
                 <CheckSquare className="w-4 h-4 mr-2" />
                 Checklist
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                <TableIcon className="w-4 h-4 mr-2" />
+                Table
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleAddImage}>
@@ -762,6 +775,30 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
           </Popover>
           </div>{/* end + ··· pill */}
       </div>{/* end top bar */}
+
+      {/* Table controls toolbar — visible when cursor is inside a table */}
+      {editor?.isActive('table') && (
+        <div
+          className="fixed left-0 md:left-[var(--sidebar-w,0px)] right-0 z-[1249] flex justify-center px-4"
+          style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 60}px)`, pointerEvents: 'none' }}
+        >
+          <div className="flex items-center bg-card rounded-full shadow-md px-1.5 h-9 gap-0.5" style={{ pointerEvents: 'auto' }}>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().addColumnAfter().run()} className="px-2.5 py-1 text-xs rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">+Col</button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().addRowAfter().run()} className="px-2.5 py-1 text-xs rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">+Row</button>
+            <div className="w-px h-4 bg-border mx-0.5" />
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().deleteColumn().run()} className="px-2.5 py-1 text-xs rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">−Col</button>
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().deleteRow().run()} className="px-2.5 py-1 text-xs rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">−Row</button>
+            <div className="w-px h-4 bg-border mx-0.5" />
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => editor.chain().focus().deleteTable().run()}
+              className="px-2 py-1 rounded-full hover:bg-red-500/10 transition-colors text-muted-foreground hover:text-red-500"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Floating highlight mode circle */}
       {activeHighlightColor && (

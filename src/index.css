@@ -856,6 +856,31 @@ input[type="time"]::-webkit-inner-spin-button {
   min-width: 0 !important;
 }
 
+/* Table */
+.tiptap-editor table {
+  @apply w-full border-collapse my-4;
+}
+
+.tiptap-editor table td,
+.tiptap-editor table th {
+  @apply border border-border p-2 text-sm align-top;
+  min-width: 2rem;
+  position: relative;
+}
+
+.tiptap-editor table th {
+  @apply bg-muted font-semibold text-left;
+}
+
+.tiptap-editor table .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  @apply bg-primary/10;
+}
+
 .ProseMirror-selectednode {
   outline: none;
   box-shadow: 0 0 0 2px rgba(107, 107, 107, 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
