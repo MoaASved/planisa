@@ -55,7 +55,7 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
       className={cn(
         'sticky-note-card text-left group transition-all duration-200 w-full rounded-2xl p-4 relative overflow-hidden',
         getStickyBgClass(note.color),
-        isGrid ? 'min-h-[120px]' : 'min-h-[80px]',
+        isGrid ? 'min-h-[120px] md:h-48 md:overflow-hidden' : 'min-h-[80px]',
         'hover:scale-[1.02] active:scale-[0.98]'
       )}
     >

@@ -425,7 +425,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         className={cn(
           'text-left group transition-all duration-200 w-full rounded-2xl p-4',
           cardBgClass,
-          isGrid && 'min-h-[140px]',
+          isGrid && 'min-h-[140px] md:h-48 md:overflow-hidden',
           'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
         )}
       >
@@ -440,7 +440,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 )}
               </div>
               {preview && (
-                <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-4">
+                <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-4 md:line-clamp-3">
                   {preview}
                 </p>
               )}
@@ -616,7 +616,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               items={sortedFolderItems.map(item => item.id)}
               strategy={layoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
             >
-              <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+              <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'space-y-2')}>
                 {sortedFolderItems.map(item => (
                   <SortableNoteItem key={item.id} id={item.id} className={item.kind === 'subfolder' && layoutMode === 'grid' ? 'self-start' : undefined}>
                     {item.kind === 'subfolder'
@@ -632,7 +632,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </SortableContext>
           </DndContext>
         ) : (
-          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'space-y-2')}>
             {sortedFolderItems.map(item => (
               item.kind === 'subfolder'
                 ? layoutMode === 'grid'
@@ -996,7 +996,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </div>
         )}
 
-        <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-3')}>
+        <div className={cn(layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'space-y-3')}>
           {filteredBoardsNotes.map((note, index) => (
             <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
               {note.type === 'sticky'
