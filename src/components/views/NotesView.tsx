@@ -425,14 +425,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         className={cn(
           'text-left group transition-all duration-200 w-full rounded-2xl p-4',
           cardBgClass,
-          isGrid && 'min-h-[140px] md:h-48 md:overflow-hidden',
+          isGrid && 'min-h-[140px] md:h-44 md:overflow-hidden',
           'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
         )}
       >
         {isGrid ? (
           /* Grid layout: star top-right, title+preview top-left, folder+date bottom row */
           <div className="flex flex-col h-full">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 md:overflow-hidden">
               <div className="flex items-start justify-between gap-2">
                 {header && <h4 className="flow-card-title">{header}</h4>}
                 {note.isPinned && (
@@ -445,7 +445,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 </p>
               )}
             </div>
-            <div className="flex items-center justify-between gap-2 mt-auto pt-3">
+            <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
               {note.folder ? (
                 <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-foreground/75')}>
                   {note.folder}
@@ -621,7 +621,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   <SortableNoteItem key={item.id} id={item.id}>
                     {item.kind === 'subfolder'
                       ? layoutMode === 'grid'
-                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
+                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact />
                         : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                       : item.note.type === 'sticky'
                         ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
