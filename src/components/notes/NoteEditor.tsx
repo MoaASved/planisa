@@ -8,7 +8,7 @@ import TaskList from '@tiptap/extension-task-list';
 import { NoFocusTaskItem } from './NoFocusTaskItem';
 import TextAlign from '@tiptap/extension-text-align';
 import { DraggableImage } from './DraggableImage';
-import TableExtension from '@tiptap/extension-table';
+import { Table as TableExtension } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
