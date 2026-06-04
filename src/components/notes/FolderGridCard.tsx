@@ -15,13 +15,13 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
   const lighterColor = `color-mix(in srgb, ${baseColor} 55%, hsl(var(--card)))`;
 
-  // Compact variant: used for subfolders inside a folder view (smaller, no papers, name/count below)
+  // Compact variant: subfolder inside a folder view — same shape as root folders, text inside SVG, capped width on desktop
   if (compact) {
     return (
-      <div className="group max-w-[130px] mx-auto w-full">
+      <div className="group w-full md:max-w-[180px] md:mx-auto">
         <button
           onClick={onClick}
-          className="w-full transition-all active:scale-95 relative rounded-[10px]"
+          className="w-full transition-all active:scale-95 relative rounded-[12px]"
           style={{ boxShadow: '0px 2px 6px rgba(0,0,0,0.06)' }}
         >
           <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
@@ -31,31 +31,36 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
                 <stop offset="100%" stopColor={baseColor} />
               </linearGradient>
             </defs>
+
+            {/* Papers sticking out — same as root folder */}
+            <rect x="55" y="20" width="120" height="100" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.55" transform="rotate(2, 115, 70)" />
+            <rect x="50" y="22" width="115" height="98" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.7" transform="rotate(-1.5, 107, 71)" />
+            <rect x="60" y="18" width="110" height="102" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.45" transform="rotate(3.5, 115, 69)" />
+
+            {/* Folder body */}
             <path
               d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z"
               fill={`url(#fill-${folder.id})`}
             />
+
+            {/* Name and count always inside the SVG */}
+            <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
+              {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
+            </text>
+            <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif">
+              {count} {count === 1 ? 'item' : 'items'}
+            </text>
           </svg>
+
+          {/* Three-dot menu */}
           <div
-            className="absolute bottom-1.5 right-1.5 z-10 p-0.5"
+            className="absolute bottom-2 right-2 z-10 p-1"
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
             style={{ cursor: 'pointer' }}
           >
-            <MoreHorizontal className="w-4 h-4" style={{ color: '#2C2C2A' }} />
+            <MoreHorizontal className="w-5 h-5" style={{ color: '#2C2C2A' }} />
           </div>
         </button>
-        <div className="flex items-center justify-between mt-1 px-0.5">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-foreground truncate leading-tight">{folder.name}</p>
-            <p className="text-xs text-muted-foreground">{count} {count === 1 ? 'item' : 'items'}</p>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-secondary ml-1 flex-shrink-0 hidden md:block"
-          >
-            <MoreHorizontal className="w-3.5 h-3.5 text-foreground/60" />
-          </button>
-        </div>
       </div>
     );
   }
