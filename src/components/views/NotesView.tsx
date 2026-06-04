@@ -53,6 +53,7 @@ import { useHaptics } from '@/hooks/useHaptics';
 
 type ViewTab = 'folders' | 'boards' | 'notebooks';
 type FolderSortMode = 'custom' | 'edited' | 'alpha' | 'starred';
+type FolderItem = { kind: 'subfolder'; id: string; folder: Folder } | { kind: 'note'; id: string; note: Note };
 
 // ── Sortable folder card (used in Folders tab drag-and-drop) ──────────────────
 function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onClick: () => void; onEdit: () => void }) {
@@ -235,40 +236,58 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     ? notes.filter(n => n.folder === selectedFolder.name)
     : [];
 
-  // Subfolders of currently open folder
-  const currentSubfolders = selectedFolder ? folders.filter(f => f.parentId === selectedFolder.id) : [];
+  // Whether currently viewing a subfolder (needed for item list + render)
+  const isInSubfolder = !!parentFolder;
 
-  // Sort helpers for folder view
-  const sortedSubfolders: Folder[] = (() => {
+  // Subfolders of the open folder — excluded when inside a subfolder (no sub-subfolders)
+  const currentSubfolders = selectedFolder && !isInSubfolder
+    ? folders.filter(f => f.parentId === selectedFolder.id)
+    : [];
+
+  // Flat unified item list: subfolders + notes together
+  const allFolderItems: FolderItem[] = [
+    ...currentSubfolders.map(f => ({ kind: 'subfolder' as const, id: f.id, folder: f })),
+    ...folderNotes.map(n => ({ kind: 'note' as const, id: n.id, note: n })),
+  ];
+
+  const sortedFolderItems: FolderItem[] = (() => {
     if (folderSortMode === 'custom') {
-      const newItems = currentSubfolders.filter(f => !customOrder.includes(f.id));
-      const ordered = customOrder.filter(id => currentSubfolders.some(f => f.id === id)).map(id => currentSubfolders.find(f => f.id === id)!);
+      const newItems = allFolderItems.filter(item => !customOrder.includes(item.id));
+      const ordered = customOrder
+        .filter(id => allFolderItems.some(item => item.id === id))
+        .map(id => allFolderItems.find(item => item.id === id)!);
       return [...newItems, ...ordered];
     }
-    if (folderSortMode === 'alpha') return [...currentSubfolders].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
-    return [...currentSubfolders].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
-  })();
-
-  const sortedFolderNotes: Note[] = (() => {
-    if (folderSortMode === 'custom') {
-      const newItems = folderNotes.filter(n => !customOrder.includes(n.id));
-      const ordered = customOrder.filter(id => folderNotes.some(n => n.id === id)).map(id => folderNotes.find(n => n.id === id)!);
-      return [...newItems, ...ordered];
+    if (folderSortMode === 'edited') {
+      return [...allFolderItems].sort((a, b) => {
+        const tA = a.kind === 'note' ? new Date(a.note.updatedAt).getTime() : 0;
+        const tB = b.kind === 'note' ? new Date(b.note.updatedAt).getTime() : 0;
+        return tB - tA;
+      });
     }
-    if (folderSortMode === 'edited') return [...folderNotes].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    if (folderSortMode === 'alpha') return [...folderNotes].sort((a, b) => a.title.localeCompare(b.title, 'sv'));
-    if (folderSortMode === 'starred') return [...folderNotes].sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
-    return folderNotes;
+    if (folderSortMode === 'alpha') {
+      return [...allFolderItems].sort((a, b) => {
+        const nameA = a.kind === 'note' ? a.note.title : a.folder.name;
+        const nameB = b.kind === 'note' ? b.note.title : b.folder.name;
+        return nameA.localeCompare(nameB, 'sv');
+      });
+    }
+    if (folderSortMode === 'starred') {
+      return [...allFolderItems].sort((a, b) => {
+        const starA = a.kind === 'note' && a.note.isPinned ? 1 : 0;
+        const starB = b.kind === 'note' && b.note.isPinned ? 1 : 0;
+        if (starA !== starB) return starB - starA;
+        const tA = a.kind === 'note' ? new Date(a.note.updatedAt).getTime() : 0;
+        const tB = b.kind === 'note' ? new Date(b.note.updatedAt).getTime() : 0;
+        return tB - tA;
+      });
+    }
+    return allFolderItems;
   })();
 
-  const updateCustomOrder = (subIds: string[], noteIds: string[]) => {
-    const newOrder = [...subIds, ...noteIds];
-    setCustomOrder(newOrder);
-    if (selectedFolder) localStorage.setItem(`folder-order-${selectedFolder.id}`, JSON.stringify(newOrder));
+  const updateCustomOrder = (ids: string[]) => {
+    setCustomOrder(ids);
+    if (selectedFolder) localStorage.setItem(`folder-order-${selectedFolder.id}`, JSON.stringify(ids));
   };
 
   const handleSetSortMode = (mode: FolderSortMode) => {
@@ -276,22 +295,13 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     if (selectedFolder) localStorage.setItem(`folder-sort-${selectedFolder.id}`, mode);
   };
 
-  const handleSubfoldersDragEnd = (event: DragEndEvent) => {
+  const handleAllItemsDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = sortedSubfolders.findIndex(f => f.id === active.id);
-    const newIndex = sortedSubfolders.findIndex(f => f.id === over.id);
+    const oldIndex = sortedFolderItems.findIndex(item => item.id === active.id);
+    const newIndex = sortedFolderItems.findIndex(item => item.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    updateCustomOrder(arrayMove(sortedSubfolders, oldIndex, newIndex).map(f => f.id), sortedFolderNotes.map(n => n.id));
-  };
-
-  const handleFolderNotesDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = sortedFolderNotes.findIndex(n => n.id === active.id);
-    const newIndex = sortedFolderNotes.findIndex(n => n.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    updateCustomOrder(sortedSubfolders.map(f => f.id), arrayMove(sortedFolderNotes, oldIndex, newIndex).map(n => n.id));
+    updateCustomOrder(arrayMove(sortedFolderItems, oldIndex, newIndex).map(item => item.id));
   };
 
   const parseNoteContent = (html: string): { header: string; preview: string } => {
@@ -502,7 +512,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Inside folder view - separate from tabs
   if (selectedFolder) {
-    const isInSubfolder = !!parentFolder;
+    // isInSubfolder is computed above (before sort computations)
 
     const sortMenuEl = (
       <div className="relative flex-shrink-0">
@@ -594,75 +604,45 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </div>
         )}
 
-        {/* Subfolders (only shown in root folder, not inside a subfolder) */}
-        {!isInSubfolder && sortedSubfolders.length > 0 && (
-          folderSortMode === 'custom' ? (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSubfoldersDragEnd}>
-              <SortableContext items={sortedSubfolders.map(f => f.id)} strategy={rectSortingStrategy}>
-                <div className="px-4 pb-2">
-                  <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
-                    {sortedSubfolders.map(subfolder => (
-                      <SortableFolderCard
-                        key={subfolder.id}
-                        folder={subfolder}
-                        onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(subfolder); }}
-                        onEdit={() => setEditModalFolder(subfolder)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </SortableContext>
-            </DndContext>
-          ) : (
-            <div className="px-4 pb-2">
-              <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
-                {sortedSubfolders.map(subfolder => (
-                  <div key={subfolder.id} className="md:max-w-[200px] md:w-full">
-                    <FolderGridCard
-                      folder={subfolder}
-                      onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(subfolder); }}
-                      onEdit={() => setEditModalFolder(subfolder)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        )}
-
-        {/* Notes in folder */}
-        {sortedFolderNotes.length === 0 && sortedSubfolders.length === 0 ? (
+        {/* All items: subfolders + notes sorted together as one flat list */}
+        {sortedFolderItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <FolderOpen className="w-12 h-12 mb-3 opacity-30" />
             <p>No notes in this folder</p>
           </div>
-        ) : sortedFolderNotes.length > 0 && (
-          folderSortMode === 'custom' ? (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderNotesDragEnd}>
-              <SortableContext
-                items={sortedFolderNotes.map(n => n.id)}
-                strategy={layoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
-              >
-                <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
-                  {sortedFolderNotes.map(note => (
-                    <SortableNoteItem key={note.id} id={note.id}>
-                      {note.type === 'sticky'
-                        ? <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-                        : <NoteCard note={note} isGrid={layoutMode === 'grid'} />}
-                    </SortableNoteItem>
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          ) : (
-            <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
-              {sortedFolderNotes.map(note => (
-                note.type === 'sticky'
-                  ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-                  : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
-              ))}
-            </div>
-          )
+        ) : folderSortMode === 'custom' ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleAllItemsDragEnd}>
+            <SortableContext
+              items={sortedFolderItems.map(item => item.id)}
+              strategy={layoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+            >
+              <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+                {sortedFolderItems.map(item => (
+                  <SortableNoteItem key={item.id} id={item.id}>
+                    {item.kind === 'subfolder'
+                      ? layoutMode === 'grid'
+                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
+                        : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
+                      : item.note.type === 'sticky'
+                        ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
+                        : <NoteCard note={item.note} isGrid={layoutMode === 'grid'} />}
+                  </SortableNoteItem>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+            {sortedFolderItems.map(item => (
+              item.kind === 'subfolder'
+                ? layoutMode === 'grid'
+                  ? <FolderGridCard key={item.id} folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
+                  : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
+                : item.note.type === 'sticky'
+                  ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
+                  : <NoteCard key={item.id} note={item.note} isGrid={layoutMode === 'grid'} />
+            ))}
+          </div>
         )}
 
         {/* FAB to create subfolder (only shown in root folder) */}
