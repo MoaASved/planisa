@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -106,7 +106,6 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
-  const [, forceUpdate] = useState(0);
   const [viewportOffset, setViewportOffset] = useState(0);
   const [tableToolbarPos, setTableToolbarPos] = useState<{ top: number; left: number } | null>(null);
   const [viewportHeight, setViewportHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
@@ -126,28 +125,31 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
     };
   }, []);
 
+  const extensions = useMemo(() => [
+    StarterKit.configure({ heading: { levels: [1, 2] } }),
+    Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
+    TaskList,
+    NoFocusTaskItem.configure({ nested: true }),
+    Placeholder.configure({ placeholder: '' }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    DraggableImage,
+    VoiceNoteExtension,
+    TableExtension.configure({ resizable: false }),
+    TableRow,
+    TableHeader,
+    TableCell,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2] } }),
-      Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
-      TaskList,
-      NoFocusTaskItem.configure({ nested: true }),
-      Placeholder.configure({ placeholder: '' }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      DraggableImage,
-      VoiceNoteExtension,
-      TableExtension.configure({ resizable: false }),
-      TableRow,
-      TableHeader,
-      TableCell,
-    ],
+    extensions,
     content: note?.content || '',
+    shouldRerenderOnTransaction: true,
     editorProps: {
       attributes: { class: 'tiptap-editor prose prose-sm min-h-[300px] outline-none max-w-none' },
       scrollThreshold: 0,
       scrollMargin: 0,
     },
-    onTransaction: () => { forceUpdate(n => n + 1); },
   });
 
   const autoSaveFn = useCallback(() => {
