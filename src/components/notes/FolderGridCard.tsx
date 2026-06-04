@@ -18,7 +18,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   // Compact variant: subfolder inside a folder view — same structure as root folder card, ~60% size on desktop
   if (compact) {
     return (
-      <div className="group w-full md:max-w-[120px] md:mx-auto">
+      <div className="group w-full">
         <button
           onClick={onClick}
           className="w-full transition-all active:scale-95 relative rounded-[12px]"
