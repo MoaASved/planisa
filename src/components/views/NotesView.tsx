@@ -11,6 +11,7 @@ import {
 import {
   SortableContext,
   rectSortingStrategy,
+  verticalListSortingStrategy,
   useSortable,
   arrayMove,
 } from '@dnd-kit/sortable';
@@ -30,6 +31,7 @@ import {
   ArrowLeft,
   MoreHorizontal,
   SlidersHorizontal,
+  ArrowUpDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -50,6 +52,7 @@ import { useHaptics } from '@/hooks/useHaptics';
 
 
 type ViewTab = 'folders' | 'boards' | 'notebooks';
+type FolderSortMode = 'custom' | 'edited' | 'alpha' | 'starred';
 
 // ── Sortable folder card (used in Folders tab drag-and-drop) ──────────────────
 function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onClick: () => void; onEdit: () => void }) {
@@ -68,6 +71,22 @@ function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onCli
     </div>
   );
 }
+// ── Sortable note/sticky item (used inside folder custom-order drag-and-drop) ──
+function SortableNoteItem({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.92 : undefined,
+  };
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none">
+      {children}
+    </div>
+  );
+}
+
 type LayoutMode = 'list' | 'grid';
 
 interface NotesViewProps {
@@ -111,6 +130,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
   const [editModalNotebook, setEditModalNotebook] = useState<Notebook | null>(null);
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
+  const [folderSortMode, setFolderSortMode] = useState<FolderSortMode>('edited');
+  const [customOrder, setCustomOrder] = useState<string[]>([]);
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const [pendingPageId, setPendingPageId] = useState<string | null>(null);
 
@@ -170,6 +192,17 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     onInitialNoteConsumed?.();
   }, []); // intentionally runs once on mount
 
+  // Load per-folder sort preference from localStorage when folder selection changes
+  useEffect(() => {
+    if (!selectedFolder) return;
+    const saved = (localStorage.getItem(`folder-sort-${selectedFolder.id}`) as FolderSortMode) || 'edited';
+    setFolderSortMode(saved);
+    const savedOrder = localStorage.getItem(`folder-order-${selectedFolder.id}`);
+    setCustomOrder(savedOrder ? JSON.parse(savedOrder) : []);
+    setShowSortMenu(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFolder?.id]);
+
   // Get all notes and sticky notes
   const allNotes = notes.filter(n => !n.hideFromAllNotes);
   const stickyNotes = notes.filter(n => n.type === 'sticky');
@@ -198,9 +231,68 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   });
 
   // Notes in selected folder (both regular and sticky)
-  const folderNotes = selectedFolder 
+  const folderNotes = selectedFolder
     ? notes.filter(n => n.folder === selectedFolder.name)
     : [];
+
+  // Subfolders of currently open folder
+  const currentSubfolders = selectedFolder ? folders.filter(f => f.parentId === selectedFolder.id) : [];
+
+  // Sort helpers for folder view
+  const sortedSubfolders: Folder[] = (() => {
+    if (folderSortMode === 'custom') {
+      const newItems = currentSubfolders.filter(f => !customOrder.includes(f.id));
+      const ordered = customOrder.filter(id => currentSubfolders.some(f => f.id === id)).map(id => currentSubfolders.find(f => f.id === id)!);
+      return [...newItems, ...ordered];
+    }
+    if (folderSortMode === 'alpha') return [...currentSubfolders].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+    return [...currentSubfolders].sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+  })();
+
+  const sortedFolderNotes: Note[] = (() => {
+    if (folderSortMode === 'custom') {
+      const newItems = folderNotes.filter(n => !customOrder.includes(n.id));
+      const ordered = customOrder.filter(id => folderNotes.some(n => n.id === id)).map(id => folderNotes.find(n => n.id === id)!);
+      return [...newItems, ...ordered];
+    }
+    if (folderSortMode === 'edited') return [...folderNotes].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    if (folderSortMode === 'alpha') return [...folderNotes].sort((a, b) => a.title.localeCompare(b.title, 'sv'));
+    if (folderSortMode === 'starred') return [...folderNotes].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+    return folderNotes;
+  })();
+
+  const updateCustomOrder = (subIds: string[], noteIds: string[]) => {
+    const newOrder = [...subIds, ...noteIds];
+    setCustomOrder(newOrder);
+    if (selectedFolder) localStorage.setItem(`folder-order-${selectedFolder.id}`, JSON.stringify(newOrder));
+  };
+
+  const handleSetSortMode = (mode: FolderSortMode) => {
+    setFolderSortMode(mode);
+    if (selectedFolder) localStorage.setItem(`folder-sort-${selectedFolder.id}`, mode);
+  };
+
+  const handleSubfoldersDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortedSubfolders.findIndex(f => f.id === active.id);
+    const newIndex = sortedSubfolders.findIndex(f => f.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    updateCustomOrder(arrayMove(sortedSubfolders, oldIndex, newIndex).map(f => f.id), sortedFolderNotes.map(n => n.id));
+  };
+
+  const handleFolderNotesDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortedFolderNotes.findIndex(n => n.id === active.id);
+    const newIndex = sortedFolderNotes.findIndex(n => n.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    updateCustomOrder(sortedSubfolders.map(f => f.id), arrayMove(sortedFolderNotes, oldIndex, newIndex).map(n => n.id));
+  };
 
   const parseNoteContent = (html: string): { header: string; preview: string } => {
     if (!html || html.trim() === '') return { header: '', preview: '' };
@@ -411,83 +503,166 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Inside folder view - separate from tabs
   if (selectedFolder) {
     const isInSubfolder = !!parentFolder;
-    const subfolders = folders.filter((f) => f.parentId === selectedFolder.id);
+
+    const sortMenuEl = (
+      <div className="relative flex-shrink-0">
+        <button
+          onClick={() => setShowSortMenu(v => !v)}
+          className={cn(
+            'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
+            showSortMenu || folderSortMode !== 'edited'
+              ? 'text-foreground bg-secondary'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <ArrowUpDown className="w-4 h-4" />
+        </button>
+        {showSortMenu && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setShowSortMenu(false)} />
+            <div className="absolute right-0 top-full mt-1 z-20 bg-card rounded-xl border border-border/50 p-1 min-w-[160px]" style={{ boxShadow: 'var(--shadow-elevated)' }}>
+              {([
+                { value: 'custom', label: 'Custom order' },
+                { value: 'edited', label: 'Last edited' },
+                { value: 'alpha', label: 'Alphabetical' },
+                { value: 'starred', label: 'Starred first' },
+              ] as { value: FolderSortMode; label: string }[]).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => { handleSetSortMode(opt.value); setShowSortMenu(false); }}
+                  className={cn(
+                    'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+                    folderSortMode === opt.value
+                      ? 'bg-secondary text-foreground font-medium'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
 
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
         {/* Header */}
         {isInSubfolder ? (
-          // Breadcrumb navigation for subfolder + back button
-          <div className="flex items-center gap-3 px-4 pb-3">
-            <button
-              onClick={() => { setSelectedFolder(parentFolder); setParentFolder(null); }}
-              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-              <button
-                onClick={() => { setSelectedFolder(null); setParentFolder(null); }}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Folders
-              </button>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center justify-between px-4 pb-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 onClick={() => { setSelectedFolder(parentFolder); setParentFolder(null); }}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
               >
-                {parentFolder.name}
+                <ArrowLeft className="w-5 h-5" />
               </button>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm font-medium text-foreground truncate">{selectedFolder.name}</span>
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                <button
+                  onClick={() => { setSelectedFolder(null); setParentFolder(null); }}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Folders
+                </button>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <button
+                  onClick={() => { setSelectedFolder(parentFolder); setParentFolder(null); }}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {parentFolder.name}
+                </button>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm font-medium text-foreground truncate">{selectedFolder.name}</span>
+              </div>
             </div>
+            {sortMenuEl}
           </div>
         ) : (
-          // Root folder header with back button
-          <div className="flex items-center gap-3 px-4 pb-3">
-            <button
-              onClick={() => setSelectedFolder(null)}
-              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}-accent))` }} />
-            <h1 className="flow-page-title">{selectedFolder.name}</h1>
+          <div className="flex items-center justify-between px-4 pb-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <button
+                onClick={() => setSelectedFolder(null)}
+                className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <FolderOpen className="w-5 h-5 flex-shrink-0" style={{ color: `hsl(var(--pastel-${selectedFolder.color}-accent))` }} />
+              <h1 className="flow-page-title truncate">{selectedFolder.name}</h1>
+            </div>
+            {sortMenuEl}
           </div>
         )}
 
         {/* Subfolders (only shown in root folder, not inside a subfolder) */}
-        {!isInSubfolder && subfolders.length > 0 && (
-          <div className="px-4 pb-2">
-            <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
-              {subfolders.map((subfolder) => (
-                <div key={subfolder.id} className="md:max-w-[200px] md:w-full">
-                  <FolderGridCard
-                    folder={subfolder}
-                    onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(subfolder); }}
-                    onEdit={() => setEditModalFolder(subfolder)}
-                  />
+        {!isInSubfolder && sortedSubfolders.length > 0 && (
+          folderSortMode === 'custom' ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSubfoldersDragEnd}>
+              <SortableContext items={sortedSubfolders.map(f => f.id)} strategy={rectSortingStrategy}>
+                <div className="px-4 pb-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
+                    {sortedSubfolders.map(subfolder => (
+                      <SortableFolderCard
+                        key={subfolder.id}
+                        folder={subfolder}
+                        onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(subfolder); }}
+                        onEdit={() => setEditModalFolder(subfolder)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="px-4 pb-2">
+              <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
+                {sortedSubfolders.map(subfolder => (
+                  <div key={subfolder.id} className="md:max-w-[200px] md:w-full">
+                    <FolderGridCard
+                      folder={subfolder}
+                      onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(subfolder); }}
+                      onEdit={() => setEditModalFolder(subfolder)}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Notes in folder */}
-        {folderNotes.length === 0 && subfolders.length === 0 ? (
+        {sortedFolderNotes.length === 0 && sortedSubfolders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <FolderOpen className="w-12 h-12 mb-3 opacity-30" />
             <p>No notes in this folder</p>
           </div>
-        ) : (
-          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
-            {folderNotes.map(note => (
-              note.type === 'sticky'
-                ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-                : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
-            ))}
-          </div>
+        ) : sortedFolderNotes.length > 0 && (
+          folderSortMode === 'custom' ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderNotesDragEnd}>
+              <SortableContext
+                items={sortedFolderNotes.map(n => n.id)}
+                strategy={layoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+              >
+                <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+                  {sortedFolderNotes.map(note => (
+                    <SortableNoteItem key={note.id} id={note.id}>
+                      {note.type === 'sticky'
+                        ? <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+                        : <NoteCard note={note} isGrid={layoutMode === 'grid'} />}
+                    </SortableNoteItem>
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+              {sortedFolderNotes.map(note => (
+                note.type === 'sticky'
+                  ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+                  : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
+              ))}
+            </div>
+          )
         )}
 
         {/* FAB to create subfolder (only shown in root folder) */}
