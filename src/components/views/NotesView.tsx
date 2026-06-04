@@ -417,23 +417,31 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       <div className="min-h-screen pb-24 pt-safe-2">
         {/* Header */}
         {isInSubfolder ? (
-          // Breadcrumb navigation for subfolder
-          <div className="flex items-center gap-1.5 px-4 pb-4 flex-wrap">
-            <button
-              onClick={() => { setSelectedFolder(null); setParentFolder(null); }}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Folders
-            </button>
-            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+          // Breadcrumb navigation for subfolder + back button
+          <div className="flex items-center gap-3 px-4 pb-3">
             <button
               onClick={() => { setSelectedFolder(parentFolder); setParentFolder(null); }}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
             >
-              {parentFolder.name}
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-            <span className="text-sm font-medium text-foreground">{selectedFolder.name}</span>
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              <button
+                onClick={() => { setSelectedFolder(null); setParentFolder(null); }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Folders
+              </button>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <button
+                onClick={() => { setSelectedFolder(parentFolder); setParentFolder(null); }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {parentFolder.name}
+              </button>
+              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-medium text-foreground truncate">{selectedFolder.name}</span>
+            </div>
           </div>
         ) : (
           // Root folder header with back button
@@ -467,19 +475,20 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         )}
 
         {/* Notes in folder */}
-        <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
-          {folderNotes.length === 0 && subfolders.length === 0 && (
-            <div className="col-span-2 text-center py-12 text-muted-foreground">
-              <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No notes in this folder</p>
-            </div>
-          )}
-          {folderNotes.map(note => (
-            note.type === 'sticky'
-              ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-              : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
-          ))}
-        </div>
+        {folderNotes.length === 0 && subfolders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <FolderOpen className="w-12 h-12 mb-3 opacity-30" />
+            <p>No notes in this folder</p>
+          </div>
+        ) : (
+          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
+            {folderNotes.map(note => (
+              note.type === 'sticky'
+                ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+                : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
+            ))}
+          </div>
+        )}
 
         {/* FAB to create subfolder (only shown in root folder) */}
         {!isInSubfolder && (
