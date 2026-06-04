@@ -616,12 +616,12 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               items={sortedFolderItems.map(item => item.id)}
               strategy={layoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
             >
-              <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'space-y-2')}>
+              <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
                 {sortedFolderItems.map(item => (
-                  <SortableNoteItem key={item.id} id={item.id} className={item.kind === 'subfolder' && layoutMode === 'grid' ? 'self-start' : undefined}>
+                  <SortableNoteItem key={item.id} id={item.id}>
                     {item.kind === 'subfolder'
                       ? layoutMode === 'grid'
-                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact />
+                        ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                         : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                       : item.note.type === 'sticky'
                         ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
@@ -632,11 +632,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </SortableContext>
           </DndContext>
         ) : (
-          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3' : 'space-y-2')}>
+          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
             {sortedFolderItems.map(item => (
               item.kind === 'subfolder'
                 ? layoutMode === 'grid'
-                  ? <div key={item.id} className="self-start"><FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact /></div>
+                  ? <FolderGridCard key={item.id} folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                   : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                 : item.note.type === 'sticky'
                   ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
