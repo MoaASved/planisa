@@ -108,6 +108,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
 
   const [, forceUpdate] = useState(0);
   const [viewportOffset, setViewportOffset] = useState(0);
+  const [tableToolbarPos, setTableToolbarPos] = useState<{ top: number; left: number } | null>(null);
   const [viewportHeight, setViewportHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
 
   useEffect(() => {
@@ -186,6 +187,46 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
     triggerAutoSave();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folder, date, time, endTime, showInCalendar, isPinned, hideFromAllNotes, hideDate]);
+
+  // Compute position for the table toolbar: directly above the active table element
+  const updateTableToolbarPos = useCallback(() => {
+    if (!editor || !editor.isActive('table')) {
+      setTableToolbarPos(null);
+      return;
+    }
+    try {
+      const { from } = editor.state.selection;
+      const domPos = editor.view.domAtPos(from);
+      let el: Element | null = domPos.node instanceof Element
+        ? domPos.node
+        : (domPos.node as ChildNode).parentElement;
+      while (el && el.tagName !== 'TABLE') el = el.parentElement;
+      if (!el) { setTableToolbarPos(null); return; }
+
+      const rect = el.getBoundingClientRect();
+      const toolbarH = 36; // h-9 = 36px
+      const gap = 8;
+      const minTop = viewportOffset + 60; // stay below the main editor toolbar
+      setTableToolbarPos({
+        top: Math.max(minTop, rect.top - toolbarH - gap),
+        left: rect.left,
+      });
+    } catch {
+      setTableToolbarPos(null);
+    }
+  }, [editor, viewportOffset]);
+
+  useEffect(() => {
+    if (!editor) return;
+    editor.on('transaction', updateTableToolbarPos);
+    updateTableToolbarPos();
+    return () => { editor.off('transaction', updateTableToolbarPos); };
+  }, [editor, updateTableToolbarPos]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', updateTableToolbarPos, { passive: true });
+    return () => window.removeEventListener('scroll', updateTableToolbarPos);
+  }, [updateTableToolbarPos]);
 
   const handleCreateInlineFolder = () => {
     if (inlineFolderName.trim()) {
@@ -776,11 +817,11 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
           </div>{/* end + ··· pill */}
       </div>{/* end top bar */}
 
-      {/* Table controls toolbar — visible when cursor is inside a table */}
-      {editor?.isActive('table') && (
+      {/* Table controls toolbar — positioned directly above the active table */}
+      {tableToolbarPos && (
         <div
-          className="fixed left-0 md:left-[var(--sidebar-w,0px)] right-0 z-[1249] flex justify-center px-4"
-          style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 60}px)`, pointerEvents: 'none' }}
+          className="fixed z-[1249]"
+          style={{ top: `${tableToolbarPos.top}px`, left: `${tableToolbarPos.left}px`, pointerEvents: 'none' }}
         >
           <div className="flex items-center bg-card rounded-full shadow-md px-1.5 h-9 gap-0.5" style={{ pointerEvents: 'auto' }}>
             <button onMouseDown={(e) => e.preventDefault()} onClick={() => editor.chain().focus().addColumnAfter().run()} className="px-2.5 py-1 text-xs rounded-full hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">+Col</button>
