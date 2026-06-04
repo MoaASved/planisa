@@ -15,14 +15,16 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
   const lighterColor = `color-mix(in srgb, ${baseColor} 55%, hsl(var(--card)))`;
 
-  // Compact variant: subfolder inside a folder view — folder shape IS the card, text inside
+  // Compact variant: subfolder inside a folder view
   if (compact) {
     return (
-      <div className="group w-full">
+      <div
+        className="group w-full relative md:h-44 md:overflow-hidden md:rounded-[12px]"
+        style={{ boxShadow: '0px 2px 6px rgba(0,0,0,0.06)' }}
+      >
         <button
           onClick={onClick}
-          className="w-full transition-all active:scale-95 relative rounded-[12px]"
-          style={{ boxShadow: '0px 2px 6px rgba(0,0,0,0.06)' }}
+          className="w-full transition-all active:scale-95 relative rounded-[12px] md:rounded-none"
         >
           <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -35,21 +37,40 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
             <rect x="50" y="22" width="115" height="98" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.7" transform="rotate(-1.5, 107, 71)" />
             <rect x="60" y="18" width="110" height="102" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.45" transform="rotate(3.5, 115, 69)" />
             <path d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z" fill={`url(#fill-${folder.id})`} />
-            <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif">
+            {/* Name and count — mobile only */}
+            <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif" className="md:hidden">
               {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
             </text>
-            <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif">
+            <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif" className="md:hidden">
               {count} {count === 1 ? 'item' : 'items'}
             </text>
           </svg>
+          {/* Three-dot — mobile only */}
           <div
-            className="absolute bottom-2 right-2 z-10 p-1"
+            className="absolute bottom-2 right-2 z-10 p-1 md:hidden"
             onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
             style={{ cursor: 'pointer' }}
           >
             <MoreHorizontal className="w-5 h-5" style={{ color: '#2C2C2A' }} />
           </div>
         </button>
+
+        {/* Desktop only: name + count + three-dot over gradient at bottom of h-44 */}
+        <div
+          className="hidden md:flex absolute bottom-0 left-0 right-0 items-end justify-between px-3 pb-2 pt-8 pointer-events-none"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.18), transparent)' }}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground leading-tight truncate">{folder.name}</p>
+            <p className="text-xs text-muted-foreground">{count} {count === 1 ? 'item' : 'items'}</p>
+          </div>
+          <div
+            className="flex-shrink-0 p-1 pointer-events-auto cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
+          >
+            <MoreHorizontal className="w-5 h-5 text-foreground/70" />
+          </div>
+        </div>
       </div>
     );
   }
