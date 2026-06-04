@@ -87,6 +87,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+  const [parentFolder, setParentFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectedStickyNote, setSelectedStickyNote] = useState<Note | null>(null);
   const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
@@ -135,13 +136,15 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
   );
 
+  const rootFolders = folders.filter((f) => !f.parentId);
+
   const handleFolderDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = folders.findIndex((f) => f.id === active.id);
-    const newIndex = folders.findIndex((f) => f.id === over.id);
+    const oldIndex = rootFolders.findIndex((f) => f.id === active.id);
+    const newIndex = rootFolders.findIndex((f) => f.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    const newOrder = arrayMove(folders, oldIndex, newIndex);
+    const newOrder = arrayMove(rootFolders, oldIndex, newIndex);
     reorderFolders(newOrder.map((f) => f.id));
   };
 
@@ -220,7 +223,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
-      addFolder({ name: newFolderName.trim(), color: newFolderColor });
+      addFolder({
+        name: newFolderName.trim(),
+        color: newFolderColor,
+        ...(selectedFolder ? { parentId: selectedFolder.id } : {}),
+      });
       setNewFolderName('');
       setShowFolderModal(false);
     }
@@ -403,36 +410,124 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Inside folder view - separate from tabs
   if (selectedFolder) {
+    const isInSubfolder = !!parentFolder;
+    const subfolders = folders.filter((f) => f.parentId === selectedFolder.id);
+
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
-        {/* Header with back button */}
-        <div className="flex items-center gap-3 px-4 pb-3">
-          <button 
-            onClick={() => setSelectedFolder(null)}
-            className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}-accent))` }} />
-          <h1 className="flow-page-title">{selectedFolder.name}</h1>
-        </div>
+        {/* Header */}
+        {isInSubfolder ? (
+          // Breadcrumb navigation for subfolder
+          <div className="flex items-center gap-1.5 px-4 pb-4 flex-wrap">
+            <button
+              onClick={() => { setSelectedFolder(null); setParentFolder(null); }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Folders
+            </button>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+            <button
+              onClick={() => { setSelectedFolder(parentFolder); setParentFolder(null); }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {parentFolder.name}
+            </button>
+            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+            <span className="text-sm font-medium text-foreground">{selectedFolder.name}</span>
+          </div>
+        ) : (
+          // Root folder header with back button
+          <div className="flex items-center gap-3 px-4 pb-3">
+            <button
+              onClick={() => setSelectedFolder(null)}
+              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center active:scale-95 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <FolderOpen className="w-5 h-5" style={{ color: `hsl(var(--pastel-${selectedFolder.color}-accent))` }} />
+            <h1 className="flow-page-title">{selectedFolder.name}</h1>
+          </div>
+        )}
+
+        {/* Subfolders (only shown in root folder, not inside a subfolder) */}
+        {!isInSubfolder && subfolders.length > 0 && (
+          <div className="px-4 pb-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
+              {subfolders.map((subfolder) => (
+                <div key={subfolder.id} className="md:max-w-[200px] md:w-full">
+                  <FolderGridCard
+                    folder={subfolder}
+                    onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(subfolder); }}
+                    onEdit={() => setEditModalFolder(subfolder)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Notes in folder */}
         <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 gap-3' : 'space-y-2')}>
-          {folderNotes.length === 0 ? (
+          {folderNotes.length === 0 && subfolders.length === 0 && (
             <div className="col-span-2 text-center py-12 text-muted-foreground">
               <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p>No notes in this folder</p>
             </div>
-          ) : (
-            folderNotes.map(note => (
-              note.type === 'sticky'
-                ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-                : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
-            ))
           )}
+          {folderNotes.map(note => (
+            note.type === 'sticky'
+              ? <StickyNoteCard key={note.id} note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
+              : <NoteCard key={note.id} note={note} isGrid={layoutMode === 'grid'} />
+          ))}
         </div>
 
+        {/* FAB to create subfolder (only shown in root folder) */}
+        {!isInSubfolder && (
+          <div className="fixed bottom-[144px] md:bottom-8 right-4 z-[1100]">
+            <button
+              onClick={() => setShowFolderModal(true)}
+              className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
+            >
+              <FolderPlus className="w-6 h-6 text-primary-foreground" />
+            </button>
+          </div>
+        )}
+
+        {/* Create subfolder modal */}
+        {showFolderModal && (
+          <>
+            <div
+              className="fixed inset-0 z-[1100] animate-fade-in"
+              style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+              onClick={() => setShowFolderModal(false)}
+            />
+            <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
+              <div className="bg-card rounded-[20px] p-6 animate-scale-in" style={{ boxShadow: 'var(--shadow-elevated)' }}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">New Subfolder</h3>
+                  <button onClick={() => setShowFolderModal(false)} className="p-2 rounded-full bg-secondary">
+                    <X className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                </div>
+                <input type="text" value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="Subfolder name" className="flow-input mb-4" autoFocus />
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {pastelColors.map((c) => (
+                    <button key={c.value} onClick={() => setNewFolderColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newFolderColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
+                  ))}
+                </div>
+                <button onClick={handleCreateFolder} disabled={!newFolderName.trim()} className="w-full flow-button-primary disabled:opacity-50">Create Subfolder</button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Folder Edit Modal */}
+        {editModalFolder && (
+          <FolderEditModal
+            folder={editModalFolder}
+            onClose={() => setEditModalFolder(null)}
+          />
+        )}
       </div>
     );
   }
@@ -647,9 +742,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           )}
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
-            <SortableContext items={folders.map((f) => f.id)} strategy={rectSortingStrategy}>
+            <SortableContext items={rootFolders.map((f) => f.id)} strategy={rectSortingStrategy}>
               <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
-                {folders.map((folder) => (
+                {rootFolders.map((folder) => (
                   <SortableFolderCard
                     key={folder.id}
                     folder={folder}
@@ -662,7 +757,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </DndContext>
 
 
-          {folders.length === 0 && (
+          {rootFolders.length === 0 && (
             <div className="text-center py-12">
               <FolderOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
               <p className="text-muted-foreground">No folders yet</p>

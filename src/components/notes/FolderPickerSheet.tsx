@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ReactDOM from 'react-dom';
-import { FolderPlus, Check } from 'lucide-react';
+import { FolderPlus, Check, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor } from '@/types';
@@ -56,21 +56,39 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
               </p>
 
 
-              {/* Folders */}
-              {folders.map((folder) => (
-                <button
-                  key={folder.id}
-                  onClick={() => onSelectFolder(folder.name)}
-                  className={cn(
-                    'w-full flex items-center gap-3 px-4 py-3 transition-colors',
-                    selectedFolder === folder.name ? 'bg-primary/10' : 'hover:bg-secondary'
-                  )}
-                >
-                  <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${folder.color}`)} />
-                  <span className="flex-1 text-left text-sm font-medium text-foreground">{folder.name}</span>
-                  {selectedFolder === folder.name && <Check className="w-4 h-4 text-primary" />}
-                </button>
-              ))}
+              {/* Folders (root folders with subfolders indented beneath) */}
+              {folders.filter(f => !f.parentId).flatMap((folder) => {
+                const subfolders = folders.filter(f => f.parentId === folder.id);
+                return [
+                  <button
+                    key={folder.id}
+                    onClick={() => onSelectFolder(folder.name)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      selectedFolder === folder.name ? 'bg-primary/10' : 'hover:bg-secondary'
+                    )}
+                  >
+                    <div className={cn('w-3 h-3 rounded-full', `bg-pastel-${folder.color}`)} />
+                    <span className="flex-1 text-left text-sm font-medium text-foreground">{folder.name}</span>
+                    {selectedFolder === folder.name && <Check className="w-4 h-4 text-primary" />}
+                  </button>,
+                  ...subfolders.map(subfolder => (
+                    <button
+                      key={subfolder.id}
+                      onClick={() => onSelectFolder(subfolder.name)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-4 py-2.5 pl-8 transition-colors',
+                        selectedFolder === subfolder.name ? 'bg-primary/10' : 'hover:bg-secondary'
+                      )}
+                    >
+                      <ChevronRight className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                      <div className={cn('w-2.5 h-2.5 rounded-full', `bg-pastel-${subfolder.color}`)} />
+                      <span className="flex-1 text-left text-sm text-foreground">{subfolder.name}</span>
+                      {selectedFolder === subfolder.name && <Check className="w-4 h-4 text-primary" />}
+                    </button>
+                  )),
+                ];
+              })}
 
               {/* Create new */}
               <button

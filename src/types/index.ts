@@ -112,6 +112,7 @@ export interface Folder {
   name: string;
   color: PastelColor;
   position?: number;
+  parentId?: string;
 }
 
 // Notebook types
