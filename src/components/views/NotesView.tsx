@@ -447,7 +447,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
             <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
               {note.folder ? (
-                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-foreground/75')}>
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
                   {note.folder}
                 </span>
               ) : <span />}
@@ -476,7 +476,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </div>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
               {note.folder && (
-                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-foreground/75')}>
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
                   {note.folder}
                 </span>
               )}
