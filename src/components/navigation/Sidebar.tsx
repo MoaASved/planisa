@@ -31,6 +31,7 @@ export function Sidebar({
   onExpandedChange,
 }: SidebarProps) {
   const { settings } = useAppStore();
+  const isDark = settings.theme === 'dark';
 
   return (
     <nav
@@ -41,12 +42,16 @@ export function Sidebar({
       )}
       style={{
         height: '100vh',
-        background: 'linear-gradient(160deg, rgba(229, 204, 255, 0.35) 0%, rgba(255, 218, 204, 0.25) 100%)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderRight: '1px solid rgba(200, 180, 220, 0.15)',
+        background: isDark
+          ? 'hsl(var(--sidebar-background))'
+          : 'linear-gradient(160deg, rgba(229, 204, 255, 0.35) 0%, rgba(255, 218, 204, 0.25) 100%)',
+        backdropFilter: isDark ? undefined : 'blur(12px)',
+        WebkitBackdropFilter: isDark ? undefined : 'blur(12px)',
+        borderRight: isDark
+          ? '1px solid hsl(var(--sidebar-border))'
+          : '1px solid rgba(200, 180, 220, 0.15)',
         borderRadius: '0 20px 20px 0',
-        boxShadow: '4px 0 24px rgba(180, 150, 210, 0.08)',
+        boxShadow: isDark ? 'none' : '4px 0 24px rgba(180, 150, 210, 0.08)',
       }}
     >
       {/* Logo / toggle */}
@@ -54,11 +59,11 @@ export function Sidebar({
         <img
           src="/Planisa-logo.png"
           alt="Planisa"
-          className={cn('h-6 w-auto transition-opacity duration-200', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
+          className={cn('h-6 w-auto transition-opacity duration-200 dark:invert', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
         />
         <button
           onClick={() => onExpandedChange(!isExpanded)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground/30 hover:text-foreground/60 hover:bg-black/5 transition-all flex-shrink-0"
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-foreground/30 hover:text-foreground/60 hover:bg-black/5 dark:hover:bg-white/5 transition-all flex-shrink-0"
         >
           {isExpanded ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
         </button>
@@ -68,9 +73,9 @@ export function Sidebar({
       <div className={cn('flex items-center mb-8 w-full', isExpanded ? 'gap-3 px-3' : 'justify-center')}>
         <button
           onClick={onPlusClick}
-          className="w-8 h-8 rounded-full bg-[#1C1C1E] flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+          className="w-8 h-8 rounded-full bg-[#1C1C1E] dark:bg-card dark:border dark:border-border flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
         >
-          <Plus className="w-4 h-4 text-white" />
+          <Plus className="w-4 h-4 text-white dark:text-foreground" />
         </button>
         {isExpanded && (
           <span className="text-sm font-medium text-foreground/60 whitespace-nowrap">New</span>
@@ -89,8 +94,8 @@ export function Sidebar({
                 'w-full h-11 flex items-center rounded-2xl transition-all duration-200 cursor-pointer',
                 isExpanded ? 'gap-3 px-3' : 'justify-center',
                 isActive
-                  ? 'bg-[#ede8f5] text-foreground font-medium'
-                  : 'text-foreground/40 hover:text-foreground/70',
+                  ? 'bg-[#ede8f5] dark:bg-muted text-foreground dark:text-foreground font-medium'
+                  : 'text-foreground/40 hover:text-foreground/70 dark:text-foreground/50 dark:hover:text-foreground',
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
@@ -120,8 +125,8 @@ export function Sidebar({
           'w-full h-11 flex items-center rounded-2xl transition-all duration-200 cursor-pointer',
           isExpanded ? 'gap-3 px-3' : 'justify-center',
           activeTab === 'profile'
-            ? 'bg-[#ede8f5] text-foreground font-medium'
-            : 'text-foreground/40 hover:text-foreground/70',
+            ? 'bg-[#ede8f5] dark:bg-muted text-foreground dark:text-foreground font-medium'
+            : 'text-foreground/40 hover:text-foreground/70 dark:text-foreground/50 dark:hover:text-foreground',
         )}
       >
         <div
