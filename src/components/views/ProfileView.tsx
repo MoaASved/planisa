@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import {
   Mail,
   Lock,
-  Globe,
   Moon,
   Sun,
   ChevronRight,
@@ -30,13 +29,7 @@ import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-type Language = 'en' | 'sv';
 type CategorySection = 'calendar' | 'tasks' | 'notes' | 'notebooks';
-
-const languages: { value: Language; label: string; native: string }[] = [
-  { value: 'en', label: 'English', native: 'English' },
-  { value: 'sv', label: 'Swedish', native: 'Svenska' },
-];
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -68,7 +61,7 @@ export function ProfileView() {
   } = useAppStore();
   const { signOut, user } = useAuth();
 
-  const [showLanguageSelect, setShowLanguageSelect] = useState(false);
+
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarInitial, setAvatarInitial] = useState(settings.avatarInitial || 'U');
   const [avatarColor, setAvatarColor] = useState<PastelColor>(settings.avatarColor || 'peony');
@@ -330,49 +323,6 @@ export function ProfileView() {
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Preferences</h3>
           <div className="flow-card-flat space-y-1 p-2">
-            {/* Language */}
-            <div>
-              <button 
-                onClick={() => setShowLanguageSelect(!showLanguageSelect)}
-                className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-foreground">Language</p>
-                    <p className="text-sm text-muted-foreground">
-                      {languages.find(l => l.value === settings.language)?.native}
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className={cn('w-5 h-5 text-muted-foreground transition-transform', showLanguageSelect && 'rotate-90')} />
-              </button>
-
-              {showLanguageSelect && (
-                <div className="mt-2 ml-16 space-y-1 animate-fade-in">
-                  {languages.map((lang) => (
-                    <button
-                      key={lang.value}
-                      onClick={() => {
-                        updateSettings({ language: lang.value });
-                        setShowLanguageSelect(false);
-                      }}
-                      className={cn(
-                        'w-full text-left px-4 py-2 rounded-xl transition-colors text-sm',
-                        settings.language === lang.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary hover:bg-muted text-muted-foreground'
-                      )}
-                    >
-                      {lang.native}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Theme */}
             <button 
               onClick={toggleDarkMode}
