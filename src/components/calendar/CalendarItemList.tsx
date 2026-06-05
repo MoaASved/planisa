@@ -469,6 +469,10 @@ export function CalendarItemList({
       ? getNoteColor(item as Note)
       : getItemColor(item as Task | CalendarEvent, type);
     const deepText = getDeepTextColor(color);
+    // White/default ('none') events are nearly transparent in dark mode — use foreground color so text is readable
+    const eventTextColor = (color === 'none' && document.documentElement.classList.contains('dark'))
+      ? 'hsl(var(--foreground))'
+      : deepText;
 
     const showTime = time && !showTimeline;
     const showTimelineIndicator = type !== 'note' && hasTimeRange(item as CalendarEvent | Task, type);
@@ -537,7 +541,7 @@ export function CalendarItemList({
           onDragStart={() => handleDragStart(event.id, 'event')}
           onDragEnd={handleDragEnd}
           onClick={() => onItemClick(event, 'event')}
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', color: deepText }}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', color: eventTextColor }}
           className={cn(
             'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
