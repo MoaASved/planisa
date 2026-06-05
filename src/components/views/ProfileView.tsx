@@ -387,8 +387,8 @@ export function ProfileView() {
                   <p className="text-sm text-muted-foreground">{settings.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</p>
                 </div>
               </div>
-              <div className={cn('w-12 h-7 rounded-full transition-all duration-300 relative border', settings.theme === 'dark' ? 'bg-primary/20 border-primary/40' : 'bg-muted border-border')}>
-                <div className={cn('absolute top-1 w-5 h-5 rounded-full transition-all duration-300', settings.theme === 'dark' ? 'left-6 bg-primary' : 'left-1 bg-muted-foreground/40')} />
+              <div className={cn('w-12 h-7 rounded-full transition-all duration-300 flex items-center border', settings.theme === 'dark' ? 'bg-primary/20 border-primary/40' : 'bg-muted border-border')}>
+                <div className={cn('w-5 h-5 rounded-full transition-all duration-300', settings.theme === 'dark' ? 'ml-6 bg-primary' : 'ml-1 bg-muted-foreground/40')} />
               </div>
             </button>
           </div>
