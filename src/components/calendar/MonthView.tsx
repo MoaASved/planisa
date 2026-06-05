@@ -12,7 +12,7 @@ import {
   getWeek
 } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Task, CalendarEvent, Note, PastelColor } from '@/types';
+import { Task, CalendarEvent, Note, NotebookPage, PastelColor } from '@/types';
 import { getColorDotClass, getColorCardClass, getDeepTextColor } from '@/lib/colors';
 import { CalendarItemList } from './CalendarItemList';
 
@@ -24,6 +24,10 @@ interface MonthViewProps {
   notes: Note[];
   getItemColor: (item: Task | CalendarEvent, type: 'task' | 'event') => PastelColor;
   getNoteColor: (note: Note) => PastelColor;
+  /** All notes (both 'note' and 'sticky' types) regardless of showInCalendar — used for dot indicators only */
+  allNotes?: Note[];
+  /** All notebook pages regardless of showInCalendar — used for dot indicators only */
+  notebookPages?: NotebookPage[];
   onItemClick: (item: Task | CalendarEvent | Note, type: 'task' | 'event' | 'note') => void;
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onMonthChange: (direction: 'prev' | 'next') => void;
@@ -56,6 +60,8 @@ export function MonthView({
   notes,
   getItemColor,
   getNoteColor,
+  allNotes,
+  notebookPages,
   onItemClick,
   onTaskToggle,
   onMonthChange,
@@ -85,8 +91,15 @@ export function MonthView({
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayEvents = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === dateStr);
     const dayTasks = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === dateStr);
+    // calendarNotes filtered by showInCalendar — used for the list view and desktop pills
     const dayNotes = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === dateStr);
-    return { events: dayEvents, tasks: dayTasks, notes: dayNotes };
+    // Dot-only: all regular notes (type='note') with a date on this day
+    const dayRegularNotes = (allNotes ?? []).filter(n => n.type !== 'sticky' && n.date && format(new Date(n.date), 'yyyy-MM-dd') === dateStr);
+    // Dot-only: all sticky notes (type='sticky') with a date on this day
+    const dayStickyNotes = (allNotes ?? []).filter(n => n.type === 'sticky' && n.date && format(new Date(n.date), 'yyyy-MM-dd') === dateStr);
+    // Dot-only: all notebook pages with a date on this day
+    const dayNbPages = (notebookPages ?? []).filter(p => p.date && format(new Date(p.date), 'yyyy-MM-dd') === dateStr);
+    return { events: dayEvents, tasks: dayTasks, notes: dayNotes, regularNotes: dayRegularNotes, stickyNotes: dayStickyNotes, nbPages: dayNbPages };
   };
 
   const handleHeaderTouchStart = (e: React.TouchEvent) => {
@@ -154,8 +167,8 @@ export function MonthView({
                 </div>
 
                 {week.map((day, dayIndex) => {
-                  const { events: dayEvents, tasks: dayTasks, notes: dayNotes } = getItemsForDate(day);
-                  const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayNotes.length > 0;
+                  const { events: dayEvents, tasks: dayTasks, regularNotes: dayRegularNotes, stickyNotes: dayStickyNotes, nbPages: dayNbPages } = getItemsForDate(day);
+                  const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayRegularNotes.length > 0 || dayStickyNotes.length > 0 || dayNbPages.length > 0;
                   const isCurrentMonth = isSameMonth(day, currentDate);
                   const isSelected = isSameDay(day, selectedDate);
                   const isTodayDate = isToday(day);
@@ -182,7 +195,7 @@ export function MonthView({
                         <div className="absolute bottom-1 flex gap-[3px]">
                           {dayEvents.slice(0, 1).map((event, j) => (
                             <div
-                              key={j}
+                              key={`e-${j}`}
                               className={cn(
                                 'w-[5px] h-[5px] rounded-full',
                                 isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(event, 'event'))
@@ -198,12 +211,30 @@ export function MonthView({
                               )}
                             />
                           ))}
-                          {dayNotes.slice(0, 1).map((note, j) => (
+                          {dayRegularNotes.slice(0, 1).map((note, j) => (
                             <div
-                              key={`n-${j}`}
+                              key={`rn-${j}`}
                               className={cn(
                                 'w-[5px] h-[5px] rounded-full',
                                 isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
+                              )}
+                            />
+                          ))}
+                          {dayStickyNotes.slice(0, 1).map((note, j) => (
+                            <div
+                              key={`sn-${j}`}
+                              className={cn(
+                                'w-[5px] h-[5px] rounded-full',
+                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
+                              )}
+                            />
+                          ))}
+                          {dayNbPages.slice(0, 1).map((page, j) => (
+                            <div
+                              key={`np-${j}`}
+                              className={cn(
+                                'w-[5px] h-[5px] rounded-full',
+                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(page.color ?? 'stone')
                               )}
                             />
                           ))}

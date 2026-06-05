@@ -304,6 +304,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
             events={events}
             tasks={tasks}
             notes={calendarNotes}
+            allNotes={notes}
+            notebookPages={notebookPages}
             getItemColor={getItemColor}
             getNoteColor={getNoteColor}
             onItemClick={handleItemClick}
@@ -349,6 +351,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
               events={events}
               tasks={tasks}
               notes={calendarNotes}
+              allNotes={notes}
+              notebookPages={notebookPages}
               getItemColor={getItemColor}
               getNoteColor={getNoteColor}
               onItemClick={handleItemClick}
