@@ -4,7 +4,7 @@ import { format, isToday, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getDeepTextColor } from '@/lib/colors';
-import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin, BookOpen } from 'lucide-react';
+import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -305,9 +305,8 @@ export function DesktopWeekGrid({
                 const deepText = getDeepTextColor(color);
                 const isTask = type === 'task';
                 const isNote = type === 'note';
-                const isNbp = isNote && (item as Note).id.startsWith('nbp-');
                 const completed = isTask && (item as Task).completed;
-                const TypeIcon = isNote ? (isNbp ? BookOpen : FileText) : null;
+                const TypeIcon = isNote ? FileText : null;
                 return (
                   <div
                     key={item.id}
@@ -417,7 +416,6 @@ export function DesktopWeekGrid({
                     const isEvent = type === 'event';
                     const isNote = type === 'note';
                     const isSticky = isNote && (item as Note).type === 'sticky';
-                    const isNbp = isNote && item.id.startsWith('nbp-');
 
                     // ── Sticky note: physical card (same as mobile timeline) ──────────
                     if (isSticky) {
@@ -471,7 +469,7 @@ export function DesktopWeekGrid({
                     const blockTextColor = (color === 'none' && document.documentElement.classList.contains('dark'))
                       ? 'hsl(var(--foreground))'
                       : deepText;
-                    const TypeIcon = isEvent ? null : isNbp ? BookOpen : isNote ? FileText : null;
+                    const TypeIcon = isEvent ? null : isNote ? FileText : null;
 
                     return (
                       <div

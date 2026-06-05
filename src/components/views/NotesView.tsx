@@ -26,7 +26,6 @@ import {
   LayoutList,
   X,
   Search,
-  BookOpen,
   Plus,
   ArrowLeft,
   MoreHorizontal,
@@ -35,23 +34,18 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Note, PastelColor, Notebook, Folder } from '@/types';
+import { Note, PastelColor, Folder } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
-import { NotebookCard } from '@/components/notes/NotebookCard';
-import { NotebookListCard } from '@/components/notes/NotebookListCard';
 import { FolderListCard } from '@/components/notes/FolderListCard';
 import { FolderGridCard } from '@/components/notes/FolderGridCard';
 import { FolderEditModal } from '@/components/notes/FolderEditModal';
-import { NotebookView } from '@/components/notes/NotebookView';
-import { NotebookActionSheet } from '@/components/notes/NotebookActionSheet';
-import { NotebookEditModal } from '@/components/notes/NotebookEditModal';
 import { useHaptics } from '@/hooks/useHaptics';
 
 
-type ViewTab = 'folders' | 'boards' | 'notebooks';
+type ViewTab = 'folders' | 'boards';
 type FolderSortMode = 'custom' | 'edited' | 'alpha' | 'starred';
 type FolderItem = { kind: 'subfolder'; id: string; folder: Folder } | { kind: 'note'; id: string; note: Note };
 
@@ -97,12 +91,10 @@ interface NotesViewProps {
   onCloseEditor?: () => void;
   initialNoteId?: string;
   onInitialNoteConsumed?: () => void;
-  initialNotebookPage?: { notebookId: string; pageId: string };
-  onInitialNotebookPageConsumed?: () => void;
 }
 
-export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed, initialNotebookPage, onInitialNotebookPageConsumed }: NotesViewProps) {
-  const { notes, folders, notebooks, addFolder, addNotebook, updateNotebook, deleteNotebook, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
+export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
+  const { notes, folders, addFolder, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
@@ -111,47 +103,23 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectedStickyNote, setSelectedStickyNote] = useState<Note | null>(null);
   const [isCreatingStickyNote, setIsCreatingStickyNote] = useState(false);
-  const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
   const [boardsFilter, setBoardsFilter] = useState<'all' | 'notes-only' | 'sticky-only'>(() => (localStorage.getItem('boards-filter') as 'all' | 'notes-only' | 'sticky-only') || 'all');
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
-  const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState<PastelColor>('peony');
-  const [newNotebookName, setNewNotebookName] = useState('');
-  const [newNotebookColor, setNewNotebookColor] = useState<PastelColor>('rose');
   const [showSearch, setShowSearch] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
   
-  // Notebook action sheet state
-  const [actionSheetNotebook, setActionSheetNotebook] = useState<Notebook | null>(null);
-  const [showNotebookActions, setShowNotebookActions] = useState(false);
-  const [editingNotebook, setEditingNotebook] = useState<Notebook | null>(null);
-  const [editModalNotebook, setEditModalNotebook] = useState<Notebook | null>(null);
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
   const [folderSortMode, setFolderSortMode] = useState<FolderSortMode>('edited');
   const [customOrder, setCustomOrder] = useState<string[]>([]);
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const [pendingPageId, setPendingPageId] = useState<string | null>(null);
-
   useEffect(() => { localStorage.setItem('boards-view', layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem('boards-filter', boardsFilter); }, [boardsFilter]);
-
-  // Navigate to a specific notebook page when initialNotebookPage is provided
-  useEffect(() => {
-    if (!initialNotebookPage) return;
-    const nb = notebooks.find(n => n.id === initialNotebookPage.notebookId);
-    if (nb) {
-      setViewTab('notebooks');
-      setSelectedNotebook(nb);
-      setPendingPageId(initialNotebookPage.pageId);
-      onInitialNotebookPageConsumed?.();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialNotebookPage]);
 
   // Drag-and-drop sensors for folder reordering
   const sensors = useSensors(
@@ -335,51 +303,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     }
   };
 
-  const handleCreateNotebook = () => {
-    if (newNotebookName.trim()) {
-      addNotebook({ name: newNotebookName.trim(), color: newNotebookColor });
-      setNewNotebookName('');
-      setShowNotebookModal(false);
-    }
-  };
-
-  // Notebook action handlers
-  const handleNotebookLongPress = (notebook: Notebook) => {
-    haptics.medium();
-    setActionSheetNotebook(notebook);
-    setShowNotebookActions(true);
-  };
-
-  const handleDeleteNotebook = () => {
-    if (actionSheetNotebook) {
-      deleteNotebook(actionSheetNotebook.id);
-      haptics.error();
-      setActionSheetNotebook(null);
-    }
-  };
-
-  const handleEditNotebook = () => {
-    if (actionSheetNotebook) {
-      setEditingNotebook(actionSheetNotebook);
-      setNewNotebookName(actionSheetNotebook.name);
-      setNewNotebookColor(actionSheetNotebook.color);
-      setShowNotebookModal(true);
-    }
-  };
-
-  const handleSaveNotebook = () => {
-    if (editingNotebook && newNotebookName.trim()) {
-      updateNotebook(editingNotebook.id, { name: newNotebookName.trim(), color: newNotebookColor });
-      setEditingNotebook(null);
-      setNewNotebookName('');
-      setShowNotebookModal(false);
-    } else if (newNotebookName.trim()) {
-      addNotebook({ name: newNotebookName.trim(), color: newNotebookColor });
-      setNewNotebookName('');
-      setShowNotebookModal(false);
-    }
-  };
-
   const handleOpenNote = (note: Note) => {
     if (note.type === 'sticky') {
       setSelectedStickyNote(note);
@@ -497,17 +420,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   if (selectedStickyNote || isCreatingStickyNote || (isCreatingNew && externalIsCreatingStickyNote)) {
     return <StickyNoteEditor note={selectedStickyNote || undefined} onClose={handleCloseEditor} showCalendarToggle defaultFolder={selectedFolder?.name} />;
-  }
-
-  if (selectedNotebook) {
-    return (
-      <NotebookView
-        notebook={selectedNotebook}
-        onClose={() => setSelectedNotebook(null)}
-        initialPageId={pendingPageId ?? undefined}
-        onInitialPageConsumed={() => setPendingPageId(null)}
-      />
-    );
   }
 
   // Inside folder view - separate from tabs
@@ -701,7 +613,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     <div className="flex items-center justify-between mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
       {/* Tabs — centered on desktop */}
       <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5 md:col-start-2">
-        {(['boards', 'folders', 'notebooks'] as ViewTab[]).map((tab) => (
+        {(['boards', 'folders'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setViewTab(tab)}
@@ -712,7 +624,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {tab === 'folders' ? 'Folders' : tab === 'boards' ? 'Board' : 'Notebooks'}
+            {tab === 'folders' ? 'Folders' : 'Board'}
           </button>
         ))}
       </div>
@@ -784,107 +696,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       </div>
     </div>
   );
-
-  // Notebooks view - macOS style icons
-  if (viewTab === 'notebooks') {
-    return (
-      <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-4 pb-4">
-          <TabsHeader />
-          
-          {showSearch && (
-            <div className="mb-4 animate-fade-in">
-              <input
-                type="text"
-                placeholder="Search notebooks..."
-                value={localSearchQuery}
-                onChange={(e) => setLocalSearchQuery(e.target.value)}
-                className="w-full flow-input"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
-            {notebooks.map((notebook, index) => (
-              <div
-                key={notebook.id}
-                className="stagger-item md:max-w-[200px] md:w-full"
-                style={{ animationDelay: `${index * 40}ms` }}
-              >
-                <NotebookCard 
-                  notebook={notebook} 
-                  onClick={() => setSelectedNotebook(notebook)}
-                  onEdit={() => setEditModalNotebook(notebook)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* FAB for creating new notebook */}
-          <div className="fixed bottom-[144px] md:bottom-8 right-4 z-[1100]">
-            <button
-              onClick={() => { setEditingNotebook(null); setNewNotebookName(''); setNewNotebookColor('rose'); setShowNotebookModal(true); }}
-              className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all active:scale-95 bg-primary"
-            >
-              <Plus className="w-6 h-6 text-primary-foreground" />
-            </button>
-          </div>
-
-          {notebooks.length === 0 && (
-            <div className="text-center py-12">
-              <BookOpen className="w-12 h-12 mx-auto mb-3 text-muted-foreground/30" />
-              <p className="text-muted-foreground">No notebooks yet</p>
-            </div>
-          )}
-        </div>
-
-        {showNotebookModal && (
-          <>
-            <div 
-              className="fixed inset-0 z-[1100] animate-fade-in"
-              style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-              onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} 
-            />
-            <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
-              <div className="bg-card rounded-[20px] p-6 animate-scale-in" style={{ boxShadow: 'var(--shadow-elevated)' }}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">{editingNotebook ? 'Edit Notebook' : 'New Notebook'}</h3>
-                  <button onClick={() => { setShowNotebookModal(false); setEditingNotebook(null); }} className="p-2 rounded-full bg-secondary">
-                    <X className="w-5 h-5 text-muted-foreground" />
-                  </button>
-                </div>
-                <input type="text" value={newNotebookName} onChange={(e) => setNewNotebookName(e.target.value)} placeholder="Notebook name" className="flow-input mb-4" />
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {pastelColors.map((c) => (
-                    <button key={c.value} onClick={() => setNewNotebookColor(c.value)} className={cn('w-8 h-8 rounded-full transition-all', c.class, newNotebookColor === c.value && 'ring-2 ring-offset-2 ring-primary')} />
-                  ))}
-                </div>
-                <button onClick={handleSaveNotebook} className="w-full flow-button-primary">{editingNotebook ? 'Save Changes' : 'Create Notebook'}</button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Notebook Action Sheet */}
-        <NotebookActionSheet
-          notebook={actionSheetNotebook}
-          open={showNotebookActions}
-          onOpenChange={setShowNotebookActions}
-          onEdit={handleEditNotebook}
-          onDelete={handleDeleteNotebook}
-        />
-
-        {/* Edit Notebook Modal (from three-dot menu) */}
-        {editModalNotebook && (
-          <NotebookEditModal
-            notebook={editModalNotebook}
-            onClose={() => setEditModalNotebook(null)}
-          />
-        )}
-
-      </div>
-    );
-  }
 
   // Folders view - macOS style icons
   if (viewTab === 'folders') {

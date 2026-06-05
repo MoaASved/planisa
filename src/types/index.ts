@@ -115,31 +115,6 @@ export interface Folder {
   parentId?: string;
 }
 
-// Notebook types
-export interface Notebook {
-  id: string;
-  name: string;
-  color: PastelColor;
-  createdAt: Date;
-}
-
-export interface NotebookPage {
-  id: string;
-  notebookId: string;
-  title: string;
-  content: string;
-  type: NoteType;
-  color?: PastelColor;
-  order: number;
-  date?: Date;
-  time?: string;
-  endTime?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  showInCalendar?: boolean;
-  hideDate?: boolean;
-}
-
 // Legacy Category type for backward compatibility
 export interface Category {
   id: string;

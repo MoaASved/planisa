@@ -14,7 +14,7 @@ interface CalendarNoteModalProps {
 }
 
 export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: CalendarNoteModalProps) {
-  const { updateNote, deleteNote, updateNotebookPage } = useAppStore();
+  const { updateNote, deleteNote } = useAppStore();
   const [title, setTitle] = useState('');
   const [localDate, setLocalDate] = useState<Date | undefined>(undefined);
   const [localTime, setLocalTime] = useState<string | undefined>(undefined);
@@ -39,28 +39,18 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
 
   if (!isOpen || !note) return null;
 
-  const isNotebookPage = note.id.startsWith('nbp-');
-
   const handleSave = () => {
-    if (isNotebookPage) {
-      updateNotebookPage(note.id.slice(4), { title: title.trim() || undefined });
-    } else {
-      updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
-    }
+    updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
     onClose();
   };
 
   const handleDelete = () => {
-    if (!isNotebookPage) deleteNote(note.id);
+    deleteNote(note.id);
     onClose();
   };
 
   const handleOpen = () => {
-    if (isNotebookPage) {
-      updateNotebookPage(note.id.slice(4), { title: title.trim() || undefined });
-    } else {
-      updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
-    }
+    updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
     onOpenFullEditor(note);
   };
 
@@ -86,10 +76,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
           <div className="flex items-center gap-3">
             <Popover>
               <PopoverTrigger asChild>
-                <button
-                  disabled={isNotebookPage}
-                  className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity disabled:pointer-events-none"
-                >
+                <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
                   <CalendarIcon className="w-3.5 h-3.5" />
                   {localDate ? format(localDate, 'MMM d, yyyy') : '—'}
                 </button>
@@ -105,13 +92,10 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             </Popover>
             <Popover>
               <PopoverTrigger asChild>
-                <button
-                  disabled={isNotebookPage}
-                  className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity disabled:pointer-events-none"
-                >
+                <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{localTime ?? '—'}</span>
-                  {localTime && !isNotebookPage && (
+                  {localTime && (
                     <span
                       role="button"
                       onClick={(e) => { e.stopPropagation(); setLocalTime(undefined); setLocalEndTime(undefined); }}
@@ -134,12 +118,9 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
             {localTime && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <button
-                    disabled={isNotebookPage}
-                    className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity disabled:pointer-events-none"
-                  >
+                  <button className="flex items-center gap-1 text-sm text-muted-foreground active:opacity-70 transition-opacity">
                     <span>{localEndTime ?? 'End'}</span>
-                    {localEndTime && !isNotebookPage && (
+                    {localEndTime && (
                       <span
                         role="button"
                         onClick={(e) => { e.stopPropagation(); setLocalEndTime(undefined); }}
@@ -196,19 +177,17 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
 
         {/* Footer buttons: Delete, Open in Notes, Save */}
         <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 flex gap-3">
-          {!isNotebookPage && (
-            <button
-              onClick={handleDelete}
-              className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
-            >
-              <Trash2 className="w-4 h-4 text-destructive" />
-            </button>
-          )}
+          <button
+            onClick={handleDelete}
+            className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </button>
           <button
             onClick={handleOpen}
             className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
           >
-            {isNotebookPage ? 'Open page' : 'Open in Notes'}
+            Open in Notes
           </button>
           <button
             onClick={handleSave}

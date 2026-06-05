@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, Notebook, NotebookPage, TaskSection } from '@/types';
+import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Widget, UserSettings, TaskSection } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import {
   rowToTask, taskToRow, subtaskToRow,
@@ -9,8 +9,6 @@ import {
   rowToEventCategory, eventCategoryToRow,
   rowToNote, noteToRow,
   rowToFolder, folderToRow,
-  rowToNotebook, notebookToRow,
-  rowToNotebookPage, notebookPageToRow,
   newId,
 } from '@/lib/supabaseSync';
 
@@ -43,18 +41,6 @@ interface AppState {
   updateNote: (id: string, updates: Partial<Note>) => void;
   deleteNote: (id: string) => void;
   togglePinNote: (id: string) => void;
-
-  // Notebooks
-  notebooks: Notebook[];
-  addNotebook: (notebook: Omit<Notebook, 'id' | 'createdAt'>) => void;
-  updateNotebook: (id: string, updates: Partial<Notebook>) => void;
-  deleteNotebook: (id: string) => void;
-
-  // Notebook Pages
-  notebookPages: NotebookPage[];
-  addNotebookPage: (page: Omit<NotebookPage, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateNotebookPage: (id: string, updates: Partial<NotebookPage>) => void;
-  deleteNotebookPage: (id: string) => void;
 
   // Folders
   folders: Folder[];
@@ -173,8 +159,6 @@ export const useAppStore = create<AppState>()((set, get) => {
     tasks: [],
     events: [],
     notes: [],
-    notebooks: [],
-    notebookPages: [],
     folders: [],
     taskCategories: [],
     taskSections: [],
@@ -535,53 +519,6 @@ export const useAppStore = create<AppState>()((set, get) => {
       (supabase.from('calendar_categories') as any).delete().eq('id', id).then(swallow('deleteEventCategory'));
     },
 
-    // ─────────────────────────── NOTEBOOKS ───────────────────────────
-    addNotebook: (notebook) => {
-      const id = newId();
-      const newN: Notebook = { ...notebook, id, createdAt: new Date() };
-      set((s) => ({ notebooks: [...s.notebooks, newN] }));
-      queueOrRun(uid(), (userId) => {
-        (supabase.from('notebooks') as any).insert(notebookToRow(newN, userId)).then(swallow('addNotebook'));
-      });
-    },
-    updateNotebook: (id, updates) => {
-      set((s) => ({ notebooks: s.notebooks.map((n) => (n.id === id ? { ...n, ...updates } : n)) }));
-      queueOrRun(uid(), (userId) => {
-        const row = notebookToRow(updates, userId); delete row.user_id;
-        (supabase.from('notebooks') as any).update(row).eq('id', id).then(swallow('updateNotebook'));
-      });
-    },
-    deleteNotebook: (id) => {
-      set((s) => ({
-        notebooks: s.notebooks.filter((n) => n.id !== id),
-        notebookPages: s.notebookPages.filter((p) => p.notebookId !== id),
-      }));
-      (supabase.from('notebooks') as any).delete().eq('id', id).then(swallow('deleteNotebook'));
-    },
-
-    // ─────────────────────────── NOTEBOOK PAGES ───────────────────────────
-    addNotebookPage: (page) => {
-      const id = newId();
-      const now = new Date();
-      const newP: NotebookPage = { ...page, id, createdAt: now, updatedAt: now };
-      set((s) => ({ notebookPages: [...s.notebookPages, newP] }));
-      queueOrRun(uid(), (userId) => {
-        (supabase.from('notebook_pages') as any).insert(notebookPageToRow(newP, userId)).then(swallow('addNotebookPage'));
-      });
-    },
-    updateNotebookPage: (id, updates) => {
-      const updatedAt = new Date();
-      set((s) => ({ notebookPages: s.notebookPages.map((p) => (p.id === id ? { ...p, ...updates, updatedAt } : p)) }));
-      queueOrRun(uid(), (userId) => {
-        const row = notebookPageToRow(updates, userId); delete row.user_id;
-        (supabase.from('notebook_pages') as any).update(row).eq('id', id).then(swallow('updateNotebookPage'));
-      });
-    },
-    deleteNotebookPage: (id) => {
-      set((s) => ({ notebookPages: s.notebookPages.filter((p) => p.id !== id) }));
-      (supabase.from('notebook_pages') as any).delete().eq('id', id).then(swallow('deleteNotebookPage'));
-    },
-
     // ─────────────────────────── Client-only ───────────────────────────
     updateWidgets: (widgets) => set({ widgets }),
     updateSettings: (newSettings) => {
@@ -599,12 +536,11 @@ export const useAppStore = create<AppState>()((set, get) => {
         'tasks', 'subtasks', 'task_lists', 'task_sections',
         'events', 'calendar_categories',
         'notes', 'note_folders',
-        'notebooks', 'notebook_pages',
       ];
       const results = await Promise.all(
         tables.map((t) => (supabase.from(t as any) as any).select('*').eq('user_id', userId)),
       );
-      const [tasksR, subsR, listsR, sectionsR, eventsR, calCatsR, notesR, foldersR, notebooksR, pagesR] = results;
+      const [tasksR, subsR, listsR, sectionsR, eventsR, calCatsR, notesR, foldersR] = results;
 
       // Log errors but never overwrite a slice with an empty array on failure —
       // that would silently wipe all notes/tasks/events on a transient network error.
@@ -635,8 +571,6 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (!foldersR.error) update.folders = (foldersR.data ?? [])
         .map(rowToFolder)
         .sort((a, b) => (a.position ?? Infinity) - (b.position ?? Infinity));
-      if (!notebooksR.error) update.notebooks = (notebooksR.data ?? []).map(rowToNotebook);
-      if (!pagesR.error) update.notebookPages = (pagesR.data ?? []).map(rowToNotebookPage);
       set(update);
     },
 
@@ -720,20 +654,6 @@ export const useAppStore = create<AppState>()((set, get) => {
             set((s) => ({ folders: upsert(s.folders, rowToFolder(p.new)) }));
           },
         },
-        {
-          table: 'notebooks',
-          apply: (p) => {
-            if (p.eventType === 'DELETE') return set((s) => ({ notebooks: s.notebooks.filter((n) => n.id !== p.old.id) }));
-            set((s) => ({ notebooks: upsert(s.notebooks, rowToNotebook(p.new)) }));
-          },
-        },
-        {
-          table: 'notebook_pages',
-          apply: (p) => {
-            if (p.eventType === 'DELETE') return set((s) => ({ notebookPages: s.notebookPages.filter((x) => x.id !== p.old.id) }));
-            set((s) => ({ notebookPages: upsert(s.notebookPages, rowToNotebookPage(p.new)) }));
-          },
-        },
       ];
 
       const channels = handlers.map(({ table, apply }) =>
@@ -757,8 +677,6 @@ export const useAppStore = create<AppState>()((set, get) => {
         tasks: [],
         events: [],
         notes: [],
-        notebooks: [],
-        notebookPages: [],
         folders: [],
         taskCategories: [],
         taskSections: [],

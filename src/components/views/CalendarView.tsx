@@ -19,7 +19,7 @@ import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 type SimpleView = 'month' | 'weekday';
 type DesktopView = 'day' | 'week' | 'month' | 'year';
 
-export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenNotebookPage }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; onOpenNotebookPage?: (notebookId: string, pageId: string) => void }) {
+export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void }) {
   const yearViewRef = useRef<YearViewHandle>(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -34,7 +34,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
     typeof window !== 'undefined' && window.innerWidth >= 768 ? 'week' : 'month'
   );
 
-  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders, notebookPages } = useAppStore();
+  const { events, tasks, notes, toggleTask, taskCategories, eventCategories, folders } = useAppStore();
 
   // Edit modal states
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
@@ -51,27 +51,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   const [timelineCreateTime, setTimelineCreateTime] = useState<string>('');
 
   // Filter notes to only show those with showInCalendar enabled
-  const calendarNotes: Note[] = [
-    ...notes.filter(n => n.showInCalendar),
-    ...notebookPages
-      .filter(p => p.showInCalendar)
-      .map(p => ({
-        id: `nbp-${p.id}`,
-        title: p.title || 'Untitled',
-        content: p.content,
-        type: 'note' as const,
-        tags: [],
-        color: p.color,
-        date: p.date ? new Date(p.date) : p.createdAt ? new Date(p.createdAt) : new Date(),
-        time: p.time,
-        endTime: p.endTime,
-        createdAt: new Date(p.createdAt),
-        updatedAt: new Date(p.updatedAt),
-        isPinned: false,
-        showInCalendar: true,
-        hideDate: p.hideDate,
-      })),
-  ];
+  const calendarNotes: Note[] = notes.filter(n => n.showInCalendar);
 
   // Week days for the desktop week/day grid
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -93,7 +73,6 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
 
   const getNoteColor = (note: Note): PastelColor => {
     if (note.color) return note.color;
-    if (note.id.startsWith('nbp-')) return 'stone';
     const folder = folders.find(f => f.name === note.folder);
     return folder?.color || 'peony';
   };
@@ -196,15 +175,6 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
   };
 
   const handleOpenFullNoteEditor = (note: Note) => {
-    if (note.id.startsWith('nbp-')) {
-      const pageId = note.id.slice(4);
-      const page = notebookPages.find(p => p.id === pageId);
-      if (page && onOpenNotebookPage) {
-        handleCloseNoteModal();
-        onOpenNotebookPage(page.notebookId, page.id);
-      }
-      return;
-    }
     if (note.type === 'sticky') {
       setEditingNote(null);
       setEditingStickyNote(note);
@@ -305,7 +275,6 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
             tasks={tasks}
             notes={calendarNotes}
             allNotes={notes}
-            notebookPages={notebookPages}
             getItemColor={getItemColor}
             getNoteColor={getNoteColor}
             onItemClick={handleItemClick}
@@ -352,7 +321,6 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, onOpenN
               tasks={tasks}
               notes={calendarNotes}
               allNotes={notes}
-              notebookPages={notebookPages}
               getItemColor={getItemColor}
               getNoteColor={getNoteColor}
               onItemClick={handleItemClick}

@@ -752,13 +752,6 @@ const Dashboard: React.FC = () => {
 
   const setActiveTab = (tab: string) => setActiveTabRaw(tab);
 
-  const [pendingNotebookPage, setPendingNotebookPage] = useState<{ notebookId: string; pageId: string } | null>(null);
-
-  const handleOpenNotebookPage = (notebookId: string, pageId: string) => {
-    setPendingNotebookPage({ notebookId, pageId });
-    setActiveTab('notes');
-  };
-
   // Trial reminder state
   const [trialNisaMessage, setTrialNisaMessage] = useState<string | null>(null);
   const [showTrialModal, setShowTrialModal] = useState(false);
@@ -977,7 +970,7 @@ const Dashboard: React.FC = () => {
         const firstName = ((user.user_metadata?.display_name as string | undefined) || user.email || 'there')
           .split(' ')[0].split('@')[0];
         setTrialNisaMessage(
-          `Hey ${firstName}! Great to have you here. Take a look around and explore, there's lots to discover. Tasks, notes, sticky notes, notebooks and your calendar are all waiting for you!`
+          `Hey ${firstName}! Great to have you here. Take a look around and explore, there's lots to discover. Tasks, notes, sticky notes and your calendar are all waiting for you!`
         );
       }
     }
@@ -1060,7 +1053,6 @@ const Dashboard: React.FC = () => {
           <CalendarViewComponent
             onDateChange={setSelectedCalendarDate}
             onNavigateToTasks={task => { setHighlightTaskId(task.id); setActiveTab('tasks'); }}
-            onOpenNotebookPage={handleOpenNotebookPage}
           />
         );
       case 'tasks':
@@ -1079,8 +1071,6 @@ const Dashboard: React.FC = () => {
             isCreatingNew={isCreatingNewNote}
             isCreatingStickyNote={isCreatingStickyNote}
             onCloseEditor={() => { setIsCreatingNewNote(false); setIsCreatingStickyNote(false); setIsEditingNote(false); }}
-            initialNotebookPage={pendingNotebookPage ?? undefined}
-            onInitialNotebookPageConsumed={() => setPendingNotebookPage(null)}
           />
         );
       case 'profile':

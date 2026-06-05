@@ -1,4 +1,4 @@
-import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, Notebook, NotebookPage, TaskSection, Subtask, PastelColor, Priority, NoteType } from '@/types';
+import { Task, CalendarEvent, Note, Folder, TaskCategory, EventCategory, TaskSection, Subtask, PastelColor, Priority, NoteType } from '@/types';
 
 // ──────────────────────────────────────────────────────────────────
 // DB row types (loose — we only type the fields we touch)
@@ -224,59 +224,6 @@ export function folderToRow(f: Partial<Folder>, userId: string): Row {
   if (f.color !== undefined) r.color = f.color;
   if (f.position !== undefined) r.position = f.position;
   if (f.parentId !== undefined) r.parent_id = f.parentId ?? null;
-  return r;
-}
-
-// ────────────── NOTEBOOKS ──────────────
-export function rowToNotebook(row: Row): Notebook {
-  return {
-    id: row.id,
-    name: row.title,
-    color: asColor(row.color),
-    createdAt: new Date(row.created_at),
-  };
-}
-export function notebookToRow(n: Partial<Notebook>, userId: string): Row {
-  const r: Row = { user_id: userId };
-  if (n.id !== undefined) r.id = n.id;
-  if (n.name !== undefined) r.title = n.name;
-  if (n.color !== undefined) r.color = n.color;
-  return r;
-}
-
-// ────────────── NOTEBOOK PAGES ──────────────
-export function rowToNotebookPage(row: Row): NotebookPage {
-  return {
-    id: row.id,
-    notebookId: row.notebook_id,
-    title: row.title ?? '',
-    content: row.content ?? '',
-    type: (row.note_type ?? 'note') as NoteType,
-    color: asColor(row.color),
-    order: row.order_index ?? 0,
-    date: asDate(row.event_date),
-    time: row.time_text ?? undefined,
-    endTime: row.end_time_text ?? undefined,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
-    showInCalendar: !!row.show_in_calendar,
-    hideDate: !!row.hide_date,
-  };
-}
-export function notebookPageToRow(p: Partial<NotebookPage>, userId: string): Row {
-  const r: Row = { user_id: userId };
-  if (p.id !== undefined) r.id = p.id;
-  if (p.notebookId !== undefined) r.notebook_id = p.notebookId;
-  if (p.title !== undefined) r.title = p.title;
-  if (p.content !== undefined) r.content = p.content;
-  if (p.type !== undefined) r.note_type = p.type;
-  if (p.color !== undefined) r.color = p.color ?? null;
-  if (p.order !== undefined) r.order_index = p.order;
-  if (p.date !== undefined) r.event_date = p.date ? new Date(p.date).toISOString() : null;
-  if (p.time !== undefined) r.time_text = p.time ?? null;
-  if (p.endTime !== undefined) r.end_time_text = p.endTime ?? null;
-  if (p.showInCalendar !== undefined) r.show_in_calendar = p.showInCalendar;
-  if (p.hideDate !== undefined) r.hide_date = p.hideDate;
   return r;
 }
 
