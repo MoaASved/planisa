@@ -165,36 +165,36 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-border: 30 8% 18%;
     --sidebar-ring: 0 0% 95%;
 
-    /* Pastel palette - dark mode: optimized for dark backgrounds */
-    --pastel-fern: 86 45% 52%;
-    --pastel-pistachio: 98 32% 55%;
-    --pastel-lagune: 195 45% 52%;
-    --pastel-sky: 215 45% 62%;
-    --pastel-peach: 22 65% 65%;
-    --pastel-honey: 44 70% 62%;
-    --pastel-peony: 275 38% 62%;
-    --pastel-rose: 340 52% 65%;
-    --pastel-plum: 256 40% 60%;
-    --pastel-flamingo: 342 55% 65%;
-    --pastel-stone: 34 22% 55%;
+    /* Pastel palette - dark mode: lighter/softer, more saturated than light mode */
+    --pastel-fern: 86 38% 65%;
+    --pastel-pistachio: 98 28% 68%;
+    --pastel-lagune: 195 42% 62%;
+    --pastel-sky: 215 48% 70%;
+    --pastel-peach: 22 60% 72%;
+    --pastel-honey: 44 65% 72%;
+    --pastel-peony: 275 35% 70%;
+    --pastel-rose: 340 48% 72%;
+    --pastel-plum: 256 38% 68%;
+    --pastel-flamingo: 342 50% 72%;
+    --pastel-stone: 34 20% 62%;
     --pastel-none: 34 12% 20%;
 
-    --pastel-fern-accent: 86 50% 35%;
-    --pastel-pistachio-accent: 98 38% 35%;
-    --pastel-lagune-accent: 195 50% 35%;
-    --pastel-sky-accent: 215 50% 45%;
-    --pastel-peach-accent: 22 70% 45%;
-    --pastel-honey-accent: 44 75% 45%;
-    --pastel-peony-accent: 275 45% 45%;
-    --pastel-rose-accent: 340 58% 48%;
-    --pastel-plum-accent: 256 45% 45%;
-    --pastel-flamingo-accent: 342 55% 48%;
-    --pastel-stone-accent: 34 25% 38%;
+    --pastel-fern-accent: 86 45% 38%;
+    --pastel-pistachio-accent: 98 32% 38%;
+    --pastel-lagune-accent: 195 45% 38%;
+    --pastel-sky-accent: 215 48% 45%;
+    --pastel-peach-accent: 22 65% 45%;
+    --pastel-honey-accent: 44 68% 46%;
+    --pastel-peony-accent: 275 40% 46%;
+    --pastel-rose-accent: 340 52% 48%;
+    --pastel-plum-accent: 256 40% 46%;
+    --pastel-flamingo-accent: 342 52% 48%;
+    --pastel-stone-accent: 34 22% 40%;
     --pastel-none-accent: 34 12% 35%;
 
     /* Smart list icon accents — lighter for dark bg contrast */
-    --smart-today: 96 45% 55%;
-    --smart-priority: 36 85% 60%;
+    --smart-today: 96 42% 58%;
+    --smart-priority: 36 82% 62%;
   }
 }
 
