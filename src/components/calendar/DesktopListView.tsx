@@ -120,6 +120,10 @@ export function DesktopListView({
                   const isEvent = type === 'event';
                   const completed = isTask && (item as Task).completed;
                   const deepText = getDeepTextColor(color);
+                  // White/none events are nearly transparent in dark mode — use foreground so text is readable
+                  const blockTextColor = (color === 'none' && document.documentElement.classList.contains('dark'))
+                    ? 'hsl(var(--foreground))'
+                    : deepText;
 
                   return (
                     <button
@@ -138,7 +142,7 @@ export function DesktopListView({
                           'flex-1 flex items-center gap-2 rounded-lg px-3 py-2 min-w-0',
                           getColorCardClass(color),
                         )}
-                        style={{ color: deepText }}
+                        style={{ color: blockTextColor }}
                       >
                         {isTask && (
                           <div

@@ -467,6 +467,10 @@ export function DesktopWeekGrid({
                     const completed = isTask && (item as Task).completed;
                     const short = durMin < 60;
                     const deepText = getDeepTextColor(color);
+                    // White/none events are nearly transparent in dark mode — use foreground so text is readable
+                    const blockTextColor = (color === 'none' && document.documentElement.classList.contains('dark'))
+                      ? 'hsl(var(--foreground))'
+                      : deepText;
                     const TypeIcon = isEvent ? null : isNbp ? BookOpen : isNote ? FileText : null;
 
                     return (
@@ -495,11 +499,11 @@ export function DesktopWeekGrid({
                                 {completed && <Check className="w-1.5 h-1.5 text-white" />}
                               </div>
                             ) : TypeIcon && (
-                              <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: deepText }} />
+                              <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: blockTextColor }} />
                             )}
-                            <span className={cn('text-[10px] font-medium truncate flex-1', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
+                            <span className={cn('text-[10px] font-medium truncate flex-1', completed && 'line-through')} style={{ color: blockTextColor }}>{label}</span>
                             {time && (
-                              <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: deepText, opacity: 0.6 }}>
+                              <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
                                 {time}{endTime && ` – ${endTime}`}
                               </span>
                             )}
@@ -515,15 +519,15 @@ export function DesktopWeekGrid({
                                   {completed && <Check className="w-2 h-2 text-white" />}
                                 </div>
                               ) : TypeIcon && (
-                                <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 mt-0.5 opacity-55" style={{ color: deepText }} />
+                                <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 mt-0.5 opacity-55" style={{ color: blockTextColor }} />
                               )}
                               <div className="min-w-0">
                                 <p
                                   className={cn('text-[11px] font-semibold leading-tight', completed && 'line-through', height < 48 ? 'truncate' : 'line-clamp-2')}
-                                  style={{ color: deepText }}
+                                  style={{ color: blockTextColor }}
                                 >{label}</p>
                                 {height >= 46 && (
-                                  <p className="text-[10px] mt-0.5 leading-none" style={{ color: deepText, opacity: 0.55 }}>
+                                  <p className="text-[10px] mt-0.5 leading-none" style={{ color: blockTextColor, opacity: 0.55 }}>
                                     {time}{endTime && ` – ${endTime}`}
                                   </p>
                                 )}
