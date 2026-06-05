@@ -166,16 +166,16 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-ring: 0 0% 95%;
 
     /* Pastel palette - dark mode: lighter/softer, more saturated than light mode */
-    --pastel-fern: 86 38% 65%;
-    --pastel-pistachio: 98 28% 68%;
+    --pastel-fern: 86 42% 58%;
+    --pastel-pistachio: 108 32% 72%;
     --pastel-lagune: 195 42% 62%;
     --pastel-sky: 215 48% 70%;
     --pastel-peach: 22 60% 72%;
     --pastel-honey: 44 65% 72%;
-    --pastel-peony: 275 35% 70%;
-    --pastel-rose: 340 48% 72%;
-    --pastel-plum: 256 38% 68%;
-    --pastel-flamingo: 342 50% 72%;
+    --pastel-peony: 270 40% 65%;
+    --pastel-rose: 345 52% 68%;
+    --pastel-plum: 250 35% 75%;
+    --pastel-flamingo: 328 45% 76%;
     --pastel-stone: 34 20% 62%;
     --pastel-none: 34 12% 20%;
 
