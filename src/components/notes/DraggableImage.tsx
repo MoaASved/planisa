@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
+import { Download } from 'lucide-react';
 
 function ImageComponent({ node, editor, getPos, selected }: { node: any; editor: any; getPos: () => number | undefined; selected: boolean }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -113,12 +114,25 @@ function ImageComponent({ node, editor, getPos, selected }: { node: any; editor:
         <div contentEditable={false} className="absolute top-2 right-2 flex flex-col gap-1 z-10">
           <button
             onPointerDown={moveUp}
-            className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60 transition-colors select-none"
+            className="w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60 transition-colors select-none"
           >↑</button>
           <button
             onPointerDown={moveDown}
-            className="w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60 transition-colors select-none"
+            className="w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-xs hover:bg-black/60 transition-colors select-none"
           >↓</button>
+          <button
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const link = document.createElement('a');
+              link.href = node.attrs.src;
+              link.download = 'planisa-image.jpg';
+              link.click();
+            }}
+            className="w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors select-none"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
       )}
     </NodeViewWrapper>
