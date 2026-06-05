@@ -59,7 +59,7 @@ export function Sidebar({
         <img
           src="/Planisa-logo.png"
           alt="Planisa"
-          className={cn('h-6 w-auto transition-opacity duration-200 dark:invert', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
+          className={cn('h-6 w-auto transition-opacity duration-200 dark:brightness-0 dark:invert', isExpanded ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')}
         />
         <button
           onClick={() => onExpandedChange(!isExpanded)}
