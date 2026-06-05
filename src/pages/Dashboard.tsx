@@ -739,6 +739,8 @@ const Dashboard: React.FC = () => {
 
   // Quick-create / modals
   const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [quickCreateAnchor, setQuickCreateAnchor] = useState<DOMRect | null>(null);
+  const sidebarPlusRef = useRef<HTMLButtonElement>(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date>(new Date());
   const [showEventModal, setShowEventModal] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -1104,6 +1106,7 @@ const Dashboard: React.FC = () => {
       <QuickCreateMenu
         isOpen={showQuickCreate}
         onClose={() => setShowQuickCreate(false)}
+        anchorRect={quickCreateAnchor}
         onCreateTask={() => {
           if (activeTab === 'calendar') { setShowCalendarTaskCreate(true); }
           else { setIsCreatingNewTask(true); setDefaultTaskDate(undefined); setActiveTab('tasks'); }
@@ -1168,11 +1171,16 @@ const Dashboard: React.FC = () => {
             <Sidebar
               activeTab={activeTab}
               onTabChange={setActiveTab}
-              onPlusClick={() => setShowQuickCreate(v => !v)}
+              onPlusClick={() => {
+                const rect = sidebarPlusRef.current?.getBoundingClientRect() ?? null;
+                setQuickCreateAnchor(rect);
+                setShowQuickCreate(v => !v);
+              }}
               isPlusActive={showQuickCreate}
               onProfileClick={() => setActiveTab('profile')}
               isExpanded={sidebarExpanded}
               onExpandedChange={setSidebarExpanded}
+              plusButtonRef={sidebarPlusRef}
             />
           </div>
           <div className="md:hidden">

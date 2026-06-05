@@ -8,6 +8,8 @@ interface QuickCreateMenuProps {
   onCreateEvent: () => void;
   onCreateNote: () => void;
   onCreateStickyNote: () => void;
+  /** When provided, positions the menu next to this rect (desktop sidebar button). */
+  anchorRect?: DOMRect | null;
 }
 
 const actions = [
@@ -24,8 +26,24 @@ export function QuickCreateMenu({
   onCreateEvent,
   onCreateNote,
   onCreateStickyNote,
+  anchorRect,
 }: QuickCreateMenuProps) {
   if (!isOpen) return null;
+
+  const MENU_WIDTH = 200;
+  const MENU_GAP = 8;
+
+  // Compute desktop position when anchorRect is supplied
+  const desktopStyle = (() => {
+    if (!anchorRect) return null;
+    let left = anchorRect.right + MENU_GAP;
+    const top = anchorRect.top;
+    // Flip left if overflowing right edge
+    if (left + MENU_WIDTH > window.innerWidth - 8) {
+      left = anchorRect.left - MENU_WIDTH - MENU_GAP;
+    }
+    return { left, top };
+  })();
 
   const handleAction = (id: string) => {
     switch (id) {
@@ -56,11 +74,11 @@ export function QuickCreateMenu({
 
       {/* Menu */}
       <div
-        className="fixed left-1/2 z-[1200] animate-spring-pop"
-        style={{
-          bottom: 'calc(48px + 76px + 16px)',
-          transform: 'translateX(-50%)',
-        }}
+        className="fixed z-[1200] animate-spring-pop"
+        style={desktopStyle
+          ? { left: desktopStyle.left, top: desktopStyle.top }
+          : { left: '50%', bottom: 'calc(48px + 76px + 16px)', transform: 'translateX(-50%)' }
+        }
       >
         <div
           className="bg-[#1C1C1E] dark:bg-[#1C1A18]"

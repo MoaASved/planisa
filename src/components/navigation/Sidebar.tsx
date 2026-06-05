@@ -1,3 +1,4 @@
+import React from 'react';
 import { Home, Calendar, CheckSquare, FileText, Plus, User, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -13,6 +14,7 @@ interface SidebarProps {
   onProfileClick: () => void;
   isExpanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
+  plusButtonRef?: React.RefObject<HTMLButtonElement>;
 }
 
 const navItems = [
@@ -29,6 +31,7 @@ export function Sidebar({
   onProfileClick,
   isExpanded,
   onExpandedChange,
+  plusButtonRef,
 }: SidebarProps) {
   const { settings } = useAppStore();
   const isDark = settings.theme === 'dark';
@@ -73,6 +76,7 @@ export function Sidebar({
       <div className={cn('flex items-center mb-8 w-full', isExpanded ? 'gap-3 px-3' : 'justify-center')}>
         <button
           onClick={onPlusClick}
+          ref={plusButtonRef}
           className="w-8 h-8 rounded-full bg-[#1C1C1E] dark:bg-card dark:border dark:border-border flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
         >
           <Plus className="w-4 h-4 text-white dark:text-foreground" />
