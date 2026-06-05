@@ -13,7 +13,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
   const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
-  const lighterColor = `color-mix(in srgb, ${baseColor} 55%, hsl(var(--card)))`;
+  const lighterColor = `color-mix(in srgb, ${baseColor} 55%, white)`;
 
   // Compact variant: subfolder inside a folder view
   if (compact) {
