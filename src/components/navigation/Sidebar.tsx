@@ -77,9 +77,9 @@ export function Sidebar({
         <button
           onClick={onPlusClick}
           ref={plusButtonRef}
-          className="w-8 h-8 rounded-full bg-[#1C1C1E] dark:bg-card dark:border dark:border-border flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
+          className="w-8 h-8 rounded-full bg-[#1C1C1E] dark:bg-foreground flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity"
         >
-          <Plus className="w-4 h-4 text-white dark:text-foreground" />
+          <Plus className="w-4 h-4 text-white dark:text-background" />
         </button>
         {isExpanded && (
           <span className="text-sm font-medium text-foreground/60 whitespace-nowrap">New</span>
