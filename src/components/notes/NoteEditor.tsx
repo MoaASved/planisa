@@ -401,7 +401,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
       if (file) {
         try {
           const compressedBase64 = await compressImage(file);
-          if (compressedBase64.length > 500 * 1024) toast.warning('Image is large and may affect performance');
+          if (compressedBase64.length > 1024 * 1024) toast.warning('Image is large and may affect performance');
           editor?.chain().focus().insertContent({ type: 'image', attrs: { src: compressedBase64 } }).run();
         } catch {
           toast.error('Could not add image');
