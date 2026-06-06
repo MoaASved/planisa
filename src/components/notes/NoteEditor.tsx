@@ -54,7 +54,7 @@ import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors, getColorVar } from '@/lib/colors';
-import { compressImage } from '@/lib/mediaUtils';
+import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
 import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
 
@@ -110,6 +110,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [viewportOffset, setViewportOffset] = useState(0);
   const [tableToolbarPos, setTableToolbarPos] = useState<{ top: number; left: number } | null>(null);
@@ -479,19 +480,41 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const AlignIcon = getAlignmentIcon();
 
   const handleAddImage = () => {
+    if (isUploading) return;
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        try {
-          const compressedBase64 = await compressImage(file);
-          if (compressedBase64.length > 1024 * 1024) toast.warning('Image is large and may affect performance');
-          editor?.chain().focus().insertContent({ type: 'image', attrs: { src: compressedBase64 } }).run();
-        } catch {
-          toast.error('Could not add image');
-        }
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) toast.warning('Image is large (>10 MB) and may take a while to upload');
+
+      setIsUploading(true);
+      const uploadToastId = toast.loading('Uploading image...');
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const fileName = `${user.id}/${Date.now()}-${file.name}`;
+        const { error } = await supabase.storage
+          .from('note-images')
+          .upload(fileName, file, { contentType: file.type });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('note-images')
+          .getPublicUrl(fileName);
+
+        toast.dismiss(uploadToastId);
+        editor?.chain().focus().insertContent({ type: 'image', attrs: { src: publicUrl } }).run();
+      } catch {
+        toast.dismiss(uploadToastId);
+        toast.error('Image upload failed. Please try again.');
+      } finally {
+        setIsUploading(false);
       }
     };
     input.click();

@@ -124,10 +124,25 @@ function ImageComponent({ node, editor, getPos, selected }: { node: any; editor:
             onPointerDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const link = document.createElement('a');
-              link.href = node.attrs.src;
-              link.download = 'planisa-image.jpg';
-              link.click();
+              const src = node.attrs.src as string;
+              if (src.startsWith('http')) {
+                fetch(src)
+                  .then(res => res.blob())
+                  .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'planisa-image.jpg';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  })
+                  .catch(() => {});
+              } else {
+                const link = document.createElement('a');
+                link.href = src;
+                link.download = 'planisa-image.jpg';
+                link.click();
+              }
             }}
             className="w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors select-none"
           >
