@@ -37,8 +37,8 @@ interface AppState {
 
   // Notes
   notes: Note[];
-  addNote: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateNote: (id: string, updates: Partial<Note>) => void;
+  addNote: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateNote: (id: string, updates: Partial<Note>, callbacks?: { onSuccess?: () => void; onError?: (err: any) => void }) => void;
   deleteNote: (id: string) => void;
   togglePinNote: (id: string) => void;
 
@@ -368,13 +368,21 @@ export const useAppStore = create<AppState>()((set, get) => {
       queueOrRun(uid(), (userId) => {
         (supabase.from('notes') as any).insert(noteToRow(newNote, userId)).then(swallow('addNote'));
       });
+      return id;
     },
-    updateNote: (id, updates) => {
+    updateNote: (id, updates, callbacks) => {
       const updatedAt = new Date();
       set((s) => ({ notes: s.notes.map((n) => (n.id === id ? { ...n, ...updates, updatedAt } : n)) }));
       queueOrRun(uid(), (userId) => {
         const row = noteToRow(updates, userId); delete row.user_id;
-        (supabase.from('notes') as any).update(row).eq('id', id).then(swallow('updateNote'));
+        (supabase.from('notes') as any).update(row).eq('id', id).then((res: any) => {
+          if (res?.error) {
+            console.error('[supabase:updateNote]', res.error.message ?? res.error, res.error);
+            callbacks?.onError?.(res.error);
+          } else {
+            callbacks?.onSuccess?.();
+          }
+        });
       });
     },
     deleteNote: (id) => {

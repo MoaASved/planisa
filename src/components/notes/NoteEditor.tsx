@@ -76,6 +76,11 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const [endTime, setEndTime] = useState<string | undefined>(note?.endTime);
   const [isPinned, setIsPinned] = useState(note?.isPinned || false);
   const endTimeManuallySet = useRef(false);
+  // Tracks the ID of a note that was auto-created this session (note prop stays undefined)
+  const createdNoteIdRef = useRef<string | null>(null);
+  // Always-fresh title for use inside stable event handlers
+  const titleRef = useRef(title);
+  useEffect(() => { titleRef.current = title; }, [title]);
 
   const calculateEndTime = (start: string): string => {
     const [h, m] = start.split(':').map(Number);
@@ -153,42 +158,117 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   });
 
   const autoSaveFn = useCallback(() => {
-    if (!note) return;
-    updateNote(note.id, {
+    const noteData = {
       title: title.trim() || 'Untitled',
       content: editor?.getHTML() || '',
-      type: note.type,
+      type: (note?.type ?? 'note') as const,
       folder,
       date,
       time: showInCalendar ? time : undefined,
       endTime: showInCalendar && time ? endTime : undefined,
-      tags: note.tags,
+      tags: note?.tags ?? [],
       isPinned,
       showInCalendar,
       hideFromAllNotes,
       hideDate,
-    });
+    };
+
+    const effectiveId = note?.id ?? createdNoteIdRef.current;
+
+    if (effectiveId) {
+      const draftKey = `note-draft-${effectiveId}`;
+      updateNote(effectiveId, noteData, {
+        onSuccess: () => { try { localStorage.removeItem(draftKey); } catch {} },
+        onError: () => { toast.error('Save failed — your work is backed up locally'); },
+      });
+    } else {
+      // Brand-new note: create it and store the ID for subsequent saves
+      const id = addNote(noteData);
+      createdNoteIdRef.current = id;
+      try { localStorage.removeItem('note-draft-new'); } catch {}
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note, title, editor, folder, date, time, endTime, showInCalendar, isPinned, hideFromAllNotes, hideDate]);
 
-  const { trigger: triggerAutoSave, cancel: cancelAutoSave } = useAutoSave(autoSaveFn);
+  const { trigger: triggerAutoSave, cancel: cancelAutoSave, flush: flushAutoSave } = useAutoSave(autoSaveFn);
 
-  // Trigger auto-save when TipTap content changes
+  // Trigger auto-save when TipTap content changes (new AND existing notes)
   useEffect(() => {
-    if (!editor || !note) return;
+    if (!editor) return;
     const handler = () => triggerAutoSave();
     editor.on('update', handler);
     return () => { editor.off('update', handler); };
-  }, [editor, note, triggerAutoSave]);
+  }, [editor, triggerAutoSave]);
 
   // Trigger auto-save when metadata changes (skip on initial mount)
   const settingsMounted = useRef(false);
   useEffect(() => {
     if (!settingsMounted.current) { settingsMounted.current = true; return; }
-    if (!note) return;
     triggerAutoSave();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folder, date, time, endTime, showInCalendar, isPinned, hideFromAllNotes, hideDate]);
+
+  // localStorage draft — written on every keystroke (not debounced) as a safety net
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => {
+      const effectiveId = note?.id ?? createdNoteIdRef.current;
+      const key = `note-draft-${effectiveId ?? 'new'}`;
+      try {
+        localStorage.setItem(key, JSON.stringify({
+          title: titleRef.current,
+          content: editor.getHTML(),
+          timestamp: Date.now(),
+        }));
+      } catch {}
+    };
+    editor.on('update', handler);
+    return () => { editor.off('update', handler); };
+  }, [editor, note]);
+
+  // On mount: offer to restore a draft that is newer than the loaded note
+  useEffect(() => {
+    if (!editor) return;
+    const key = note?.id ? `note-draft-${note.id}` : 'note-draft-new';
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const draft: { title: string; content: string; timestamp: number } = JSON.parse(raw);
+      if (note?.updatedAt) {
+        const noteTime = new Date(note.updatedAt).getTime();
+        if (draft.timestamp <= noteTime) { localStorage.removeItem(key); return; }
+      }
+      toast('Unsaved changes found', {
+        description: 'We found unsaved changes from a previous session.',
+        action: {
+          label: 'Restore',
+          onClick: () => {
+            editor.commands.setContent(draft.content);
+            setTitle(draft.title);
+            localStorage.removeItem(key);
+          },
+        },
+        cancel: {
+          label: 'Dismiss',
+          onClick: () => { localStorage.removeItem(key); },
+        },
+        duration: 10000,
+      });
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]); // intentionally runs once when editor is ready
+
+  // Flush any pending auto-save on tab switch or browser close
+  useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flushAutoSave(); };
+    const onUnload = () => flushAutoSave();
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('beforeunload', onUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('beforeunload', onUnload);
+    };
+  }, [flushAutoSave]);
 
   // Compute position for the table toolbar: directly above the active table element
   const updateTableToolbarPos = useCallback(() => {
@@ -323,8 +403,14 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
     };
     if (note) {
       updateNote(note.id, noteData);
+      try { localStorage.removeItem(`note-draft-${note.id}`); } catch {}
+    } else if (createdNoteIdRef.current) {
+      // Note was auto-created this session — update, don't create again
+      updateNote(createdNoteIdRef.current, noteData);
+      try { localStorage.removeItem('note-draft-new'); } catch {}
     } else {
       addNote(noteData);
+      try { localStorage.removeItem('note-draft-new'); } catch {}
     }
     onClose();
   };
