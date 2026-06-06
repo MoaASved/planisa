@@ -94,7 +94,7 @@ interface NotesViewProps {
 }
 
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
-  const { notes, folders, addFolder, searchQuery, setSearchQuery, reorderFolders } = useAppStore();
+  const { notes, folders, addFolder, searchQuery, setSearchQuery, reorderFolders, reorderNotes, updateFolderSortMode } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
@@ -114,8 +114,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
   
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
-  const [folderSortMode, setFolderSortMode] = useState<FolderSortMode>('edited');
-  const [customOrder, setCustomOrder] = useState<string[]>([]);
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   useEffect(() => { localStorage.setItem('boards-view', layoutMode); }, [layoutMode]);
@@ -161,13 +159,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     onInitialNoteConsumed?.();
   }, []); // intentionally runs once on mount
 
-  // Load per-folder sort preference from localStorage when folder selection changes
+  // Close sort menu when switching folders
   useEffect(() => {
-    if (!selectedFolder) return;
-    const saved = (localStorage.getItem(`folder-sort-${selectedFolder.id}`) as FolderSortMode) || 'edited';
-    setFolderSortMode(saved);
-    const savedOrder = localStorage.getItem(`folder-order-${selectedFolder.id}`);
-    setCustomOrder(savedOrder ? JSON.parse(savedOrder) : []);
     setShowSortMenu(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFolder?.id]);
@@ -218,13 +211,20 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     ...folderNotes.map(n => ({ kind: 'note' as const, id: n.id, note: n })),
   ];
 
+  // Sort mode is stored on the folder in Supabase; fall back to 'edited' for new/unset folders
+  const folderSortMode: FolderSortMode = (() => {
+    if (!selectedFolder) return 'edited';
+    const fresh = folders.find(f => f.id === selectedFolder.id);
+    return ((fresh?.sortMode ?? selectedFolder.sortMode) as FolderSortMode | undefined) ?? 'edited';
+  })();
+
   const sortedFolderItems: FolderItem[] = (() => {
     if (folderSortMode === 'custom') {
-      const newItems = allFolderItems.filter(item => !customOrder.includes(item.id));
-      const ordered = customOrder
-        .filter(id => allFolderItems.some(item => item.id === id))
-        .map(id => allFolderItems.find(item => item.id === id)!);
-      return [...newItems, ...ordered];
+      return [...allFolderItems].sort((a, b) => {
+        const posA = a.kind === 'note' ? (a.note.position ?? Infinity) : (a.folder.position ?? Infinity);
+        const posB = b.kind === 'note' ? (b.note.position ?? Infinity) : (b.folder.position ?? Infinity);
+        return posA - posB;
+      });
     }
     if (folderSortMode === 'edited') {
       return [...allFolderItems].sort((a, b) => {
@@ -253,14 +253,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     return allFolderItems;
   })();
 
-  const updateCustomOrder = (ids: string[]) => {
-    setCustomOrder(ids);
-    if (selectedFolder) localStorage.setItem(`folder-order-${selectedFolder.id}`, JSON.stringify(ids));
-  };
-
   const handleSetSortMode = (mode: FolderSortMode) => {
-    setFolderSortMode(mode);
-    if (selectedFolder) localStorage.setItem(`folder-sort-${selectedFolder.id}`, mode);
+    if (selectedFolder) updateFolderSortMode(selectedFolder.id, mode);
   };
 
   const handleAllItemsDragEnd = (event: DragEndEvent) => {
@@ -269,7 +263,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     const oldIndex = sortedFolderItems.findIndex(item => item.id === active.id);
     const newIndex = sortedFolderItems.findIndex(item => item.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    updateCustomOrder(arrayMove(sortedFolderItems, oldIndex, newIndex).map(item => item.id));
+    const newOrder = arrayMove(sortedFolderItems, oldIndex, newIndex);
+    reorderNotes(newOrder.map(item => ({
+      id: item.id,
+      type: (item.kind === 'note' ? 'note' : 'folder') as 'note' | 'folder',
+    })));
   };
 
   const parseNoteContent = (html: string): { header: string; preview: string } => {

@@ -48,6 +48,8 @@ interface AppState {
   updateFolder: (id: string, updates: Partial<Folder>) => void;
   deleteFolder: (id: string) => void;
   reorderFolders: (orderedIds: string[]) => void;
+  reorderNotes: (items: Array<{ id: string; type: 'note' | 'folder' }>) => void;
+  updateFolderSortMode: (folderId: string, sortMode: string) => void;
 
   // Task Categories
   taskCategories: TaskCategory[];
@@ -427,6 +429,33 @@ export const useAppStore = create<AppState>()((set, get) => {
       orderedIds.forEach((id, i) => {
         (supabase.from('note_folders') as any).update({ position: i }).eq('id', id).then(swallow('reorderFolders'));
       });
+    },
+
+    reorderNotes: (items) => {
+      const noteMap = new Map<string, number>();
+      const folderMap = new Map<string, number>();
+      items.forEach(({ id, type }, i) => {
+        if (type === 'note') noteMap.set(id, i);
+        else folderMap.set(id, i);
+      });
+      set((s) => ({
+        notes: s.notes.map((n) => noteMap.has(n.id) ? { ...n, position: noteMap.get(n.id)! } : n),
+        folders: s.folders.map((f) => folderMap.has(f.id) ? { ...f, position: folderMap.get(f.id)! } : f),
+      }));
+      items.forEach(({ id, type }, i) => {
+        if (type === 'note') {
+          (supabase.from('notes') as any).update({ position: i }).eq('id', id).then(swallow('reorderNotes'));
+        } else {
+          (supabase.from('note_folders') as any).update({ position: i }).eq('id', id).then(swallow('reorderFolderItems'));
+        }
+      });
+    },
+
+    updateFolderSortMode: (folderId, sortMode) => {
+      set((s) => ({
+        folders: s.folders.map((f) => f.id === folderId ? { ...f, sortMode } : f),
+      }));
+      (supabase.from('note_folders') as any).update({ sort_mode: sortMode }).eq('id', folderId).then(swallow('updateFolderSortMode'));
     },
 
     // ─────────────────────────── TASK CATEGORIES (lists) ───────────────────────────

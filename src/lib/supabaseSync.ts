@@ -186,6 +186,7 @@ export function rowToNote(row: Row): Note {
     showInCalendar: !!row.show_in_calendar,
     hideFromAllNotes: !!row.hide_from_all_notes,
     hideDate: !!row.hide_date,
+    position: row.position ?? undefined,
   };
 }
 export function noteToRow(n: Partial<Note>, userId: string): Row {
@@ -204,6 +205,7 @@ export function noteToRow(n: Partial<Note>, userId: string): Row {
   if (n.showInCalendar !== undefined) r.show_in_calendar = n.showInCalendar;
   if (n.hideFromAllNotes !== undefined) r.hide_from_all_notes = n.hideFromAllNotes;
   if (n.hideDate !== undefined) r.hide_date = n.hideDate;
+  if (n.position !== undefined) r.position = n.position ?? null;
   return r;
 }
 
@@ -215,6 +217,7 @@ export function rowToFolder(row: Row): Folder {
     color: asColor(row.color),
     position: row.position ?? undefined,
     parentId: row.parent_id ?? undefined,
+    sortMode: row.sort_mode ?? undefined,
   };
 }
 export function folderToRow(f: Partial<Folder>, userId: string): Row {
@@ -224,6 +227,7 @@ export function folderToRow(f: Partial<Folder>, userId: string): Row {
   if (f.color !== undefined) r.color = f.color;
   if (f.position !== undefined) r.position = f.position;
   if (f.parentId !== undefined) r.parent_id = f.parentId ?? null;
+  if (f.sortMode !== undefined) r.sort_mode = f.sortMode ?? null;
   return r;
 }
 

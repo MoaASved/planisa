@@ -87,6 +87,7 @@ export interface Note {
   showInCalendar?: boolean;
   hideFromAllNotes?: boolean;
   hideDate?: boolean;
+  position?: number;
 }
 
 // Separate category types for each section
@@ -113,6 +114,7 @@ export interface Folder {
   color: PastelColor;
   position?: number;
   parentId?: string;
+  sortMode?: string;
 }
 
 // Legacy Category type for backward compatibility
