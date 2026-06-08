@@ -289,9 +289,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   let nisaAction: (() => void) | null = null;
 
   if (focusItems.length === 0) {
-    nisaMessage = "You haven't set your focus yet today. What's the one thing that matters most? ✨";
+    nisaMessage = "You haven't set your focus for this week yet. What's the one thing that matters most? ✨";
   } else if (allTasksDone) {
-    nisaMessage = "You've completed everything in your focus list today. Incredible! 🎉";
+    nisaMessage = "You've completed everything in your focus list this week. Incredible! 🎉";
   } else if (brainDumpItems.length > 0) {
     const n = brainDumpItems.length;
     nisaMessage = `You have ${n} unsorted brain dump item${n === 1 ? '' : 's'} waiting. Want to sort them now?`;
@@ -299,7 +299,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   } else if (habits.length > 0 && !habitsCompletedToday) {
     nisaMessage = "Don't forget your habits today — you're on a streak! 💪";
   } else if (currentHour >= 17 && taskFocusItems.length > 0 && !anyTaskDone) {
-    nisaMessage = "Still time to knock out your focus items before the day ends 🌙";
+    nisaMessage = "Still time to knock out your focus items before the week is over 🌙";
   } else {
     nisaMessage = `You're all set for today, ${userName}. Let's make it count! 🌟`;
   }
