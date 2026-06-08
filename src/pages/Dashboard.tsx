@@ -54,6 +54,15 @@ const TYPE_ICONS: Record<FocusItemType, React.ElementType> = {
   custom: PenLine,
 };
 
+// ─── ISO week number (Monday = start of week) ────────────────────────────────
+const getWeekNumber = (date: Date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+  const week1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+};
+
 // ─── Swipeable focus card ─────────────────────────────────────────────────────
 
 interface FocusCardProps {
@@ -397,10 +406,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       <div className="px-4 pb-32">
         <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
-        {/* ── Today's Focus ─────────────────────────────────────────────── */}
+        {/* ── Weekly Focus ──────────────────────────────────────────────── */}
         <div className="flow-widget order-1 md:order-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Today's focus</h2>
+            <h2 className="flow-section-title">Weekly Focus</h2>
             {focusItems.length < 3 && (
               <button
                 onClick={onAddFocus}
@@ -417,7 +426,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               <p className="text-muted-foreground text-sm">Loading…</p>
             )}
             {!loadingFocus && focusItems.length === 0 && (
-              <p className="text-muted-foreground text-sm">No focus for today</p>
+              <p className="text-muted-foreground text-sm">No focus this week</p>
             )}
             {!loadingFocus && focusItems.map(item => (
               <FocusCard
@@ -757,8 +766,14 @@ const Dashboard: React.FC = () => {
   const [showTrialModal, setShowTrialModal] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
-  // ── Load focus items for today ──────────────────────────────────────────────
-  const todayDate = new Date().toISOString().split('T')[0];
+  // ── Load focus items for this week ─────────────────────────────────────────
+  const currentWeekNumber = getWeekNumber(new Date());
+  const currentYear = (() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    return d.getFullYear();
+  })();
 
   const loadFocusItems = useCallback(async () => {
     if (!user) return;
@@ -768,7 +783,8 @@ const Dashboard: React.FC = () => {
         .from('focus_items')
         .select('id, item_id, item_type, title, subtitle')
         .eq('user_id', user.id)
-        .eq('date', todayDate)
+        .eq('week_number', currentWeekNumber)
+        .eq('year', currentYear)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -786,7 +802,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoadingFocus(false);
     }
-  }, [user, todayDate]);
+  }, [user, currentWeekNumber, currentYear]);
 
   // ── Add confirmed focus items ───────────────────────────────────────────────
   const handleFocusConfirm = async (candidates: FocusCandidate[]) => {
@@ -800,7 +816,8 @@ const Dashboard: React.FC = () => {
       item_id: c.item_id,
       title: c.title,
       subtitle: c.subtitle,
-      date: todayDate,
+      week_number: currentWeekNumber,
+      year: currentYear,
     }));
 
     console.log('[Focus] inserting rows:', rows);
