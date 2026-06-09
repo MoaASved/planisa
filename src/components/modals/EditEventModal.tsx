@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { X, Plus, Calendar, Clock, Tag, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -191,18 +191,13 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                 {endDate && endDate !== date ? (
                   <>
                     <span className="text-sm text-muted-foreground flex-shrink-0 mx-0.5">—</span>
-                    <label className="relative flex-shrink-0 cursor-pointer select-none">
-                      <span className="text-sm font-medium text-foreground whitespace-nowrap">
-                        {format(parseISO(endDate), 'd MMM')}
-                      </span>
-                      <input
-                        type="date"
-                        value={endDate}
-                        min={date}
-                        onChange={(e) => { setEndDate(e.target.value); triggerAutoSave(); }}
-                        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                      />
-                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={date}
+                      onChange={e => { setEndDate(e.target.value); triggerAutoSave(); }}
+                      className="text-sm font-medium text-foreground bg-transparent border-none outline-none flex-shrink-0 cursor-pointer"
+                    />
                     <button
                       type="button"
                       onClick={() => { setEndDate(date); triggerAutoSave(); }}
@@ -212,16 +207,18 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                     </button>
                   </>
                 ) : (
-                  <label className="relative flex items-center justify-center w-5 h-5 rounded text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0 cursor-pointer">
-                    <input
-                      type="date"
-                      value={endDate || date}
-                      min={date}
-                      onChange={(e) => { setEndDate(e.target.value); triggerAutoSave(); }}
-                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-                    />
-                    <Plus className="w-3.5 h-3.5 pointer-events-none" />
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextDay = new Date(date);
+                      nextDay.setDate(nextDay.getDate() + 1);
+                      setEndDate(format(nextDay, 'yyyy-MM-dd'));
+                      triggerAutoSave();
+                    }}
+                    className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
+                  >
+                    + end
+                  </button>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
