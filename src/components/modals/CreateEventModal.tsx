@@ -170,16 +170,28 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
           {/* Date + All Day */}
           <div className="bg-secondary rounded-xl overflow-hidden">
             <div className="flex items-center justify-between p-3">
-              <div className="flex items-center gap-2 flex-1">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+              <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => handleStartDateChange(e.target.value)}
-                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                  className="bg-transparent border-0 outline-none text-sm font-medium text-foreground min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
                 />
+                {endDate && endDate !== date && (
+                  <>
+                    <span className="text-sm text-muted-foreground flex-shrink-0">—</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={date}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="bg-transparent border-0 outline-none text-sm font-medium text-foreground min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                    />
+                  </>
+                )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <span className="text-sm text-muted-foreground">All Day</span>
                 <button onClick={() => setIsAllDay(!isAllDay)}>
                   <div className={cn('w-11 h-6 rounded-full transition-all duration-300 relative border', isAllDay ? 'bg-primary/20 border-primary/40' : 'bg-muted border-border')}>
@@ -192,33 +204,20 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
 
           {/* Time */}
           {!isAllDay && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => handleStartTimeChange(e.target.value)}
-                  className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-                />
-                <span className="text-muted-foreground text-sm">–</span>
-                <input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => handleEndTimeChange(e.target.value)}
-                  className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-                />
-              </div>
-              <div className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-2.5">
-                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">End date</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  min={date}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
+                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+              />
+              <span className="text-muted-foreground text-sm">–</span>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => handleEndTimeChange(e.target.value)}
+                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+              />
             </div>
           )}
 
