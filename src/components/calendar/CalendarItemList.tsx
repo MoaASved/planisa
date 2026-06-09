@@ -327,7 +327,7 @@ export function CalendarItemList({
         } else if (role === 'middle') {
           time = '00:00';
           endTime = '23:59';
-          displayLabel = '';  // empty = hide time label, show title only
+          displayLabel = '↔';  // continues in both directions
         } else if (role === 'end') {
           time = '00:00';
           endTime = e.endTime;
