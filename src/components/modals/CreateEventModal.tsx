@@ -28,7 +28,6 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [checklistInput, setChecklistInput] = useState('');
   const endTimeManuallySet = useRef(false);
-  const endDateRef = useRef<HTMLInputElement>(null);
 
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -183,33 +182,31 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                   <>
                     <span className="text-sm text-muted-foreground flex-shrink-0">—</span>
                     <input
-                      ref={endDateRef}
                       type="date"
                       value={endDate}
                       min={date}
                       onChange={(e) => setEndDate(e.target.value)}
                       className="bg-transparent border-0 outline-none text-sm font-medium text-foreground min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setEndDate(date)}
+                      className="w-4 h-4 flex items-center justify-center rounded-full text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/10 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </>
                 ) : (
-                  <>
+                  <label className="relative text-xs text-muted-foreground/50 hover:text-muted-foreground px-1.5 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0 cursor-pointer select-none">
+                    + end date
                     <input
-                      ref={endDateRef}
                       type="date"
                       value={endDate || date}
                       min={date}
                       onChange={(e) => setEndDate(e.target.value)}
-                      tabIndex={-1}
-                      className="opacity-0 absolute w-px h-px overflow-hidden pointer-events-none"
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                     />
-                    <button
-                      type="button"
-                      onClick={() => endDateRef.current?.showPicker?.()}
-                      className="text-xs text-muted-foreground/50 hover:text-muted-foreground px-1.5 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
-                    >
-                      + end date
-                    </button>
-                  </>
+                  </label>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
