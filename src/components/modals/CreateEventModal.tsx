@@ -203,7 +203,6 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                   </>
                 ) : (
                   <label className="relative flex items-center justify-center w-5 h-5 rounded text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0 cursor-pointer">
-                    <Plus className="w-3.5 h-3.5" />
                     <input
                       type="date"
                       value={endDate || date}
@@ -211,6 +210,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                       onChange={(e) => setEndDate(e.target.value)}
                       className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                     />
+                    <Plus className="w-3.5 h-3.5 pointer-events-none" />
                   </label>
                 )}
               </div>
