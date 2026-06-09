@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor, ChecklistItem } from '@/types';
 import { pastelColors } from '@/lib/colors';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -180,14 +180,19 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                 />
                 {endDate && endDate !== date ? (
                   <>
-                    <span className="text-sm text-muted-foreground flex-shrink-0">—</span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      min={date}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="bg-transparent border-0 outline-none text-sm font-medium text-foreground min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-                    />
+                    <span className="text-sm text-muted-foreground flex-shrink-0 mx-0.5">—</span>
+                    <label className="relative flex-shrink-0 cursor-pointer select-none">
+                      <span className="text-sm font-medium text-foreground whitespace-nowrap">
+                        {format(parseISO(endDate), 'd MMM')}
+                      </span>
+                      <input
+                        type="date"
+                        value={endDate}
+                        min={date}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                      />
+                    </label>
                     <button
                       type="button"
                       onClick={() => setEndDate(date)}
@@ -197,8 +202,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                     </button>
                   </>
                 ) : (
-                  <label className="relative text-xs text-muted-foreground/50 hover:text-muted-foreground px-1.5 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0 cursor-pointer select-none">
-                    + end date
+                  <label className="relative flex items-center justify-center w-5 h-5 rounded text-muted-foreground/50 hover:text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0 cursor-pointer">
+                    <Plus className="w-3.5 h-3.5" />
                     <input
                       type="date"
                       value={endDate || date}
