@@ -778,7 +778,7 @@ export function CalendarItemList({
             onScroll={checkTimelineScroll}
             onDoubleClick={handleTimelineDoubleClick}
             onTouchEnd={handleTimelineTouchEnd}
-            className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none"
+            className="absolute inset-0 overflow-y-auto overflow-x-hidden select-none pt-6"
           >
 
             {/* Timeline */}
