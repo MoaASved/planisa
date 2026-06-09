@@ -40,7 +40,17 @@ const addMinutes = (time: string, minutes: number): string => {
 
 type ItemType = 'events' | 'tasks' | 'notes';
 
-type TimedItem = { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time: string; endTime?: string };
+type TimedItem = { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time: string; endTime?: string; displayLabel?: string };
+
+// Returns where a given dateStr falls within a multi-day event's span
+const getMultiDayRole = (event: CalendarEvent, ds: string): 'single' | 'start' | 'middle' | 'end' => {
+  const startStr = format(new Date(event.date), 'yyyy-MM-dd');
+  const endStr = event.endDate ? format(new Date(event.endDate), 'yyyy-MM-dd') : startStr;
+  if (startStr === endStr) return 'single';
+  if (ds === startStr) return 'start';
+  if (ds === endStr) return 'end';
+  return 'middle';
+};
 
 // Calculate overlap columns for timeline items (Apple Calendar style)
 const getOverlapColumns = (items: TimedItem[]): Map<string, { column: number; totalColumns: number }> => {
@@ -222,8 +232,14 @@ export function CalendarItemList({
   }, [showTimeline, checkTimelineScroll]);
 
   // Filter items for this date
-  const dayEvents = useMemo(() => 
-    events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === dateStr),
+  const dayEvents = useMemo(() =>
+    events.filter(e => {
+      const startStr = format(new Date(e.date), 'yyyy-MM-dd');
+      const endStr = e.endDate
+        ? format(new Date(e.endDate), 'yyyy-MM-dd')
+        : startStr;
+      return dateStr >= startStr && dateStr <= endStr;
+    }),
     [events, dateStr]
   );
   
@@ -251,8 +267,15 @@ export function CalendarItemList({
     
     if (activeFilters.includes('events')) {
       dayEvents.forEach(e => {
-        const time = e.isAllDay ? undefined : e.startTime;
-        items.push({ type: 'event', item: e, time, endTime: e.endTime });
+        if (e.isAllDay) { items.push({ type: 'event', item: e, time: undefined, endTime: undefined }); return; }
+        const role = getMultiDayRole(e, dateStr);
+        let time: string | undefined;
+        let endTime: string | undefined;
+        if (role === 'single') { time = e.startTime; endTime = e.endTime; }
+        else if (role === 'start') { time = e.startTime ? `${e.startTime} →` : undefined; }
+        else if (role === 'end') { time = e.endTime ? `→ ${e.endTime}` : '→'; }
+        // middle: time stays undefined — no time label shown
+        items.push({ type: 'event', item: e, time, endTime });
       });
     }
     if (activeFilters.includes('tasks')) {
@@ -293,7 +316,25 @@ export function CalendarItemList({
     const items: { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time: string; endTime?: string }[] = [];
     
     if (activeFilters.includes('events')) {
-      timedEvents.forEach(e => items.push({ type: 'event', item: e, time: e.startTime!, endTime: e.endTime }));
+      timedEvents.forEach(e => {
+        const role = getMultiDayRole(e, dateStr);
+        let time = e.startTime!;
+        let endTime = e.endTime;
+        let displayLabel: string | undefined;
+        if (role === 'start') {
+          endTime = '23:59';
+          displayLabel = `${e.startTime} →`;
+        } else if (role === 'middle') {
+          time = '00:00';
+          endTime = '23:59';
+          displayLabel = '';  // empty = hide time label, show title only
+        } else if (role === 'end') {
+          time = '00:00';
+          endTime = e.endTime;
+          displayLabel = e.endTime ? `→ ${e.endTime}` : '→';
+        }
+        items.push({ type: 'event', item: e, time, endTime, displayLabel });
+      });
     }
     if (activeFilters.includes('tasks')) {
       timedTasks.forEach(t => items.push({ type: 'task', item: t, time: t.time!, endTime: t.endTime }));
@@ -463,7 +504,8 @@ export function CalendarItemList({
     endTime?: string,
     compact?: boolean,
     fillHeight?: boolean,
-    centerContent?: boolean
+    centerContent?: boolean,
+    displayLabel?: string
   ) => {
     const color = type === 'note'
       ? getNoteColor(item as Note)
@@ -554,11 +596,16 @@ export function CalendarItemList({
             <span className={cn('font-semibold truncate', compact ? 'text-xs' : 'text-sm')}>
               {event.title}
             </span>
-            {time && (
-              <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
-                {time}{endTime && ` - ${endTime}`}
-              </span>
-            )}
+            {(() => {
+              const label = displayLabel !== undefined
+                ? displayLabel
+                : (time ? `${time}${endTime ? ` - ${endTime}` : ''}` : '');
+              return label ? (
+                <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
+                  {label}
+                </span>
+              ) : null;
+            })()}
           </div>
         </div>
       );
@@ -765,7 +812,7 @@ export function CalendarItemList({
 
               {/* Timed items with column layout for overlaps */}
               <div className="absolute left-16 right-4 top-0 bottom-0">
-                {timedItems.map(({ type, item, time, endTime }) => {
+                {timedItems.map(({ type, item, time, endTime, displayLabel }) => {
                   const top = getTimePosition(time);
                   const GAP = 4;
 
@@ -884,7 +931,7 @@ export function CalendarItemList({
                         width: blockWidth,
                       }}
                     >
-                      {renderItemCard(item, type, time, endTime, true, true, shortBlock)}
+                      {renderItemCard(item, type, time, endTime, true, true, shortBlock, displayLabel)}
                     </div>
                   );
                 })}
