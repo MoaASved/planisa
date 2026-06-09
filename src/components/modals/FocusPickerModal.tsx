@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Check, Calendar, CheckSquare, FileText, Pin, Search, PenLine, Plus } from 'lucide-react';
-import { format, parseISO, isToday } from 'date-fns';
+import { format, parseISO, isToday, startOfWeek, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
@@ -14,6 +14,12 @@ export interface FocusCandidate {
   item_type: FocusItemType;
   title: string;
   subtitle: string;
+}
+
+interface ItemGroup {
+  label: string;
+  dateStr: string;
+  items: FocusCandidate[];
 }
 
 interface FocusPickerModalProps {
@@ -46,25 +52,32 @@ function fmtDate(dateStr: string | null | undefined): string {
   try { return format(parseISO(dateStr), 'MMM d'); } catch { return ''; }
 }
 
-function fmtDateTime(dateStr: string | null | undefined, timeStr: string | null | undefined): string {
-  const d = fmtDate(dateStr);
-  if (!d) return '';
-  return timeStr ? `${d} at ${timeStr}` : d;
-}
-
 function fmtUpdated(ts: string | null | undefined): string {
   if (!ts) return '';
   try { return format(parseISO(ts), 'MMM d'); } catch { return ''; }
 }
 
-function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+// Returns YYYY-MM-DD strings for Monday and Sunday of the current ISO week
+function getWeekBounds(): { monday: string; sunday: string; mondayDate: Date; sundayDate: Date } {
+  const mondayDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const sundayDate = addDays(mondayDate, 6);
+  const fmt = (d: Date) => format(d, 'yyyy-MM-dd');
+  return { monday: fmt(mondayDate), sunday: fmt(sundayDate), mondayDate, sundayDate };
+}
+
+function getDayLabel(dateStr: string): string {
+  try {
+    const date = parseISO(dateStr);
+    if (isToday(date)) return `${format(date, 'EEEE')} — Today`;
+    return format(date, 'EEEE');
+  } catch { return dateStr; }
 }
 
 export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConfirm }: FocusPickerModalProps) {
   const { modalTop, maxHeight } = useVisualViewport(70);
   const [activeTab, setActiveTab] = useState<FocusItemType>('task');
   const [items, setItems] = useState<FocusCandidate[]>([]);
+  const [itemGroups, setItemGroups] = useState<ItemGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<FocusCandidate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,8 +86,11 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   const cap = 3 - currentCount;
   const remaining = cap - selected.length;
 
+  const { monday, sunday, mondayDate, sundayDate } = getWeekBounds();
+  const weekRangeLabel = `${format(mondayDate, 'd MMM')} – ${format(sundayDate, 'd MMM yyyy')}`;
+
   useEffect(() => {
-    if (!isOpen) { setSelected([]); setActiveTab('task'); setSearchQuery(''); setCustomText(''); return; }
+    if (!isOpen) { setSelected([]); setActiveTab('task'); setSearchQuery(''); setCustomText(''); setItemGroups([]); return; }
     fetchTab('task');
   }, [isOpen]);
 
@@ -89,6 +105,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
     if (!userId || tab === 'custom') return;
     setLoading(true);
     setItems([]);
+    setItemGroups([]);
     try {
       if (tab === 'task') {
         const { data } = await supabase
@@ -112,7 +129,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           return 0;
         });
 
-        setItems(sorted.map(r => {
+        const mapped = sorted.map(r => {
           const parts: string[] = [];
           if (r.priority && r.priority !== 'none') parts.push(r.priority.charAt(0).toUpperCase() + r.priority.slice(1) + ' priority');
           if (r.due_date) {
@@ -121,27 +138,70 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           }
           if (r.category_name) parts.push(r.category_name);
           return {
-            id: r.id, item_id: r.id, item_type: 'task' as FocusItemType,
-            title: r.title || 'Untitled',
-            subtitle: parts.join(' · '),
+            candidate: {
+              id: r.id, item_id: r.id, item_type: 'task' as FocusItemType,
+              title: r.title || 'Untitled',
+              subtitle: parts.join(' · '),
+            },
+            due_date: r.due_date as string | null,
           };
-        }));
+        });
+
+        // Group this-week tasks by due date; collect others flat
+        const byDay = new Map<string, ItemGroup>();
+        const otherItems: FocusCandidate[] = [];
+
+        for (const { candidate, due_date } of mapped) {
+          if (due_date && due_date >= monday && due_date <= sunday) {
+            if (!byDay.has(due_date)) {
+              byDay.set(due_date, { label: getDayLabel(due_date), dateStr: due_date, items: [] });
+            }
+            byDay.get(due_date)!.items.push(candidate);
+          } else {
+            otherItems.push(candidate);
+          }
+        }
+
+        const weekGroups = Array.from(byDay.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+        if (otherItems.length > 0) {
+          weekGroups.push({ label: 'Other tasks', dateStr: '', items: otherItems });
+        }
+
+        setItemGroups(weekGroups);
+        setItems(mapped.map(m => m.candidate));
 
       } else if (tab === 'event') {
-        const today = todayStr();
         const { data } = await supabase
           .from('events')
           .select('id, title, event_date, time_text')
           .eq('user_id', userId)
-          .eq('event_date', today)
+          .gte('event_date', monday)
+          .lte('event_date', sunday)
+          .order('event_date', { ascending: true })
           .order('time_text', { ascending: true, nullsFirst: false })
-          .limit(40);
+          .limit(100);
 
-        setItems((data ?? []).map(r => ({
-          id: r.id, item_id: r.id, item_type: 'event' as FocusItemType,
-          title: r.title || 'Untitled',
-          subtitle: r.time_text ? `Today at ${r.time_text}` : 'Today',
-        })));
+        const byDay = new Map<string, ItemGroup>();
+        const allItems: FocusCandidate[] = [];
+
+        for (const r of (data ?? [])) {
+          const dateStr = r.event_date;
+          if (!dateStr) continue;
+          if (!byDay.has(dateStr)) {
+            byDay.set(dateStr, { label: getDayLabel(dateStr), dateStr, items: [] });
+          }
+          const candidate: FocusCandidate = {
+            id: r.id, item_id: r.id, item_type: 'event' as FocusItemType,
+            title: r.title || 'Untitled',
+            subtitle: r.time_text ?? '',
+          };
+          byDay.get(dateStr)!.items.push(candidate);
+          allItems.push(candidate);
+        }
+
+        const groups = Array.from(byDay.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+        setItemGroups(groups);
+        setItems(allItems);
 
       } else if (tab === 'note') {
         const { data } = await supabase
@@ -210,6 +270,9 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
     );
   }, [items, searchQuery]);
 
+  // Grouped view: events and tasks when no active search
+  const showGroups = (activeTab === 'event' || activeTab === 'task') && !searchQuery.trim() && itemGroups.length > 0;
+
   const toggle = (item: FocusCandidate) => {
     setSelected(prev => {
       const already = prev.some(s => s.item_id === item.item_id && s.item_type === item.item_type);
@@ -249,6 +312,36 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   const isSelected = (item: FocusCandidate) =>
     selected.some(s => s.item_id === item.item_id && s.item_type === item.item_type);
 
+  const renderItemButton = (item: FocusCandidate) => {
+    const sel = isSelected(item);
+    const disabled = !sel && remaining <= 0;
+    return (
+      <button
+        key={item.id}
+        onClick={() => !disabled && toggle(item)}
+        disabled={disabled}
+        className={cn(
+          'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors',
+          sel ? 'bg-primary/10 border border-primary/30' : 'bg-secondary/60 hover:bg-secondary',
+          disabled && 'opacity-40'
+        )}
+      >
+        <div className={cn(
+          'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
+          sel ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+        )}>
+          {sel && <Check className="w-3 h-3 text-primary-foreground" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+          {item.subtitle && (
+            <p className="text-xs text-muted-foreground truncate mt-0.5">{item.subtitle}</p>
+          )}
+        </div>
+      </button>
+    );
+  };
+
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
@@ -264,9 +357,10 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
             <div>
-              <h2 className="flow-modal-title">Today's Focus</h2>
+              <h2 className="flow-modal-title">Weekly Focus</h2>
               <p className="flow-meta mt-0.5">
                 {remaining > 0 ? `${remaining} slot${remaining !== 1 ? 's' : ''} remaining` : 'Selection full'}
+                <span className="ml-2 opacity-50">{weekRangeLabel}</span>
               </p>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
@@ -353,42 +447,33 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
 
           {/* List — only shown on non-custom tabs */}
           {activeTab !== 'custom' && (
-            <div className="overflow-y-auto flex-1 px-5 pb-3 space-y-2">
+            <div className="overflow-y-auto flex-1 px-5 pb-3">
               {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>}
-              {!loading && filteredItems.length === 0 && (
+              {!loading && items.length === 0 && (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  {activeTab === 'event' ? 'No events today' : searchQuery ? 'No results' : 'No items found'}
+                  {activeTab === 'event' ? 'No events this week' : searchQuery ? 'No results' : 'No items found'}
                 </div>
               )}
-              {!loading && filteredItems.map(item => {
-                const sel = isSelected(item);
-                const disabled = !sel && remaining <= 0;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => !disabled && toggle(item)}
-                    disabled={disabled}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-colors',
-                      sel ? 'bg-primary/10 border border-primary/30' : 'bg-secondary/60 hover:bg-secondary',
-                      disabled && 'opacity-40'
-                    )}
-                  >
-                    <div className={cn(
-                      'w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
-                      sel ? 'bg-primary border-primary' : 'border-muted-foreground/40'
-                    )}>
-                      {sel && <Check className="w-3 h-3 text-primary-foreground" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                      {item.subtitle && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">{item.subtitle}</p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+              {!loading && items.length > 0 && (
+                showGroups ? (
+                  <div className="space-y-4">
+                    {itemGroups.map(group => (
+                      <div key={group.dateStr || group.label}>
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 px-1">
+                          {group.label}
+                        </p>
+                        <div className="space-y-2">
+                          {group.items.map(item => renderItemButton(item))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredItems.map(item => renderItemButton(item))}
+                  </div>
+                )
+              )}
             </div>
           )}
 
