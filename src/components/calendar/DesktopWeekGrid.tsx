@@ -233,13 +233,16 @@ export function DesktopWeekGrid({
         const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
         const isStartDay = ds === startDs;
         const isMultiDay = endDs !== startDs;
+        const displayLabel = isMultiDay
+          ? (isStartDay ? `${e.startTime} →` : (e.endTime ? `→ ${e.endTime}` : '→'))
+          : undefined;
         return {
           type: 'event' as const,
           item: e as any,
-          // Start day: runs from startTime to midnight; end day: runs from midnight to endTime
           time: isStartDay ? e.startTime! : '00:00',
           endTime: isStartDay && isMultiDay ? '23:59' : e.endTime,
           label: e.title,
+          displayLabel,
         };
       }),
       ...dt.filter(t => t.time).map(t => ({
@@ -437,7 +440,7 @@ export function DesktopWeekGrid({
 
                 {/* Timed items */}
                 <div className="absolute inset-0 px-0.5">
-                  {timed.map(({ type, item, time, endTime, label }) => {
+                  {timed.map(({ type, item, time, endTime, label, displayLabel }) => {
                     const top = toMin(time) * HOUR_HEIGHT / 60;
                     const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
                     const isTask = type === 'task';
@@ -528,11 +531,16 @@ export function DesktopWeekGrid({
                               <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: blockTextColor }} />
                             )}
                             <span className={cn('text-[10px] font-medium truncate flex-1', completed && 'line-through')} style={{ color: blockTextColor }}>{label}</span>
-                            {time && (
-                              <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
-                                {time}{endTime && ` – ${endTime}`}
-                              </span>
-                            )}
+                            {(() => {
+                              const tl = displayLabel !== undefined
+                                ? displayLabel
+                                : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
+                              return tl ? (
+                                <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
+                                  {tl}
+                                </span>
+                              ) : null;
+                            })()}
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
@@ -552,11 +560,16 @@ export function DesktopWeekGrid({
                                   className={cn('text-[11px] font-semibold leading-tight', completed && 'line-through', height < 48 ? 'truncate' : 'line-clamp-2')}
                                   style={{ color: blockTextColor }}
                                 >{label}</p>
-                                {height >= 46 && (
-                                  <p className="text-[10px] mt-0.5 leading-none" style={{ color: blockTextColor, opacity: 0.55 }}>
-                                    {time}{endTime && ` – ${endTime}`}
-                                  </p>
-                                )}
+                                {height >= 46 && (() => {
+                                  const tl = displayLabel !== undefined
+                                    ? displayLabel
+                                    : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
+                                  return tl ? (
+                                    <p className="text-[10px] mt-0.5 leading-none" style={{ color: blockTextColor, opacity: 0.55 }}>
+                                      {tl}
+                                    </p>
+                                  ) : null;
+                                })()}
                               </div>
                             </div>
                           </div>
