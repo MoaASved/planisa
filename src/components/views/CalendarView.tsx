@@ -126,6 +126,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   };
 
   const handleDesktopViewChange = (v: DesktopView) => {
+    if (v === 'week' || v === 'day') setCurrentDate(selectedDate);
     setDesktopView(v);
     if (v === 'month') setView('month');
     else if (v === 'week' || v === 'day') setView('weekday');
@@ -133,6 +134,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
 
   // Mobile icon buttons: sync desktopView so prev/next navigation stays correct
   const handleViewChange = (v: SimpleView) => {
+    if (v === 'weekday') setCurrentDate(selectedDate);
     setView(v);
     setDesktopView(v === 'month' ? 'month' : 'week');
   };
