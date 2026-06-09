@@ -200,20 +200,48 @@ export function DesktopWeekGrid({
   // Per-day data
   const dayData = weekDays.map(day => {
     const ds = format(day, 'yyyy-MM-dd');
-    const de = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === ds);
+    // Include events whose date range covers this day
+    const de = events.filter(e => {
+      const startDs = format(new Date(e.date), 'yyyy-MM-dd');
+      const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
+      return ds >= startDs && ds <= endDs;
+    });
     const dt = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === ds);
     const dn = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === ds);
 
     const allDay = [
-      ...de.filter(e => e.isAllDay || !e.startTime).map(e => ({ type: 'event' as const, item: e as any, label: e.title })),
+      ...de.filter(e => {
+        if (e.isAllDay || !e.startTime) return true;
+        const startDs = format(new Date(e.date), 'yyyy-MM-dd');
+        const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
+        // Middle days of multi-day events appear as all-day blocks
+        return ds !== startDs && ds !== endDs;
+      }).map(e => ({ type: 'event' as const, item: e as any, label: e.title })),
       ...dt.filter(t => !t.time).map(t => ({ type: 'task' as const, item: t as any, label: t.title })),
       ...dn.filter(n => !n.time).map(n => ({ type: 'note' as const, item: n as any, label: getNoteTitle(n) })),
     ];
 
     const timed = [
-      ...de.filter(e => !e.isAllDay && e.startTime).map(e => ({
-        type: 'event' as const, item: e as any, time: e.startTime!, endTime: e.endTime, label: e.title,
-      })),
+      ...de.filter(e => {
+        if (e.isAllDay || !e.startTime) return false;
+        const startDs = format(new Date(e.date), 'yyyy-MM-dd');
+        const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
+        // Only start day and end day show as timed blocks
+        return ds === startDs || ds === endDs;
+      }).map(e => {
+        const startDs = format(new Date(e.date), 'yyyy-MM-dd');
+        const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
+        const isStartDay = ds === startDs;
+        const isMultiDay = endDs !== startDs;
+        return {
+          type: 'event' as const,
+          item: e as any,
+          // Start day: runs from startTime to midnight; end day: runs from midnight to endTime
+          time: isStartDay ? e.startTime! : '00:00',
+          endTime: isStartDay && isMultiDay ? '23:59' : e.endTime,
+          label: e.title,
+        };
+      }),
       ...dt.filter(t => t.time).map(t => ({
         type: 'task' as const, item: t as any, time: t.time!, endTime: t.endTime, label: t.title,
       })),

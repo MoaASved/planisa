@@ -19,6 +19,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   const { deleteWithUndo } = useUndoableDelete();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState('');
@@ -43,8 +44,10 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
 
   useEffect(() => {
     if (event) {
+      const dateStr = format(new Date(event.date), 'yyyy-MM-dd');
       setTitle(event.title);
-      setDate(format(new Date(event.date), 'yyyy-MM-dd'));
+      setDate(dateStr);
+      setEndDate(event.endDate ? format(new Date(event.endDate), 'yyyy-MM-dd') : dateStr);
       setStartTime(event.startTime || '');
       setEndTime(event.endTime || '');
       setCategory(event.category);
@@ -72,6 +75,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
     updateEvent(event.id, {
       title: title.trim(),
       date: new Date(date),
+      endDate: (endDate && endDate !== date) ? new Date(endDate + 'T00:00:00') : undefined,
       startTime: isAllDay ? undefined : startTime || undefined,
       endTime: isAllDay ? undefined : endTime || undefined,
       category,
@@ -81,7 +85,24 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       checklist,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event, title, date, startTime, endTime, isAllDay, category, color, description, checklist]));
+  }, [event, title, date, endDate, startTime, endTime, isAllDay, category, color, description, checklist]));
+
+  const handleStartDateChange = (newDate: string) => {
+    setDate(newDate);
+    if (!endDate || endDate < newDate) setEndDate(newDate);
+    triggerAutoSave();
+  };
+
+  const handleEndTimeChange = (newEndTime: string) => {
+    endTimeManuallySet.current = true;
+    setEndTime(newEndTime);
+    if (date && startTime && newEndTime && newEndTime < startTime) {
+      const d = new Date(date + 'T00:00:00');
+      d.setDate(d.getDate() + 1);
+      setEndDate(format(d, 'yyyy-MM-dd'));
+    }
+    triggerAutoSave();
+  };
 
   const addChecklistItem = () => {
     if (!checklistInput.trim()) return;
@@ -113,6 +134,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
     updateEvent(event.id, {
       title: title.trim(),
       date: new Date(date),
+      endDate: (endDate && endDate !== date) ? new Date(endDate + 'T00:00:00') : undefined,
       startTime: isAllDay ? undefined : startTime || undefined,
       endTime: isAllDay ? undefined : endTime || undefined,
       category,
@@ -163,7 +185,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                 <input
                   type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
                   className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
                 />
               </div>
@@ -179,28 +201,47 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
           </div>
 
           {!isAllDay && (
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => {
-                  setStartTime(e.target.value);
-                  if (!endTimeManuallySet.current && e.target.value) {
-                    setEndTime(calculateEndTime(e.target.value));
-                  }
-                }}
-                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-              />
-              <span className="text-muted-foreground text-sm">–</span>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => {
-                  endTimeManuallySet.current = true;
-                  setEndTime(e.target.value);
-                }}
-                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-              />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => {
+                    setStartTime(e.target.value);
+                    if (!endTimeManuallySet.current && e.target.value) {
+                      setEndTime(calculateEndTime(e.target.value));
+                    }
+                    triggerAutoSave();
+                  }}
+                  className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+                />
+                <span className="text-muted-foreground text-sm">–</span>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
+                  className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+                />
+              </div>
+              {endDate && endDate !== date && (
+                <div className="flex items-center gap-2 pl-1">
+                  <span className="text-xs text-muted-foreground">Ends on</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={date}
+                    onChange={(e) => { setEndDate(e.target.value); triggerAutoSave(); }}
+                    className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setEndDate(date); triggerAutoSave(); }}
+                    className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

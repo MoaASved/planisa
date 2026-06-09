@@ -86,7 +86,11 @@ export function MonthView({
 
   const getItemsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayEvents = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === dateStr);
+    const dayEvents = events.filter(e => {
+      const startStr = format(new Date(e.date), 'yyyy-MM-dd');
+      const endStr = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startStr;
+      return dateStr >= startStr && dateStr <= endStr;
+    });
     const dayTasks = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === dateStr);
     // calendarNotes filtered by showInCalendar — used for the list view and desktop pills
     const dayNotes = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === dateStr);

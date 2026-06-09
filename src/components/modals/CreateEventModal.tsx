@@ -18,6 +18,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const { addEvent, eventCategories, addEventCategory } = useAppStore();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [category, setCategory] = useState(eventCategories[0]?.name || 'Meetings');
@@ -42,7 +43,9 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
       setChecklist([]);
       setChecklistInput('');
       setIsAllDay(false);
-      setDate(initialDate ? format(initialDate, 'yyyy-MM-dd') : '');
+      const initDateStr = initialDate ? format(initialDate, 'yyyy-MM-dd') : '';
+      setDate(initDateStr);
+      setEndDate(initDateStr);
       if (initialTime) {
         handleStartTimeChange(initialTime);
       } else {
@@ -63,9 +66,21 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     }
   };
 
+  const handleStartDateChange = (newDate: string) => {
+    setDate(newDate);
+    // Keep end date at or after start date
+    if (!endDate || endDate < newDate) setEndDate(newDate);
+  };
+
   const handleEndTimeChange = (newEndTime: string) => {
     endTimeManuallySet.current = true;
     setEndTime(newEndTime);
+    // Auto-advance end date to next day when end time wraps past midnight
+    if (date && startTime && newEndTime && newEndTime < startTime) {
+      const d = new Date(date + 'T00:00:00');
+      d.setDate(d.getDate() + 1);
+      setEndDate(format(d, 'yyyy-MM-dd'));
+    }
   };
 
 
@@ -99,6 +114,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     addEvent({
       title: title.trim(),
       date: new Date(date),
+      endDate: (endDate && endDate !== date) ? new Date(endDate + 'T00:00:00') : undefined,
       startTime: isAllDay ? undefined : startTime || undefined,
       endTime: isAllDay ? undefined : endTime || undefined,
       category,
@@ -111,6 +127,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     // Reset form
     setTitle('');
     setDate('');
+    setEndDate('');
     setStartTime('');
     setEndTime('');
     setCategory(eventCategories[0]?.name || 'Meetings');
@@ -158,7 +175,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                 <input
                   type="date"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
                   className="bg-transparent border-0 outline-none text-sm font-medium text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
                 />
               </div>
@@ -175,20 +192,41 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
 
           {/* Time */}
           {!isAllDay && (
-            <div className="flex items-center gap-2">
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => handleStartTimeChange(e.target.value)}
-                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-              />
-              <span className="text-muted-foreground text-sm">–</span>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => handleEndTimeChange(e.target.value)}
-                className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
-              />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
+                  className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+                />
+                <span className="text-muted-foreground text-sm">–</span>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => handleEndTimeChange(e.target.value)}
+                  className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
+                />
+              </div>
+              {endDate && endDate !== date && (
+                <div className="flex items-center gap-2 pl-1">
+                  <span className="text-xs text-muted-foreground">Ends on</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={date}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setEndDate(date)}
+                    className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

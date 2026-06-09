@@ -154,6 +154,7 @@ export type Database = {
           color: string | null
           created_at: string
           description: string | null
+          end_date: string | null
           end_time: string | null
           end_time_text: string | null
           event_date: string | null
@@ -170,6 +171,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          end_date?: string | null
           end_time?: string | null
           end_time_text?: string | null
           event_date?: string | null
@@ -186,6 +188,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          end_date?: string | null
           end_time?: string | null
           end_time_text?: string | null
           event_date?: string | null

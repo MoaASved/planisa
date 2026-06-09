@@ -118,11 +118,15 @@ export function taskSectionToRow(s: Partial<TaskSection>, userId: string): Row {
 }
 
 // ────────────── EVENTS ──────────────
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 export function rowToEvent(row: Row): CalendarEvent {
   return {
     id: row.id,
     title: row.title,
     date: row.event_date ? new Date(row.event_date) : new Date(row.created_at),
+    endDate: row.end_date ? new Date(row.end_date) : undefined,
     startTime: row.time_text ?? undefined,
     endTime: row.end_time_text ?? undefined,
     category: row.category_name ?? '',
@@ -136,11 +140,8 @@ export function eventToRow(e: Partial<CalendarEvent>, userId: string): Row {
   const r: Row = { user_id: userId };
   if (e.id !== undefined) r.id = e.id;
   if (e.title !== undefined) r.title = e.title;
-  if (e.date !== undefined) {
-    const d = new Date(e.date);
-    // store as date-only (YYYY-MM-DD)
-    r.event_date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
+  if (e.date !== undefined) r.event_date = toDateStr(new Date(e.date));
+  if ('endDate' in e) r.end_date = e.endDate ? toDateStr(new Date(e.endDate)) : null;
   if (e.startTime !== undefined) r.time_text = e.startTime ?? null;
   if (e.endTime !== undefined) r.end_time_text = e.endTime ?? null;
   if (e.category !== undefined) r.category_name = e.category ?? null;
