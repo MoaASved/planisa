@@ -223,25 +223,17 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
                   className="flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none text-foreground"
                 />
               </div>
-              {endDate && endDate !== date && (
-                <div className="flex items-center gap-2 pl-1">
-                  <span className="text-xs text-muted-foreground">Ends on</span>
-                  <input
-                    type="date"
-                    value={endDate}
-                    min={date}
-                    onChange={(e) => { setEndDate(e.target.value); triggerAutoSave(); }}
-                    className="bg-secondary rounded-xl px-3 py-2 text-sm border-0 outline-none text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setEndDate(date); triggerAutoSave(); }}
-                    className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
+              <div className="flex items-center gap-2 bg-secondary rounded-xl px-3 py-2.5">
+                <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground">End date</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  min={date}
+                  onChange={(e) => { setEndDate(e.target.value); triggerAutoSave(); }}
+                  className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
+                />
+              </div>
             </div>
           )}
 
