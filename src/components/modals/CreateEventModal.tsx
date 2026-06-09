@@ -28,6 +28,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [checklistInput, setChecklistInput] = useState('');
   const endTimeManuallySet = useRef(false);
+  const endDateRef = useRef<HTMLInputElement>(null);
 
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -178,16 +179,36 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
                   onChange={(e) => handleStartDateChange(e.target.value)}
                   className="bg-transparent border-0 outline-none text-sm font-medium text-foreground min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
                 />
-                {endDate && endDate !== date && (
+                {endDate && endDate !== date ? (
                   <>
                     <span className="text-sm text-muted-foreground flex-shrink-0">—</span>
                     <input
+                      ref={endDateRef}
                       type="date"
                       value={endDate}
                       min={date}
                       onChange={(e) => setEndDate(e.target.value)}
                       className="bg-transparent border-0 outline-none text-sm font-medium text-foreground min-w-0 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute"
                     />
+                  </>
+                ) : (
+                  <>
+                    <input
+                      ref={endDateRef}
+                      type="date"
+                      value={endDate || date}
+                      min={date}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      tabIndex={-1}
+                      className="opacity-0 absolute w-px h-px overflow-hidden pointer-events-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => endDateRef.current?.showPicker?.()}
+                      className="text-xs text-muted-foreground/50 hover:text-muted-foreground px-1.5 py-0.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex-shrink-0"
+                    >
+                      + end date
+                    </button>
                   </>
                 )}
               </div>
