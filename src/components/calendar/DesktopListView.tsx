@@ -32,14 +32,40 @@ function getItemsForDay(
   notes: Note[],
 ) {
   const ds = format(day, 'yyyy-MM-dd');
-  const de = events.filter(e => format(new Date(e.date), 'yyyy-MM-dd') === ds);
+
+  // Events: include if ds falls within [startDate, endDate]
+  const de = events.filter(e => {
+    const startDs = format(new Date(e.date), 'yyyy-MM-dd');
+    const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
+    return ds >= startDs && ds <= endDs;
+  });
   const dt = tasks.filter(t => t.date && format(new Date(t.date), 'yyyy-MM-dd') === ds);
   const dn = notes.filter(n => n.date && format(new Date(n.date), 'yyyy-MM-dd') === ds);
 
+  // Compute time label with arrow indicators for multi-day events
+  const getEventEntry = (e: CalendarEvent) => {
+    if (e.isAllDay || !e.startTime) {
+      return { type: 'event' as const, item: e as any, label: e.title, time: null as string | null, endTime: null as string | null };
+    }
+    const startDs = format(new Date(e.date), 'yyyy-MM-dd');
+    const endDs = e.endDate ? format(new Date(e.endDate), 'yyyy-MM-dd') : startDs;
+    if (startDs === endDs) {
+      return { type: 'event' as const, item: e as any, label: e.title, time: e.startTime, endTime: e.endTime ?? null };
+    }
+    if (ds === startDs) {
+      return { type: 'event' as const, item: e as any, label: e.title, time: `${e.startTime} →`, endTime: null as string | null };
+    }
+    if (ds === endDs) {
+      return { type: 'event' as const, item: e as any, label: e.title, time: e.endTime ? `→ ${e.endTime}` : '→', endTime: null as string | null };
+    }
+    // middle day
+    return { type: 'event' as const, item: e as any, label: e.title, time: '↔', endTime: null as string | null };
+  };
+
+  const deEntries = de.map(getEventEntry);
+
   const allDay = [
-    ...de.filter(e => e.isAllDay || !e.startTime).map(e => ({
-      type: 'event' as const, item: e as any, label: e.title, time: null as string | null, endTime: null as string | null,
-    })),
+    ...deEntries.filter(e => e.time === null),
     ...dt.filter(t => !t.time).map(t => ({
       type: 'task' as const, item: t as any, label: t.title, time: null as string | null, endTime: null as string | null,
     })),
@@ -49,16 +75,14 @@ function getItemsForDay(
   ];
 
   const timed = [
-    ...de.filter(e => !e.isAllDay && e.startTime).map(e => ({
-      type: 'event' as const, item: e as any, label: e.title, time: e.startTime!, endTime: e.endTime ?? null,
-    })),
+    ...deEntries.filter(e => e.time !== null),
     ...dt.filter(t => t.time).map(t => ({
       type: 'task' as const, item: t as any, label: t.title, time: t.time!, endTime: t.endTime ?? null,
     })),
     ...dn.filter(n => n.time).map(n => ({
       type: 'note' as const, item: n as any, label: getNoteTitle(n), time: n.time!, endTime: n.endTime ?? null,
     })),
-  ].sort((a, b) => a.time.localeCompare(b.time));
+  ].sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 
   return [...allDay, ...timed];
 }

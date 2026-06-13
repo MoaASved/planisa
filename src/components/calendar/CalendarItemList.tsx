@@ -263,19 +263,20 @@ export function CalendarItemList({
 
   // All items for non-timeline view (shows everything)
   const allItems = useMemo(() => {
-    const items: { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time?: string; endTime?: string }[] = [];
-    
+    const items: { type: 'event' | 'task' | 'note'; item: CalendarEvent | Task | Note; time?: string; endTime?: string; displayLabel?: string }[] = [];
+
     if (activeFilters.includes('events')) {
       dayEvents.forEach(e => {
         if (e.isAllDay) { items.push({ type: 'event', item: e, time: undefined, endTime: undefined }); return; }
         const role = getMultiDayRole(e, dateStr);
         let time: string | undefined;
         let endTime: string | undefined;
+        let displayLabel: string | undefined;
         if (role === 'single') { time = e.startTime; endTime = e.endTime; }
         else if (role === 'start') { time = e.startTime ? `${e.startTime} →` : undefined; }
+        else if (role === 'middle') { displayLabel = '↔'; }
         else if (role === 'end') { time = e.endTime ? `→ ${e.endTime}` : '→'; }
-        // middle: time stays undefined — no time label shown
-        items.push({ type: 'event', item: e, time, endTime });
+        items.push({ type: 'event', item: e, time, endTime, displayLabel });
       });
     }
     if (activeFilters.includes('tasks')) {
@@ -971,9 +972,9 @@ export function CalendarItemList({
         >
           {hasItems && (
             <ListScrollContainer>
-              {allItems.map(({ type, item, time, endTime }) => (
+              {allItems.map(({ type, item, time, endTime, displayLabel }) => (
                 <div key={item.id} data-list-item>
-                  {renderItemCard(item, type, time, endTime)}
+                  {renderItemCard(item, type, time, endTime, undefined, undefined, undefined, displayLabel)}
                 </div>
               ))}
             </ListScrollContainer>
