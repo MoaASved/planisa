@@ -676,6 +676,22 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                     >
                       <AlignIcon className="w-4 h-4 text-muted-foreground" />
                     </button>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => setShowHighlightPicker(true)}
+                      className={cn('flex-1 py-1.5 rounded-lg flex items-center justify-center transition-colors relative', activeHighlightColor ? 'bg-primary/15' : 'hover:bg-secondary')}
+                    >
+                      <Highlighter
+                        className="w-4 h-4"
+                        style={activeHighlightColor ? { color: getColorVar(activeHighlightColor) } : undefined}
+                      />
+                      {activeHighlightColor && (
+                        <span
+                          className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full border border-background"
+                          style={{ background: getColorVar(activeHighlightColor) }}
+                        />
+                      )}
+                    </button>
                   </div>
 
                   <div className="h-px bg-border my-1" />
