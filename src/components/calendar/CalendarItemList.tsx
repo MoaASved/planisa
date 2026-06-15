@@ -588,7 +588,9 @@ export function CalendarItemList({
           className={cn(
             'rounded-[12px] cursor-pointer transition-all active:scale-[0.98] relative overflow-hidden',
             getColorCardClass(color),
-            compact ? 'p-2.5 pl-3' : 'p-3.5 pl-4',
+            centerContent
+              ? 'flex items-center pl-3 pr-2.5'
+              : (compact ? 'p-2.5 pl-3' : 'p-3.5 pl-4'),
             fillHeight && 'h-full',
             isDragging && 'opacity-50 scale-95'
           )}
