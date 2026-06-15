@@ -28,6 +28,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [checklistInput, setChecklistInput] = useState('');
   const endTimeManuallySet = useRef(false);
+  const endDateAutoAdvanced = useRef(false);
 
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -38,6 +39,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   useEffect(() => {
     if (isOpen) {
       endTimeManuallySet.current = false;
+      endDateAutoAdvanced.current = false;
       setTitle(initialTitle ?? '');
       setDescription('');
       setChecklist([]);
@@ -80,6 +82,12 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
       const d = new Date(date + 'T00:00:00');
       d.setDate(d.getDate() + 1);
       setEndDate(format(d, 'yyyy-MM-dd'));
+      endDateAutoAdvanced.current = true;
+    } else if (endDateAutoAdvanced.current && date) {
+      // Desktop typing fires onChange with intermediate values — reset if the final
+      // end time no longer wraps past midnight
+      setEndDate(date);
+      endDateAutoAdvanced.current = false;
     }
   };
 

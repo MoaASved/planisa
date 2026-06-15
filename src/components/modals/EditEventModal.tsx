@@ -34,6 +34,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
   const [newCategoryColor, setNewCategoryColor] = useState<PastelColor>('peony');
 
   const endTimeManuallySet = useRef(false);
+  const endDateAutoAdvanced = useRef(false);
 
   const calculateEndTime = (start: string): string => {
     const [h, m] = start.split(':').map(Number);
@@ -57,6 +58,7 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       setChecklist(event.checklist || []);
       setChecklistInput('');
       endTimeManuallySet.current = false;
+      endDateAutoAdvanced.current = false;
     }
   }, [event]);
 
@@ -100,6 +102,10 @@ export function EditEventModal({ event, isOpen, onClose }: EditEventModalProps) 
       const d = new Date(date + 'T00:00:00');
       d.setDate(d.getDate() + 1);
       setEndDate(format(d, 'yyyy-MM-dd'));
+      endDateAutoAdvanced.current = true;
+    } else if (endDateAutoAdvanced.current && date) {
+      setEndDate(date);
+      endDateAutoAdvanced.current = false;
     }
     triggerAutoSave();
   };
