@@ -632,14 +632,6 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                 <Mic className="w-4 h-4 mr-2" />
                 Voice note
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setShowHighlightPicker(true)}>
-                <Highlighter className="w-4 h-4 mr-2" />
-                Highlight
-                {activeHighlightColor && (
-                  <span className="ml-auto w-3 h-3 rounded-full" style={{ background: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }} />
-                )}
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -706,7 +698,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                     </button>
                     <button
                       onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => setShowHighlightPicker(true)}
+                      onClick={() => { setMorePopoverOpen(false); setTimeout(() => setShowHighlightPicker(true), 50); }}
                       className={cn('flex-1 py-1.5 rounded-lg flex items-center justify-center transition-colors relative', activeHighlightColor ? 'bg-primary/15' : 'hover:bg-secondary')}
                     >
                       <Highlighter
@@ -1042,8 +1034,8 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
       {/* Highlight color picker */}
       {showHighlightPicker && (
         <>
-          <div className="fixed inset-0 z-[1260]" onClick={() => setShowHighlightPicker(false)} />
-          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1300] top-[120px]">
+          <div className="fixed inset-0 z-[1350]" onClick={() => setShowHighlightPicker(false)} />
+          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1400] top-[120px]">
             <div className="bg-background rounded-2xl shadow-lg p-3 border border-border">
               <div className="flex items-center gap-2 mb-2">
                 <Highlighter className="w-4 h-4 text-muted-foreground" />
