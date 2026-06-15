@@ -921,7 +921,7 @@ export function CalendarItemList({
                     ? `calc(${widthPercent}% - ${(widthPercent * STICKY_RESERVE_PX / 100).toFixed(1)}px - ${gapPx}px)`
                     : `calc(${widthPercent}% - ${gapPx}px)`;
 
-                  const shortBlock = height < 64;
+                  const shortBlock = height < HOUR_HEIGHT;
                   return (
                     <div
                       key={item.id}
