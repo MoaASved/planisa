@@ -372,9 +372,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   {note.folder}
                 </span>
               ) : <span />}
-              <span className="flow-meta-sm">
-                {format(new Date(note.date || note.updatedAt), 'MMM d')}
-              </span>
+              {!note.hideDate && (
+                <span className="flow-meta-sm">
+                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                </span>
+              )}
             </div>
           </div>
         ) : (
@@ -401,9 +403,11 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   {note.folder}
                 </span>
               )}
-              <span className="flow-meta-sm">
-                {format(new Date(note.date || note.updatedAt), 'MMM d')}
-              </span>
+              {!note.hideDate && (
+                <span className="flow-meta-sm">
+                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                </span>
+              )}
             </div>
           </div>
         )}
