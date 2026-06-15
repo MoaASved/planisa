@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
+import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import { NoFocusTaskItem } from './NoFocusTaskItem';
@@ -30,6 +31,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Link2,
   Image as ImageIcon,
   Mic,
   Plus,
@@ -134,6 +136,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const extensions = useMemo(() => [
     StarterKit.configure({ heading: { levels: [1, 2] } }),
     Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
+    Link.configure({ openOnClick: true, autolink: true, HTMLAttributes: { class: 'note-link' } }),
     TaskList,
     NoFocusTaskItem.configure({ nested: true }),
     Placeholder.configure({ placeholder: '' }),
@@ -447,6 +450,21 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
     setShowHighlightPicker(false);
   };
 
+  const handleLinkToggle = () => {
+    if (editor?.isActive('link')) {
+      editor.chain().focus().unsetLink().run();
+    } else {
+      setMorePopoverOpen(false);
+      setTimeout(() => {
+        const url = window.prompt('Enter URL');
+        if (url) {
+          const href = /^https?:\/\/|^mailto:/i.test(url) ? url : `https://${url}`;
+          editor?.chain().focus().setLink({ href }).run();
+        }
+      }, 150);
+    }
+  };
+
   useEffect(() => {
     if (!activeHighlightColor) setRemoveHighlightMode(false);
   }, [activeHighlightColor]);
@@ -691,6 +709,13 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                           style={{ background: getColorVar(activeHighlightColor) }}
                         />
                       )}
+                    </button>
+                    <button
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={handleLinkToggle}
+                      className={cn('flex-1 py-1.5 rounded-lg flex items-center justify-center transition-colors', editor?.isActive('link') ? 'bg-primary/15 text-primary' : 'hover:bg-secondary text-muted-foreground')}
+                    >
+                      <Link2 className="w-4 h-4" />
                     </button>
                   </div>
 

@@ -810,6 +810,11 @@ input[type="time"]::-webkit-inner-spin-button {
   color: hsl(var(--foreground));
 }
 
+.tiptap-editor a {
+  @apply underline cursor-pointer;
+  color: hsl(var(--primary));
+}
+
 .tiptap-editor strong {
   @apply font-bold;
 }
