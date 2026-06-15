@@ -74,12 +74,15 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingList, setEditingList] = useState(false);
   const [sectionMenuId, setSectionMenuId] = useState<string | null>(null);
+  const [showMainMenu, setShowMainMenu] = useState(false);
   const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const menuRef = useRef<HTMLDivElement | null>(null);
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const sectionMenuRef = useRef<HTMLDivElement | null>(null);
   const sectionMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const mainMenuRef = useRef<HTMLDivElement | null>(null);
+  const mainMenuTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!showMenu) return;
@@ -144,6 +147,38 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
       document.removeEventListener('click', swallow, true);
     };
   }, [sectionMenuId]);
+
+  useEffect(() => {
+    if (!showMainMenu) return;
+
+    const isInside = (target: Node | null) =>
+      !!target &&
+      (mainMenuRef.current?.contains(target) ||
+        mainMenuTriggerRef.current?.contains(target));
+
+    const swallow = (e: Event) => {
+      const target = e.target as Node | null;
+      if (isInside(target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      (e as any).stopImmediatePropagation?.();
+      if (e.type === 'pointerdown' || e.type === 'mousedown' || e.type === 'touchstart') {
+        setTimeout(() => setShowMainMenu(false), 0);
+      }
+    };
+
+    document.addEventListener('pointerdown', swallow, true);
+    document.addEventListener('mousedown', swallow, true);
+    document.addEventListener('touchstart', swallow, true);
+    document.addEventListener('click', swallow, true);
+
+    return () => {
+      document.removeEventListener('pointerdown', swallow, true);
+      document.removeEventListener('mousedown', swallow, true);
+      document.removeEventListener('touchstart', swallow, true);
+      document.removeEventListener('click', swallow, true);
+    };
+  }, [showMainMenu]);
 
   const commitRename = () => {
     if (!renamingSectionId) return;
@@ -391,9 +426,48 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
             items={allVisibleTaskIds}
             strategy={verticalListSortingStrategy}
           >
+        {/* Clear completed ··· menu for unsectioned tasks (when showCompleted is on) */}
+        {!isVirtualList && showCompleted && mainCompleted.length > 0 && (
+          <div className="relative flex items-center px-1 pt-1 justify-end">
+            <button
+              ref={mainMenuTriggerRef}
+              onClick={() => setShowMainMenu((v) => !v)}
+              className="p-1 -mr-1 text-muted-foreground/60 hover:text-foreground rounded-md hover:bg-secondary transition-colors"
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" />
+            </button>
+            {showMainMenu && (
+              <div
+                ref={mainMenuRef}
+                className="absolute right-0 top-full mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-44"
+                style={{ zIndex: 50 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => {
+                    mainCompleted.forEach((t) => deleteTask(t.id));
+                    setShowMainMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                >
+                  <Trash2 className="w-4 h-4 text-muted-foreground" /> Clear completed
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Main (no section) tasks */}
         <div className="space-y-2">
           {mainTasks.map((task) => (
+            <SortableTaskCell
+              key={task.id}
+              task={task}
+              onClick={() => setEditingTaskId(task.id)}
+              highlight={task.id === highlightTaskId}
+            />
+          ))}
+          {!isVirtualList && showCompleted && mainCompleted.map((task) => (
             <SortableTaskCell
               key={task.id}
               task={task}
@@ -408,34 +482,6 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
             onSubmit={(t) => handleCreate(t)}
             onDismiss={() => setAdding(null)}
           />
-        )}
-
-        {/* Main completed tasks when showCompleted is on */}
-        {!isVirtualList && showCompleted && mainCompleted.length > 0 && (
-          <div className="pt-1">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground">
-                Completed
-                <span className="text-xs">{mainCompleted.length}</span>
-              </span>
-              <button
-                onClick={() => mainCompleted.forEach((t) => deleteTask(t.id))}
-                className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
-              >
-                Clear
-              </button>
-            </div>
-            <div className="space-y-2 mt-1">
-              {mainCompleted.map((task) => (
-                <SortableTaskCell
-                  key={task.id}
-                  task={task}
-                  onClick={() => setEditingTaskId(task.id)}
-                  highlight={task.id === highlightTaskId}
-                />
-              ))}
-            </div>
-          </div>
         )}
 
         {/* Smart list: inline always-expanded completed section */}
