@@ -34,7 +34,7 @@ export function CalendarHeader({
   isListMode,
   onListModeToggle,
 }: CalendarHeaderProps) {
-  const weekNumber = view === 'weekday'
+  const weekNumber = (view === 'weekday' || desktopView === 'week' || desktopView === 'day')
     ? getWeek(startOfWeek(currentDate, { weekStartsOn: 1 }), { weekStartsOn: 1 })
     : null;
 
