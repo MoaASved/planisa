@@ -342,74 +342,76 @@ export function DesktopWeekGrid({
         {/* Single CSS grid — all-day cells and time grid cells share one column definition so widths are pixel-identical */}
         <div style={{ display: 'grid', gridTemplateColumns: `${GUTTER_W}px repeat(${weekDays.length}, minmax(0, 1fr))` }}>
 
-          {/* All-day row: each cell is a direct grid child so it occupies the exact same column as the time grid below */}
+          {/* All-day row: single sticky wrapper spanning all grid columns so the background and height are always uniform */}
           {hasAllDay && (
-            <>
-              <div
-                className="flex items-center justify-end pr-2 border-b border-border/20 bg-white dark:bg-[#1C1A18]"
-                style={{ position: 'sticky', top: 0, zIndex: 10 }}
-              >
-                <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wide text-right leading-tight">all<br />day</span>
-              </div>
-              {dayData.map(({ day, allDay }, i) => {
-                const isExpanded = expandedAllDayDay === i;
-                const visible = isExpanded ? allDay : allDay.slice(0, 2);
-                const overflow = allDay.length - 2;
-                return (
-                  <div
-                    key={i}
-                    className={cn('border-l border-b border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px] bg-white dark:bg-[#1C1A18]', isToday(day) && 'bg-primary/[0.025]')}
-                    style={{ position: 'sticky', top: 0, zIndex: 10 }}
-                  >
-                    {visible.map(({ type, item, label }) => {
-                      const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
-                      const deepText = getDeepTextColor(color);
-                      const isTask = type === 'task';
-                      const isNote = type === 'note';
-                      const completed = isTask && (item as Task).completed;
-                      const TypeIcon = isNote ? FileText : null;
-                      return (
-                        <div
-                          key={item.id}
-                          data-calendar-item="true"
-                          onClick={() => onItemClick(item, type)}
-                          className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color), completed && 'opacity-60')}
+            <div
+              style={{ gridColumn: '1 / -1', position: 'sticky', top: 0, zIndex: 10 }}
+              className="border-b border-border/20 bg-white dark:bg-[#1C1A18]"
+            >
+              {/* Inner grid with same template as outer grid — column widths are computed from identical inputs so positions are pixel-identical */}
+              <div style={{ display: 'grid', gridTemplateColumns: `${GUTTER_W}px repeat(${weekDays.length}, minmax(0, 1fr))` }}>
+                <div className="flex items-center justify-end pr-2">
+                  <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wide text-right leading-tight">all<br />day</span>
+                </div>
+                {dayData.map(({ day, allDay }, i) => {
+                  const isExpanded = expandedAllDayDay === i;
+                  const visible = isExpanded ? allDay : allDay.slice(0, 2);
+                  const overflow = allDay.length - 2;
+                  return (
+                    <div
+                      key={i}
+                      className={cn('border-l border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px]', isToday(day) && 'bg-primary/[0.025]')}
+                    >
+                      {visible.map(({ type, item, label }) => {
+                        const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
+                        const deepText = getDeepTextColor(color);
+                        const isTask = type === 'task';
+                        const isNote = type === 'note';
+                        const completed = isTask && (item as Task).completed;
+                        const TypeIcon = isNote ? FileText : null;
+                        return (
+                          <div
+                            key={item.id}
+                            data-calendar-item="true"
+                            onClick={() => onItemClick(item, type)}
+                            className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color), completed && 'opacity-60')}
+                          >
+                            {isTask ? (
+                              <div
+                                onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
+                                className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
+                                style={{ color: deepText }}
+                              >
+                                {completed && <Check className="w-1.5 h-1.5 text-white" />}
+                              </div>
+                            ) : TypeIcon ? (
+                              <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-55" style={{ color: deepText }} />
+                            ) : null}
+                            <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
+                          </div>
+                        );
+                      })}
+                      {!isExpanded && overflow > 0 && (
+                        <button
+                          onClick={() => setExpandedAllDayDay(i)}
+                          className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors text-left pl-0.5"
                         >
-                          {isTask ? (
-                            <div
-                              onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
-                              className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
-                              style={{ color: deepText }}
-                            >
-                              {completed && <Check className="w-1.5 h-1.5 text-white" />}
-                            </div>
-                          ) : TypeIcon ? (
-                            <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-55" style={{ color: deepText }} />
-                          ) : null}
-                          <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
-                        </div>
-                      );
-                    })}
-                    {!isExpanded && overflow > 0 && (
-                      <button
-                        onClick={() => setExpandedAllDayDay(i)}
-                        className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors text-left pl-0.5"
-                      >
-                        +{overflow} more
-                      </button>
-                    )}
-                    {isExpanded && (
-                      <button
-                        onClick={() => setExpandedAllDayDay(null)}
-                        className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors text-left pl-0.5"
-                      >
-                        Show less
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </>
+                          +{overflow} more
+                        </button>
+                      )}
+                      {isExpanded && (
+                        <button
+                          onClick={() => setExpandedAllDayDay(null)}
+                          className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors text-left pl-0.5"
+                        >
+                          Show less
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           {/* Time gutter */}
