@@ -41,6 +41,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   const {
     addTask,
     updateTask,
+    deleteTask,
     updateTaskCategory,
     deleteTaskCategory,
     pinTaskCategory,
@@ -434,14 +435,22 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
         {!isVirtualList && !showCompleted && mainCompleted.length > 0 && (
           <div className="pt-1">
-            <button
-              onClick={() => toggleCompleted('main')}
-              className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {completedExpanded.has('main') ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-              Completed
-              <span className="text-xs">{mainCompleted.length}</span>
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => toggleCompleted('main')}
+                className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {completedExpanded.has('main') ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                Completed
+                <span className="text-xs">{mainCompleted.length}</span>
+              </button>
+              <button
+                onClick={() => mainCompleted.forEach((t) => deleteTask(t.id))}
+                className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+              >
+                Clear
+              </button>
+            </div>
             {completedExpanded.has('main') && (
               <div className="space-y-2 mt-1 opacity-70">
                 {mainCompleted.map((t) => (
@@ -522,6 +531,20 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                       >
                         <Pencil className="w-4 h-4 text-muted-foreground" /> Rename
                       </button>
+                      {sCompleted.length > 0 && (
+                        <>
+                          <div className="h-px bg-border/40" />
+                          <button
+                            onClick={() => {
+                              sCompleted.forEach((t) => deleteTask(t.id));
+                              setSectionMenuId(null);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
+                          >
+                            <Trash2 className="w-4 h-4 text-muted-foreground" /> Clear completed
+                          </button>
+                        </>
+                      )}
                       <div className="h-px bg-border/40" />
                       <button
                         onClick={() => {
