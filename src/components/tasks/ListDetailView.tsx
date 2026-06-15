@@ -401,14 +401,6 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               highlight={task.id === highlightTaskId}
             />
           ))}
-          {!isVirtualList && showCompleted && mainCompleted.map((task) => (
-            <SortableTaskCell
-              key={task.id}
-              task={task}
-              onClick={() => setEditingTaskId(task.id)}
-              highlight={task.id === highlightTaskId}
-            />
-          ))}
         </div>
 
         {adding === 'main' && (
@@ -416,6 +408,34 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
             onSubmit={(t) => handleCreate(t)}
             onDismiss={() => setAdding(null)}
           />
+        )}
+
+        {/* Main completed tasks when showCompleted is on */}
+        {!isVirtualList && showCompleted && mainCompleted.length > 0 && (
+          <div className="pt-1">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground">
+                Completed
+                <span className="text-xs">{mainCompleted.length}</span>
+              </span>
+              <button
+                onClick={() => mainCompleted.forEach((t) => deleteTask(t.id))}
+                className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="space-y-2 mt-1">
+              {mainCompleted.map((task) => (
+                <SortableTaskCell
+                  key={task.id}
+                  task={task}
+                  onClick={() => setEditingTaskId(task.id)}
+                  highlight={task.id === highlightTaskId}
+                />
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Smart list: inline always-expanded completed section */}
