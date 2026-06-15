@@ -26,6 +26,7 @@ import {
   ListOrdered,
   CheckSquare,
   Highlighter,
+  Eraser,
   Calendar,
   EyeOff,
   AlignLeft,
@@ -447,6 +448,19 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const handleRemoveHighlight = () => {
     editor?.chain().focus().unsetHighlight().run();
     setActiveHighlightColor(null);
+    setRemoveHighlightMode(false);
+    setShowHighlightPicker(false);
+  };
+
+  const handleEraserFromPicker = () => {
+    const hasSelection = editor && !editor.state.selection.empty;
+    if (hasSelection) {
+      editor?.chain().focus().unsetHighlight().run();
+      setRemoveHighlightMode(false);
+    } else {
+      setActiveHighlightColor(null);
+      setRemoveHighlightMode(true);
+    }
     setShowHighlightPicker(false);
   };
 
@@ -466,17 +480,13 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   };
 
   useEffect(() => {
-    if (!activeHighlightColor) setRemoveHighlightMode(false);
-  }, [activeHighlightColor]);
-
-  useEffect(() => {
-    if (!editor || !activeHighlightColor) return;
+    if (!editor || (!activeHighlightColor && !removeHighlightMode)) return;
     const handler = ({ editor: e }: { editor: typeof editor }) => {
       if (e && !e.state.selection.empty) {
         if (removeHighlightMode) {
           e.chain().unsetHighlight().run();
-        } else {
-          e.chain().setHighlight({ color: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }).run();
+        } else if (activeHighlightColor) {
+          e.chain().setHighlight({ color: getColorVar(activeHighlightColor) }).run();
         }
       }
     };
@@ -994,7 +1004,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
       )}
 
       {/* Floating highlight mode circle */}
-      {activeHighlightColor && (
+      {(activeHighlightColor || removeHighlightMode) && (
         <div
           className="fixed z-[1200]"
           style={{ top: `calc(env(safe-area-inset-top, 0px) + ${viewportOffset + 64}px)`, right: '16px' }}
@@ -1002,17 +1012,21 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
           <div className="relative">
             <button
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setRemoveHighlightMode(m => !m)}
+              onClick={() => activeHighlightColor ? setRemoveHighlightMode(m => !m) : undefined}
               className="w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center active:scale-95 transition-all"
             >
-              <div className="relative">
-                <Highlighter className="w-5 h-5" style={{ color: activeHighlightColor ? getColorVar(activeHighlightColor) : undefined }} />
-                {removeHighlightMode && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="absolute w-[130%] h-0.5 bg-foreground/70 rotate-[-40deg]" />
-                  </div>
-                )}
-              </div>
+              {activeHighlightColor ? (
+                <div className="relative">
+                  <Highlighter className="w-5 h-5" style={{ color: getColorVar(activeHighlightColor) }} />
+                  {removeHighlightMode && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="absolute w-[130%] h-0.5 bg-foreground/70 rotate-[-40deg]" />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Eraser className="w-5 h-5 text-foreground/70" />
+              )}
             </button>
             <button
               onMouseDown={(e) => e.preventDefault()}
@@ -1034,7 +1048,11 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
               <div className="flex items-center gap-2 mb-2">
                 <Highlighter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">Highlight</span>
-                {activeHighlightColor && <span className="text-xs text-primary ml-auto">Pen mode active</span>}
+                {(activeHighlightColor || removeHighlightMode) && (
+                  <span className="text-xs text-primary ml-auto">
+                    {removeHighlightMode && !activeHighlightColor ? 'Eraser active' : 'Pen mode active'}
+                  </span>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 {pastelColors.map((c) => (
@@ -1044,6 +1062,12 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                     className={cn('w-8 h-8 rounded-full transition-all', c.class, activeHighlightColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
                   />
                 ))}
+                <button
+                  onClick={handleEraserFromPicker}
+                  className={cn('w-8 h-8 rounded-full transition-all bg-secondary flex items-center justify-center hover:bg-muted', removeHighlightMode && !activeHighlightColor && 'ring-2 ring-offset-2 ring-primary')}
+                >
+                  <Eraser className="w-4 h-4 text-muted-foreground" />
+                </button>
               </div>
             </div>
           </div>
