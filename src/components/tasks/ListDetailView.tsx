@@ -42,6 +42,8 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     addTask,
     updateTask,
     deleteTask,
+    addEvent,
+    eventCategories,
     updateTaskCategory,
     deleteTaskCategory,
     pinTaskCategory,
@@ -219,6 +221,25 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
       listId: targetList?.id,
       // Seconds-since-epoch fits in int4; large enough to keep insertion order monotonic
       order: Math.floor(Date.now() / 1000),
+    });
+  };
+
+  // When clearing completed tasks, convert tasks with a date to standalone calendar
+  // events so the calendar entry persists, then delete the task record.
+  const clearCompleted = (tasksToClear: Task[]) => {
+    tasksToClear.forEach((t) => {
+      if (t.date) {
+        addEvent({
+          title: t.title,
+          date: new Date(t.date),
+          startTime: t.time,
+          endTime: t.endTime,
+          category: eventCategories[0]?.name ?? '',
+          color: t.color,
+          isAllDay: !t.time,
+        });
+      }
+      deleteTask(t.id);
     });
   };
 
@@ -445,7 +466,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               >
                 <button
                   onClick={() => {
-                    mainCompleted.forEach((t) => deleteTask(t.id));
+                    clearCompleted(mainCompleted);
                     setShowMainMenu(false);
                   }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
@@ -511,7 +532,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                 <span className="text-xs">{mainCompleted.length}</span>
               </button>
               <button
-                onClick={() => mainCompleted.forEach((t) => deleteTask(t.id))}
+                onClick={() => clearCompleted(mainCompleted)}
                 className="px-2 py-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
               >
                 Clear
@@ -602,7 +623,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                           <div className="h-px bg-border/40" />
                           <button
                             onClick={() => {
-                              sCompleted.forEach((t) => deleteTask(t.id));
+                              clearCompleted(sCompleted);
                               setSectionMenuId(null);
                             }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-secondary text-left"
