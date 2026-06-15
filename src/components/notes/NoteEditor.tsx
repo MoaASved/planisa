@@ -1035,9 +1035,9 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
       {showHighlightPicker && (
         <>
           <div className="fixed inset-0 z-[1350]" onClick={() => setShowHighlightPicker(false)} />
-          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1400] top-[120px]">
-            <div className="bg-background rounded-2xl shadow-lg p-3 border border-border">
-              <div className="flex items-center gap-2 mb-2">
+          <div className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-32px)] z-[1400] top-[120px] md:left-auto md:right-4 md:translate-x-0 md:w-auto md:top-[60px]">
+            <div className="bg-background rounded-2xl shadow-lg p-3 border border-border md:rounded-xl md:p-2.5">
+              <div className="flex items-center gap-2 mb-2 md:mb-1.5">
                 <Highlighter className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm font-medium text-foreground">Highlight</span>
                 {(activeHighlightColor || removeHighlightMode) && (
@@ -1046,19 +1046,19 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 md:gap-1.5">
                 {pastelColors.map((c) => (
                   <button
                     key={c.value}
                     onClick={() => handleHighlight(c.value)}
-                    className={cn('w-8 h-8 rounded-full transition-all', c.class, activeHighlightColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
+                    className={cn('w-8 h-8 md:w-6 md:h-6 rounded-full transition-all', c.class, activeHighlightColor === c.value && 'ring-2 ring-offset-2 ring-primary')}
                   />
                 ))}
                 <button
                   onClick={handleEraserFromPicker}
-                  className={cn('w-8 h-8 rounded-full transition-all bg-secondary flex items-center justify-center hover:bg-muted', removeHighlightMode && !activeHighlightColor && 'ring-2 ring-offset-2 ring-primary')}
+                  className={cn('w-8 h-8 md:w-6 md:h-6 rounded-full transition-all bg-secondary flex items-center justify-center hover:bg-muted', removeHighlightMode && !activeHighlightColor && 'ring-2 ring-offset-2 ring-primary')}
                 >
-                  <Eraser className="w-4 h-4 text-muted-foreground" />
+                  <Eraser className="w-4 h-4 md:w-3.5 md:h-3.5 text-muted-foreground" />
                 </button>
               </div>
             </div>
