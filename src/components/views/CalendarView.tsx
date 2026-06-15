@@ -11,6 +11,7 @@ import { DesktopListView } from '@/components/calendar/DesktopListView';
 import { EditEventModal } from '@/components/modals/EditEventModal';
 import { CreateEventModal } from '@/components/modals/CreateEventModal';
 import { CalendarNoteModal } from '@/components/modals/CalendarNoteModal';
+import { ClearedTaskPreviewModal } from '@/components/modals/ClearedTaskPreviewModal';
 import { CalendarNoteCreateSheet } from '@/components/modals/CalendarNoteCreateSheet';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { NoteEditor } from '@/components/notes/NoteEditor';
@@ -39,6 +40,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
   // Edit modal states
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [clearedTaskPreview, setClearedTaskPreview] = useState<Task | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editingStickyNote, setEditingStickyNote] = useState<Note | null>(null);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
@@ -165,7 +167,12 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     if (type === 'event') {
       setEditingEvent(item as CalendarEvent);
     } else if (type === 'task') {
-      setEditingTask(item as Task);
+      const task = item as Task;
+      if (task.hidden && task.completed) {
+        setClearedTaskPreview(task);
+      } else {
+        setEditingTask(task);
+      }
     } else {
       const note = item as Note;
       if (note.type === 'sticky') {
@@ -194,6 +201,8 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
 
   const handleTaskToggle = (e: React.MouseEvent, taskId: string) => {
     e.stopPropagation();
+    const task = tasks.find(t => t.id === taskId);
+    if (task?.hidden) return;
     toggleTask(taskId);
   };
 
@@ -358,6 +367,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
           setEditingTask(null);
           if (task) onNavigateToTasks?.(task);
         }}
+      />
+
+      {/* Read-only preview for tasks cleared from the task list */}
+      <ClearedTaskPreviewModal
+        task={clearedTaskPreview}
+        isOpen={!!clearedTaskPreview}
+        onClose={() => setClearedTaskPreview(null)}
       />
 
       {/* Timeline create modals */}

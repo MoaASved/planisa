@@ -42,8 +42,6 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     addTask,
     updateTask,
     deleteTask,
-    addEvent,
-    eventCategories,
     updateTaskCategory,
     deleteTaskCategory,
     pinTaskCategory,
@@ -224,22 +222,16 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     });
   };
 
-  // When clearing completed tasks, convert tasks with a date to standalone calendar
-  // events so the calendar entry persists, then delete the task record.
+  // When clearing completed tasks: tasks that have a calendar date are hidden
+  // (remain in the calendar as read-only completed items) rather than deleted.
+  // Tasks with no date are deleted outright since they have no calendar presence.
   const clearCompleted = (tasksToClear: Task[]) => {
     tasksToClear.forEach((t) => {
       if (t.date) {
-        addEvent({
-          title: t.title,
-          date: new Date(t.date),
-          startTime: t.time,
-          endTime: t.endTime,
-          category: eventCategories[0]?.name ?? '',
-          color: t.color,
-          isAllDay: !t.time,
-        });
+        updateTask(t.id, { hidden: true });
+      } else {
+        deleteTask(t.id);
       }
-      deleteTask(t.id);
     });
   };
 
