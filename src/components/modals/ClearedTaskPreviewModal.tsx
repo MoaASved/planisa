@@ -26,9 +26,8 @@ export function ClearedTaskPreviewModal({ task, isOpen, onClose }: ClearedTaskPr
         onClick={onClose}
       />
       <div
-        className="fixed left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-full md:max-w-[480px] z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
+        className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:top-[20%] md:translate-y-0 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-full md:max-w-[480px] z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
-          top: '20%',
           maxHeight: '60vh',
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
