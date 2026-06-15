@@ -452,7 +452,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
             {showMainMenu && (
               <div
                 ref={mainMenuRef}
-                className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:absolute md:left-auto md:top-full md:translate-x-0 md:translate-y-0 md:right-0 md:mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-52 md:w-44"
+                className="absolute right-0 top-full mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-44"
                 style={{ zIndex: 50 }}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -577,7 +577,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
                   {sectionMenuId === section.id && (
                     <div
                       ref={sectionMenuRef}
-                      className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:absolute md:left-auto md:top-full md:translate-x-0 md:translate-y-0 md:right-0 md:mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-52 md:w-44"
+                      className="absolute right-0 top-full mt-1 bg-card rounded-2xl shadow-2xl border border-border/40 overflow-hidden w-44"
                       style={{ zIndex: 50 }}
                       onClick={(e) => e.stopPropagation()}
                     >
