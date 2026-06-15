@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { format, isToday, isSameDay } from 'date-fns';
+import { format, isToday, isSameDay, getWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getDeepTextColor } from '@/lib/colors';
@@ -149,6 +149,8 @@ export function DesktopWeekGrid({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slotMenu, setSlotMenu] = useState<SlotMenuState | null>(null);
   const [hoverSlot, setHoverSlot] = useState<{ dayIndex: number; top: number } | null>(null);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
+  const [expandedAllDayDay, setExpandedAllDayDay] = useState<number | null>(null);
 
   const getNowPos = () => {
     const n = new Date();
@@ -167,6 +169,12 @@ export function DesktopWeekGrid({
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = Math.max(0, nowPos - 120);
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      setScrollbarWidth(scrollRef.current.offsetWidth - scrollRef.current.clientWidth);
+    }
   }, []);
 
   // Snap pixel Y to 15-minute increments, return "HH:MM"
@@ -269,13 +277,18 @@ export function DesktopWeekGrid({
 
   const hasAllDay = dayData.some(d => d.allDay.length > 0);
   const isDayView = weekDays.length === 1;
+  const weekNumber = !isDayView ? getWeek(weekDays[0], { weekStartsOn: 1 }) : null;
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-white dark:bg-[#1C1A18] select-none">
 
       {/* Day header row */}
       <div className="flex flex-shrink-0 border-b border-border/40 bg-white dark:bg-[#1C1A18]" style={{ zIndex: 10 }}>
-        <div style={{ width: GUTTER_W, flexShrink: 0 }} />
+        <div style={{ width: GUTTER_W, flexShrink: 0 }} className="flex items-end justify-center pb-2">
+          {weekNumber && (
+            <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-wide">W{weekNumber}</span>
+          )}
+        </div>
         {isDayView ? (() => {
           const day = weekDays[0];
           const todayDay = isToday(day);
@@ -321,6 +334,7 @@ export function DesktopWeekGrid({
             </button>
           );
         })}
+        {scrollbarWidth > 0 && <div style={{ width: scrollbarWidth, flexShrink: 0 }} />}
       </div>
 
       {/* All-day / untimed row */}
@@ -329,42 +343,61 @@ export function DesktopWeekGrid({
           <div style={{ width: GUTTER_W, flexShrink: 0 }} className="flex items-center justify-end pr-2">
             <span className="text-[9px] text-muted-foreground/40 uppercase tracking-wide text-right leading-tight">all<br />day</span>
           </div>
-          {dayData.map(({ day, allDay }, i) => (
-            <div key={i} className={cn('flex-1 border-l border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px]', isToday(day) && 'bg-primary/[0.025]')}>
-              {allDay.slice(0, 2).map(({ type, item, label }) => {
-                const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
-                const deepText = getDeepTextColor(color);
-                const isTask = type === 'task';
-                const isNote = type === 'note';
-                const completed = isTask && (item as Task).completed;
-                const TypeIcon = isNote ? FileText : null;
-                return (
-                  <div
-                    key={item.id}
-                    data-calendar-item="true"
-                    onClick={() => onItemClick(item, type)}
-                    className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color), completed && 'opacity-60')}
+          {dayData.map(({ day, allDay }, i) => {
+            const isExpanded = expandedAllDayDay === i;
+            const visible = isExpanded ? allDay : allDay.slice(0, 2);
+            const overflow = allDay.length - 2;
+            return (
+              <div key={i} className={cn('flex-1 border-l border-border/20 px-0.5 py-1 flex flex-col gap-0.5 min-h-[28px]', isToday(day) && 'bg-primary/[0.025]')}>
+                {visible.map(({ type, item, label }) => {
+                  const color = type === 'note' ? getNoteColor(item as Note) : getItemColor(item, type);
+                  const deepText = getDeepTextColor(color);
+                  const isTask = type === 'task';
+                  const isNote = type === 'note';
+                  const completed = isTask && (item as Task).completed;
+                  const TypeIcon = isNote ? FileText : null;
+                  return (
+                    <div
+                      key={item.id}
+                      data-calendar-item="true"
+                      onClick={() => onItemClick(item, type)}
+                      className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color), completed && 'opacity-60')}
+                    >
+                      {isTask ? (
+                        <div
+                          onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
+                          className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
+                          style={{ color: deepText }}
+                        >
+                          {completed && <Check className="w-1.5 h-1.5 text-white" />}
+                        </div>
+                      ) : TypeIcon ? (
+                        <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-55" style={{ color: deepText }} />
+                      ) : null}
+                      <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
+                    </div>
+                  );
+                })}
+                {!isExpanded && overflow > 0 && (
+                  <button
+                    onClick={() => setExpandedAllDayDay(i)}
+                    className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors text-left pl-0.5"
                   >
-                    {isTask ? (
-                      <div
-                        onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
-                        className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
-                        style={{ color: deepText }}
-                      >
-                        {completed && <Check className="w-1.5 h-1.5 text-white" />}
-                      </div>
-                    ) : TypeIcon ? (
-                      <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 opacity-55" style={{ color: deepText }} />
-                    ) : null}
-                    <span className={cn('text-[10px] font-medium truncate', completed && 'line-through')} style={{ color: deepText }}>{label}</span>
-                  </div>
-                );
-              })}
-              {allDay.length > 2 && (
-                <span className="text-[10px] text-muted-foreground pl-0.5">+{allDay.length - 2}</span>
-              )}
-            </div>
-          ))}
+                    +{overflow} more
+                  </button>
+                )}
+                {isExpanded && (
+                  <button
+                    onClick={() => setExpandedAllDayDay(null)}
+                    className="text-[10px] text-muted-foreground/60 hover:text-foreground transition-colors text-left pl-0.5"
+                  >
+                    Show less
+                  </button>
+                )}
+              </div>
+            );
+          })}
+          {scrollbarWidth > 0 && <div style={{ width: scrollbarWidth, flexShrink: 0 }} />}
         </div>
       )}
 
