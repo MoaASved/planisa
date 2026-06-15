@@ -340,7 +340,7 @@ export function DesktopWeekGrid({
       {/* Scrollable time grid */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden">
         {/* Single CSS grid — all-day cells and time grid cells share one column definition so widths are pixel-identical */}
-        <div style={{ display: 'grid', gridTemplateColumns: `${GUTTER_W}px repeat(${weekDays.length}, 1fr)` }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `${GUTTER_W}px repeat(${weekDays.length}, minmax(0, 1fr))` }}>
 
           {/* All-day row: each cell is a direct grid child so it occupies the exact same column as the time grid below */}
           {hasAllDay && (
