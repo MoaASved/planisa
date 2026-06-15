@@ -64,7 +64,7 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
 
       {/* Card */}
       <div
-        className="fixed left-4 right-4 z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
+        className="fixed left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-full md:max-w-[560px] z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
           top: '15%',
           maxHeight: '45vh',
