@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Plus, Calendar, Clock, Tag, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { PastelColor, ChecklistItem } from '@/types';
+import { PastelColor, ChecklistItem, CalendarEvent } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { format } from 'date-fns';
 
@@ -12,9 +12,10 @@ interface CreateEventModalProps {
   initialDate?: Date;
   initialTime?: string;
   initialTitle?: string;
+  prefill?: CalendarEvent;
 }
 
-export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, initialTitle }: CreateEventModalProps) {
+export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, initialTitle, prefill }: CreateEventModalProps) {
   const { addEvent, eventCategories, addEventCategory } = useAppStore();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -40,22 +41,43 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
     if (isOpen) {
       endTimeManuallySet.current = false;
       endDateAutoAdvanced.current = false;
-      setTitle(initialTitle ?? '');
-      setDescription('');
-      setChecklist([]);
       setChecklistInput('');
-      setIsAllDay(false);
-      const initDateStr = initialDate ? format(initialDate, 'yyyy-MM-dd') : '';
-      setDate(initDateStr);
-      setEndDate(initDateStr);
-      if (initialTime) {
-        handleStartTimeChange(initialTime);
+      setShowNewCategory(false);
+
+      if (prefill) {
+        setTitle(prefill.title);
+        const dateStr = format(new Date(prefill.date), 'yyyy-MM-dd');
+        setDate(dateStr);
+        setEndDate(prefill.endDate ? format(new Date(prefill.endDate), 'yyyy-MM-dd') : dateStr);
+        setStartTime(prefill.startTime || '');
+        setEndTime(prefill.endTime || '');
+        if (prefill.startTime) endTimeManuallySet.current = true;
+        setCategory(prefill.category);
+        setColor(prefill.color);
+        setIsAllDay(prefill.isAllDay);
+        setDescription(prefill.description || '');
+        setChecklist(
+          prefill.checklist
+            ? prefill.checklist.map(item => ({ ...item, id: crypto.randomUUID(), completed: false }))
+            : []
+        );
       } else {
-        setStartTime('');
-        setEndTime('');
+        setTitle(initialTitle ?? '');
+        setDescription('');
+        setChecklist([]);
+        setIsAllDay(false);
+        const initDateStr = initialDate ? format(initialDate, 'yyyy-MM-dd') : '';
+        setDate(initDateStr);
+        setEndDate(initDateStr);
+        if (initialTime) {
+          handleStartTimeChange(initialTime);
+        } else {
+          setStartTime('');
+          setEndTime('');
+        }
       }
     }
-  }, [isOpen, initialDate, initialTime]);
+  }, [isOpen, initialDate, initialTime, prefill]);
 
   // Auto-calculate end time when start time changes
   const handleStartTimeChange = (newStartTime: string) => {

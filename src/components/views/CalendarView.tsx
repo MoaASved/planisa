@@ -39,6 +39,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
 
   // Edit modal states
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [duplicatingEvent, setDuplicatingEvent] = useState<CalendarEvent | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [clearedTaskPreview, setClearedTaskPreview] = useState<Task | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -243,6 +244,11 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     if (curWeekStart !== newWeekStart || curMonthStart !== newMonthStart) setCurrentDate(newDate);
   };
 
+  const handleDuplicateEvent = (event: CalendarEvent) => {
+    setEditingEvent(null);
+    setDuplicatingEvent(event);
+  };
+
   const sharedGridProps = {
     events,
     tasks,
@@ -254,6 +260,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     onItemClick: handleItemClick,
     onTaskToggle: handleTaskToggle,
     onCreateFromTimeline: handleCreateFromTimeline,
+    onDuplicateEvent: handleDuplicateEvent,
   };
 
   return (
@@ -376,6 +383,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         onClose={() => setClearedTaskPreview(null)}
       />
 
+      {/* Duplicate event — opens CreateEventModal pre-filled with the source event */}
+      <CreateEventModal
+        isOpen={!!duplicatingEvent}
+        onClose={() => setDuplicatingEvent(null)}
+        prefill={duplicatingEvent ?? undefined}
+      />
+
       {/* Timeline create modals */}
       <CreateEventModal
         isOpen={showTimelineCreateEvent}
@@ -414,6 +428,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
         event={editingEvent}
         isOpen={!!editingEvent}
         onClose={() => setEditingEvent(null)}
+        onDuplicate={editingEvent ? () => handleDuplicateEvent(editingEvent) : undefined}
       />
 
       <CalendarNoteModal
