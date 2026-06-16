@@ -93,7 +93,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const handleStartDateChange = (newDate: string) => {
     setDate(newDate);
     // Keep end date at or after start date
-    if (!endDate || endDate < newDate) setEndDate(newDate);
+    if (!endDate || endDate < newDate || endDate === date) setEndDate(newDate);
   };
 
   const handleEndTimeChange = (newEndTime: string) => {

@@ -412,15 +412,6 @@ export function EditEventModal({ event, isOpen, onClose, onDuplicate }: EditEven
           >
             Save Changes
           </button>
-          {onDuplicate && (
-            <button
-              onClick={onDuplicate}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-secondary text-foreground hover:bg-muted transition-colors"
-            >
-              <Copy className="w-4 h-4" />
-              Duplicate
-            </button>
-          )}
           <button
             onClick={handleDelete}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
