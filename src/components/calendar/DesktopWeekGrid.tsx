@@ -4,7 +4,7 @@ import { format, isToday, isSameDay, getWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorCardClass, getDeepTextColor } from '@/lib/colors';
-import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin, Copy } from 'lucide-react';
+import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -124,48 +124,6 @@ function SlotContextMenu({
   );
 }
 
-// ── Event right-click context menu ───────────────────────────────────────────
-
-function EventContextMenu({
-  x, y, onClose, onDuplicate,
-}: {
-  x: number;
-  y: number;
-  onClose: () => void;
-  onDuplicate: () => void;
-}) {
-  const menuW = 168;
-  const menuH = 52;
-  const left = Math.min(x + 6, window.innerWidth - menuW - 8);
-  const top = Math.max(Math.min(y - 8, window.innerHeight - menuH - 8), 8);
-
-  return createPortal(
-    <>
-      <div className="fixed inset-0 z-[500]" onClick={onClose} />
-      <div
-        className="fixed z-[501] rounded-2xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
-        style={{
-          left,
-          top,
-          minWidth: menuW,
-          background: '#1C1C1E',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)',
-        }}
-      >
-        <button
-          onClick={() => { onDuplicate(); onClose(); }}
-          className="flex items-center gap-3 w-full text-left transition-colors duration-100 hover:bg-white/10 active:bg-white/15"
-          style={{ padding: '11px 20px' }}
-        >
-          <Copy className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} />
-          <span className="text-sm font-medium text-white">Duplicate</span>
-        </button>
-      </div>
-    </>,
-    document.body
-  );
-}
-
 // ── Main component ─────────────────────────────────────────────────────────────
 
 interface DesktopWeekGridProps {
@@ -181,17 +139,15 @@ interface DesktopWeekGridProps {
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string, date?: Date) => void;
   onDayHeaderClick?: (date: Date) => void;
-  onDuplicateEvent?: (event: CalendarEvent) => void;
 }
 
 export function DesktopWeekGrid({
   weekDays, events, tasks, notes,
   selectedDate, onDateSelect,
-  getItemColor, getNoteColor, onItemClick, onTaskToggle, onCreateFromTimeline, onDayHeaderClick, onDuplicateEvent,
+  getItemColor, getNoteColor, onItemClick, onTaskToggle, onCreateFromTimeline, onDayHeaderClick,
 }: DesktopWeekGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slotMenu, setSlotMenu] = useState<SlotMenuState | null>(null);
-  const [eventMenu, setEventMenu] = useState<{ x: number; y: number; event: CalendarEvent } | null>(null);
   const [hoverSlot, setHoverSlot] = useState<{ dayIndex: number; top: number } | null>(null);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [expandedAllDayDay, setExpandedAllDayDay] = useState<number | null>(null);
@@ -418,7 +374,6 @@ export function DesktopWeekGrid({
                             key={item.id}
                             data-calendar-item="true"
                             onClick={() => onItemClick(item, type)}
-                            onContextMenu={type === 'event' && onDuplicateEvent ? (e) => { e.preventDefault(); e.stopPropagation(); setEventMenu({ x: e.clientX, y: e.clientY, event: item as CalendarEvent }); } : undefined}
                             className={cn('rounded px-1 py-0.5 cursor-pointer hover:opacity-90 transition-opacity flex items-center gap-0.5 min-w-0', getColorCardClass(color), completed && 'opacity-60')}
                           >
                             {isTask ? (
@@ -595,7 +550,6 @@ export function DesktopWeekGrid({
                         key={item.id}
                         data-calendar-item="true"
                         onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
-                        onContextMenu={isEvent && onDuplicateEvent ? (e) => { e.preventDefault(); e.stopPropagation(); setEventMenu({ x: e.clientX, y: e.clientY, event: item as CalendarEvent }); } : undefined}
                         className={cn("absolute overflow-hidden cursor-pointer rounded-[8px] transition-opacity hover:opacity-90", getColorCardClass(color), completed && 'opacity-60')}
                         style={{
                           top: top + 2,
@@ -687,15 +641,6 @@ export function DesktopWeekGrid({
         />
       )}
 
-      {/* Event right-click context menu */}
-      {eventMenu && (
-        <EventContextMenu
-          x={eventMenu.x}
-          y={eventMenu.y}
-          onClose={() => setEventMenu(null)}
-          onDuplicate={() => onDuplicateEvent?.(eventMenu.event)}
-        />
-      )}
     </div>
   );
 }

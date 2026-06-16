@@ -171,9 +171,16 @@ export function EditEventModal({ event, isOpen, onClose, onDuplicate }: EditEven
       <div className="relative bg-card w-full max-w-lg rounded-t-3xl max-h-[85vh] overflow-y-auto animate-slide-up safe-bottom">
         <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-lg font-semibold text-foreground">Edit Event</h2>
-          <button onClick={handleClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
+          <div className="flex items-center gap-1">
+            {onDuplicate && (
+              <button onClick={onDuplicate} className="p-2 rounded-xl hover:bg-secondary transition-colors" aria-label="Duplicate event">
+                <Copy className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )}
+            <button onClick={handleClose} className="p-2 rounded-xl hover:bg-secondary transition-colors">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         <div className="px-6 py-4 space-y-4">

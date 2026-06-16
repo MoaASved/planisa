@@ -260,7 +260,6 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     onItemClick: handleItemClick,
     onTaskToggle: handleTaskToggle,
     onCreateFromTimeline: handleCreateFromTimeline,
-    onDuplicateEvent: handleDuplicateEvent,
   };
 
   return (
