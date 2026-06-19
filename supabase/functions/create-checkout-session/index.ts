@@ -72,8 +72,8 @@ Deno.serve(async (req) => {
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: 'https://planisa.app/?upgrade=success',
-      cancel_url: 'https://planisa.app/',
+      success_url: 'https://my.planisa.app/upgrade-success',
+      cancel_url: 'https://my.planisa.app/',
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
