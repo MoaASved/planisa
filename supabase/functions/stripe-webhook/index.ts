@@ -67,14 +67,24 @@ Deno.serve(async (req) => {
     });
   }
 
+  const signature = req.headers.get('stripe-signature');
+  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
+
+  if (!signature || !webhookSecret) {
+    console.error('[webhook] missing stripe-signature header or STRIPE_WEBHOOK_SECRET');
+    return new Response(JSON.stringify({ error: 'Missing signature or secret' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   let event: Stripe.Event;
   try {
-    // Signature verification skipped — add STRIPE_WEBHOOK_SECRET and verify here when ready
-    event = JSON.parse(body) as Stripe.Event;
-    console.log(`[webhook] received event type=${event.type} id=${event.id}`);
+    event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+    console.log(`[webhook] verified event type=${event.type} id=${event.id}`);
   } catch (err) {
-    console.error('[webhook] failed to parse event body', err);
-    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+    console.error('[webhook] signature verification failed', err);
+    return new Response(JSON.stringify({ error: 'Invalid signature' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
