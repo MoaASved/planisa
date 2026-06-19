@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
     // Fetch user from public.users
     const userRes = await fetch(
-      `${supabaseUrl}/rest/v1/users?id=eq.${encodeURIComponent(userId)}&select=id,email,stripe_customer_id`,
+      `${supabaseUrl}/rest/v1/users?id=eq.${encodeURIComponent(userId)}&select=id,email,stripe_customer_id,trial_start_date,trial_ends_at`,
       {
         headers: {
           apikey: supabaseServiceKey,
@@ -68,12 +68,23 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Calculate trial end — use trial_ends_at if set, otherwise trial_start_date + 14 days
+    const trialEndDate = user.trial_ends_at
+      ? new Date(user.trial_ends_at)
+      : new Date(new Date(user.trial_start_date).getTime() + 14 * 24 * 60 * 60 * 1000);
+    const trialStillActive = trialEndDate.getTime() > Date.now();
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       success_url: 'https://my.planisa.app/upgrade-success',
       cancel_url: 'https://my.planisa.app/',
+      ...(trialStillActive && {
+        subscription_data: {
+          trial_end: Math.floor(trialEndDate.getTime() / 1000),
+        },
+      }),
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

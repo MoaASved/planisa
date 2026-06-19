@@ -979,8 +979,14 @@ const Dashboard: React.FC = () => {
   // ── Trial reminders ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!userRecord || userRecord.subscription_status !== 'trialing' || !user) return;
+
+    const trialEndMs = userRecord.trial_ends_at
+      ? new Date(userRecord.trial_ends_at).getTime()
+      : new Date(userRecord.trial_start_date).getTime() + 14 * 24 * 60 * 60 * 1000;
+
     const elapsed = (Date.now() - new Date(userRecord.trial_start_date).getTime()) / (1000 * 60 * 60 * 24);
     const day = Math.floor(elapsed);
+    const daysRemaining = Math.ceil((trialEndMs - Date.now()) / (1000 * 60 * 60 * 24));
 
     if (day === 1) {
       const key = `trial_d1_seen_${user.id}`;
@@ -1002,15 +1008,15 @@ const Dashboard: React.FC = () => {
       }
     }
 
-    if (day === 10) {
+    if (daysRemaining >= 3 && daysRemaining <= 5) {
       const key = `trial_d10_seen_${user.id}`;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1');
-        setTrialNisaMessage('Your trial ends in 4 days. Upgrade to keep full access to Tasks and Notes.');
+        setTrialNisaMessage(`Your trial ends in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. Upgrade to keep full access to Tasks and Notes.`);
       }
     }
 
-    if (elapsed >= 13) {
+    if (daysRemaining <= 1) {
       const key = `trial_d13_seen_${user.id}`;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1');
