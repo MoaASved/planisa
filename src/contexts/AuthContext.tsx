@@ -9,6 +9,7 @@ export interface UserRecord {
   email: string;
   subscription_status: SubscriptionStatus;
   trial_start_date: string;
+  trial_ends_at?: string | null;
   created_at: string;
 }
 
@@ -27,19 +28,20 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const TRIAL_DAYS = 14;
 const BETA_DAYS = 30;
 
+function trialExpiry(record: UserRecord, fallbackDays: number): number {
+  if (record.trial_ends_at) return new Date(record.trial_ends_at).getTime();
+  return new Date(record.trial_start_date).getTime() + fallbackDays * 24 * 60 * 60 * 1000;
+}
+
 function computeFullAccess(record: UserRecord | null): boolean {
   if (!record) return false;
   if (record.subscription_status === 'active') return true;
   if (record.subscription_status === 'lifetime') return true;
   if (record.subscription_status === 'trialing') {
-    const start = new Date(record.trial_start_date).getTime();
-    const elapsedDays = (Date.now() - start) / (1000 * 60 * 60 * 24);
-    return elapsedDays <= TRIAL_DAYS;
+    return Date.now() <= trialExpiry(record, TRIAL_DAYS);
   }
   if (record.subscription_status === 'beta') {
-    const start = new Date(record.trial_start_date).getTime();
-    const elapsedDays = (Date.now() - start) / (1000 * 60 * 60 * 24);
-    return elapsedDays <= BETA_DAYS;
+    return Date.now() <= trialExpiry(record, BETA_DAYS);
   }
   return false;
 }

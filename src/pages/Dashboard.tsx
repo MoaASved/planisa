@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { TabNavigation } from '../components/navigation/TabNavigation';
@@ -714,7 +715,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 // ─── Dashboard (root) ─────────────────────────────────────────────────────────
 
 const Dashboard: React.FC = () => {
-  const { user, hasFullAccess, userRecord } = useAuth();
+  const { user, hasFullAccess, userRecord, refreshUserRecord } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { settings, setHighlightTaskId, events, notes } = useAppStore();
 
   // Show onboarding once — determined synchronously from auth metadata so there's no flash
@@ -1016,6 +1018,16 @@ const Dashboard: React.FC = () => {
       }
     }
   }, [userRecord, user]);
+
+  // ── Stripe return: ?upgrade=success ────────────────────────────────────────
+  useEffect(() => {
+    if (searchParams.get('upgrade') !== 'success') return;
+    setSearchParams({}, { replace: true });
+    setActiveTab('profile');
+    refreshUserRecord().then(() => {
+      toast.success("You're all set! Welcome to Planisa Pro.");
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll to top on tab change
   useEffect(() => {

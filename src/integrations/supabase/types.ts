@@ -597,6 +597,7 @@ export type Database = {
           email: string
           id: string
           subscription_status: string
+          trial_ends_at: string | null
           trial_start_date: string
         }
         Insert: {
@@ -604,6 +605,7 @@ export type Database = {
           email: string
           id: string
           subscription_status?: string
+          trial_ends_at?: string | null
           trial_start_date?: string
         }
         Update: {
@@ -611,6 +613,7 @@ export type Database = {
           email?: string
           id?: string
           subscription_status?: string
+          trial_ends_at?: string | null
           trial_start_date?: string
         }
         Relationships: []

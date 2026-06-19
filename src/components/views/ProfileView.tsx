@@ -13,13 +13,14 @@ import {
   CheckSquare,
   Edit3,
   X,
-
   CreditCard,
   HelpCircle,
   MessageSquareDot,
   Shield,
   FileText,
+  Sparkles,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { pastelColors, getAccentTextClass } from '@/lib/colors';
@@ -28,6 +29,9 @@ import { CategoryEditDrawer } from '@/components/modals/CategoryEditDrawer';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+
+const PRICE_MONTHLY = 'price_1Tk8oDBzzA5y3GWGix3ylD3r';
+const PRICE_YEARLY = 'price_1Tk8onBzzA5y3GWGzyZzIPVA';
 
 type CategorySection = 'calendar' | 'tasks' | 'notes';
 
@@ -55,7 +59,8 @@ export function ProfileView() {
     updateFolder,
     deleteFolder,
   } = useAppStore();
-  const { signOut, user } = useAuth();
+  const { signOut, user, userRecord, hasFullAccess } = useAuth();
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null); // holds priceId while loading
 
 
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -89,6 +94,43 @@ export function ProfileView() {
     setNisaLastMessage(localStorage.getItem('nisa_last_message'));
     setNisaDismissed(!!localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`));
   }, []);
+
+  const handleCheckout = async (priceId: string) => {
+    if (!user) return;
+    setCheckoutLoading(priceId);
+
+    // Open the window immediately while still in the user-gesture call stack,
+    // otherwise browsers block window.open called after an await.
+    const win = window.open('', '_blank');
+
+    try {
+      console.log('[checkout] invoking create-checkout-session', { priceId, userId: user.id });
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId, userId: user.id },
+      });
+      console.log('[checkout] response', { data, error });
+
+      if (error) throw new Error(error.message);
+
+      if (data?.url) {
+        if (win) {
+          win.location.href = data.url;
+        } else {
+          // Fallback if the window was blocked
+          window.location.href = data.url;
+        }
+      } else {
+        win?.close();
+        throw new Error('No checkout URL returned from server');
+      }
+    } catch (err) {
+      console.error('[checkout] error', err);
+      win?.close();
+      toast.error('Could not start checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(null);
+    }
+  };
 
   const toggleDarkMode = () => {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
@@ -258,6 +300,52 @@ export function ProfileView() {
           )}
         </div>
 
+        {/* Plan */}
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Plan</h3>
+          {hasFullAccess && (userRecord?.subscription_status === 'active' || userRecord?.subscription_status === 'lifetime') ? (
+            <div className="flow-card-flat p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">
+                  {userRecord.subscription_status === 'lifetime' ? 'Lifetime Access' : 'Planisa Pro'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {userRecord.subscription_status === 'lifetime' ? 'You have lifetime access.' : 'Active subscription — full access enabled.'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flow-card-flat p-4 space-y-3">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
+                  <CreditCard className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Upgrade to Pro</p>
+                  <p className="text-sm text-muted-foreground">Unlock Tasks, Notes, and everything else.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleCheckout(PRICE_MONTHLY)}
+                disabled={!!checkoutLoading}
+                className="w-full py-3 rounded-2xl bg-foreground text-background text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
+              >
+                {checkoutLoading === PRICE_MONTHLY ? 'Opening…' : 'Monthly — €7.99/month'}
+              </button>
+              <button
+                onClick={() => handleCheckout(PRICE_YEARLY)}
+                disabled={!!checkoutLoading}
+                className="w-full py-3 rounded-2xl border border-border text-foreground text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
+              >
+                {checkoutLoading === PRICE_YEARLY ? 'Opening…' : 'Yearly — €69.99/year'}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Account Settings */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Account</h3>
@@ -283,22 +371,6 @@ export function ProfileView() {
                 <div className="text-left">
                   <p className="font-medium text-foreground">Change Password</p>
                   <p className="text-sm text-muted-foreground">Update your password</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-
-            <button
-              onClick={() => window.open('#', '_blank')}
-              className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Subscription</p>
-                  <p className="text-sm text-muted-foreground">Manage your plan</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
