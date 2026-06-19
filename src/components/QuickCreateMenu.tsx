@@ -8,15 +8,16 @@ interface QuickCreateMenuProps {
   onCreateEvent: () => void;
   onCreateNote: () => void;
   onCreateStickyNote: () => void;
+  hasFullAccess?: boolean;
   /** When provided, positions the menu next to this rect (desktop sidebar button). */
   anchorRect?: DOMRect | null;
 }
 
-const actions = [
-  { id: 'event', label: 'Event', icon: CalendarPlus },
-  { id: 'task', label: 'Task', icon: CheckSquare },
-  { id: 'note', label: 'Note', icon: FileText },
-  { id: 'sticky', label: 'Sticky', icon: StickyNote },
+const allActions = [
+  { id: 'event',  label: 'Event',  icon: CalendarPlus, requiresAccess: false },
+  { id: 'task',   label: 'Task',   icon: CheckSquare,  requiresAccess: true  },
+  { id: 'note',   label: 'Note',   icon: FileText,     requiresAccess: true  },
+  { id: 'sticky', label: 'Sticky', icon: StickyNote,   requiresAccess: true  },
 ] as const;
 
 export function QuickCreateMenu({
@@ -26,6 +27,7 @@ export function QuickCreateMenu({
   onCreateEvent,
   onCreateNote,
   onCreateStickyNote,
+  hasFullAccess = true,
   anchorRect,
 }: QuickCreateMenuProps) {
   if (!isOpen) return null;
@@ -45,20 +47,17 @@ export function QuickCreateMenu({
     return { left, top };
   })();
 
+  // Hide locked actions entirely when user doesn't have full access
+  const actions = hasFullAccess
+    ? allActions
+    : allActions.filter(a => !a.requiresAccess);
+
   const handleAction = (id: string) => {
     switch (id) {
-      case 'task':
-        onCreateTask();
-        break;
-      case 'event':
-        onCreateEvent();
-        break;
-      case 'note':
-        onCreateNote();
-        break;
-      case 'sticky':
-        onCreateStickyNote();
-        break;
+      case 'task':   onCreateTask();       break;
+      case 'event':  onCreateEvent();      break;
+      case 'note':   onCreateNote();       break;
+      case 'sticky': onCreateStickyNote(); break;
     }
     onClose();
   };

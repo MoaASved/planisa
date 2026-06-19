@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Check, Calendar, CheckSquare, FileText, Pin, Search, PenLine, Plus } from 'lucide-react';
+import { X, Check, Calendar, CheckSquare, FileText, Pin, Search, PenLine, Plus, Lock } from 'lucide-react';
 import { format, parseISO, isToday, startOfWeek, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,14 +28,15 @@ interface FocusPickerModalProps {
   currentCount: number;
   onClose: () => void;
   onConfirm: (items: FocusCandidate[]) => void;
+  hasFullAccess?: boolean;
 }
 
-const TAB_LABELS: { key: FocusItemType; label: string; icon: React.ElementType }[] = [
-  { key: 'task',   label: 'Tasks',    icon: CheckSquare },
-  { key: 'event',  label: 'Events',   icon: Calendar },
-  { key: 'note',   label: 'Notes',    icon: FileText },
-  { key: 'sticky', label: 'Stickies', icon: Pin },
-  { key: 'custom', label: 'Custom',   icon: PenLine },
+const TAB_LABELS: { key: FocusItemType; label: string; icon: React.ElementType; requiresAccess: boolean }[] = [
+  { key: 'task',   label: 'Tasks',    icon: CheckSquare, requiresAccess: true  },
+  { key: 'event',  label: 'Events',   icon: Calendar,    requiresAccess: false },
+  { key: 'note',   label: 'Notes',    icon: FileText,    requiresAccess: true  },
+  { key: 'sticky', label: 'Stickies', icon: Pin,         requiresAccess: true  },
+  { key: 'custom', label: 'Custom',   icon: PenLine,     requiresAccess: false },
 ];
 
 const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2, none: 3 };
@@ -73,7 +74,7 @@ function getDayLabel(dateStr: string): string {
   } catch { return dateStr; }
 }
 
-export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConfirm }: FocusPickerModalProps) {
+export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConfirm, hasFullAccess = true }: FocusPickerModalProps) {
   const { modalTop, maxHeight } = useVisualViewport(70);
   const [activeTab, setActiveTab] = useState<FocusItemType>('task');
   const [items, setItems] = useState<FocusCandidate[]>([]);
@@ -90,9 +91,11 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   const weekRangeLabel = `${format(mondayDate, 'd MMM')} – ${format(sundayDate, 'd MMM yyyy')}`;
 
   useEffect(() => {
-    if (!isOpen) { setSelected([]); setActiveTab('task'); setSearchQuery(''); setCustomText(''); setItemGroups([]); return; }
-    fetchTab('task');
-  }, [isOpen]);
+    const defaultTab: FocusItemType = hasFullAccess ? 'task' : 'event';
+    if (!isOpen) { setSelected([]); setActiveTab(defaultTab); setSearchQuery(''); setCustomText(''); setItemGroups([]); return; }
+    fetchTab(defaultTab);
+    setActiveTab(defaultTab);
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (isOpen && activeTab !== 'custom') {
@@ -370,19 +373,27 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
 
           {/* Tabs */}
           <div className="flex gap-1 px-5 pb-3 flex-shrink-0">
-            {TAB_LABELS.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={cn(
-                  'flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[10px] font-medium transition-colors',
-                  activeTab === key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
-                )}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {label}
-              </button>
-            ))}
+            {TAB_LABELS.map(({ key, label, icon: Icon, requiresAccess }) => {
+              const locked = requiresAccess && !hasFullAccess;
+              return (
+                <button
+                  key={key}
+                  onClick={() => !locked && setActiveTab(key)}
+                  disabled={locked}
+                  className={cn(
+                    'flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[10px] font-medium transition-colors',
+                    locked
+                      ? 'bg-secondary text-muted-foreground/30 cursor-default'
+                      : activeTab === key
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-muted-foreground'
+                  )}
+                >
+                  {locked ? <Lock className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search bar — hidden on custom tab */}

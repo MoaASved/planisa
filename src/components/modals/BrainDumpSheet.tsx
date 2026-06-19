@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom';
 import { useRef, useState } from 'react';
-import { X, CheckSquare, Calendar, FileText, Pin } from 'lucide-react';
+import { X, CheckSquare, Calendar, FileText, Pin, Lock } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BrainDumpSortType } from './BrainDumpSortModal';
@@ -17,13 +17,14 @@ interface BrainDumpSheetProps {
   onClose: () => void;
   onSort: (item: BrainDumpItem, type: BrainDumpSortType) => void;
   onDelete: (id: string) => void;
+  hasFullAccess?: boolean;
 }
 
-const SORT_BUTTONS: { type: BrainDumpSortType; icon: React.ElementType; label: string }[] = [
-  { type: 'task',   icon: CheckSquare, label: 'Task' },
-  { type: 'event',  icon: Calendar,    label: 'Event' },
-  { type: 'note',   icon: FileText,    label: 'Note' },
-  { type: 'sticky', icon: Pin,         label: 'Sticky' },
+const SORT_BUTTONS: { type: BrainDumpSortType; icon: React.ElementType; label: string; requiresAccess: boolean }[] = [
+  { type: 'task',   icon: CheckSquare, label: 'Task',   requiresAccess: true  },
+  { type: 'event',  icon: Calendar,    label: 'Event',  requiresAccess: false },
+  { type: 'note',   icon: FileText,    label: 'Note',   requiresAccess: true  },
+  { type: 'sticky', icon: Pin,         label: 'Sticky', requiresAccess: true  },
 ];
 
 function fmtDate(ts: string) {
@@ -36,10 +37,12 @@ function SwipeableItem({
   item,
   onSort,
   onDelete,
+  hasFullAccess = true,
 }: {
   item: BrainDumpItem;
   onSort: (type: BrainDumpSortType) => void;
   onDelete: () => void;
+  hasFullAccess?: boolean;
 }) {
   const [offset, setOffset] = useState(0);
   const startX = useRef(0);
@@ -88,16 +91,25 @@ function SwipeableItem({
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{fmtDate(item.created_at)}</span>
         <div className="flex gap-1.5">
-          {SORT_BUTTONS.map(({ type, icon: Icon, label }) => (
-            <button
-              key={type}
-              onClick={() => onSort(type)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-background text-xs font-medium text-foreground/70 hover:bg-primary/10 hover:text-primary transition-colors"
-            >
-              <Icon className="w-3 h-3" />
-              {label}
-            </button>
-          ))}
+          {SORT_BUTTONS.map(({ type, icon: Icon, label, requiresAccess }) => {
+            const locked = requiresAccess && !hasFullAccess;
+            return (
+              <button
+                key={type}
+                onClick={() => !locked && onSort(type)}
+                disabled={locked}
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1 rounded-lg bg-background text-xs font-medium transition-colors',
+                  locked
+                    ? 'text-foreground/30 cursor-default'
+                    : 'text-foreground/70 hover:bg-primary/10 hover:text-primary'
+                )}
+              >
+                {locked ? <Lock className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -106,7 +118,7 @@ function SwipeableItem({
 
 // ─── Sheet ─────────────────────────────────────────────────────────────────────
 
-export function BrainDumpSheet({ isOpen, items, onClose, onSort, onDelete }: BrainDumpSheetProps) {
+export function BrainDumpSheet({ isOpen, items, onClose, onSort, onDelete, hasFullAccess = true }: BrainDumpSheetProps) {
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
@@ -146,6 +158,7 @@ export function BrainDumpSheet({ isOpen, items, onClose, onSort, onDelete }: Bra
               item={item}
               onSort={type => onSort(item, type)}
               onDelete={() => onDelete(item.id)}
+              hasFullAccess={hasFullAccess}
             />
           ))}
         </div>

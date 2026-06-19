@@ -203,6 +203,7 @@ interface DashboardHomeProps {
   onDeleteHabit: (id: string) => void;
   trialNisaMessage?: string | null;
   onTrialUpgrade?: (() => void) | null;
+  hasFullAccess?: boolean;
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -233,6 +234,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onDeleteHabit,
   trialNisaMessage,
   onTrialUpgrade,
+  hasFullAccess = true,
 }) => {
   const { tasks } = useAppStore();
 
@@ -538,17 +540,32 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           />
           <div className="flex items-center justify-between">
             <div className="flex space-x-4">
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('task')}>
-                <CheckSquare className="w-5 h-5" /><span className="flow-meta">Task</span>
+              <button
+                className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
+                onClick={() => hasFullAccess && handleBrainDumpSort('task')}
+                disabled={!hasFullAccess}
+              >
+                {hasFullAccess ? <CheckSquare className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                <span className="flow-meta">Task</span>
               </button>
               <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
                 <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
               </button>
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('note')}>
-                <FileText className="w-5 h-5" /><span className="flow-meta">Note</span>
+              <button
+                className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
+                onClick={() => hasFullAccess && handleBrainDumpSort('note')}
+                disabled={!hasFullAccess}
+              >
+                {hasFullAccess ? <FileText className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                <span className="flow-meta">Note</span>
               </button>
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('sticky')}>
-                <Pin className="w-5 h-5" /><span className="flow-meta">Sticky</span>
+              <button
+                className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
+                onClick={() => hasFullAccess && handleBrainDumpSort('sticky')}
+                disabled={!hasFullAccess}
+              >
+                {hasFullAccess ? <Pin className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                <span className="flow-meta">Sticky</span>
               </button>
             </div>
             <button
@@ -572,6 +589,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         onClose={() => setShowBrainDumpSheet(false)}
         onSort={handleSheetSort}
         onDelete={onDeleteBrainDumpItem}
+        hasFullAccess={hasFullAccess}
       />
       {sortModal && (
         <BrainDumpSortModal
@@ -1081,6 +1099,7 @@ const Dashboard: React.FC = () => {
             onDeleteHabit={deleteHabit}
             trialNisaMessage={trialNisaMessage}
             onTrialUpgrade={() => setActiveTab('profile')}
+            hasFullAccess={hasFullAccess}
           />
         );
       case 'calendar':
@@ -1132,6 +1151,7 @@ const Dashboard: React.FC = () => {
         isOpen={showQuickCreate}
         onClose={() => setShowQuickCreate(false)}
         anchorRect={quickCreateAnchor}
+        hasFullAccess={hasFullAccess}
         onCreateTask={() => {
           if (activeTab === 'calendar') { setShowCalendarTaskCreate(true); }
           else { setIsCreatingNewTask(true); setDefaultTaskDate(undefined); setActiveTab('tasks'); }
@@ -1188,6 +1208,7 @@ const Dashboard: React.FC = () => {
         currentCount={focusItems.length}
         onClose={() => setShowFocusPicker(false)}
         onConfirm={handleFocusConfirm}
+        hasFullAccess={hasFullAccess}
       />
 
       {!onboardingVisible && (
