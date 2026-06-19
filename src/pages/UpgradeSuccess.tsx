@@ -11,7 +11,7 @@ const UpgradeSuccess = () => {
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-foreground">You're all set! 🎉</h1>
           <p className="text-base text-muted-foreground leading-relaxed">
-            Welcome to Planisa Pro. Your account has been upgraded.
+            Welcome to Planisa Pro. Your account has been upgraded. You can now close this window and go back to the app.
           </p>
         </div>
 
@@ -19,7 +19,7 @@ const UpgradeSuccess = () => {
           href="https://my.planisa.app/"
           className="mt-2 w-full py-3.5 rounded-2xl bg-foreground text-background text-[15px] font-semibold text-center active:scale-[0.98] transition-transform"
         >
-          Go to Planisa
+          Close this window and return to Planisa
         </a>
       </div>
     </div>

@@ -61,6 +61,7 @@ export function ProfileView() {
   } = useAppStore();
   const { signOut, user, userRecord, hasFullAccess } = useAuth();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null); // holds priceId while loading
+  const [portalLoading, setPortalLoading] = useState(false);
 
 
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -94,6 +95,30 @@ export function ProfileView() {
     setNisaLastMessage(localStorage.getItem('nisa_last_message'));
     setNisaDismissed(!!localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`));
   }, []);
+
+  const handlePortal = async () => {
+    if (!user) return;
+    setPortalLoading(true);
+    const win = window.open('', '_blank');
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: { userId: user.id },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.url) {
+        if (win) win.location.href = data.url;
+        else window.location.href = data.url;
+      } else {
+        win?.close();
+        throw new Error('No portal URL returned');
+      }
+    } catch (err) {
+      win?.close();
+      toast.error('Could not open billing portal. Please try again.');
+    } finally {
+      setPortalLoading(false);
+    }
+  };
 
   const handleCheckout = async (priceId: string) => {
     if (!user) return;
@@ -304,18 +329,29 @@ export function ProfileView() {
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Plan</h3>
           {hasFullAccess && (userRecord?.subscription_status === 'active' || userRecord?.subscription_status === 'lifetime') ? (
-            <div className="flow-card-flat p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-primary" />
+            <div className="flow-card-flat p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">
+                    {userRecord.subscription_status === 'lifetime' ? 'Lifetime Access' : 'Planisa Pro'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {userRecord.subscription_status === 'lifetime' ? 'You have lifetime access.' : 'Active subscription — full access enabled.'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-foreground">
-                  {userRecord.subscription_status === 'lifetime' ? 'Lifetime Access' : 'Planisa Pro'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {userRecord.subscription_status === 'lifetime' ? 'You have lifetime access.' : 'Active subscription — full access enabled.'}
-                </p>
-              </div>
+              {userRecord.subscription_status === 'active' && (
+                <button
+                  onClick={handlePortal}
+                  disabled={portalLoading}
+                  className="w-full py-3 rounded-2xl border border-border text-foreground text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
+                >
+                  {portalLoading ? 'Opening…' : 'Manage subscription'}
+                </button>
+              )}
             </div>
           ) : (
             <div className="flow-card-flat p-4 space-y-3">
