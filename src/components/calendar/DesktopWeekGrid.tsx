@@ -55,10 +55,10 @@ function computeOverlap(items: { id: string; start: number; end: number }[]) {
 // ── Slot context menu ─────────────────────────────────────────────────────────
 
 const SLOT_ACTIONS = [
-  { id: 'event' as const, label: 'Event', icon: CalendarPlus },
-  { id: 'task' as const, label: 'Task', icon: CheckSquare },
-  { id: 'note' as const, label: 'Note', icon: FileText },
-  { id: 'sticky' as const, label: 'Sticky Note', icon: StickyNote },
+  { id: 'event' as const, label: 'Event', icon: CalendarPlus, requiresAccess: false },
+  { id: 'task' as const, label: 'Task', icon: CheckSquare, requiresAccess: true },
+  { id: 'note' as const, label: 'Note', icon: FileText, requiresAccess: true },
+  { id: 'sticky' as const, label: 'Sticky Note', icon: StickyNote, requiresAccess: true },
 ];
 
 interface SlotMenuState {
@@ -69,16 +69,18 @@ interface SlotMenuState {
 }
 
 function SlotContextMenu({
-  x, y, time, onClose, onCreate,
+  x, y, time, onClose, onCreate, hasFullAccess = true,
 }: {
   x: number;
   y: number;
   time: string;
   onClose: () => void;
   onCreate: (type: 'event' | 'task' | 'note' | 'sticky') => void;
+  hasFullAccess?: boolean;
 }) {
+  const visibleActions = SLOT_ACTIONS.filter(a => hasFullAccess || !a.requiresAccess);
   const menuW = 168;
-  const menuH = 218;
+  const menuH = visibleActions.length * 46 + 40;
   const left = Math.min(x + 6, window.innerWidth - menuW - 8);
   const top = Math.max(Math.min(y - 8, window.innerHeight - menuH - 8), 8);
 
@@ -101,7 +103,7 @@ function SlotContextMenu({
             {time}
           </span>
         </div>
-        {SLOT_ACTIONS.map((action, index) => {
+        {visibleActions.map((action, index) => {
           const Icon = action.icon;
           return (
             <button
@@ -110,7 +112,7 @@ function SlotContextMenu({
               className="flex items-center gap-3 w-full text-left transition-colors duration-100 hover:bg-white/10 active:bg-white/15"
               style={{
                 padding: '11px 20px',
-                borderBottom: index < SLOT_ACTIONS.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
+                borderBottom: index < visibleActions.length - 1 ? '1px solid rgba(255,255,255,0.08)' : 'none',
               }}
             >
               <Icon className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.6)' }} />
@@ -139,12 +141,14 @@ interface DesktopWeekGridProps {
   onTaskToggle: (e: React.MouseEvent, taskId: string) => void;
   onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string, date?: Date) => void;
   onDayHeaderClick?: (date: Date) => void;
+  hasFullAccess?: boolean;
 }
 
 export function DesktopWeekGrid({
   weekDays, events, tasks, notes,
   selectedDate, onDateSelect,
   getItemColor, getNoteColor, onItemClick, onTaskToggle, onCreateFromTimeline, onDayHeaderClick,
+  hasFullAccess = true,
 }: DesktopWeekGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slotMenu, setSlotMenu] = useState<SlotMenuState | null>(null);
@@ -638,6 +642,7 @@ export function DesktopWeekGrid({
             onCreateFromTimeline?.(type, slotMenu.time, slotMenu.date);
             setSlotMenu(null);
           }}
+          hasFullAccess={hasFullAccess}
         />
       )}
 

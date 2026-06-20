@@ -160,6 +160,7 @@ interface CalendarItemListProps {
   onCreateFromTimeline?: (type: CreateType, time: string) => void;
   showTimeline: boolean;
   onTimelineChange: (v: boolean) => void;
+  hasFullAccess?: boolean;
 }
 
 export function CalendarItemList({
@@ -174,6 +175,7 @@ export function CalendarItemList({
   onCreateFromTimeline,
   showTimeline,
   onTimelineChange,
+  hasFullAccess = true,
 }: CalendarItemListProps) {
   const [activeFilters, setActiveFilters] = useState<ItemType[]>(['events', 'tasks', 'notes']);
   const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'task' | 'event' | 'note' } | null>(null);
@@ -1012,12 +1014,12 @@ export function CalendarItemList({
             <div style={{ pointerEvents: menuInteractive ? 'auto' : 'none' }}>
               {(
                 [
-                  { type: 'event' as CreateType, label: 'Event', icon: CalendarPlus },
-                  { type: 'task' as CreateType, label: 'Task', icon: CheckSquare },
-                  { type: 'note' as CreateType, label: 'Note', icon: FileText },
-                  { type: 'sticky' as CreateType, label: 'Sticky', icon: StickyNote },
+                  { type: 'event' as CreateType, label: 'Event', icon: CalendarPlus, requiresAccess: false },
+                  { type: 'task' as CreateType, label: 'Task', icon: CheckSquare, requiresAccess: true },
+                  { type: 'note' as CreateType, label: 'Note', icon: FileText, requiresAccess: true },
+                  { type: 'sticky' as CreateType, label: 'Sticky', icon: StickyNote, requiresAccess: true },
                 ] as const
-              ).map(({ type, label, icon: Icon }) => (
+              ).filter(item => hasFullAccess || !item.requiresAccess).map(({ type, label, icon: Icon }) => (
                 <button
                   key={type}
                   onPointerDown={(e) => e.stopPropagation()}

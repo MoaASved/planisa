@@ -1107,6 +1107,7 @@ const Dashboard: React.FC = () => {
           <CalendarViewComponent
             onDateChange={setSelectedCalendarDate}
             onNavigateToTasks={task => { setHighlightTaskId(task.id); setActiveTab('tasks'); }}
+            hasFullAccess={hasFullAccess}
           />
         );
       case 'tasks':

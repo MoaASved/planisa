@@ -36,6 +36,7 @@ interface MonthViewProps {
   onTimelineChange: (v: boolean) => void;
   /** Desktop only: called when a day cell is clicked, in addition to onDateSelect */
   onDesktopDayClick?: (date: Date) => void;
+  hasFullAccess?: boolean;
 }
 
 const getNoteLabel = (note: Note): string => {
@@ -68,6 +69,7 @@ export function MonthView({
   showTimeline,
   onTimelineChange,
   onDesktopDayClick,
+  hasFullAccess = true,
 }: MonthViewProps) {
   const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
   const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
@@ -256,6 +258,7 @@ export function MonthView({
             onCreateFromTimeline={onCreateFromTimeline}
             showTimeline={showTimeline}
             onTimelineChange={onTimelineChange}
+            hasFullAccess={hasFullAccess}
           />
         </div>
       </div>

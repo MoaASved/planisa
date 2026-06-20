@@ -21,6 +21,7 @@ interface WeekDayViewProps {
   onCreateFromTimeline?: (type: 'event' | 'task' | 'note' | 'sticky', time: string) => void;
   showTimeline: boolean;
   onTimelineChange: (v: boolean) => void;
+  hasFullAccess?: boolean;
 }
 
 export function WeekDayView({
@@ -39,6 +40,7 @@ export function WeekDayView({
   onCreateFromTimeline,
   showTimeline,
   onTimelineChange,
+  hasFullAccess = true,
 }: WeekDayViewProps) {
   const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
   const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
@@ -146,6 +148,7 @@ export function WeekDayView({
             onCreateFromTimeline={onCreateFromTimeline}
             showTimeline={showTimeline}
             onTimelineChange={onTimelineChange}
+            hasFullAccess={hasFullAccess}
           />
         </div>
       </div>

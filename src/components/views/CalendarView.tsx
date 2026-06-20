@@ -20,7 +20,7 @@ import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 type SimpleView = 'month' | 'weekday';
 type DesktopView = 'day' | 'week' | 'month' | 'year';
 
-export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void }) {
+export function CalendarViewComponent({ onDateChange, onNavigateToTasks, hasFullAccess = true }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; hasFullAccess?: boolean }) {
   const yearViewRef = useRef<YearViewHandle>(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -260,6 +260,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
     onItemClick: handleItemClick,
     onTaskToggle: handleTaskToggle,
     onCreateFromTimeline: handleCreateFromTimeline,
+    hasFullAccess,
   };
 
   return (
@@ -302,6 +303,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onCreateFromTimeline={handleCreateFromTimeline}
             showTimeline={showTimeline}
             onTimelineChange={setShowTimeline}
+            hasFullAccess={hasFullAccess}
           />
         ) : (
           <WeekDayView
@@ -320,6 +322,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
             onCreateFromTimeline={handleCreateFromTimeline}
             showTimeline={showTimeline}
             onTimelineChange={setShowTimeline}
+            hasFullAccess={hasFullAccess}
           />
         )}
       </div>
@@ -349,6 +352,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks }: { onD
               showTimeline={showTimeline}
               onTimelineChange={setShowTimeline}
               onDesktopDayClick={(day) => { setCurrentDate(day); handleDesktopViewChange('week'); }}
+              hasFullAccess={hasFullAccess}
             />
           )}
           {desktopView === 'week' && (desktopListMode
