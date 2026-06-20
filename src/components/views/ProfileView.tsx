@@ -19,6 +19,8 @@ import {
   Shield,
   FileText,
   Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -64,6 +66,23 @@ export function ProfileView() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
+  // Email change modal
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailCurrentPassword, setEmailCurrentPassword] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Password change modal
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarInitial, setAvatarInitial] = useState(settings.avatarInitial || 'U');
@@ -118,6 +137,80 @@ export function ProfileView() {
       toast.error('Could not open billing portal. Please try again.');
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const handleEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) return;
+    setEmailLoading(true);
+    setEmailMsg(null);
+    try {
+      // Verify current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: emailCurrentPassword,
+      });
+      if (signInError) {
+        setEmailMsg({ type: 'error', text: 'Incorrect password.' });
+        return;
+      }
+      // Update email in Supabase Auth (sends confirmation to new address)
+      const { error: updateError } = await supabase.auth.updateUser({ email: newEmail });
+      if (updateError) {
+        setEmailMsg({ type: 'error', text: updateError.message });
+        return;
+      }
+      // Update Stripe customer email
+      await supabase.functions.invoke('update-stripe-customer-email', {
+        body: { userId: user.id, email: newEmail },
+      });
+      setEmailMsg({ type: 'success', text: 'Check your new inbox for a confirmation link.' });
+      setNewEmail('');
+      setEmailCurrentPassword('');
+    } catch (err) {
+      setEmailMsg({ type: 'error', text: (err as Error).message });
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.email) return;
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setPasswordLoading(true);
+    setPasswordMsg(null);
+    try {
+      // Verify current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      });
+      if (signInError) {
+        setPasswordMsg({ type: 'error', text: 'Incorrect current password.' });
+        return;
+      }
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) {
+        setPasswordMsg({ type: 'error', text: updateError.message });
+        return;
+      }
+      setPasswordMsg({ type: 'success', text: 'Password updated successfully.' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      setPasswordMsg({ type: 'error', text: (err as Error).message });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -413,7 +506,7 @@ export function ProfileView() {
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Account</h3>
           <div className="flow-card-flat space-y-1 p-2">
-            <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors">
+            <button onClick={() => { setShowEmailModal(true); setEmailMsg(null); }} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
                   <Mail className="w-5 h-5 text-muted-foreground" />
@@ -426,7 +519,7 @@ export function ProfileView() {
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
 
-            <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors">
+            <button onClick={() => { setShowPasswordModal(true); setPasswordMsg(null); }} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
                   <Lock className="w-5 h-5 text-muted-foreground" />
@@ -861,6 +954,135 @@ export function ProfileView() {
         showDelete={!editItemIsDefault}
         hideNameInput={editItemIsDefault}
       />
+
+      {/* ── Email change modal ── */}
+      {showEmailModal && ReactDOM.createPortal(
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+            onClick={() => setShowEmailModal(false)}
+          />
+          <div style={{ position: 'fixed', top: modalTop, left: 0, right: 0, zIndex: 9999, padding: '0 20px' }}>
+            <div className="bg-card rounded-3xl shadow-2xl animate-scale-in" style={{ maxHeight, overflowY: 'auto' }}>
+              <div className="sticky top-0 bg-card rounded-t-3xl flex items-center justify-between px-5 pt-5 pb-3 z-10">
+                <h2 className="text-lg font-semibold text-foreground">Change Email</h2>
+                <button onClick={() => setShowEmailModal(false)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              <form onSubmit={handleEmailChange} className="px-5 pb-6 space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-1.5 block">New email address</label>
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={e => setNewEmail(e.target.value)}
+                    placeholder="new@email.com"
+                    className="flow-input w-full"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Current password</label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPw ? 'text' : 'password'}
+                      value={emailCurrentPassword}
+                      onChange={e => setEmailCurrentPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="flow-input w-full pr-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                {emailMsg && (
+                  <p className={cn('text-sm', emailMsg.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-500')}>
+                    {emailMsg.text}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={emailLoading || !newEmail || !emailCurrentPassword}
+                  className="w-full flow-button-primary disabled:opacity-50"
+                >
+                  {emailLoading ? 'Updating…' : 'Update Email'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </>,
+        document.body,
+      )}
+
+      {/* ── Password change modal ── */}
+      {showPasswordModal && ReactDOM.createPortal(
+        <>
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+            onClick={() => setShowPasswordModal(false)}
+          />
+          <div style={{ position: 'fixed', top: modalTop, left: 0, right: 0, zIndex: 9999, padding: '0 20px' }}>
+            <div className="bg-card rounded-3xl shadow-2xl animate-scale-in" style={{ maxHeight, overflowY: 'auto' }}>
+              <div className="sticky top-0 bg-card rounded-t-3xl flex items-center justify-between px-5 pt-5 pb-3 z-10">
+                <h2 className="text-lg font-semibold text-foreground">Change Password</h2>
+                <button onClick={() => setShowPasswordModal(false)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+              <form onSubmit={handlePasswordChange} className="px-5 pb-6 space-y-4">
+                {[
+                  { label: 'Current password', value: currentPassword, onChange: setCurrentPassword, show: showCurrentPw, toggle: () => setShowCurrentPw(v => !v) },
+                  { label: 'New password', value: newPassword, onChange: setNewPassword, show: showNewPw, toggle: () => setShowNewPw(v => !v) },
+                  { label: 'Confirm new password', value: confirmPassword, onChange: setConfirmPassword, show: showConfirmPw, toggle: () => setShowConfirmPw(v => !v) },
+                ].map(({ label, value, onChange, show, toggle }) => (
+                  <div key={label}>
+                    <label className="text-sm font-medium text-muted-foreground mb-1.5 block">{label}</label>
+                    <div className="relative">
+                      <input
+                        type={show ? 'text' : 'password'}
+                        value={value}
+                        onChange={e => onChange(e.target.value)}
+                        placeholder="••••••••"
+                        className="flow-input w-full pr-10"
+                        required
+                        autoFocus={label === 'Current password'}
+                      />
+                      <button
+                        type="button"
+                        onClick={toggle}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {passwordMsg && (
+                  <p className={cn('text-sm', passwordMsg.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-500')}>
+                    {passwordMsg.text}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
+                  className="w-full flow-button-primary disabled:opacity-50"
+                >
+                  {passwordLoading ? 'Updating…' : 'Update Password'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </>,
+        document.body,
+      )}
     </div>
   );
 }
