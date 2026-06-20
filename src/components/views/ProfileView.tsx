@@ -30,8 +30,8 @@ import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-const PRICE_MONTHLY = 'price_1Tk8oDBzzA5y3GWGix3ylD3r';
-const PRICE_YEARLY = 'price_1Tk8onBzzA5y3GWGzyZzIPVA';
+const PRICE_MONTHLY = 'price_1Tk8iGBzzA5y3GWGJXt3d34j';
+const PRICE_YEARLY = 'price_1Tk8kgBzzA5y3GWGhNunooOM';
 
 type CategorySection = 'calendar' | 'tasks' | 'notes';
 
