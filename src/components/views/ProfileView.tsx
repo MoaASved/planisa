@@ -61,6 +61,7 @@ export function ProfileView() {
   } = useAppStore();
   const { signOut, user, userRecord, hasFullAccess } = useAuth();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null); // holds priceId while loading
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
 
@@ -123,6 +124,7 @@ export function ProfileView() {
   const handleCheckout = async (priceId: string) => {
     if (!user) return;
     setCheckoutLoading(priceId);
+    setCheckoutError(null);
 
     // Open the window immediately while still in the user-gesture call stack,
     // otherwise browsers block window.open called after an await.
@@ -133,25 +135,45 @@ export function ProfileView() {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { priceId, userId: user.id },
       });
-      console.log('[checkout] response', { data, error });
+      console.log('[checkout] raw response', { data, error });
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        // Extract the actual error body from the Edge Function response
+        let msg = error.message;
+        try {
+          const body = await (error as any).context?.json?.();
+          console.error('[checkout] edge function error body', body);
+          if (body?.error) msg = body.error;
+        } catch (parseErr) {
+          console.error('[checkout] could not parse error body', parseErr);
+        }
+        throw new Error(msg);
+      }
+
+      // data itself may contain an error field if the function returned 2xx with an error
+      if (data?.error) {
+        console.error('[checkout] data.error', data.error);
+        throw new Error(data.error);
+      }
 
       if (data?.url) {
         if (win) {
           win.location.href = data.url;
         } else {
-          // Fallback if the window was blocked
+          // Popup was blocked — fall back to same-tab navigation
           window.location.href = data.url;
         }
       } else {
         win?.close();
-        throw new Error('No checkout URL returned from server');
+        console.error('[checkout] unexpected response shape', data);
+        throw new Error('No checkout URL returned — check Edge Function logs');
       }
     } catch (err) {
-      console.error('[checkout] error', err);
+      const msg = (err as Error).message;
+      console.error('[checkout] final error:', msg);
       win?.close();
-      toast.error('Could not start checkout. Please try again.');
+      setCheckoutError(msg);
+      toast.error(msg);
     } finally {
       setCheckoutLoading(null);
     }
@@ -378,6 +400,11 @@ export function ProfileView() {
               >
                 {checkoutLoading === PRICE_YEARLY ? 'Opening…' : 'Yearly — €69.99/year'}
               </button>
+              {checkoutError && (
+                <p className="text-xs text-destructive leading-snug px-1 pt-1">
+                  Error: {checkoutError}
+                </p>
+              )}
             </div>
           )}
         </div>
