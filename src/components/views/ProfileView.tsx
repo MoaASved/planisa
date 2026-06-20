@@ -638,7 +638,7 @@ export function ProfileView() {
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Support</h3>
           <div className="flow-card-flat space-y-1 p-2">
             <button
-              onClick={() => window.open('#', '_blank')}
+              onClick={() => window.open('https://planisa.app/help', '_blank')}
               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
             >
               <div className="flex items-center gap-3">
@@ -653,7 +653,7 @@ export function ProfileView() {
             </button>
 
             <button
-              onClick={() => window.open('#', '_blank')}
+              onClick={() => window.open('https://planisa.app/roadmap', '_blank')}
               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
             >
               <div className="flex items-center gap-3">
