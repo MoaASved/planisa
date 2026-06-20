@@ -128,6 +128,16 @@ export default function Auth() {
           </button>
         </form>
 
+        {/* Consent — shown on signup only */}
+        {mode === 'signup' && (
+          <p className="text-xs text-muted-foreground/70 text-center leading-relaxed">
+            By creating an account, you agree to our{' '}
+            <a href="https://planisa.app/terms-of-use" target="_blank" rel="noopener noreferrer" className="underline hover:text-muted-foreground transition-colors">Terms of Use</a>
+            {' '}and{' '}
+            <a href="https://planisa.app/privacy-policy" target="_blank" rel="noopener noreferrer" className="underline hover:text-muted-foreground transition-colors">Privacy Policy</a>.
+          </p>
+        )}
+
         {/* Switch mode */}
         <div className="text-center">
           {mode === 'signup' ? (
