@@ -94,7 +94,7 @@ interface NotesViewProps {
 }
 
 export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote: externalIsCreatingStickyNote, onCloseEditor, initialNoteId, onInitialNoteConsumed }: NotesViewProps) {
-  const { notes, folders, addFolder, searchQuery, setSearchQuery, reorderFolders, reorderNotes, updateFolderSortMode } = useAppStore();
+  const { notes, folders, addFolder, searchQuery, setSearchQuery, reorderFolders, reorderNotes, updateFolderSortMode, addNote, deleteNote } = useAppStore();
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
@@ -115,6 +115,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
 
   useEffect(() => { localStorage.setItem('boards-view', layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem('boards-filter', boardsFilter); }, [boardsFilter]);
@@ -332,6 +333,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => {
     const folderData = folders.find(f => f.name === note.folder);
     const isSticky = note.type === 'sticky';
+    const isMenuOpen = openMenuNoteId === note.id;
 
     // Only sticky notes get color
     const cardBgClass = isSticky && note.color
@@ -340,78 +342,136 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
     const { header, preview } = parseNoteContent(note.content);
 
+    const handleDuplicate = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setOpenMenuNoteId(null);
+      addNote({
+        title: note.title,
+        content: note.content,
+        type: note.type,
+        tags: [...note.tags],
+        folder: note.folder,
+        color: note.color,
+        isPinned: false,
+        showInCalendar: note.showInCalendar,
+        hideFromAllNotes: note.hideFromAllNotes,
+        hideDate: note.hideDate,
+      });
+    };
+
+    const handleDelete = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setOpenMenuNoteId(null);
+      deleteNote(note.id);
+    };
+
     return (
-      <button
-        onClick={() => handleOpenNote(note)}
-        className={cn(
-          'text-left group transition-all duration-200 w-full rounded-2xl p-4',
-          cardBgClass,
-          isGrid && 'min-h-[140px] md:h-44 md:overflow-hidden',
-          'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
-        )}
-      >
-        {isGrid ? (
-          /* Grid layout: star top-right, title+preview top-left, folder+date bottom row */
-          <div className="flex flex-col h-full">
-            <div className="flex-1 min-w-0 md:overflow-hidden">
-              <div className="flex items-start justify-between gap-2">
-                {header && <h4 className="flow-card-title">{header}</h4>}
-                {note.isPinned && (
-                  <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
-                )}
-              </div>
-              {preview && (
-                <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-4 md:line-clamp-3">
-                  {preview}
-                </p>
-              )}
-            </div>
-            <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
-              {note.folder ? (
-                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
-                  {note.folder}
-                </span>
-              ) : <span />}
-              {!note.hideDate && (
-                <span className="flow-meta-sm">
-                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
-                </span>
-              )}
-            </div>
-          </div>
-        ) : (
-          /* List layout: star+title left, folder+date right-aligned column */
-          <div className="flex items-start gap-2">
-            <div className="flex-1 min-w-0">
-              {(header || note.isPinned) && (
-                <div className="flex items-center gap-1.5">
+      <div className="relative group">
+        <button
+          onClick={() => handleOpenNote(note)}
+          className={cn(
+            'text-left transition-all duration-200 w-full rounded-2xl p-4',
+            cardBgClass,
+            isGrid && 'min-h-[140px] md:h-44 md:overflow-hidden',
+            'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
+          )}
+        >
+          {isGrid ? (
+            /* Grid layout: star top-right, title+preview top-left, folder+date bottom row */
+            <div className="flex flex-col h-full">
+              <div className="flex-1 min-w-0 md:overflow-hidden">
+                <div className="flex items-start justify-between gap-2">
+                  {header && <h4 className="flow-card-title pr-6">{header}</h4>}
                   {note.isPinned && (
                     <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
                   )}
-                  {header && <h4 className="flow-card-title truncate">{header}</h4>}
                 </div>
-              )}
-              {preview && (
-                <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-2">
-                  {preview}
-                </p>
-              )}
+                {preview && (
+                  <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-4 md:line-clamp-3">
+                    {preview}
+                  </p>
+                )}
+              </div>
+              <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
+                {note.folder ? (
+                  <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
+                    {note.folder}
+                  </span>
+                ) : <span />}
+                {!note.hideDate && (
+                  <span className="flow-meta-sm">
+                    {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col items-end gap-1 flex-shrink-0">
-              {note.folder && (
-                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
-                  {note.folder}
-                </span>
-              )}
-              {!note.hideDate && (
-                <span className="flow-meta-sm">
-                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
-                </span>
-              )}
+          ) : (
+            /* List layout: star+title left, folder+date right-aligned column */
+            <div className="flex items-start gap-2 pr-7">
+              <div className="flex-1 min-w-0">
+                {(header || note.isPinned) && (
+                  <div className="flex items-center gap-1.5">
+                    {note.isPinned && (
+                      <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
+                    )}
+                    {header && <h4 className="flow-card-title truncate">{header}</h4>}
+                  </div>
+                )}
+                {preview && (
+                  <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-2">
+                    {preview}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                {note.folder && (
+                  <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
+                    {note.folder}
+                  </span>
+                )}
+                {!note.hideDate && (
+                  <span className="flow-meta-sm">
+                    {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+        </button>
+
+        {/* ··· menu button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+          className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          aria-label="Note options"
+        >
+          <MoreHorizontal className="w-4 h-4 text-foreground/60" />
+        </button>
+
+        {/* Dropdown menu */}
+        {isMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-[200]" onClick={() => setOpenMenuNoteId(null)} />
+            <div
+              className="absolute top-10 right-2 z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
+              style={{ boxShadow: 'var(--shadow-elevated)' }}
+            >
+              <button
+                onClick={handleDuplicate}
+                className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary/60 transition-colors"
+              >
+                Duplicate
+              </button>
+              <button
+                onClick={handleDelete}
+                className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-secondary/60 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </>
         )}
-      </button>
+      </div>
     );
   };
 
