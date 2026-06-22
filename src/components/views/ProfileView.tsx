@@ -32,9 +32,6 @@ import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-const PRICE_MONTHLY = 'price_1Tk8iGBzzA5y3GWGJXt3d34j';
-const PRICE_YEARLY = 'price_1Tk8kgBzzA5y3GWGhNunooOM';
-
 type CategorySection = 'calendar' | 'tasks' | 'notes';
 
 function getInitials(name: string): string {
@@ -214,9 +211,9 @@ export function ProfileView() {
     }
   };
 
-  const handleCheckout = async (priceId: string) => {
+  const handleCheckout = async (plan: 'monthly' | 'yearly') => {
     if (!user) return;
-    setCheckoutLoading(priceId);
+    setCheckoutLoading(plan);
     setCheckoutError(null);
 
     // Open the window immediately while still in the user-gesture call stack,
@@ -224,9 +221,9 @@ export function ProfileView() {
     const win = window.open('', '_blank');
 
     try {
-      console.log('[checkout] invoking create-checkout-session', { priceId, userId: user.id });
+      console.log('[checkout] invoking create-checkout-session', { plan, userId: user.id });
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { priceId, userId: user.id },
+        body: { plan, userId: user.id },
       });
       console.log('[checkout] raw response', { data, error });
 
@@ -480,18 +477,18 @@ export function ProfileView() {
                 </div>
               </div>
               <button
-                onClick={() => handleCheckout(PRICE_MONTHLY)}
+                onClick={() => handleCheckout('monthly')}
                 disabled={!!checkoutLoading}
                 className="w-full py-3 rounded-2xl bg-foreground text-background text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
               >
-                {checkoutLoading === PRICE_MONTHLY ? 'Opening…' : 'Monthly — €7.99/month'}
+                {checkoutLoading === 'monthly' ? 'Opening…' : 'Monthly — €6.99/month'}
               </button>
               <button
-                onClick={() => handleCheckout(PRICE_YEARLY)}
+                onClick={() => handleCheckout('yearly')}
                 disabled={!!checkoutLoading}
                 className="w-full py-3 rounded-2xl border border-border text-foreground text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
               >
-                {checkoutLoading === PRICE_YEARLY ? 'Opening…' : 'Yearly — €69.99/year'}
+                {checkoutLoading === 'yearly' ? 'Opening…' : 'Yearly — €69.99/year'}
               </button>
               {checkoutError && (
                 <p className="text-xs text-destructive leading-snug px-1 pt-1">

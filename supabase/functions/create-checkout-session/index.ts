@@ -18,14 +18,29 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { priceId, userId } = await req.json();
+    const { plan, userId } = await req.json();
 
-    if (!priceId || !userId) {
-      return new Response(JSON.stringify({ error: 'priceId and userId are required' }), {
+    if (!plan || !userId) {
+      return new Response(JSON.stringify({ error: 'plan and userId are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Resolve price ID from Supabase Secrets — never trust client-supplied price IDs
+    const priceId = plan === 'yearly'
+      ? Deno.env.get('STRIPE_PRICE_YEARLY')
+      : Deno.env.get('STRIPE_PRICE_MONTHLY');
+
+    if (!priceId) {
+      console.error(`[create-checkout-session] No price secret configured for plan: ${plan}`);
+      return new Response(JSON.stringify({ error: `No price configured for plan: ${plan}. Set STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY in Supabase Secrets.` }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[create-checkout-session] plan=${plan} priceId=${priceId} userId=${userId}`);
 
     // Fetch user from public.users
     const userRes = await fetch(
@@ -91,6 +106,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
+    console.error('[create-checkout-session] error:', err);
     return new Response(JSON.stringify({ error: (err as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
