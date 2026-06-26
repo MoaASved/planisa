@@ -15,6 +15,7 @@ import {
   closestCenter,
   PointerSensor,
   KeyboardSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -62,6 +63,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 

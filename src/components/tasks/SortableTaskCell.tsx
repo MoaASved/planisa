@@ -29,7 +29,7 @@ export const SortableTaskCell = memo(function SortableTaskCell({ task, onClick, 
       {...attributes}
       {...listeners}
       className={cn(
-        'touch-none cursor-grab active:cursor-grabbing',
+        'md:touch-none cursor-grab active:cursor-grabbing',
         isDragging && 'opacity-70',
       )}
     >
