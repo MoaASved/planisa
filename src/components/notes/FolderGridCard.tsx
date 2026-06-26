@@ -59,6 +59,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
   const bgId = `bg-${folder.id}`;
   const fgId = `fg-${folder.id}`;
+  const hlId = `hl-${folder.id}`;
 
   return (
     <div className="group relative">
@@ -77,6 +78,11 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
               <stop offset="0%" stopColor={backL} />
               <stop offset="100%" stopColor={backR} />
             </linearGradient>
+            {/* Front card highlight: top-left → bottom-right, white 25% → transparent */}
+            <linearGradient id={hlId} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"   stopColor="white" stopOpacity="0.25" />
+              <stop offset="50%"  stopColor="white" stopOpacity="0" />
+            </linearGradient>
             {/* Front card: L→R, exact base color (via CSS property) to base −8% */}
             <linearGradient id={fgId} x1="0" y1="0" x2="1" y2="0">
               {/* stopColor as a CSS style property — supports var(), matches picker exactly */}
@@ -87,6 +93,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
           <path d={BACK_PATH}  fill={`url(#${bgId})`} stroke={border} strokeWidth="1" />
           <path d={FRONT_PATH} fill={`url(#${fgId})`} stroke={border} strokeWidth="1" />
+          <path d={FRONT_PATH} fill={`url(#${hlId})`} stroke="none" />
         </svg>
 
         {/* Name + count — left-aligned, bottom-left of front card */}
