@@ -10,7 +10,7 @@ interface FolderGridCardProps {
 }
 
 // Resolves an "H S% L%" string to OKLCH, shifts L only, returns oklch().
-function shiftLightness(hslTriple: string, deltaPct: number): string {
+function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 1): string {
   const [h, s, l] = (hslTriple.match(/[\d.]+/g) ?? []).map(Number);
   if ([h, s, l].some(Number.isNaN)) return `hsl(${hslTriple})`;
   const sat = s / 100, lig = l / 100;
@@ -30,7 +30,7 @@ function shiftLightness(hslTriple: string, deltaPct: number): string {
   const okA = 1.9779984951*L_ - 2.4285922050*M_ + 0.4505937099*S_;
   const okB = 0.0259040371*L_ + 0.7827717662*M_ - 0.8086757660*S_;
   okL = Math.max(0, Math.min(1, okL + deltaPct / 100));
-  return `oklch(${okL.toFixed(4)} ${Math.hypot(okA, okB).toFixed(4)} ${((Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360).toFixed(2)})`;
+  return `oklch(${okL.toFixed(4)} ${(Math.hypot(okA, okB) * chromaMul).toFixed(4)} ${((Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360).toFixed(2)})`;
 }
 
 const BACK_PATH =
@@ -52,7 +52,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           .trim()
       : '160 30% 65%';
 
-  const frontR = shiftLightness(raw, -3);
+  const frontR = shiftLightness(raw, -3, 1.08);
   const backL  = shiftLightness(raw, -2);
   const backR  = shiftLightness(raw, -8);
   const border = shiftLightness(raw, -2);
