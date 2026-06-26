@@ -9,9 +9,6 @@ interface FolderGridCardProps {
   compact?: boolean;
 }
 
-// viewBox 0 0 200 142.
-// BACK_PATH  — simple rounded-top rectangle, inset 6px each side, y: 2–128.
-// FRONT_PATH — folder silhouette, y: 12–142.
 const BACK_PATH =
   'M 6 12 Q 6 2 16 2 L 184 2 Q 194 2 194 12 L 194 128 L 6 128 Z';
 const FRONT_PATH =
@@ -20,16 +17,32 @@ const FRONT_PATH =
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
-  const base = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
 
-  // All stops derived from the exact base color via CSS relative color syntax.
-  // Only lightness is reduced — hue and saturation are never modified.
-  // Front left is the base color itself, completely unmodified.
-  const frontL = base;                                          // exact folder color
-  const frontR = `hsl(from ${base} h s calc(l - 8%))`;         // base − 8% lightness
-  const backL  = `hsl(from ${base} h s calc(l - 8%))`;         // base − 8% lightness
-  const backR  = `hsl(from ${base} h s calc(l - 16%))`;        // base − 16% lightness
-  const border = `hsl(from ${base} h s calc(l - 12%))`;        // base − 12% lightness
+  // Read the resolved CSS variable value at render time so the correct color is
+  // used for both light and dark mode without hardcoding anything.
+  // --pastel-<name> resolves to e.g. "86 44% 83%" (H S% L%, space-separated).
+  const raw =
+    typeof window !== 'undefined'
+      ? getComputedStyle(document.documentElement)
+          .getPropertyValue(`--pastel-${folder.color}`)
+          .trim()
+      : '160 30% 65%';
+
+  // Parse the three numeric components (strip % signs).
+  const [h, s, l] = (raw.match(/[\d.]+/g) ?? ['160', '30', '65']).map(Number);
+
+  // Build a plain hsl() stop with a lightness offset; clamps to [0, 100].
+  const hsl = (dl: number) =>
+    `hsl(${h} ${s}% ${Math.max(0, Math.min(100, l + dl))}%)`;
+
+  // Front card: left = exact base color, right = base −8 L
+  // Back panel: left = base −8 L,          right = base −16 L
+  // Border:     base −12 L (within same hue family)
+  const frontL = hsl(0);
+  const frontR = hsl(-8);
+  const backL  = hsl(-8);
+  const backR  = hsl(-16);
+  const border = hsl(-12);
 
   const bgId = `bg-${folder.id}`;
   const fgId = `fg-${folder.id}`;
@@ -46,12 +59,12 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Back panel: L→R, 10–16% darker than base, stronger gradient */}
+            {/* Back panel: L→R, base −8% to base −16% lightness */}
             <linearGradient id={bgId} x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor={backL} />
               <stop offset="100%" stopColor={backR} />
             </linearGradient>
-            {/* Front card: L→R, subtle — lighter left, slightly deeper right */}
+            {/* Front card: L→R, exact base color to base −8% lightness */}
             <linearGradient id={fgId} x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor={frontL} />
               <stop offset="100%" stopColor={frontR} />
