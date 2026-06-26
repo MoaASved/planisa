@@ -10,14 +10,8 @@ interface FolderGridCardProps {
 }
 
 // viewBox 0 0 200 142.
-//
-// BACK_PATH  — simple flat rectangle with rounded top corners only.
-//              Inset 6px on each side (x: 6–194), top at y=2, bottom at y=128.
-//              Shorter and narrower than the front card so it doesn't extend
-//              below it. Only the top strip (y=2 up to the front card's top edge)
-//              is ever visible — the front card covers the rest.
-//
-// FRONT_PATH — folder silhouette, x: 0–200, y: 12–142.
+// BACK_PATH  — simple rounded-top rectangle, inset 6px each side, y: 2–128.
+// FRONT_PATH — folder silhouette, y: 12–142.
 const BACK_PATH =
   'M 6 12 Q 6 2 16 2 L 184 2 Q 194 2 194 12 L 194 128 L 6 128 Z';
 const FRONT_PATH =
@@ -28,17 +22,14 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const count = notes.filter(n => n.folder === folder.name).length;
   const base = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
 
-  // Back panel: L→R gradient. Muted (darker than base) so it reads as the back
-  // of the folder, with a visible but gentle light→dark sweep.
-  const backL = `color-mix(in srgb, ${base} 86%, #2C2C2A)`;
-  const backR = `color-mix(in srgb, ${base} 74%, #2C2C2A)`;
-
-  // Front card: L→R gradient, subtle — base color stays close to original.
-  const frontL = `color-mix(in srgb, ${base} 96%, white)`;
-  const frontR = `color-mix(in srgb, ${base} 90%, #2C2C2A)`;
-
-  // Border: soft — blends with the folder color rather than standing out.
-  const borderColor = `color-mix(in srgb, ${base} 80%, #2C2C2A)`;
+  // CSS relative color syntax keeps every variant in the exact same hue family —
+  // only lightness and saturation shift, no neutral gray introduced.
+  // hsl(from <color> h s calc(l ± X%)) preserves the hue keyword verbatim.
+  const frontL = `hsl(from ${base} h s calc(l + 8%))`;              // lighter left edge
+  const frontR = `hsl(from ${base} h calc(s + 4%) calc(l - 6%))`;   // slightly deeper right edge
+  const backL  = `hsl(from ${base} h calc(s + 6%) calc(l - 10%))`;  // back panel left (10% darker)
+  const backR  = `hsl(from ${base} h calc(s + 10%) calc(l - 16%))`; // back panel right (16% darker)
+  const border = `hsl(from ${base} h calc(s + 5%) calc(l - 12%))`;  // border, same family
 
   const bgId = `bg-${folder.id}`;
   const fgId = `fg-${folder.id}`;
@@ -55,36 +46,23 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Back panel: left → right, lighter left / darker right */}
+            {/* Back panel: L→R, 10–16% darker than base, stronger gradient */}
             <linearGradient id={bgId} x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor={backL} />
               <stop offset="100%" stopColor={backR} />
             </linearGradient>
-            {/* Front card: same direction, very subtle sweep */}
+            {/* Front card: L→R, subtle — lighter left, slightly deeper right */}
             <linearGradient id={fgId} x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor={frontL} />
               <stop offset="100%" stopColor={frontR} />
             </linearGradient>
           </defs>
 
-          {/* Back panel — rounded-top rectangle, drawn first so front sits on top */}
-          <path
-            d={BACK_PATH}
-            fill={`url(#${bgId})`}
-            stroke={borderColor}
-            strokeWidth="1"
-          />
-
-          {/* Front card — folder silhouette, covers the back panel body */}
-          <path
-            d={FRONT_PATH}
-            fill={`url(#${fgId})`}
-            stroke={borderColor}
-            strokeWidth="1"
-          />
+          <path d={BACK_PATH}  fill={`url(#${bgId})`} stroke={border} strokeWidth="1" />
+          <path d={FRONT_PATH} fill={`url(#${fgId})`} stroke={border} strokeWidth="1" />
         </svg>
 
-        {/* Name + count — left-aligned, anchored to front card bottom-left */}
+        {/* Name + count — left-aligned, bottom-left of front card */}
         <div className="absolute bottom-0 left-0 right-8 px-2.5 pb-2.5 pointer-events-none text-left">
           <p className="text-xs font-semibold text-foreground/80 leading-tight truncate">{folder.name}</p>
           <p className="text-[10px] leading-tight text-foreground/50 mt-0.5">{count} {count === 1 ? 'item' : 'items'}</p>
