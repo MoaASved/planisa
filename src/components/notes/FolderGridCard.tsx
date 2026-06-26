@@ -9,42 +9,55 @@ interface FolderGridCardProps {
   compact?: boolean;
 }
 
+// Folder body path: small, subtle tab in the top-left corner.
+// viewBox 200 × 150.
+// Tab: ~52px wide, ~16px tall above the main body top edge (y≈18).
+const FOLDER_PATH =
+  'M 6 18 Q 0 18, 0 26 L 0 143 Q 0 150, 7 150 L 193 150 Q 200 150, 200 143 L 200 18 Q 200 10, 193 10 L 56 10 Q 50 10, 48 7 L 46 5 Q 44 2, 38 2 L 8 2 Q 4 2, 4 6 Z';
+
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
   const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
   const lighterColor = `color-mix(in srgb, ${baseColor} 55%, white)`;
 
+  const gradientId = `fill-${folder.id}`;
+
+  const folderSvg = (
+    <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={lighterColor} />
+          <stop offset="100%" stopColor={baseColor} />
+        </linearGradient>
+      </defs>
+
+      <path
+        d={FOLDER_PATH}
+        fill={`url(#${gradientId})`}
+        stroke="rgba(0,0,0,0.08)"
+        strokeWidth="1"
+      />
+
+      {/* Name and count — mobile only */}
+      <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif" className="md:hidden">
+        {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
+      </text>
+      <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif" className="md:hidden">
+        {count} {count === 1 ? 'item' : 'items'}
+      </text>
+    </svg>
+  );
+
   // Compact variant: subfolder inside a folder view
   if (compact) {
     return (
-      <div
-        className="group w-full relative md:h-44 md:overflow-hidden md:rounded-[12px]"
-        style={{ boxShadow: '0px 2px 6px rgba(0,0,0,0.06)' }}
-      >
+      <div className="group w-full relative md:h-44 md:overflow-hidden md:rounded-[12px]">
         <button
           onClick={onClick}
           className="w-full transition-all active:scale-95 relative rounded-[12px] md:rounded-none"
         >
-          <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id={`fill-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={lighterColor} />
-                <stop offset="100%" stopColor={baseColor} />
-              </linearGradient>
-            </defs>
-            <rect x="55" y="20" width="120" height="100" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.55" transform="rotate(2, 115, 70)" />
-            <rect x="50" y="22" width="115" height="98" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.7" transform="rotate(-1.5, 107, 71)" />
-            <rect x="60" y="18" width="110" height="102" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.45" transform="rotate(3.5, 115, 69)" />
-            <path d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z" fill={`url(#fill-${folder.id})`} />
-            {/* Name and count — mobile only */}
-            <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif" className="md:hidden">
-              {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
-            </text>
-            <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif" className="md:hidden">
-              {count} {count === 1 ? 'item' : 'items'}
-            </text>
-          </svg>
+          {folderSvg}
           {/* Three-dot — mobile only */}
           <div
             className="absolute bottom-2 right-2 z-10 p-1 md:hidden"
@@ -56,9 +69,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
         </button>
 
         {/* Desktop only: name + count + three-dot at bottom of h-44 */}
-        <div
-          className="hidden md:flex absolute bottom-0 left-0 right-0 items-end justify-between px-3 pb-2 pt-8 pointer-events-none"
-        >
+        <div className="hidden md:flex absolute bottom-0 left-0 right-0 items-end justify-between px-3 pb-2 pt-8 pointer-events-none">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-foreground leading-tight truncate">{folder.name}</p>
             <p className="text-xs text-muted-foreground">{count} {count === 1 ? 'item' : 'items'}</p>
@@ -79,37 +90,8 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       <button
         onClick={onClick}
         className="w-full transition-all active:scale-95 relative rounded-[12px]"
-        style={{ boxShadow: '0px 2px 6px rgba(0,0,0,0.06)' }}
       >
-        <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id={`fill-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={lighterColor} />
-              <stop offset="100%" stopColor={baseColor} />
-            </linearGradient>
-          </defs>
-
-          {/* Papers sticking out */}
-          <rect x="55" y="20" width="120" height="100" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.55" transform="rotate(2, 115, 70)" />
-          <rect x="50" y="22" width="115" height="98" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.7" transform="rotate(-1.5, 107, 71)" />
-          <rect x="60" y="18" width="110" height="102" rx="3" style={{ fill: 'hsl(var(--card))' }} opacity="0.45" transform="rotate(3.5, 115, 69)" />
-
-          {/* Folder body with soft same-color gradient */}
-          <path
-            d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z"
-            fill={`url(#fill-${folder.id})`}
-          />
-
-          {/* Folder name — hidden on desktop, shown below the card instead */}
-          <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif" className="md:hidden">
-            {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
-          </text>
-
-          {/* Item count — hidden on desktop */}
-          <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif" className="md:hidden">
-            {count} {count === 1 ? 'item' : 'items'}
-          </text>
-        </svg>
+        {folderSvg}
 
         {/* Three-dot menu — mobile only, inside the card */}
         <div
