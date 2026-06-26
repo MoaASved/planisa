@@ -22,14 +22,14 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const count = notes.filter(n => n.folder === folder.name).length;
   const base = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
 
-  // CSS relative color syntax keeps every variant in the exact same hue family —
-  // only lightness and saturation shift, no neutral gray introduced.
-  // hsl(from <color> h s calc(l ± X%)) preserves the hue keyword verbatim.
-  const frontL = `hsl(from ${base} h s calc(l + 8%))`;              // lighter left edge
-  const frontR = `hsl(from ${base} h calc(s + 4%) calc(l - 6%))`;   // slightly deeper right edge
-  const backL  = `hsl(from ${base} h calc(s + 6%) calc(l - 10%))`;  // back panel left (10% darker)
-  const backR  = `hsl(from ${base} h calc(s + 10%) calc(l - 16%))`; // back panel right (16% darker)
-  const border = `hsl(from ${base} h calc(s + 5%) calc(l - 12%))`;  // border, same family
+  // All stops derived from the exact base color via CSS relative color syntax.
+  // Only lightness is reduced — hue and saturation are never modified.
+  // Front left is the base color itself, completely unmodified.
+  const frontL = base;                                          // exact folder color
+  const frontR = `hsl(from ${base} h s calc(l - 8%))`;         // base − 8% lightness
+  const backL  = `hsl(from ${base} h s calc(l - 8%))`;         // base − 8% lightness
+  const backR  = `hsl(from ${base} h s calc(l - 16%))`;        // base − 16% lightness
+  const border = `hsl(from ${base} h s calc(l - 12%))`;        // base − 12% lightness
 
   const bgId = `bg-${folder.id}`;
   const fgId = `fg-${folder.id}`;
