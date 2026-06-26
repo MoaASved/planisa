@@ -10,10 +10,10 @@ interface FolderGridCardProps {
 }
 
 // Folder body path: small, subtle tab in the top-left corner.
-// viewBox 200 × 150.
+// viewBox 200 × 110 (wider-than-tall, folder-like 1.8:1 ratio).
 // Tab: ~52px wide, ~16px tall above the main body top edge (y≈18).
 const FOLDER_PATH =
-  'M 6 18 Q 0 18, 0 26 L 0 143 Q 0 150, 7 150 L 193 150 Q 200 150, 200 143 L 200 18 Q 200 10, 193 10 L 56 10 Q 50 10, 48 7 L 46 5 Q 44 2, 38 2 L 8 2 Q 4 2, 4 6 Z';
+  'M 6 18 Q 0 18, 0 26 L 0 103 Q 0 110, 7 110 L 193 110 Q 200 110, 200 103 L 200 18 Q 200 10, 193 10 L 56 10 Q 50 10, 48 7 L 46 5 Q 44 2, 38 2 L 8 2 Q 4 2, 4 6 Z';
 
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
@@ -24,7 +24,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const gradientId = `fill-${folder.id}`;
 
   const folderSvg = (
-    <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 200 110" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={lighterColor} />
@@ -40,10 +40,10 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       />
 
       {/* Name and count — mobile only */}
-      <text x="12" y="122" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif" className="md:hidden">
+      <text x="12" y="86" fill="#2C2C2A" fontWeight="700" fontSize="14" fontFamily="system-ui, sans-serif" className="md:hidden">
         {folder.name.length > 18 ? folder.name.slice(0, 17) + '…' : folder.name}
       </text>
-      <text x="12" y="136" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif" className="md:hidden">
+      <text x="12" y="99" fill="rgba(44,44,42,0.7)" fontSize="11" fontFamily="system-ui, sans-serif" className="md:hidden">
         {count} {count === 1 ? 'item' : 'items'}
       </text>
     </svg>
