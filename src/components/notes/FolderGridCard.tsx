@@ -9,6 +9,30 @@ interface FolderGridCardProps {
   compact?: boolean;
 }
 
+// Resolves an "H S% L%" string to OKLCH, shifts L only, returns oklch().
+function shiftLightness(hslTriple: string, deltaPct: number): string {
+  const [h, s, l] = (hslTriple.match(/[\d.]+/g) ?? []).map(Number);
+  if ([h, s, l].some(Number.isNaN)) return `hsl(${hslTriple})`;
+  const sat = s / 100, lig = l / 100;
+  const c = (1 - Math.abs(2 * lig - 1)) * sat;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = lig - c / 2;
+  const [r1, g1, b1] =
+    h < 60  ? [c, x, 0] : h < 120 ? [x, c, 0] :
+    h < 180 ? [0, c, x] : h < 240 ? [0, x, c] :
+    h < 300 ? [x, 0, c] : [c, 0, x];
+  const lin = (v: number) => { v += m; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  const [r, g, b] = [lin(r1), lin(g1), lin(b1)];
+  const L_ = Math.cbrt(0.4122214708*r + 0.5363325363*g + 0.0514459929*b);
+  const M_ = Math.cbrt(0.2119034982*r + 0.6806995451*g + 0.1073969566*b);
+  const S_ = Math.cbrt(0.0883024619*r + 0.2817188376*g + 0.6299787005*b);
+  let okL = 0.2104542553*L_ + 0.7936177850*M_ - 0.0040720468*S_;
+  const okA = 1.9779984951*L_ - 2.4285922050*M_ + 0.4505937099*S_;
+  const okB = 0.0259040371*L_ + 0.7827717662*M_ - 0.8086757660*S_;
+  okL = Math.max(0, Math.min(1, okL + deltaPct / 100));
+  return `oklch(${okL.toFixed(4)} ${Math.hypot(okA, okB).toFixed(4)} ${((Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360).toFixed(2)})`;
+}
+
 const BACK_PATH =
   'M 6 12 Q 6 2 16 2 L 184 2 Q 194 2 194 12 L 194 128 L 6 128 Z';
 const FRONT_PATH =
@@ -28,20 +52,10 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           .trim()
       : '160 30% 65%';
 
-  // Parse the three numeric components (strip % signs).
-  const [h, s, l] = (raw.match(/[\d.]+/g) ?? ['160', '30', '65']).map(Number);
-
-  // Build a plain hsl() stop with a lightness offset; clamps to [0, 100].
-  const hsl = (dl: number) =>
-    `hsl(${h} ${s}% ${Math.max(0, Math.min(100, l + dl))}%)`;
-
-  // Front card: right = base −8 L  (left stop is set via CSS var — see JSX)
-  // Back panel: left = base −8 L,  right = base −16 L
-  // Border:     base −12 L (same hue family)
-  const frontR = hsl(-8);
-  const backL  = hsl(-8);
-  const backR  = hsl(-16);
-  const border = hsl(-12);
+  const frontR = shiftLightness(raw, -8);
+  const backL  = shiftLightness(raw, -8);
+  const backR  = shiftLightness(raw, -16);
+  const border = shiftLightness(raw, -12);
 
   const bgId = `bg-${folder.id}`;
   const fgId = `fg-${folder.id}`;
