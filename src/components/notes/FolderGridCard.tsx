@@ -35,10 +35,9 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const hsl = (dl: number) =>
     `hsl(${h} ${s}% ${Math.max(0, Math.min(100, l + dl))}%)`;
 
-  // Front card: left = exact base color, right = base −8 L
-  // Back panel: left = base −8 L,          right = base −16 L
-  // Border:     base −12 L (within same hue family)
-  const frontL = hsl(0);
+  // Front card: right = base −8 L  (left stop is set via CSS var — see JSX)
+  // Back panel: left = base −8 L,  right = base −16 L
+  // Border:     base −12 L (same hue family)
   const frontR = hsl(-8);
   const backL  = hsl(-8);
   const backR  = hsl(-16);
@@ -64,9 +63,10 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
               <stop offset="0%" stopColor={backL} />
               <stop offset="100%" stopColor={backR} />
             </linearGradient>
-            {/* Front card: L→R, exact base color to base −8% lightness */}
+            {/* Front card: L→R, exact base color (via CSS property) to base −8% */}
             <linearGradient id={fgId} x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor={frontL} />
+              {/* stopColor as a CSS style property — supports var(), matches picker exactly */}
+              <stop offset="0%" style={{ stopColor: `hsl(var(--pastel-${folder.color}))` }} />
               <stop offset="100%" stopColor={frontR} />
             </linearGradient>
           </defs>
