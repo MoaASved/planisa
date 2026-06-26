@@ -52,10 +52,10 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           .trim()
       : '160 30% 65%';
 
-  const frontR = shiftLightness(raw, -8);
-  const backL  = shiftLightness(raw, -8);
-  const backR  = shiftLightness(raw, -16);
-  const border = shiftLightness(raw, -12);
+  const frontR = shiftLightness(raw, -3);
+  const backL  = shiftLightness(raw, -3);
+  const backR  = shiftLightness(raw, -7);
+  const border = shiftLightness(raw, -5);
 
   const bgId = `bg-${folder.id}`;
   const fgId = `fg-${folder.id}`;
