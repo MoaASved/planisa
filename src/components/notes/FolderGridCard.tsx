@@ -9,15 +9,17 @@ interface FolderGridCardProps {
   compact?: boolean;
 }
 
-// viewBox 200 × 110. One continuous top edge:
-//   • starts at (0, 30) on the left — the lower "body" side
-//   • a subtle Q rounds the top-left entry (0 30 → 8 22)
-//   • a cubic bezier rises smoothly from (8, 22) to (192, 0) — the higher "tab" side
-//   • Q rounds the top-right corner (192 0 → 200 8)
-// Both bottom corners are fully rounded. No gradient, no stroke — flat solid color.
-// Every junction is tangent-continuous (G1) so the silhouette reads as one smooth shape.
+// viewBox 0 0 200 130.
+// Direct translation of the user's clip-path (CSS path() doesn't support % or calc,
+// so percentages and calc expressions are resolved into viewBox units):
+//   55% → 110,  60% → 120,  65% → 130,  70% → 140,  75% → 150
+//   100% - 16  → 184 (x),  100% - 16 → 114 (y)
+// Shape: rounded top-left corner starting at y=20, flat at y=0 across the left
+// portion (to 55%), smooth S-curve step-down to y=24 (55–75%), flat right section
+// at y=24, rounded step to y=40 at the right edge, straight right side down,
+// fully rounded bottom corners.
 const FOLDER_PATH =
-  'M 0 30 Q 0 22, 8 22 C 60 22, 140 0, 192 0 Q 200 0, 200 8 L 200 102 Q 200 110, 192 110 L 8 110 Q 0 110, 0 102 Z';
+  'M 0 20 Q 0 0 20 0 L 110 0 Q 120 0 130 12 Q 140 24 150 24 L 184 24 Q 200 24 200 40 L 200 114 Q 200 130 184 130 L 16 130 Q 0 130 0 114 Z';
 
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
@@ -30,16 +32,16 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
         onClick={onClick}
         className="w-full transition-all active:scale-95 relative block"
       >
-        {/* Folder silhouette — solid flat color */}
+        {/* Folder silhouette — flat solid color, no border, no shadow */}
         <svg
-          viewBox="0 0 200 110"
+          viewBox="0 0 200 130"
           className="w-full h-auto block"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path d={FOLDER_PATH} fill={baseColor} />
         </svg>
 
-        {/* Name + count — bottom-left, clears the ··· button */}
+        {/* Name + count — bottom-left, stays clear of ··· button */}
         <div className="absolute bottom-0 left-0 right-8 px-3 pb-3 pointer-events-none">
           <p className="text-sm font-semibold text-foreground/80 leading-tight truncate">{folder.name}</p>
           <p className="text-xs text-foreground/50 mt-0.5">{count} {count === 1 ? 'item' : 'items'}</p>
