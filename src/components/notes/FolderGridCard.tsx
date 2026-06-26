@@ -53,8 +53,8 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       : '160 30% 65%';
 
   const frontR = shiftLightness(raw, -3);
-  const backL  = shiftLightness(raw, -3);
-  const backR  = shiftLightness(raw, -7);
+  const backL  = shiftLightness(raw, -1);
+  const backR  = shiftLightness(raw, -3);
   const border = shiftLightness(raw, -5);
 
   const bgId = `bg-${folder.id}`;
