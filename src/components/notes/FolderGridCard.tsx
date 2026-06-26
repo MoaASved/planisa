@@ -99,7 +99,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
         {/* Name + count — left-aligned, bottom-left of front card */}
         <div className="absolute bottom-0 left-0 right-8 px-2.5 pb-2.5 pointer-events-none text-left">
           <p className="text-xs font-semibold text-neutral-800 leading-tight truncate">{folder.name}</p>
-          <p className="text-[10px] leading-tight text-neutral-500 mt-0.5">{count} {count === 1 ? 'item' : 'items'}</p>
+          <p className="text-[10px] leading-tight text-neutral-600 mt-0.5">{count} {count === 1 ? 'item' : 'items'}</p>
         </div>
 
         {/* ··· — bottom-right; always on mobile, hover on desktop */}
