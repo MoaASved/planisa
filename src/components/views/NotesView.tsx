@@ -61,7 +61,7 @@ function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onCli
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none md:max-w-[200px] md:w-full">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="md:touch-none md:max-w-[200px] md:w-full">
       <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
     </div>
   );
@@ -76,7 +76,7 @@ function SortableNoteItem({ id, children, className }: { id: string; children: R
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('touch-none', className)}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('md:touch-none', className)}>
       {children}
     </div>
   );
@@ -123,7 +123,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Drag-and-drop sensors for folder reordering
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 400, tolerance: 8 } }),
   );
 
   const rootFolders = folders.filter((f) => !f.parentId);
