@@ -403,12 +403,16 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   {note.isPinned && (
                     <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
                   )}
-                  <div className="flex-1 min-w-0 max-h-[3.5rem] overflow-hidden">
+                  <div className="flex-1 min-w-0 max-h-[3.5rem] overflow-hidden relative">
                     {hasContent ? (
                       <NoteContentPreview content={note.content} />
                     ) : (
                       <p className="flow-card-title truncate">{note.title || 'Empty note'}</p>
                     )}
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+                      style={{ background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
+                    />
                   </div>
                 </div>
               </div>

@@ -75,12 +75,10 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
               <Pin className={cn('w-4 h-4 flex-shrink-0 mt-0.5', getStickyTextClass(note.color))} />
             )}
           </div>
-          {isGrid && (
-            <div
-              className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
-              style={{ background: `linear-gradient(to bottom, transparent, hsl(var(--pastel-${note.color || 'sky'})))` }}
-            />
-          )}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+            style={{ background: `linear-gradient(to bottom, transparent, hsl(var(--pastel-${note.color || 'sky'})))` }}
+          />
         </div>
         
         <div className={cn(
