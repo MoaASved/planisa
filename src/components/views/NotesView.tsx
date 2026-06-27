@@ -752,7 +752,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   if (viewTab === 'folders') {
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-4 pb-4">
+        <div className="px-6 pb-4">
           <TabsHeader />
 
           {showSearch && (
@@ -769,7 +769,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
             <SortableContext items={rootFolders.map((f) => f.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-8 p-4" style={{ margin: '-16px' }}>
+              <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-5 md:gap-8 p-4" style={{ margin: '-16px' }}>
                 {rootFolders.map((folder) => (
                   <SortableFolderCard
                     key={folder.id}

@@ -34,9 +34,9 @@ function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 1): str
 }
 
 const BACK_PATH =
-  'M 6 12 Q 6 2 16 2 L 184 2 Q 194 2 194 12 L 194 128 L 6 128 Z';
+  'M 6 10.2 Q 6 1.7 16 1.7 L 184 1.7 Q 194 1.7 194 10.2 L 194 108.8 L 6 108.8 Z';
 const FRONT_PATH =
-  'M 0 32 Q 0 12 20 12 L 110 12 Q 120 12 130 24 Q 140 36 150 36 L 184 36 Q 200 36 200 52 L 200 126 Q 200 142 184 142 L 16 142 Q 0 142 0 126 Z';
+  'M 0 27.2 Q 0 10.2 20 10.2 L 110 10.2 Q 120 10.2 130 20.4 Q 140 30.6 150 30.6 L 184 30.6 Q 200 30.6 200 44.2 L 200 107.1 Q 200 120.7 184 120.7 L 16 120.7 Q 0 120.7 0 107.1 Z';
 
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
@@ -68,7 +68,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
         className="w-full transition-all active:scale-95 relative block"
       >
         <svg
-          viewBox="0 0 200 142"
+          viewBox="0 0 200 121"
           className="w-full h-auto block"
           xmlns="http://www.w3.org/2000/svg"
         >
