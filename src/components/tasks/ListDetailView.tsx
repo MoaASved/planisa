@@ -203,6 +203,9 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
     : allCompleted;
   const mainTasks = sortTasks(isVirtualList ? incomplete : incomplete.filter((t) => !t.sectionId));
   const mainCompleted = sortTasks(isVirtualList ? completed : completed.filter((t) => !t.sectionId));
+  // All main-section tasks in original order — used when showCompleted is ON so completed
+  // tasks stay in their position instead of moving to the bottom.
+  const mainAll = sortTasks(tasks.filter((t) => !t.sectionId));
 
   const handleCreate = (title: string, sectionId?: string) => {
     // Virtual list IDs (e.g. '__priority') are not real UUIDs — resolve to a real list
@@ -239,15 +242,17 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
   // All visible (non-collapsed) task IDs for the single shared DndContext
   const allVisibleTaskIds = useMemo(() => [
-    ...mainTasks.map(t => t.id),
-    ...(showCompleted ? mainCompleted.map(t => t.id) : []),
+    ...(showCompleted && !isVirtualList ? mainAll : mainTasks).map(t => t.id),
+    ...(showCompleted && isVirtualList ? mainCompleted.map(t => t.id) : []),
     ...sections.flatMap(s => {
       if (s.collapsed) return [];
+      if (showCompleted && !isVirtualList)
+        return sortTasks(tasks.filter(t => t.sectionId === s.id)).map(t => t.id);
       const ids = sortTasks(incomplete.filter(t => t.sectionId === s.id)).map(t => t.id);
       if (showCompleted) ids.push(...sortTasks(completed.filter(t => t.sectionId === s.id)).map(t => t.id));
       return ids;
     }),
-  ], [mainTasks, mainCompleted, sections, incomplete, completed, showCompleted]);
+  ], [mainAll, mainTasks, mainCompleted, sections, incomplete, completed, showCompleted, tasks, isVirtualList]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -474,15 +479,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
         {/* Main (no section) tasks */}
         <div className="space-y-2">
-          {mainTasks.map((task) => (
-            <SortableTaskCell
-              key={task.id}
-              task={task}
-              onClick={() => setEditingTaskId(task.id)}
-              highlight={task.id === highlightTaskId}
-            />
-          ))}
-          {!isVirtualList && showCompleted && mainCompleted.map((task) => (
+          {(showCompleted && !isVirtualList ? mainAll : mainTasks).map((task) => (
             <SortableTaskCell
               key={task.id}
               task={task}
@@ -643,15 +640,10 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               {!collapsed && (
                 <div className="space-y-2 mt-1">
                   <div className="space-y-2">
-                    {sTasks.map((task) => (
-                      <SortableTaskCell
-                        key={task.id}
-                        task={task}
-                        onClick={() => setEditingTaskId(task.id)}
-                        highlight={task.id === highlightTaskId}
-                      />
-                    ))}
-                    {showCompleted && sCompleted.map((task) => (
+                    {(showCompleted
+                      ? sortTasks(tasks.filter(t => t.sectionId === section.id))
+                      : sTasks
+                    ).map((task) => (
                       <SortableTaskCell
                         key={task.id}
                         task={task}
