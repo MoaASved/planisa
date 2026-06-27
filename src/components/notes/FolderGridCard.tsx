@@ -62,9 +62,6 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const backR           = shiftLightness(raw, -8, 1.05);  // tab right edge
 
   // Mid-tone shadow colour: same hue but −30% lightness at 22% opacity
-  const [hh, ss, ll] = (raw.match(/[\d.]+/g) ?? [160, 30, 65]).map(Number);
-  const shadowColor = `hsla(${hh}, ${ss}%, ${Math.max(ll - 30, 20)}%, 0.22)`;
-
   const bgId   = `bg-${folder.id}`;
   const fgId   = `fg-${folder.id}`;
   const hlId   = `hl-${folder.id}`;
@@ -76,7 +73,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
     // Chrome's rendering bug where both on the same element silently drops the blur.
     <div
       className="group relative"
-      style={{ filter: `drop-shadow(0 10px 10px ${shadowColor})` }}
+      style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.08))' }}
     >
       <button
         onClick={onClick}
