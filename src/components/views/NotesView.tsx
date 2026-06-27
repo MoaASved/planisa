@@ -323,6 +323,9 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       : 'bg-card border border-black/[0.04]';
 
     const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
+    const fadeColor = isSticky && note.color
+      ? `hsl(var(--pastel-${note.color}))`
+      : 'hsl(var(--card))';
 
     const handleDuplicate = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -361,7 +364,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           {isGrid ? (
             /* Grid layout: content top, folder+date bottom row */
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
+              <div className="flex-1 min-w-0 min-h-0 overflow-hidden relative">
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0 overflow-hidden pr-5">
                     {hasContent ? (
@@ -374,6 +377,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                     <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
                   )}
                 </div>
+                <div
+                  className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+                  style={{ background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
+                />
               </div>
               <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
                 {note.folder ? (

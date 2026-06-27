@@ -62,7 +62,7 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
       <div className="absolute top-0 right-0 w-0 h-0 border-l-[12px] border-l-transparent border-t-[12px] border-t-black/5" />
       
       <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
-        <div className={cn('flex-1 min-w-0 min-h-0 overflow-hidden', getStickyTextClass(note.color))}>
+        <div className={cn('flex-1 min-w-0 min-h-0 overflow-hidden relative', getStickyTextClass(note.color))}>
           <div className="flex items-start gap-2">
             <div className={cn('flex-1 min-w-0 overflow-hidden', !isGrid && 'max-h-[2.8rem]')}>
               {hasContent ? (
@@ -75,6 +75,12 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
               <Pin className={cn('w-4 h-4 flex-shrink-0 mt-0.5', getStickyTextClass(note.color))} />
             )}
           </div>
+          {isGrid && (
+            <div
+              className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+              style={{ background: `linear-gradient(to bottom, transparent, hsl(var(--pastel-${note.color || 'sky'})))` }}
+            />
+          )}
         </div>
         
         <div className={cn(
