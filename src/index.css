@@ -907,3 +907,131 @@ input[type="time"]::-webkit-inner-spin-button {
     opacity: 0.7;
   }
 }
+
+/* ── Note Card Rich Preview ─────────────────────────────────── */
+.note-card-preview {
+  font-size: 13px;
+  line-height: 1.45;
+  overflow: hidden;
+}
+
+.note-card-preview > * + * {
+  margin-top: 2px;
+}
+
+.note-card-preview p {
+  margin: 0;
+}
+
+.note-card-preview h1 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.note-card-preview h2 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.note-card-preview ul:not([data-type="taskList"]) {
+  list-style: disc;
+  padding-left: 14px;
+  margin: 0;
+}
+
+.note-card-preview ol {
+  list-style: decimal;
+  padding-left: 14px;
+  margin: 0;
+}
+
+.note-card-preview li {
+  margin: 0;
+  padding: 0;
+}
+
+.note-card-preview li > p {
+  margin: 0;
+}
+
+/* Task list */
+.note-card-preview ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] > label {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] > label > span {
+  display: none;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] > label > input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0.45;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] > label > input[type="checkbox"]:checked {
+  opacity: 0.65;
+  background-color: currentColor;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+  background-size: 80%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-color: currentColor;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-card-preview ul[data-type="taskList"] li[data-type="taskItem"] > div > p {
+  margin: 0;
+}
+
+.note-card-preview mark,
+.note-card-preview .highlight {
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.note-card-preview strong {
+  font-weight: 700;
+}
+
+.note-card-preview em {
+  font-style: italic;
+}
+
+/* Hide images, voice notes, and tables — not meaningful in a small card */
+.note-card-preview img,
+.note-card-preview .voice-note-wrapper,
+.note-card-preview table {
+  display: none;
+}

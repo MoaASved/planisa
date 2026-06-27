@@ -3,6 +3,7 @@ import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Note, PastelColor } from '@/types';
 import { getStickyTextClass } from '@/lib/colors';
+import { NoteContentPreview } from './NoteContentPreview';
 
 interface StickyNoteCardProps {
   note: Note;
@@ -31,10 +32,7 @@ const getStickyBgClass = (color?: PastelColor): string => {
 
 
 export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardProps) {
-  const getPreview = (content: string) => {
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
-    return plainText.slice(0, 80) + (plainText.length > 80 ? '...' : '');
-  };
+  const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
 
   // Deterministic subtle rotation between -2deg and +2deg based on note id
   const rotation = (() => {
@@ -64,17 +62,17 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
       <div className="absolute top-0 right-0 w-0 h-0 border-l-[12px] border-l-transparent border-t-[12px] border-t-black/5" />
       
       <div className={cn('flex', isGrid ? 'flex-col h-full' : 'items-start justify-between')}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <p className={cn(
-              'text-sm font-medium',
-              getStickyTextClass(note.color),
-              isGrid ? 'line-clamp-4' : 'line-clamp-2'
-            )}>
-              {getPreview(note.content) || note.title || 'Empty note'}
-            </p>
+        <div className={cn('flex-1 min-w-0', getStickyTextClass(note.color))}>
+          <div className="flex items-start gap-2">
+            <div className={cn('flex-1 min-w-0 overflow-hidden', !isGrid && 'max-h-[2.8rem]')}>
+              {hasContent ? (
+                <NoteContentPreview content={note.content} />
+              ) : (
+                <p className="text-sm font-medium">{note.title || 'Empty note'}</p>
+              )}
+            </div>
             {note.isPinned && (
-              <Pin className={cn('w-4 h-4 flex-shrink-0', getStickyTextClass(note.color))} />
+              <Pin className={cn('w-4 h-4 flex-shrink-0 mt-0.5', getStickyTextClass(note.color))} />
             )}
           </div>
         </div>

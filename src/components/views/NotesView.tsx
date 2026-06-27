@@ -37,6 +37,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor, Folder } from '@/types';
 import { pastelColors } from '@/lib/colors';
 import { NoteEditor } from '@/components/notes/NoteEditor';
+import { NoteContentPreview } from '@/components/notes/NoteContentPreview';
 import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
 import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 import { FolderListCard } from '@/components/notes/FolderListCard';
@@ -271,25 +272,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     })));
   };
 
-  const parseNoteContent = (html: string): { header: string; preview: string } => {
-    if (!html || html.trim() === '') return { header: '', preview: '' };
-    const withBreaks = html
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<\/h[1-6]>/gi, '\n')
-      .replace(/<\/li>/gi, '\n')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
-    const lines = withBreaks.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    if (lines.length === 0) return { header: '', preview: '' };
-    return { header: lines[0], preview: lines.slice(1).join('\n') };
-  };
-
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
       addFolder({
@@ -340,7 +322,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
       ? `bg-[hsl(var(--pastel-${note.color}))]`
       : 'bg-card border border-black/[0.04]';
 
-    const { header, preview } = parseNoteContent(note.content);
+    const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
 
     const handleDuplicate = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -377,20 +359,21 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           )}
         >
           {isGrid ? (
-            /* Grid layout: star top-right, title+preview top-left, folder+date bottom row */
+            /* Grid layout: content top, folder+date bottom row */
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-w-0 md:overflow-hidden">
-                <div className="flex items-start justify-between gap-2">
-                  {header && <h4 className="flow-card-title pr-6">{header}</h4>}
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0 overflow-hidden pr-5">
+                    {hasContent ? (
+                      <NoteContentPreview content={note.content} />
+                    ) : (
+                      <p className="flow-card-title">{note.title || 'Empty note'}</p>
+                    )}
+                  </div>
                   {note.isPinned && (
-                    <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
+                    <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
                   )}
                 </div>
-                {preview && (
-                  <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-4 md:line-clamp-3">
-                    {preview}
-                  </p>
-                )}
               </div>
               <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
                 {note.folder ? (
@@ -406,22 +389,21 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               </div>
             </div>
           ) : (
-            /* List layout: star+title left, folder+date right-aligned column */
+            /* List layout: content left, folder+date right-aligned column */
             <div className="flex items-start gap-2 pr-7">
               <div className="flex-1 min-w-0">
-                {(header || note.isPinned) && (
-                  <div className="flex items-center gap-1.5">
-                    {note.isPinned && (
-                      <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0" />
+                <div className="flex items-start gap-1.5">
+                  {note.isPinned && (
+                    <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 min-w-0 max-h-[3.5rem] overflow-hidden">
+                    {hasContent ? (
+                      <NoteContentPreview content={note.content} />
+                    ) : (
+                      <p className="flow-card-title truncate">{note.title || 'Empty note'}</p>
                     )}
-                    {header && <h4 className="flow-card-title truncate">{header}</h4>}
                   </div>
-                )}
-                {preview && (
-                  <p className="text-[13px] text-muted-foreground mt-1 leading-snug whitespace-pre-line line-clamp-2">
-                    {preview}
-                  </p>
-                )}
+                </div>
               </div>
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
                 {note.folder && (
