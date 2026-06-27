@@ -65,16 +65,18 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const [hh, ss, ll] = (raw.match(/[\d.]+/g) ?? [160, 30, 65]).map(Number);
   const shadowColor = `hsla(${hh}, ${ss}%, ${Math.max(ll - 30, 20)}%, 0.22)`;
 
-  const bgId = `bg-${folder.id}`;
-  const fgId = `fg-${folder.id}`;
-  const hlId = `hl-${folder.id}`;
+  const bgId   = `bg-${folder.id}`;
+  const fgId   = `fg-${folder.id}`;
+  const hlId   = `hl-${folder.id}`;
+  const fadeId = `fade-${folder.id}`;
+  const maskId = `mask-${folder.id}`;
 
   return (
     // drop-shadow must live on a separate element from backdrop-filter to avoid
     // Chrome's rendering bug where both on the same element silently drops the blur.
     <div
       className="group relative"
-      style={{ filter: `drop-shadow(0 6px 24px ${shadowColor})` }}
+      style={{ filter: `drop-shadow(0 10px 10px ${shadowColor})` }}
     >
       <button
         onClick={onClick}
@@ -92,6 +94,17 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
+            {/* Vertical fade used to mask the back panel — opaque through the tab
+                area, then dissolves so the back edge never shows through the
+                semi-transparent front card. userSpaceOnUse coords match viewBox. */}
+            <linearGradient id={fadeId} x1="0" y1="0" x2="0" y2="121" gradientUnits="userSpaceOnUse">
+              <stop offset="0%"  stopColor="white" stopOpacity="1" />
+              <stop offset="33%" stopColor="white" stopOpacity="1" />
+              <stop offset="60%" stopColor="white" stopOpacity="0" />
+            </linearGradient>
+            <mask id={maskId}>
+              <path d={BACK_PATH} fill={`url(#${fadeId})`} />
+            </mask>
             {/* Tab (back panel): L→R, slightly deeper right */}
             <linearGradient id={bgId} x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor={backL} />
@@ -109,8 +122,10 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
             </linearGradient>
           </defs>
 
-          {/* Tab — slightly more opaque than card body */}
-          <path d={BACK_PATH}  fill={`url(#${bgId})`} fillOpacity="0.92" stroke="rgba(255,255,255,0.35)" strokeWidth="1" />
+          {/* Tab — slightly more opaque than card body; masked so it dissolves
+               before reaching the bottom, preventing the back edge from peeking
+               through the semi-transparent front card. */}
+          <path d={BACK_PATH}  fill={`url(#${bgId})`} fillOpacity="0.92" stroke="rgba(255,255,255,0.35)" strokeWidth="1" mask={`url(#${maskId})`} />
           {/* Card body — semi-transparent frosted glass */}
           <path d={FRONT_PATH} fill={`url(#${fgId})`} fillOpacity="0.87" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
           {/* Diagonal white highlight overlay */}
