@@ -560,7 +560,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <FolderOpen className="w-5 h-5 flex-shrink-0" style={{ color: `hsl(var(--pastel-${selectedFolder.color}-accent))` }} />
               <h1 className="flow-page-title truncate">{selectedFolder.name}</h1>
             </div>
             {sortMenuEl}
