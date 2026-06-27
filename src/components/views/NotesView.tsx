@@ -354,7 +354,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           className={cn(
             'text-left transition-all duration-200 w-full rounded-2xl p-4',
             cardBgClass,
-            isGrid && 'min-h-[140px] md:h-44 md:overflow-hidden',
+            isGrid && 'h-[140px] md:h-44 overflow-hidden',
             'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
           )}
         >
