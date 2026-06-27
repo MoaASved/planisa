@@ -361,7 +361,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           {isGrid ? (
             /* Grid layout: content top, folder+date bottom row */
             <div className="flex flex-col h-full">
-              <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
                 <div className="flex items-start gap-2">
                   <div className="flex-1 min-w-0 overflow-hidden pr-5">
                     {hasContent ? (
@@ -835,7 +835,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Boards view (default) - all notes and sticky notes
   return (
-    <div className="min-h-screen pb-24 pt-safe-2">
+    <div className="pb-24 pt-safe-2">
       <div className="px-4 pb-4">
         <TabsHeader />
 
