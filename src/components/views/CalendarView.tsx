@@ -445,6 +445,7 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, hasFull
         <NoteEditor
           note={editingNote}
           onClose={handleCloseNoteModal}
+          debugSource="CalendarView"
         />
       )}
 

@@ -1193,6 +1193,7 @@ const Dashboard: React.FC = () => {
         <NoteEditor
           note={focusNote}
           onClose={() => { setFocusNote(null); setShowFocusNoteEditor(false); }}
+          debugSource="Dashboard"
         />
       )}
       {focusStickyNote && (

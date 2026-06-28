@@ -504,7 +504,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   // Show editors
   if (selectedNote || (isCreatingNew && !externalIsCreatingStickyNote)) {
-    return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} defaultFolder={selectedFolder?.name} />;
+    return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} defaultFolder={selectedFolder?.name} debugSource="NotesView" />;
   }
 
   if (selectedStickyNote || isCreatingStickyNote || (isCreatingNew && externalIsCreatingStickyNote)) {

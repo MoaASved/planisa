@@ -66,10 +66,12 @@ interface NoteEditorProps {
   note?: Note;
   onClose: () => void;
   defaultFolder?: string;
+  debugSource?: string;
 }
 
 
-export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
+export function NoteEditor({ note, onClose, defaultFolder, debugSource }: NoteEditorProps) {
+  console.log('NoteEditor mounted from:', debugSource);
   const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
 
@@ -118,6 +120,10 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Emoji picker for the Tiptap editor body
+  const [editorPickerOpen, setEditorPickerOpen] = useState(false);
+  const [editorAnchorRect, setEditorAnchorRect] = useState<DOMRect | null>(null);
+
   const [viewportOffset, setViewportOffset] = useState(0);
   const [tableToolbarPos, setTableToolbarPos] = useState<{ top: number; left: number } | null>(null);
   const [viewportHeight, setViewportHeight] = useState(() => window.visualViewport?.height ?? window.innerHeight);
@@ -138,7 +144,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   }, []);
 
   const extensions = useMemo(() => [
-    StarterKit.configure({ heading: { levels: [1, 2] } }),
+    StarterKit.configure({ heading: { levels: [1, 2] }, link: false }),
     Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
     Link.configure({ openOnClick: true, autolink: true, HTMLAttributes: { class: 'note-link' } }),
     TaskList,
@@ -207,6 +213,21 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
     editor.on('update', handler);
     return () => { editor.off('update', handler); };
   }, [editor, triggerAutoSave]);
+
+  // Native DOM keydown on the ProseMirror contenteditable — the only reliable
+  // way to intercept keystrokes in Tiptap v3 without an extension.
+  useEffect(() => {
+    if (!editor) return;
+    const dom = editor.view.dom as HTMLElement;
+    const handler = (e: KeyboardEvent) => {
+      console.log('native keydown:', e.key);
+      if (e.key === '/') {
+        console.log('slash detected in editor');
+      }
+    };
+    dom.addEventListener('keydown', handler);
+    return () => dom.removeEventListener('keydown', handler);
+  }, [editor]);
 
   // Trigger auto-save when metadata changes (skip on initial mount)
   const settingsMounted = useRef(false);
@@ -328,6 +349,20 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
       setMorePopoverOpen(false);
     }
   };
+
+  const handleEditorEmojiSelect = useCallback((emoji: string) => {
+    if (!editor) return;
+    editor.commands.insertContent(emoji);
+    editor.commands.focus();
+    setEditorPickerOpen(false);
+    setEditorAnchorRect(null);
+  }, [editor]);
+
+  const handleEditorPickerClose = useCallback(() => {
+    setEditorPickerOpen(false);
+    setEditorAnchorRect(null);
+    editor?.commands.focus();
+  }, [editor]);
 
   // Prevent keyboard from opening when tapping a task-list checkbox.
   // NoFocusTaskItem handles the toggle via touchstart on the label with
@@ -1100,7 +1135,14 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
         )}
 
         {/* TipTap editor */}
-        <EditorContent editor={editor} className="tiptap-content" />
+        <div onKeyDown={(e) => {
+          console.log('wrapper keydown:', e.key);
+          if (e.key === '/') {
+            console.log('slash detected via wrapper');
+          }
+        }}>
+          <EditorContent editor={editor} className="tiptap-content" />
+        </div>
         </div>
       </div>
 
@@ -1110,6 +1152,13 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
         onRecordingComplete={handleVoiceRecordingComplete}
       />
       <EmojiPicker {...inlineFolderPicker} />
+      <EmojiPicker
+        isOpen={editorPickerOpen}
+        query=""
+        anchorRect={editorAnchorRect}
+        onSelect={handleEditorEmojiSelect}
+        onClose={handleEditorPickerClose}
+      />
     </div>
   );
 }
