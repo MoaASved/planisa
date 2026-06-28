@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TabNavigation } from '@/components/navigation/TabNavigation';
 import { TopBar } from '@/components/navigation/TopBar';
 import { QuickCreateMenu } from '@/components/QuickCreateMenu';
@@ -83,11 +83,11 @@ const Index = () => {
     setActiveTab('notes');
   };
 
-  const handleCloseNoteEditor = () => {
+  const handleCloseNoteEditor = useCallback(() => {
     setIsCreatingNewNote(false);
     setIsCreatingStickyNote(false);
     setIsEditingNote(false);
-  };
+  }, []);
 
   const renderView = () => {
     switch (activeTab) {

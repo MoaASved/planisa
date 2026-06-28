@@ -71,7 +71,6 @@ interface NoteEditorProps {
 
 
 function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEditorProps) {
-  console.log('NoteEditor mounted from:', debugSource);
   const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
 
@@ -87,6 +86,11 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
   // Always-fresh title for use inside stable event handlers
   const titleRef = useRef(title);
   useEffect(() => { titleRef.current = title; }, [title]);
+
+  useEffect(() => {
+    console.log('NoteEditor mounted from:', debugSource);
+    return () => console.log('NoteEditor unmounted');
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const calculateEndTime = (start: string): string => {
     const [h, m] = start.split(':').map(Number);
