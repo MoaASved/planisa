@@ -33,97 +33,79 @@ export function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 
   return `oklch(${okL.toFixed(4)} ${(Math.hypot(okA, okB) * chromaMul).toFixed(4)} ${((Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360).toFixed(2)})`;
 }
 
+// Folder shape: single card with curved tab notch upper-left, no back flap
+const FRONT_PATH =
+  'M 0 27.2 Q 0 10.2 20 10.2 L 110 10.2 Q 120 10.2 130 20.4 Q 140 30.6 150 30.6 L 184 30.6 Q 200 30.6 200 44.2 L 200 107.1 Q 200 120.7 184 120.7 L 16 120.7 Q 0 120.7 0 107.1 Z';
+const TOP_EDGE_PATH =
+  'M 0 27.2 Q 0 10.2 20 10.2 L 110 10.2 Q 120 10.2 130 20.4 Q 140 30.6 150 30.6 L 184 30.6 Q 200 30.6 200 44.2';
+
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
 
-  const hasColor = !!(folder.color && folder.color !== 'none');
+  // Read resolved CSS variable; fall back to a neutral stone-ish hue
+  const raw =
+    typeof window !== 'undefined'
+      ? getComputedStyle(document.documentElement)
+          .getPropertyValue(`--pastel-${folder.color || 'stone'}`)
+          .trim()
+      : '30 10% 78%';
 
-  // Read resolved CSS variable for the pastel color (handles light/dark mode automatically)
-  const raw = hasColor && typeof window !== 'undefined'
-    ? getComputedStyle(document.documentElement)
-        .getPropertyValue(`--pastel-${folder.color}`)
-        .trim()
-    : '';
+  const lightTop        = shiftLightness(raw, +10);
+  const saturatedBottom = shiftLightness(raw, -5, 1.15);
 
-  const hsl = raw ? (raw.match(/[\d.]+/g) ?? []).map(Number) : null;
-
-  const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
-
-  // Light: soft pastel on white; Dark: gentle glow on dark base — both feel modern/pastel
-  const tabStyle = hsl
-    ? {
-        background: isDark
-          ? `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.35)`  // slightly more opaque = lighter-looking on dark
-          : `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.52)`, // more saturated so tab reads above body
-      }
-    : {};
-
-  const bodyStyle = hsl
-    ? {
-        background: isDark
-          ? `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.25)`  // soft glow on dark base
-          : `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.38)`, // soft pastel on white
-      }
-    : {};
+  const fgId = `fg-${folder.id}`;
+  const hlId = `hl-${folder.id}`;
 
   return (
     <div className="group">
-      {/* Drop-shadow on separate element — avoids Chrome bug with backdrop-filter */}
-      <div style={{ filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.10))' }}>
+      {/* box-shadow lives here; backdrop-filter on child avoids the Chrome filter+backdrop bug */}
+      <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '22px' }}>
         <button
           onClick={onClick}
-          className="w-full active:scale-95 transition-all block"
-          style={{ position: 'relative', paddingTop: '14px' }}
+          className="w-full transition-all active:scale-95 relative block"
+          style={{
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderRadius: '22px',
+            overflow: 'hidden',
+          }}
         >
-          {/* Folder tab — peeks out above the body */}
-          <div
-            className={!hsl ? 'bg-neutral-300/60 dark:bg-white/[0.14]' : ''}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: '10px',
-              width: '38%',
-              height: '26px',
-              borderRadius: '10px 10px 0 0',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              zIndex: 1,
-              ...tabStyle,
-            }}
-          />
-
-          {/* Folder body — layered on top, hiding tab bottom for a seamless join */}
-          <div
-            className={!hsl ? 'bg-white/80 dark:bg-white/[0.08]' : ''}
-            style={{
-              position: 'relative',
-              paddingTop: '55%',
-              borderRadius: '26px',
-              border: '1px solid rgba(255,255,255,0.48)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(0,0,0,0.06)',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-              overflow: 'hidden',
-              zIndex: 2,
-              ...bodyStyle,
-            }}
+          <svg
+            viewBox="0 0 200 121"
+            className="w-full h-auto block"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            {/* Diagonal glass sheen */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(148deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 46%)',
-                borderRadius: 'inherit',
-                pointerEvents: 'none',
-              }}
+            <defs>
+              {/* Diagonal glass gradient: light top-left → richer bottom-right */}
+              <linearGradient id={fgId} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"   stopColor={lightTop} />
+                <stop offset="100%" stopColor={saturatedBottom} />
+              </linearGradient>
+              {/* White sheen overlay */}
+              <linearGradient id={hlId} x1="0" y1="0" x2="0.7" y2="0.7">
+                <stop offset="0%"  stopColor="white" stopOpacity="0.38" />
+                <stop offset="55%" stopColor="white" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+
+            {/* Folder body — single shape, no back flap */}
+            <path
+              d={FRONT_PATH}
+              fill={`url(#${fgId})`}
+              fillOpacity="0.85"
+              stroke="rgba(255,255,255,0.45)"
+              strokeWidth="1"
             />
-          </div>
+            {/* Diagonal white highlight overlay */}
+            <path d={FRONT_PATH} fill={`url(#${hlId})`} stroke="none" />
+            {/* Top-edge specular strip */}
+            <path d={TOP_EDGE_PATH} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
+          </svg>
         </button>
       </div>
 
-      {/* Folder name + ··· on same row, below the card */}
+      {/* Folder name + ··· menu below the card */}
       <div className="flex items-center justify-between mt-3 px-0.5">
         <p className="text-sm font-bold text-foreground truncate leading-tight flex-1 min-w-0">
           {folder.name}
