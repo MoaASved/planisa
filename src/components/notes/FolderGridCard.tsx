@@ -33,13 +33,14 @@ export function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 
   return `oklch(${okL.toFixed(4)} ${(Math.hypot(okA, okB) * chromaMul).toFixed(4)} ${((Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360).toFixed(2)})`;
 }
 
-// Folder shape: narrow right-aligned tab (~32% of card width), subtle 10-unit elevation.
-// Body top y=24, tab top y=14. Cubic bezier for the shoulder gives horizontal tangents
-// on both sides so the curve blends seamlessly into both the tab top and the body top.
+// Folder shape: right-aligned tab (30% of card width), 10-unit elevation (subtle).
+// Body top y=18, tab top y=8. Right edge goes to y=18 (no dip before tab corner).
+// Cubic bezier shoulder has horizontal tangents on both sides — no kink.
+// Shape fills viewBox 0 0 200 121 properly (body y=18→112, ~6px top breathing room).
 const FRONT_PATH =
-  'M 16 24 Q 0 24 0 40 L 0 96 Q 0 108 16 108 L 184 108 Q 200 108 200 96 L 200 28 Q 200 14 186 14 L 150 14 C 145 14 140 24 136 24 L 16 24 Z';
+  'M 16 18 Q 0 18 0 32 L 0 99 Q 0 112 16 112 L 184 112 Q 200 112 200 99 L 200 18 Q 200 8 190 8 L 154 8 C 149 8 144 18 140 18 L 16 18 Z';
 const TOP_EDGE_PATH =
-  'M 16 24 L 136 24 C 140 24 145 14 150 14 L 186 14 Q 200 14 200 28';
+  'M 16 18 L 140 18 C 144 18 149 8 154 8 L 190 8 Q 200 8 200 18';
 
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
