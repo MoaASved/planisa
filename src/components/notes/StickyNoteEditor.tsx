@@ -366,7 +366,18 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           setShowFolderPicker(false);
         }}
       />
-      <EmojiPicker {...contentPicker} />
+      <EmojiPicker
+        {...contentPicker}
+        anchorRect={contentPicker.anchorRect
+          ? new DOMRect(
+              contentPicker.anchorRect.left + 8,
+              contentPicker.anchorRect.top + 24,
+              0,
+              24,
+            )
+          : null
+        }
+      />
     </>
   );
 }
