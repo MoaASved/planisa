@@ -156,15 +156,20 @@ export function MonthView({
                   const isSelected = isSameDay(day, selectedDate);
                   const isTodayDate = isToday(day);
 
-                  // Merge all item types into one list for stacked bars.
-                  // Use dayNotes (showInCalendar-filtered) — same source as the week detail view —
-                  // not dayRegularNotes/dayStickyNotes which come from allNotes and include
-                  // notes the detail view never shows.
-                  const allDayItems = [
-                    ...dayEvents.map(e => getItemColor(e, 'event')),
-                    ...dayTasks.filter(t => !t.completed).map(t => getItemColor(t, 'task')),
-                    ...dayNotes.map(n => getNoteColor(n)),
-                  ];
+                  // Merge all item types and sort by start time (earliest first).
+                  // All-day events sort first (key -1). Timed items sort by minutes since
+                  // midnight. Untimed items sort after all timed ones, preserving original
+                  // type order (events → tasks → notes) within the untimed group.
+                  const hhmm = (t?: string) => { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+                  const incompleteTasks = dayTasks.filter(t => !t.completed);
+                  const allDayItems = ([] as { color: PastelColor; key: number }[])
+                    .concat(
+                      dayEvents.map((e, i) => ({ color: getItemColor(e, 'event'), key: e.isAllDay ? -1 : (hhmm(e.startTime) ?? 10000 + i) })),
+                      incompleteTasks.map((t, i) => ({ color: getItemColor(t, 'task'), key: hhmm(t.time) ?? 10000 + dayEvents.length + i })),
+                      dayNotes.map((n, i) => ({ color: getNoteColor(n), key: hhmm(n.time) ?? 10000 + dayEvents.length + incompleteTasks.length + i })),
+                    )
+                    .sort((a, b) => a.key - b.key)
+                    .map(x => x.color);
                   const maxBars = allDayItems.length > 3 ? 2 : 3;
 
                   return (
