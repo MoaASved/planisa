@@ -304,6 +304,13 @@ export function CalendarViewComponent({ onDateChange, onNavigateToTasks, hasFull
             showTimeline={showTimeline}
             onTimelineChange={setShowTimeline}
             hasFullAccess={hasFullAccess}
+            onMobileDayTap={(date) => {
+              setSelectedDate(date);
+              setCurrentDate(date);
+              setView('weekday');
+              setDesktopView('week');
+              onDateChange?.(date);
+            }}
           />
         ) : (
           <WeekDayView

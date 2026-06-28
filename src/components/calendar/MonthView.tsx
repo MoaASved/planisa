@@ -14,8 +14,6 @@ import {
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
 import { getColorDotClass, getColorCardClass, getDeepTextColor } from '@/lib/colors';
-import { CalendarItemList } from './CalendarItemList';
-
 interface MonthViewProps {
   currentDate: Date;
   selectedDate: Date;
@@ -36,6 +34,8 @@ interface MonthViewProps {
   onTimelineChange: (v: boolean) => void;
   /** Desktop only: called when a day cell is clicked, in addition to onDateSelect */
   onDesktopDayClick?: (date: Date) => void;
+  /** Mobile only: called when a day cell is tapped; switches to week view for that day */
+  onMobileDayTap?: (date: Date) => void;
   hasFullAccess?: boolean;
 }
 
@@ -69,10 +69,10 @@ export function MonthView({
   showTimeline,
   onTimelineChange,
   onDesktopDayClick,
+  onMobileDayTap,
   hasFullAccess = true,
 }: MonthViewProps) {
   const headerTouchRef = useRef<{ x: number; y: number } | null>(null);
-  const bodyTouchRef = useRef<{ x: number; y: number } | null>(null);
 
   // Generate calendar grid
   const monthStart = startOfMonth(currentDate);
@@ -120,31 +120,14 @@ export function MonthView({
     headerTouchRef.current = null;
   }, [onMonthChange]);
 
-  const handleBodyTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      bodyTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-  };
-
-  const handleBodyTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (bodyTouchRef.current && e.changedTouches.length === 1) {
-      const deltaX = e.changedTouches[0].clientX - bodyTouchRef.current.x;
-      const deltaY = e.changedTouches[0].clientY - bodyTouchRef.current.y;
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-        onDayChange(deltaX > 0 ? 'prev' : 'next');
-      }
-    }
-    bodyTouchRef.current = null;
-  }, [onDayChange]);
-
   return (
     <div className="animate-fade-in h-full">
 
-      {/* ── Mobile layout (unchanged) ── */}
+      {/* ── Mobile layout ── */}
       <div className="md:hidden flex flex-col h-full overflow-x-hidden">
-        {/* Calendar grid — swipe left/right changes the whole month */}
+        {/* Calendar grid — fills full height; swipe left/right changes the month */}
         <div
-          className="flex-shrink-0 px-3 pb-1 bg-background"
+          className="flex-1 px-3 pb-3 bg-background overflow-auto"
           onTouchStart={handleHeaderTouchStart}
           onTouchEnd={handleHeaderTouchEnd}
         >
@@ -177,7 +160,7 @@ export function MonthView({
                   return (
                     <button
                       key={dayIndex}
-                      onClick={() => onDateSelect(day)}
+                      onClick={() => onMobileDayTap ? onMobileDayTap(day) : onDateSelect(day)}
                       className={cn(
                         'h-11 flex flex-col items-center justify-center rounded-full transition-all duration-200 relative',
                         !isCurrentMonth && 'opacity-25',
@@ -240,27 +223,6 @@ export function MonthView({
           </div>
         </div>
 
-        {/* Lower section — swipe left/right changes one day at a time */}
-        <div
-          className="flex-1 overflow-hidden flex flex-col relative bg-background"
-          onTouchStart={handleBodyTouchStart}
-          onTouchEnd={handleBodyTouchEnd}
-        >
-          <CalendarItemList
-            date={selectedDate}
-            events={events}
-            tasks={tasks}
-            notes={notes}
-            getItemColor={getItemColor}
-            getNoteColor={getNoteColor}
-            onItemClick={onItemClick}
-            onTaskToggle={onTaskToggle}
-            onCreateFromTimeline={onCreateFromTimeline}
-            showTimeline={showTimeline}
-            onTimelineChange={onTimelineChange}
-            hasFullAccess={hasFullAccess}
-          />
-        </div>
       </div>
 
       {/* ── Desktop full-height month grid ── */}
