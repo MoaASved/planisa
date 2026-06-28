@@ -46,7 +46,7 @@ export function FolderListCard({ folder, count, onClick, onEdit }: FolderListCar
         {/* Mini folder icon — same four-layer SVG as FolderGridCard, scaled to 48px */}
         <div
           className="flex-shrink-0"
-          style={{ width: '56px' }}
+          style={{ width: '44px', height: '34px' }}
         >
           <div
             style={{
@@ -54,9 +54,11 @@ export function FolderListCard({ folder, count, onClick, onEdit }: FolderListCar
               WebkitBackdropFilter: 'blur(12px)',
               borderRadius: '6px',
               overflow: 'hidden',
+              width: '100%',
+              height: '100%',
             }}
           >
-            <svg viewBox="0 0 200 121" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 200 121" preserveAspectRatio="none" className="w-full h-full block" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id={fadeId} x1="0" y1="0" x2="0" y2="121" gradientUnits="userSpaceOnUse">
                   <stop offset="0%"  stopColor="white" stopOpacity="1" />
