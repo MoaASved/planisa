@@ -28,7 +28,7 @@ export function SortableMyListRow({ category, count, onClick }: SortableMyListRo
       {...attributes}
       {...listeners}
       className={cn(
-        'touch-none cursor-grab active:cursor-grabbing',
+        'md:touch-none cursor-grab active:cursor-grabbing',
         isDragging && 'opacity-70',
       )}
     >
