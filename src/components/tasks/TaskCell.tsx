@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { Task } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
-import { useHaptics } from '@/hooks/useHaptics';
 
 interface TaskCellProps {
   task: Task;
@@ -22,8 +21,7 @@ function formatDate(d: Date) {
 }
 
 export const TaskCell = memo(function TaskCell({ task, onClick, showListDot = false, highlight }: TaskCellProps) {
-  const { toggleTask, updateTask } = useAppStore();
-  const haptics = useHaptics();
+  const { toggleTask } = useAppStore();
   const ref = useRef<HTMLButtonElement>(null);
   const isPriority = task.priority !== 'none';
 
@@ -104,20 +102,6 @@ export const TaskCell = memo(function TaskCell({ task, onClick, showListDot = fa
           )}
         </div>
 
-        {!isPriority && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              updateTask(task.id, { priority: 'high' });
-              haptics.success();
-            }}
-            className="p-1 -m-1 text-muted-foreground/30 hover:text-amber-500 transition-colors"
-            aria-label="Mark priority"
-          >
-            <Star className="w-3.5 h-3.5" />
-          </button>
-        )}
       </div>
     </button>
   );
