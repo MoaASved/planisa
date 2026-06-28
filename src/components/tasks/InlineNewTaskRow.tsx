@@ -43,8 +43,7 @@ export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps)
             onDismiss();
           }
         }}
-        placeholder="Task name..."
-        className="flex-1 bg-transparent border-0 outline-none text-[15px] font-medium text-foreground placeholder:text-muted-foreground/40"
+        className="flex-1 bg-transparent border-0 outline-none text-[15px] font-medium text-foreground"
       />
     </div>
   );
