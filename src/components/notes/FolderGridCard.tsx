@@ -10,7 +10,7 @@ interface FolderGridCardProps {
 }
 
 // Resolves an "H S% L%" string to OKLCH, shifts L only, returns oklch().
-function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 1): string {
+export function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 1): string {
   const [h, s, l] = (hslTriple.match(/[\d.]+/g) ?? []).map(Number);
   if ([h, s, l].some(Number.isNaN)) return `hsl(${hslTriple})`;
   const sat = s / 100, lig = l / 100;

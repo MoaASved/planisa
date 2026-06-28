@@ -65,7 +65,7 @@ function SortableFolderCard({ folder, onClick, onEdit, isGrid, noteCount }: { fo
     <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('md:touch-none', isGrid && 'md:max-w-[200px] md:w-full')}>
       {isGrid
         ? <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
-        : <FolderListCard folder={folder} count={noteCount} onClick={onClick} />}
+        : <FolderListCard folder={folder} count={noteCount} onClick={onClick} onEdit={onEdit} />}
     </div>
   );
 }
@@ -609,7 +609,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                     {item.kind === 'subfolder'
                       ? folderInsideLayoutMode === 'grid'
                         ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact />
-                        : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
+                        : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                       : item.note.type === 'sticky'
                         ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
                         : <NoteCard note={item.note} isGrid={folderInsideLayoutMode === 'grid'} />}
@@ -624,7 +624,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               item.kind === 'subfolder'
                 ? folderInsideLayoutMode === 'grid'
                   ? <FolderGridCard key={item.id} folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
-                  : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
+                  : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                 : item.note.type === 'sticky'
                   ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
                   : <NoteCard key={item.id} note={item.note} isGrid={folderInsideLayoutMode === 'grid'} />

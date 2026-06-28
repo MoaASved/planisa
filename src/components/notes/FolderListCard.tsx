@@ -1,51 +1,88 @@
-import { ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { MoreHorizontal } from 'lucide-react';
 import { Folder } from '@/types';
+import { shiftLightness } from './FolderGridCard';
 
 interface FolderListCardProps {
   folder: Folder;
   count: number;
   onClick: () => void;
+  onEdit?: () => void;
 }
 
-export function FolderListCard({ folder, count, onClick }: FolderListCardProps) {
-  const baseColor = `hsl(var(--pastel-${folder.color}, 160 30% 65%))`;
-  const lighterColor = `color-mix(in srgb, ${baseColor} 55%, hsl(var(--card)))`;
+export function FolderListCard({ folder, count, onClick, onEdit }: FolderListCardProps) {
+  const raw =
+    typeof window !== 'undefined'
+      ? getComputedStyle(document.documentElement)
+          .getPropertyValue(`--pastel-${folder.color}`)
+          .trim()
+      : '160 30% 65%';
+
+  const lightTop        = shiftLightness(raw, +10);
+  const saturatedBottom = shiftLightness(raw, -5, 1.15);
+  const tabL            = shiftLightness(raw, -2);
+  const tabR            = shiftLightness(raw, -8, 1.05);
 
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-black/[0.04]',
-        'transition-all duration-200 active:scale-[0.98] shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] group'
-      )}
+    <div
+      className="group relative"
+      style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.08))' }}
     >
-      {/* Folder icon — same shape as grid view, scaled for list */}
-      <div className="w-10 flex-shrink-0">
-        <svg viewBox="0 0 200 150" className="w-full h-auto block" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id={`list-fill-${folder.id}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={lighterColor} />
-              <stop offset="100%" stopColor={baseColor} />
-            </linearGradient>
-          </defs>
-          <path
-            d="M 8 40 Q 0 40, 0 48 L 0 142 Q 0 150, 8 150 L 192 150 Q 200 150, 200 142 L 200 40 Q 200 32, 192 32 L 80 32 Q 74 32, 72 26 L 68 14 Q 66 8, 60 8 L 16 8 Q 8 8, 8 16 Z"
-            fill={`url(#list-fill-${folder.id})`}
-          />
-        </svg>
-      </div>
+      <button
+        onClick={onClick}
+        className="w-full transition-all active:scale-[0.98] relative text-left"
+        style={{
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: '22px',
+          border: '1px solid rgba(255,255,255,0.45)',
+          overflow: 'hidden',
+          padding: '12px 16px',
+        }}
+      >
+        {/* Semi-transparent gradient background — opacity < 1 so backdrop blur shows through */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `linear-gradient(135deg, ${lightTop} 0%, ${saturatedBottom} 100%)`,
+            opacity: 0.87,
+          }}
+        />
 
-      {/* Info */}
-      <div className="flex-1 min-w-0 text-left">
-        <h4 className="flow-card-title truncate">{folder.name}</h4>
-        <p className="flow-meta">
-          {count} {count === 1 ? 'item' : 'items'}
-        </p>
-      </div>
+        {/* Diagonal specular highlight, same proportions as grid card */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 55%)' }}
+        />
 
-      {/* Chevron */}
-      <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-    </button>
+        {/* Folder tab — small strip at top-right, slightly more opaque than card body.
+            overflow:hidden on the button clips its right corner to the card's border-radius. */}
+        <div
+          className="absolute top-0 right-6 pointer-events-none"
+          style={{
+            width: '56px',
+            height: '9px',
+            background: `linear-gradient(to right, ${tabL}, ${tabR})`,
+            opacity: 0.92,
+            borderBottomLeftRadius: '7px',
+          }}
+        />
+
+        {/* Content — sits above all overlay layers */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-neutral-800 leading-tight truncate">{folder.name}</p>
+            <p className="text-[10px] leading-tight text-neutral-600 mt-0.5" style={{ opacity: 0.55 }}>
+              {count} {count === 1 ? 'item' : 'items'}
+            </p>
+          </div>
+          <div
+            className="p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onEdit?.(); }}
+          >
+            <MoreHorizontal className="w-4 h-4 text-neutral-600" />
+          </div>
+        </div>
+      </button>
+    </div>
   );
 }
