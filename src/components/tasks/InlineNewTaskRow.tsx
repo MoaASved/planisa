@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
 
 interface InlineNewTaskRowProps {
@@ -9,11 +9,6 @@ interface InlineNewTaskRowProps {
 export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps) {
   const [title, setTitle] = useState('');
   const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const t = setTimeout(() => ref.current?.focus(), 60);
-    return () => clearTimeout(t);
-  }, []);
 
   const submit = () => {
     const t = title.trim();
@@ -31,6 +26,7 @@ export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps)
       <AnimatedCheckbox checked={false} onChange={() => {}} />
       <input
         ref={ref}
+        autoFocus
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
