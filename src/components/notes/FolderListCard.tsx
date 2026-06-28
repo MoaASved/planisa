@@ -91,8 +91,8 @@ export function FolderListCard({ folder, count, onClick, onEdit }: FolderListCar
           <path d={LIST_TOP_EDGE_PATH} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
         </svg>
 
-        {/* Name + count — bottom-left, same layout as FolderGridCard */}
-        <div className="absolute bottom-0 left-0 right-8 px-2.5 pb-2 pointer-events-none text-left">
+        {/* Name + count — vertically centered in the card */}
+        <div className="absolute inset-y-0 left-0 right-8 px-2.5 pointer-events-none text-left flex flex-col justify-center">
           <p className="text-xs font-semibold text-neutral-800 leading-tight truncate">{folder.name}</p>
           <p className="text-[10px] leading-tight text-neutral-600 mt-0.5" style={{ opacity: 0.55 }}>
             {count} {count === 1 ? 'item' : 'items'}
