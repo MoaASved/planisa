@@ -97,7 +97,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
 
       {/* Card pinned near top so keyboard cannot overlap it */}
       <div
-        className="fixed left-4 right-4 z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
+        className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[440px] z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
           top: '15%',
           maxHeight: '45vh',
@@ -225,7 +225,18 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         </div>
       </div>
       <EmojiPicker {...titlePicker} />
-      <EmojiPicker {...contentPicker} />
+      <EmojiPicker
+        {...contentPicker}
+        anchorRect={contentPicker.anchorRect
+          ? new DOMRect(
+              contentPicker.anchorRect.left + 8,
+              contentPicker.anchorRect.top + 24,
+              0,
+              24,
+            )
+          : null
+        }
+      />
     </>
   );
 }
