@@ -834,7 +834,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             >
               <div
                 className={foldersLayoutMode === 'grid'
-                  ? 'grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-5 md:gap-8 p-4'
+                  ? 'grid grid-cols-3 md:grid-cols-4 md:justify-items-center gap-4 md:gap-10 p-4'
                   : 'space-y-2'}
                 style={foldersLayoutMode === 'grid' ? { margin: '-16px' } : undefined}
               >
