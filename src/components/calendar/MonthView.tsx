@@ -151,7 +151,7 @@ export function MonthView({
                 </div>
 
                 {week.map((day, dayIndex) => {
-                  const { events: dayEvents, tasks: dayTasks, regularNotes: dayRegularNotes, stickyNotes: dayStickyNotes } = getItemsForDate(day);
+                  const { events: dayEvents, tasks: dayTasks, notes: dayNotes, regularNotes: dayRegularNotes, stickyNotes: dayStickyNotes } = getItemsForDate(day);
                   const isCurrentMonth = isSameMonth(day, currentDate);
                   const isSelected = isSameDay(day, selectedDate);
                   const isTodayDate = isToday(day);
