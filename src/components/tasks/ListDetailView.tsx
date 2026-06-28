@@ -495,6 +495,14 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
             onDismiss={() => setAdding(null)}
           />
         )}
+        {adding !== 'main' && (
+          <button
+            onClick={() => setAdding('main')}
+            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add task
+          </button>
+        )}
 
         {/* Smart list: inline always-expanded completed section */}
         {isVirtualList && showCompleted && mainCompleted.length > 0 && (
