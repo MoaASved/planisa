@@ -106,6 +106,9 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
               </linearGradient>
             </defs>
 
+            {/* Base rect fills SVG transparent areas (corners, gaps outside paths) with the page background so no white shows through */}
+            <rect width="200" height="121" style={{ fill: 'hsl(var(--background))' }} />
+
             {/* Back flap — fades out downward so only the top peeks above the front */}
             <path d={BACK_PATH}     fill={`url(#${bgId})`}  fillOpacity="0.92" stroke="rgba(255,255,255,0.35)" strokeWidth="1" mask={`url(#${maskId})`} />
             {/* Front card body */}
