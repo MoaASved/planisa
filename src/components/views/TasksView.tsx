@@ -213,7 +213,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
           }}
         >
           <SortableContext items={myLists.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
+            <div className="divide-y divide-border/[0.07]">
               {myLists.map((cat, idx) => (
                 <div key={cat.id} className="stagger-item" style={{ animationDelay: `${idx * 30}ms` }}>
                   <SortableMyListRow
@@ -240,7 +240,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
         </DndContext>
 
         {defaultList && (
-          <div className="mt-2">
+          <div className="border-t border-border/[0.07]">
             <MyListRow
               category={defaultList}
               count={incomplete.filter((t) => !t.listId).length}
