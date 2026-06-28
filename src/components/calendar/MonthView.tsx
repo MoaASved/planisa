@@ -145,74 +145,62 @@ export function MonthView({
           <div className="flex-1 flex flex-col min-h-0">
             {weeks.map((week, weekIndex) => (
               <div key={weekIndex} className="flex-1 grid grid-cols-[20px_repeat(7,1fr)] border-b border-foreground/[0.08] last:border-b-0">
-                {/* Week number */}
-                <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25">
+                {/* Week number — top-aligned to match date numbers */}
+                <div className="flex items-start justify-center pt-2 text-[9px] font-normal text-muted-foreground/25">
                   {getWeek(week[0], { weekStartsOn: 1 })}
                 </div>
 
                 {week.map((day, dayIndex) => {
                   const { events: dayEvents, tasks: dayTasks, regularNotes: dayRegularNotes, stickyNotes: dayStickyNotes } = getItemsForDate(day);
-                  const hasItems = dayEvents.length > 0 || dayTasks.length > 0 || dayRegularNotes.length > 0 || dayStickyNotes.length > 0;
                   const isCurrentMonth = isSameMonth(day, currentDate);
                   const isSelected = isSameDay(day, selectedDate);
                   const isTodayDate = isToday(day);
+
+                  // Merge all item types into one list for stacked bars
+                  const allDayItems = [
+                    ...dayEvents.map(e => getItemColor(e, 'event')),
+                    ...dayTasks.filter(t => !t.completed).map(t => getItemColor(t, 'task')),
+                    ...dayRegularNotes.map(n => getNoteColor(n)),
+                    ...dayStickyNotes.map(n => getNoteColor(n)),
+                  ];
+                  const maxBars = allDayItems.length > 3 ? 2 : 3;
 
                   return (
                     <button
                       key={dayIndex}
                       onClick={() => onMobileDayTap ? onMobileDayTap(day) : onDateSelect(day)}
                       className={cn(
-                        'w-full flex flex-col items-center justify-center transition-all duration-200 relative overflow-hidden',
+                        'w-full flex flex-col overflow-hidden transition-all duration-200 pt-1.5',
                         !isCurrentMonth && 'opacity-25',
                         !isTodayDate && !isSelected && 'hover:bg-secondary/40'
                       )}
                     >
+                      {/* Date number — always at top, horizontally centred */}
                       <span className={cn(
-                        'text-[15px] font-light tracking-tight w-9 h-9 rounded-full flex items-center justify-center',
+                        'text-[15px] font-light tracking-tight w-9 h-9 rounded-full flex items-center justify-center mx-auto flex-shrink-0',
                         isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
                         isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-muted font-medium text-foreground dark:text-foreground',
                         !isTodayDate && !isSelected && 'text-foreground/80'
                       )}>
                         {format(day, 'd')}
                       </span>
-                      {hasItems && (
-                        <div className="mt-1 flex gap-[3px]">
-                          {dayEvents.slice(0, 1).map((event, j) => (
+                      {/* Stacked full-width bars, max 3; overflow becomes "+X" label */}
+                      {allDayItems.length > 0 && (
+                        <div className="mt-1 flex flex-col gap-[2px] px-1">
+                          {allDayItems.slice(0, maxBars).map((color, i) => (
                             <div
-                              key={`e-${j}`}
+                              key={i}
                               className={cn(
-                                'w-4 h-1 rounded-full',
-                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(event, 'event'))
+                                'w-full h-1 rounded-full flex-shrink-0',
+                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(color)
                               )}
                             />
                           ))}
-                          {dayTasks.filter(t => !t.completed).slice(0, 1).map((task, j) => (
-                            <div
-                              key={`t-${j}`}
-                              className={cn(
-                                'w-4 h-1 rounded-full',
-                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(task, 'task'))
-                              )}
-                            />
-                          ))}
-                          {dayRegularNotes.slice(0, 1).map((note, j) => (
-                            <div
-                              key={`rn-${j}`}
-                              className={cn(
-                                'w-4 h-1 rounded-full',
-                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
-                              )}
-                            />
-                          ))}
-                          {dayStickyNotes.slice(0, 1).map((note, j) => (
-                            <div
-                              key={`sn-${j}`}
-                              className={cn(
-                                'w-4 h-1 rounded-full',
-                                isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
-                              )}
-                            />
-                          ))}
+                          {allDayItems.length > 3 && (
+                            <span className="text-[9px] font-medium text-muted-foreground/60 leading-none pl-0.5 flex-shrink-0">
+                              +{allDayItems.length - 2}
+                            </span>
+                          )}
                         </div>
                       )}
                     </button>
