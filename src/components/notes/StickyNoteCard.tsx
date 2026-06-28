@@ -34,13 +34,15 @@ const getStickyBgClass = (color?: PastelColor): string => {
 export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardProps) {
   const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
 
-  // Deterministic subtle rotation between -2deg and +2deg based on note id
+  // Deterministic subtle rotation between -1deg and +1deg based on note id.
+  // Capped at ±1° so the card corners never extend far enough to overlap
+  // adjacent cards (a 360px-wide card at 1° extends ~3px vertically per side).
   const rotation = (() => {
     let hash = 0;
     for (let i = 0; i < note.id.length; i++) {
       hash = (hash * 31 + note.id.charCodeAt(i)) | 0;
     }
-    return (((hash % 400) + 400) % 400) / 100 - 2;
+    return (((hash % 200) + 200) % 200) / 100 - 1;
   })();
 
   return (
