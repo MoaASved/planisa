@@ -179,7 +179,7 @@ export function MonthView({
                     >
                       {/* Date number — always at top, horizontally centred */}
                       <span className={cn(
-                        'text-[15px] font-light tracking-tight w-9 h-9 rounded-full flex items-center justify-center mx-auto flex-shrink-0',
+                        'text-[21px] font-normal tracking-tight w-10 h-10 rounded-full flex items-center justify-center mx-auto flex-shrink-0',
                         isTodayDate && 'bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-medium',
                         isSelected && !isTodayDate && 'bg-[#E0E0E0] dark:bg-muted font-medium text-foreground dark:text-foreground',
                         !isTodayDate && !isSelected && 'text-foreground/80'
