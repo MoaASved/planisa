@@ -57,15 +57,6 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const backL           = shiftLightness(raw, -2);
   const backR           = shiftLightness(raw, -8, 1.05);
 
-  // In light mode the button's backdrop-filter blurs a white background, making any
-  // transparent SVG pixel (gaps around BACK_PATH, notch corners) appear white.
-  // Setting the button background to the folder colour in light mode fixes this.
-  const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
-  const hslParts = raw.match(/[\d.]+/g);
-  const buttonBg = !isDark && hslParts
-    ? `hsla(${hslParts[0]}, ${hslParts[1]}%, ${hslParts[2]}%, 0.9)`
-    : 'transparent';
-
   const bgId   = `gbg-${folder.id}`;
   const fgId   = `gfg-${folder.id}`;
   const hlId   = `ghl-${folder.id}`;
@@ -74,6 +65,8 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
   return (
     <div className="group">
+      {/* px-2 insets the card visually so there is breathing room between cards in the grid */}
+      <div className="px-2">
       {/* box-shadow wrapper separate from backdrop-filter child — avoids Chrome bug */}
       <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '8px' }}>
         <button
@@ -84,7 +77,6 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
             WebkitBackdropFilter: 'blur(12px)',
             borderRadius: '8px',
             overflow: 'hidden',
-            background: buttonBg,
           }}
         >
           <svg
@@ -125,6 +117,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
             <path d={TOP_EDGE_PATH} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
           </svg>
         </button>
+      </div>
       </div>
 
       {/* Folder name + ··· menu below the card */}
