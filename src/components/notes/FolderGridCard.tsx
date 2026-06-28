@@ -67,14 +67,12 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
     <div className="group">
       {/* px-2 insets the card visually so there is breathing room between cards in the grid */}
       <div className="px-2">
-      {/* box-shadow wrapper separate from backdrop-filter child — avoids Chrome bug */}
+      {/* box-shadow on outer wrapper so it doesn't clip the SVG */}
       <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '8px' }}>
         <button
           onClick={onClick}
           className="w-full transition-all active:scale-95 relative block"
           style={{
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
             borderRadius: '8px',
             overflow: 'hidden',
           }}
@@ -121,7 +119,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       </div>
 
       {/* Folder name + ··· menu below the card */}
-      <div className="flex items-center justify-between mt-3 px-0.5">
+      <div className="flex items-center justify-between mt-3 px-2">
         <p className="text-sm font-bold text-foreground truncate leading-tight flex-1 min-w-0">
           {folder.name}
         </p>
@@ -135,7 +133,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       </div>
 
       {/* Item count */}
-      <p className="text-[11px] text-muted-foreground/70 px-0.5 mt-0.5">
+      <p className="text-[11px] text-muted-foreground/70 px-2 mt-0.5">
         {count} {count === 1 ? 'item' : 'items'}
       </p>
     </div>
