@@ -224,7 +224,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                 ref={inputRef}
                 type="text"
                 value={title}
-                onChange={(e) => { setTitle(e.target.value); if (editing) triggerAutoSave(); }}
+                onChange={(e) => { const v = e.target.value; setTitle(v.length === 1 ? v.toUpperCase() : v); if (editing) triggerAutoSave(); }}
                 placeholder="Task title"
                 className={cn(
                   'flex-1 bg-transparent border-0 outline-none text-[20px] font-semibold placeholder:text-muted-foreground/50 transition-colors',
@@ -304,7 +304,7 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
                 ref={subInputRef}
                 type="text"
                 value={newSub}
-                onChange={(e) => setNewSub(e.target.value)}
+                onChange={(e) => { const v = e.target.value; setNewSub(v.length === 1 ? v.toUpperCase() : v); }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();

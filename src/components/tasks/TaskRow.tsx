@@ -261,7 +261,7 @@ export function TaskRow({ task, onToggle, compact = false, showOverdue = false, 
                 autoFocus
                 type="text"
                 value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
+                onChange={(e) => { const v = e.target.value; setEditedTitle(v.length === 1 ? v.toUpperCase() : v); }}
                 onBlur={saveTitle}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') { e.preventDefault(); saveTitle(); }

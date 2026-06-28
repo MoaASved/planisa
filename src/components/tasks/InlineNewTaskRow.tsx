@@ -31,7 +31,7 @@ export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps)
         autoFocus
         type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => { const v = e.target.value; setTitle(v.length === 1 ? v.toUpperCase() : v); }}
         onBlur={() => { if (!titlePicker.isOpen) submit(); }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {

@@ -106,7 +106,7 @@ export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: Cale
             ref={titleRef}
             type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { const v = e.target.value; setTitle(v.length === 1 ? v.toUpperCase() : v); }}
             className={cn(
               "flex-1 bg-secondary rounded-xl px-3 py-2.5 text-sm border-0 outline-none placeholder:text-muted-foreground",
               currentTask.completed ? "line-through text-muted-foreground" : "text-foreground"

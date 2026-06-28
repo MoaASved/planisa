@@ -350,7 +350,7 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
                   ref={titleInputRef}
                   type="text"
                   value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
+                  onChange={(e) => { const v = e.target.value; setEditedTitle(v.length === 1 ? v.toUpperCase() : v); }}
                   onKeyDown={handleTitleKeyDown}
                   onBlur={handleTitleSave}
                   className="font-medium bg-transparent border-0 outline-none w-full cursor-text"
