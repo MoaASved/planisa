@@ -48,14 +48,23 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
   const hsl = raw ? (raw.match(/[\d.]+/g) ?? []).map(Number) : null;
 
-  // Tab: ~10% more opaque than body so the tab shape is readable without a color difference
+  const isDark = typeof window !== 'undefined' && document.documentElement.classList.contains('dark');
+
+  // Light: soft pastel on white; Dark: gentle glow on dark base — both feel modern/pastel
   const tabStyle = hsl
-    ? { background: `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.58)` }
+    ? {
+        background: isDark
+          ? `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.35)`  // slightly more opaque = lighter-looking on dark
+          : `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.52)`, // more saturated so tab reads above body
+      }
     : {};
 
-  // Body: light frosted tint of the pastel
   const bodyStyle = hsl
-    ? { background: `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.48)` }
+    ? {
+        background: isDark
+          ? `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.25)`  // soft glow on dark base
+          : `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.38)`, // soft pastel on white
+      }
     : {};
 
   return (
@@ -69,7 +78,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
         >
           {/* Folder tab — peeks out above the body */}
           <div
-            className={!hsl ? 'bg-neutral-300/70 dark:bg-neutral-600/60' : ''}
+            className={!hsl ? 'bg-neutral-300/60 dark:bg-white/[0.14]' : ''}
             style={{
               position: 'absolute',
               top: 0,
@@ -86,7 +95,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
           {/* Folder body — layered on top, hiding tab bottom for a seamless join */}
           <div
-            className={!hsl ? 'bg-white/70 dark:bg-white/10' : ''}
+            className={!hsl ? 'bg-white/80 dark:bg-white/[0.08]' : ''}
             style={{
               position: 'relative',
               paddingTop: '55%',
