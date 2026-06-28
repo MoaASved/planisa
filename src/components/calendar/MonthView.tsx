@@ -144,7 +144,7 @@ export function MonthView({
           {/* Week rows — flex-1 so each row gets equal height filling the remaining space */}
           <div className="flex-1 flex flex-col min-h-0">
             {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="flex-1 grid grid-cols-[20px_repeat(7,1fr)]">
+              <div key={weekIndex} className="flex-1 grid grid-cols-[20px_repeat(7,1fr)] border-b border-foreground/[0.08] last:border-b-0">
                 {/* Week number */}
                 <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25">
                   {getWeek(week[0], { weekStartsOn: 1 })}
@@ -162,7 +162,7 @@ export function MonthView({
                       key={dayIndex}
                       onClick={() => onMobileDayTap ? onMobileDayTap(day) : onDateSelect(day)}
                       className={cn(
-                        'w-full flex flex-col items-center justify-center transition-all duration-200 relative',
+                        'w-full flex flex-col items-center justify-center transition-all duration-200 relative overflow-hidden',
                         !isCurrentMonth && 'opacity-25',
                         !isTodayDate && !isSelected && 'hover:bg-secondary/40'
                       )}
@@ -176,12 +176,12 @@ export function MonthView({
                         {format(day, 'd')}
                       </span>
                       {hasItems && (
-                        <div className="absolute bottom-1 flex gap-[3px]">
+                        <div className="mt-1 flex gap-[3px]">
                           {dayEvents.slice(0, 1).map((event, j) => (
                             <div
                               key={`e-${j}`}
                               className={cn(
-                                'w-[5px] h-[5px] rounded-full',
+                                'w-4 h-1 rounded-full',
                                 isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(event, 'event'))
                               )}
                             />
@@ -190,7 +190,7 @@ export function MonthView({
                             <div
                               key={`t-${j}`}
                               className={cn(
-                                'w-[5px] h-[5px] rounded-full',
+                                'w-4 h-1 rounded-full',
                                 isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getItemColor(task, 'task'))
                               )}
                             />
@@ -199,7 +199,7 @@ export function MonthView({
                             <div
                               key={`rn-${j}`}
                               className={cn(
-                                'w-[5px] h-[5px] rounded-full',
+                                'w-4 h-1 rounded-full',
                                 isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
                               )}
                             />
@@ -208,7 +208,7 @@ export function MonthView({
                             <div
                               key={`sn-${j}`}
                               className={cn(
-                                'w-[5px] h-[5px] rounded-full',
+                                'w-4 h-1 rounded-full',
                                 isTodayDate ? 'bg-white/70 dark:bg-[#1C1C1E]/70' : getColorDotClass(getNoteColor(note))
                               )}
                             />
