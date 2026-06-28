@@ -410,8 +410,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                       <p className="flow-card-title truncate">{note.title || 'Empty note'}</p>
                     )}
                     <div
-                      className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
-                      style={{ background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
+                      className="absolute left-0 right-0 bottom-0 pointer-events-none"
+                      style={{ top: '1.5rem', background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
                     />
                   </div>
                 </div>

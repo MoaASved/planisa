@@ -78,8 +78,14 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
             )}
           </div>
           <div
-            className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
-            style={{ background: `linear-gradient(to bottom, transparent, hsl(var(--pastel-${note.color || 'sky'})))` }}
+            className="absolute left-0 right-0 bottom-0 pointer-events-none"
+            style={{
+              // Grid: fixed h-6 zone (content area is always tall). List: anchor by
+              // top offset so the fade occupies 0 height for short content — no gradient
+              // on 1-line cards, gentle fade only when text actually overflows.
+              ...(isGrid ? { height: '1.5rem' } : { top: '1.5rem' }),
+              background: `linear-gradient(to bottom, transparent, hsl(var(--pastel-${note.color || 'sky'})))`,
+            }}
           />
         </div>
         
