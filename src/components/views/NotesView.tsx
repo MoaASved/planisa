@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, CSSProperties } from 'react';
+import { useState, useRef, useEffect, useCallback, CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import {
   DndContext,
@@ -301,14 +301,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     }
   };
 
-  const handleCloseEditor = () => {
+  const handleCloseEditor = useCallback(() => {
     setSelectedNote(null);
     setSelectedStickyNote(null);
     setIsCreatingStickyNote(false);
     onEditingChange?.(false);
     onCloseEditor?.();
     setShouldScrollToTop(true);
-  };
+  }, [onEditingChange, onCloseEditor]);
 
   const handleCreateNote = () => {
     setSelectedNote({ id: '', title: '', content: '', type: 'note', tags: [], createdAt: new Date(), updatedAt: new Date(), isPinned: false } as Note);

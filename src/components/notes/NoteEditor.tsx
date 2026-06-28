@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -70,7 +70,7 @@ interface NoteEditorProps {
 }
 
 
-export function NoteEditor({ note, onClose, defaultFolder, debugSource }: NoteEditorProps) {
+function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEditorProps) {
   console.log('NoteEditor mounted from:', debugSource);
   const { addNote, updateNote, togglePinNote, folders, addFolder } = useAppStore();
   const { deleteWithUndo } = useUndoableDelete();
@@ -1162,3 +1162,5 @@ export function NoteEditor({ note, onClose, defaultFolder, debugSource }: NoteEd
     </div>
   );
 }
+
+export const NoteEditor = memo(NoteEditorBase);
