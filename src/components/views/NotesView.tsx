@@ -357,18 +357,24 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     };
 
     return (
-      <div className={cn("relative group", isMenuOpen && "z-[1000]")}>
+      <div className={cn(
+        "relative group",
+        isMenuOpen && "z-[1000]",
+        // List view: promote card styles to the wrapper so the right column
+        // (··· / folder / date) can live outside the <button> as a sibling.
+        !isGrid && cn(cardBgClass, "rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition-all duration-200 flex items-stretch")
+      )}>
         <button
           onClick={() => handleOpenNote(note)}
           className={cn(
-            'text-left transition-all duration-200 w-full rounded-2xl p-4',
-            cardBgClass,
-            isGrid && 'h-[140px] md:h-44 overflow-hidden',
-            'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] active:scale-[0.98]'
+            'text-left transition-all duration-200 active:scale-[0.98]',
+            isGrid
+              ? cn('w-full rounded-2xl p-4', cardBgClass, 'h-[140px] md:h-44 overflow-hidden', 'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)]')
+              : 'flex-1 p-4 min-w-0'
           )}
         >
           {isGrid ? (
-            /* Grid layout: content top, folder+date bottom row */
+            /* Grid layout: content top, folder+date bottom row — unchanged */
             <div className="flex flex-col h-full">
               <div className="flex-1 min-w-0 min-h-0 overflow-hidden relative">
                 <div className="flex items-start gap-2">
@@ -402,8 +408,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               </div>
             </div>
           ) : (
-            /* List layout: content left, folder+date right-aligned column */
-            <div className="flex items-start gap-2 pr-7">
+            /* List layout: left content only — right column lives outside this button */
+            <div className="flex items-start">
               <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-1.5">
                   {note.isPinned && (
@@ -422,30 +428,44 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                {note.folder && (
-                  <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
-                    {note.folder}
-                  </span>
-                )}
-                {!note.hideDate && (
-                  <span className="flow-meta-sm">
-                    {format(new Date(note.date || note.updatedAt), 'MMM d')}
-                  </span>
-                )}
-              </div>
             </div>
           )}
         </button>
 
-        {/* ··· menu button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
-          className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
-          aria-label="Note options"
-        >
-          <MoreHorizontal className="w-4 h-4 text-foreground/60" />
-        </button>
+        {/* Right column — list view only. Sibling of the card button so we can
+            stack ··· above the label and date without nesting <button> in <button>. */}
+        {!isGrid && (
+          <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
+            <button
+              onClick={(e) => { e.stopPropagation(); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+              aria-label="Note options"
+            >
+              <MoreHorizontal className="w-4 h-4 text-foreground/60" />
+            </button>
+            {note.folder && (
+              <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
+                {note.folder}
+              </span>
+            )}
+            {!note.hideDate && (
+              <span className="flow-meta-sm">
+                {format(new Date(note.date || note.updatedAt), 'MMM d')}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ··· menu button — grid view only (absolutely positioned) */}
+        {isGrid && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+            className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+            aria-label="Note options"
+          >
+            <MoreHorizontal className="w-4 h-4 text-foreground/60" />
+          </button>
+        )}
 
         {/* Dropdown menu */}
         {isMenuOpen && (
