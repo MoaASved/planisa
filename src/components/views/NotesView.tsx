@@ -357,7 +357,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     };
 
     return (
-      <div className="relative group">
+      <div className={cn("relative group", isMenuOpen && "z-[1000]")}>
         <button
           onClick={() => handleOpenNote(note)}
           className={cn(
