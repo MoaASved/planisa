@@ -46,9 +46,7 @@ export const TaskCell = memo(function TaskCell({ task, onClick, showListDot = fa
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full bg-card rounded-2xl px-4 py-3 text-left transition-all',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.03)]',
-        'hover:shadow-[0_2px_6px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]',
+        'w-full px-4 py-3.5 text-left transition-all',
         'active:scale-[0.995]',
         highlight && 'animate-task-highlight',
       )}
