@@ -125,14 +125,14 @@ export function MonthView({
 
       {/* ── Mobile layout ── */}
       <div className="md:hidden flex flex-col h-full overflow-x-hidden">
-        {/* Calendar grid — fills full height; swipe left/right changes the month */}
+        {/* Calendar grid — flex column so rows distribute evenly to fill height */}
         <div
-          className="flex-1 px-3 pb-3 bg-background overflow-auto"
+          className="flex-1 flex flex-col px-3 pb-3 bg-background min-h-0"
           onTouchStart={handleHeaderTouchStart}
           onTouchEnd={handleHeaderTouchEnd}
         >
-          {/* Day headers */}
-          <div className="grid grid-cols-[20px_repeat(7,1fr)] mb-1">
+          {/* Day headers — fixed height */}
+          <div className="flex-shrink-0 grid grid-cols-[20px_repeat(7,1fr)] mb-1">
             <div className="text-center text-[9px] font-normal text-muted-foreground/30 py-1">W</div>
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
               <div key={i} className="text-center text-[11px] font-medium text-muted-foreground/60 py-1 uppercase tracking-wide">
@@ -141,12 +141,12 @@ export function MonthView({
             ))}
           </div>
 
-          {/* Calendar grid */}
-          <div className="flex flex-col gap-0.5">
+          {/* Week rows — flex-1 so each row gets equal height filling the remaining space */}
+          <div className="flex-1 flex flex-col min-h-0">
             {weeks.map((week, weekIndex) => (
-              <div key={weekIndex} className="grid grid-cols-[20px_repeat(7,1fr)] gap-0.5">
+              <div key={weekIndex} className="flex-1 grid grid-cols-[20px_repeat(7,1fr)]">
                 {/* Week number */}
-                <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25 h-11">
+                <div className="flex items-center justify-center text-[9px] font-normal text-muted-foreground/25">
                   {getWeek(week[0], { weekStartsOn: 1 })}
                 </div>
 
@@ -162,7 +162,7 @@ export function MonthView({
                       key={dayIndex}
                       onClick={() => onMobileDayTap ? onMobileDayTap(day) : onDateSelect(day)}
                       className={cn(
-                        'h-11 flex flex-col items-center justify-center rounded-full transition-all duration-200 relative',
+                        'w-full flex flex-col items-center justify-center transition-all duration-200 relative',
                         !isCurrentMonth && 'opacity-25',
                         !isTodayDate && !isSelected && 'hover:bg-secondary/40'
                       )}
