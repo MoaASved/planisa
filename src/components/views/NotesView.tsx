@@ -51,7 +51,7 @@ type FolderSortMode = 'custom' | 'edited' | 'alpha' | 'starred';
 type FolderItem = { kind: 'subfolder'; id: string; folder: Folder } | { kind: 'note'; id: string; note: Note };
 
 // ── Sortable folder card (used in Folders tab drag-and-drop) ──────────────────
-function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onClick: () => void; onEdit: () => void }) {
+function SortableFolderCard({ folder, onClick, onEdit, isGrid, noteCount }: { folder: Folder; onClick: () => void; onEdit: () => void; isGrid: boolean; noteCount: number }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: folder.id });
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -62,8 +62,10 @@ function SortableFolderCard({ folder, onClick, onEdit }: { folder: Folder; onCli
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="md:touch-none md:max-w-[200px] md:w-full">
-      <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('md:touch-none', isGrid && 'md:max-w-[200px] md:w-full')}>
+      {isGrid
+        ? <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
+        : <FolderListCard folder={folder} count={noteCount} onClick={onClick} />}
     </div>
   );
 }
@@ -99,6 +101,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const haptics = useHaptics();
   const [viewTab, setViewTab] = useState<ViewTab>('boards');
   const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('boards-view') as LayoutMode) || 'grid');
+  const [foldersLayoutMode, setFoldersLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('planisa_folders_view') as LayoutMode) || 'grid');
+  const [folderInsideLayoutMode, setFolderInsideLayoutMode] = useState<LayoutMode>(() => (localStorage.getItem('planisa_folder_inside_view') as LayoutMode) || 'grid');
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [parentFolder, setParentFolder] = useState<Folder | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -120,6 +124,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
   useEffect(() => { localStorage.setItem('boards-view', layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem('boards-filter', boardsFilter); }, [boardsFilter]);
+  useEffect(() => { localStorage.setItem('planisa_folders_view', foldersLayoutMode); }, [foldersLayoutMode]);
+  useEffect(() => { localStorage.setItem('planisa_folder_inside_view', folderInsideLayoutMode); }, [folderInsideLayoutMode]);
 
   // Drag-and-drop sensors for folder reordering
   const sensors = useSensors(
@@ -481,6 +487,15 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   if (selectedFolder) {
     // isInSubfolder is computed above (before sort computations)
 
+    const folderInsideToggleEl = (
+      <button
+        onClick={() => setFolderInsideLayoutMode(folderInsideLayoutMode === 'list' ? 'grid' : 'list')}
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {folderInsideLayoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
+      </button>
+    );
+
     const sortMenuEl = (
       <div className="relative flex-shrink-0">
         <button
@@ -553,7 +568,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 <span className="text-sm font-medium text-foreground truncate">{selectedFolder.name}</span>
               </div>
             </div>
-            {sortMenuEl}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {folderInsideToggleEl}
+              {sortMenuEl}
+            </div>
           </div>
         ) : (
           <div className="flex items-center justify-between px-4 pb-3">
@@ -566,7 +584,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               </button>
               <h1 className="flow-page-title truncate">{selectedFolder.name}</h1>
             </div>
-            {sortMenuEl}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {folderInsideToggleEl}
+              {sortMenuEl}
+            </div>
           </div>
         )}
 
@@ -580,33 +601,33 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleAllItemsDragEnd}>
             <SortableContext
               items={sortedFolderItems.map(item => item.id)}
-              strategy={layoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+              strategy={folderInsideLayoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
             >
-              <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
+              <div className={cn('px-4 py-2', folderInsideLayoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
                 {sortedFolderItems.map(item => (
                   <SortableNoteItem key={item.id} id={item.id}>
                     {item.kind === 'subfolder'
-                      ? layoutMode === 'grid'
+                      ? folderInsideLayoutMode === 'grid'
                         ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact />
                         : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                       : item.note.type === 'sticky'
-                        ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
-                        : <NoteCard note={item.note} isGrid={layoutMode === 'grid'} />}
+                        ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
+                        : <NoteCard note={item.note} isGrid={folderInsideLayoutMode === 'grid'} />}
                   </SortableNoteItem>
                 ))}
               </div>
             </SortableContext>
           </DndContext>
         ) : (
-          <div className={cn('px-4 py-2', layoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
+          <div className={cn('px-4 py-2', folderInsideLayoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
             {sortedFolderItems.map(item => (
               item.kind === 'subfolder'
-                ? layoutMode === 'grid'
+                ? folderInsideLayoutMode === 'grid'
                   ? <FolderGridCard key={item.id} folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                   : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} />
                 : item.note.type === 'sticky'
-                  ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={layoutMode === 'grid'} />
-                  : <NoteCard key={item.id} note={item.note} isGrid={layoutMode === 'grid'} />
+                  ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
+                  : <NoteCard key={item.id} note={item.note} isGrid={folderInsideLayoutMode === 'grid'} />
             ))}
           </div>
         )}
@@ -737,6 +758,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             </button>
           </>
         )}
+        {viewTab === 'folders' && (
+          <button
+            onClick={() => setFoldersLayoutMode(foldersLayoutMode === 'list' ? 'grid' : 'list')}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {foldersLayoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
+          </button>
+        )}
         {/* Search */}
         <button
           onClick={() => setShowSearch(!showSearch)}
@@ -771,14 +800,24 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           )}
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFolderDragEnd}>
-            <SortableContext items={rootFolders.map((f) => f.id)} strategy={rectSortingStrategy}>
-              <div className="grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-5 md:gap-8 p-4" style={{ margin: '-16px' }}>
+            <SortableContext
+              items={rootFolders.map((f) => f.id)}
+              strategy={foldersLayoutMode === 'grid' ? rectSortingStrategy : verticalListSortingStrategy}
+            >
+              <div
+                className={foldersLayoutMode === 'grid'
+                  ? 'grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-5 md:gap-8 p-4'
+                  : 'space-y-2'}
+                style={foldersLayoutMode === 'grid' ? { margin: '-16px' } : undefined}
+              >
                 {rootFolders.map((folder) => (
                   <SortableFolderCard
                     key={folder.id}
                     folder={folder}
                     onClick={() => setSelectedFolder(folder)}
                     onEdit={() => setEditModalFolder(folder)}
+                    isGrid={foldersLayoutMode === 'grid'}
+                    noteCount={notes.filter(n => n.folder === folder.name).length}
                   />
                 ))}
               </div>
