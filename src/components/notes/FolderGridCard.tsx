@@ -48,9 +48,9 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
   const hsl = raw ? (raw.match(/[\d.]+/g) ?? []).map(Number) : null;
 
-  // Tab: same color/opacity as the body — seamless silhouette, not a separate element
+  // Tab: ~10% more opaque than body so the tab shape is readable without a color difference
   const tabStyle = hsl
-    ? { background: `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.48)` }
+    ? { background: `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.58)` }
     : {};
 
   // Body: light frosted tint of the pastel
@@ -69,7 +69,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
         >
           {/* Folder tab — peeks out above the body */}
           <div
-            className={!hsl ? 'bg-neutral-200/80 dark:bg-neutral-600/60' : ''}
+            className={!hsl ? 'bg-neutral-300/70 dark:bg-neutral-600/60' : ''}
             style={{
               position: 'absolute',
               top: 0,
@@ -92,6 +92,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
               paddingTop: '55%',
               borderRadius: '26px',
               border: '1px solid rgba(255,255,255,0.48)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(0,0,0,0.06)',
               backdropFilter: 'blur(14px)',
               WebkitBackdropFilter: 'blur(14px)',
               overflow: 'hidden',
