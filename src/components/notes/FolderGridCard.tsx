@@ -33,20 +33,18 @@ export function shiftLightness(hslTriple: string, deltaPct: number, chromaMul = 
   return `oklch(${okL.toFixed(4)} ${(Math.hypot(okA, okB) * chromaMul).toFixed(4)} ${((Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360).toFixed(2)})`;
 }
 
-// Folder shape: left-aligned tab (~22% of card width), 10-unit elevation (subtle).
-// Body top y=18, tab top y=8. Tab occupies x=0–44 (left edge is the tab left side).
-// Cubic bezier shoulder at x=28–44 has horizontal tangents on both sides — no kink.
-// Shape fills viewBox 0 0 200 121 properly (body y=18→112, ~6px top breathing room).
+// Identical paths to FolderListCard — same geometry scaled up by CSS width.
+const BACK_PATH =
+  'M 6 10.2 Q 6 1.7 16 1.7 L 184 1.7 Q 194 1.7 194 10.2 L 194 108.8 L 6 108.8 Z';
 const FRONT_PATH =
-  'M 184 18 Q 200 18 200 32 L 200 99 Q 200 112 184 112 L 16 112 Q 0 112 0 99 L 0 18 Q 0 8 10 8 L 28 8 C 33 8 38 18 44 18 L 184 18 Z';
+  'M 0 27.2 Q 0 10.2 20 10.2 L 110 10.2 Q 120 10.2 130 20.4 Q 140 30.6 150 30.6 L 184 30.6 Q 200 30.6 200 44.2 L 200 107.1 Q 200 120.7 184 120.7 L 16 120.7 Q 0 120.7 0 107.1 Z';
 const TOP_EDGE_PATH =
-  'M 0 18 Q 0 8 10 8 L 28 8 C 33 8 38 18 44 18 L 184 18 Q 200 18 200 32';
+  'M 0 27.2 Q 0 10.2 20 10.2 L 110 10.2 Q 120 10.2 130 20.4 Q 140 30.6 150 30.6 L 184 30.6 Q 200 30.6 200 44.2';
 
 export function FolderGridCard({ folder, onClick, onEdit, compact = false }: FolderGridCardProps) {
   const { notes } = useAppStore();
   const count = notes.filter(n => n.folder === folder.name).length;
 
-  // Read resolved CSS variable; fall back to a neutral stone-ish hue
   const raw =
     typeof window !== 'undefined'
       ? getComputedStyle(document.documentElement)
@@ -56,21 +54,26 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
   const lightTop        = shiftLightness(raw, +10);
   const saturatedBottom = shiftLightness(raw, -5, 1.15);
+  const backL           = shiftLightness(raw, -2);
+  const backR           = shiftLightness(raw, -8, 1.05);
 
-  const fgId = `fg-${folder.id}`;
-  const hlId = `hl-${folder.id}`;
+  const bgId   = `gbg-${folder.id}`;
+  const fgId   = `gfg-${folder.id}`;
+  const hlId   = `ghl-${folder.id}`;
+  const fadeId = `gfade-${folder.id}`;
+  const maskId = `gmask-${folder.id}`;
 
   return (
     <div className="group">
-      {/* box-shadow lives here; backdrop-filter on child avoids the Chrome filter+backdrop bug */}
-      <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '22px' }}>
+      {/* box-shadow wrapper separate from backdrop-filter child — avoids Chrome bug */}
+      <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '8px' }}>
         <button
           onClick={onClick}
           className="w-full transition-all active:scale-95 relative block"
           style={{
             backdropFilter: 'blur(12px)',
             WebkitBackdropFilter: 'blur(12px)',
-            borderRadius: '22px',
+            borderRadius: '8px',
             overflow: 'hidden',
           }}
         >
@@ -80,28 +83,34 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
-              {/* Diagonal glass gradient: light top-left → richer bottom-right */}
+              <linearGradient id={fadeId} x1="0" y1="0" x2="0" y2="121" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"  stopColor="white" stopOpacity="1" />
+                <stop offset="33%" stopColor="white" stopOpacity="1" />
+                <stop offset="60%" stopColor="white" stopOpacity="0" />
+              </linearGradient>
+              <mask id={maskId}>
+                <path d={BACK_PATH} fill={`url(#${fadeId})`} />
+              </mask>
+              <linearGradient id={bgId} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stopColor={backL} />
+                <stop offset="100%" stopColor={backR} />
+              </linearGradient>
               <linearGradient id={fgId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%"   stopColor={lightTop} />
                 <stop offset="100%" stopColor={saturatedBottom} />
               </linearGradient>
-              {/* White sheen overlay */}
               <linearGradient id={hlId} x1="0" y1="0" x2="0.7" y2="0.7">
                 <stop offset="0%"  stopColor="white" stopOpacity="0.38" />
                 <stop offset="55%" stopColor="white" stopOpacity="0" />
               </linearGradient>
             </defs>
 
-            {/* Folder body — single shape, no back flap */}
-            <path
-              d={FRONT_PATH}
-              fill={`url(#${fgId})`}
-              fillOpacity="0.85"
-              stroke="rgba(255,255,255,0.45)"
-              strokeWidth="1"
-            />
-            {/* Diagonal white highlight overlay */}
-            <path d={FRONT_PATH} fill={`url(#${hlId})`} stroke="none" />
+            {/* Back flap — fades out downward so only the top peeks above the front */}
+            <path d={BACK_PATH}     fill={`url(#${bgId})`}  fillOpacity="0.92" stroke="rgba(255,255,255,0.35)" strokeWidth="1" mask={`url(#${maskId})`} />
+            {/* Front card body */}
+            <path d={FRONT_PATH}    fill={`url(#${fgId})`}  fillOpacity="0.87" stroke="rgba(255,255,255,0.45)" strokeWidth="1" />
+            {/* Diagonal white highlight */}
+            <path d={FRONT_PATH}    fill={`url(#${hlId})`}  stroke="none" />
             {/* Top-edge specular strip */}
             <path d={TOP_EDGE_PATH} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
           </svg>
