@@ -83,7 +83,7 @@ export function TasksView({ isCreatingNewTask, onCreatingTaskComplete, defaultTa
   const pinned = taskCategories.filter((c) => c.pinned).slice(0, 2);
 
   const myLists = [...taskCategories]
-    .filter((c) => !c.isDefault)
+    .filter((c) => !c.isDefault && !c.pinned)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   const defaultList = taskCategories.find((c) => c.isDefault);
 
