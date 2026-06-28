@@ -114,7 +114,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       </div>
 
       {/* Folder name + ··· menu below the card */}
-      <div className="flex items-center justify-between mt-3 px-2">
+      <div className="flex items-center justify-between mt-1.5 px-2">
         <p className="text-sm font-bold text-foreground truncate leading-tight flex-1 min-w-0">
           {folder.name}
         </p>
@@ -128,7 +128,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       </div>
 
       {/* Item count */}
-      <p className="text-[11px] text-muted-foreground/70 px-2 mt-0.5">
+      <p className="text-[11px] text-muted-foreground/70 px-2 mt-0.5 pb-5">
         {count} {count === 1 ? 'item' : 'items'}
       </p>
     </div>
