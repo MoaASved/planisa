@@ -48,9 +48,9 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
 
   const hsl = raw ? (raw.match(/[\d.]+/g) ?? []).map(Number) : null;
 
-  // Tab: slightly deeper/richer shade of the pastel
+  // Tab: same color/opacity as the body — seamless silhouette, not a separate element
   const tabStyle = hsl
-    ? { background: `hsla(${hsl[0]}, ${hsl[1]}%, ${Math.max(0, hsl[2] - 10)}%, 0.88)` }
+    ? { background: `hsla(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%, 0.48)` }
     : {};
 
   // Body: light frosted tint of the pastel
@@ -89,7 +89,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
             className={!hsl ? 'bg-white/70 dark:bg-white/10' : ''}
             style={{
               position: 'relative',
-              paddingTop: '64%',
+              paddingTop: '55%',
               borderRadius: '26px',
               border: '1px solid rgba(255,255,255,0.48)',
               backdropFilter: 'blur(14px)',
@@ -114,7 +114,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       </div>
 
       {/* Folder name + ··· on same row, below the card */}
-      <div className="flex items-center justify-between mt-2 px-0.5">
+      <div className="flex items-center justify-between mt-3 px-0.5">
         <p className="text-sm font-bold text-foreground truncate leading-tight flex-1 min-w-0">
           {folder.name}
         </p>
