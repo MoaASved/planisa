@@ -100,7 +100,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[440px] z-[1200] bg-[#F8F7F4] dark:bg-background rounded-3xl flex flex-col overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
           top: '15%',
-          maxHeight: '45vh',
+          maxHeight: '70vh',
           boxShadow: '0 8px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)',
         }}
       >
@@ -204,7 +204,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write something…"
-            className="w-full h-full bg-transparent border-0 outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/40 min-h-[100px]"
+            className="w-full h-full bg-transparent border-0 outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground/40 min-h-[300px]"
           />
         </div>
 
