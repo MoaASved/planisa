@@ -79,9 +79,9 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           }}
         >
           <svg
-            viewBox="0 0 200 121"
-            className="w-full h-auto block"
-            style={{ background: 'transparent' }}
+            viewBox="0 1.2 200 120"
+            className="w-full h-auto"
+            style={{ background: 'transparent', display: 'block' }}
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
