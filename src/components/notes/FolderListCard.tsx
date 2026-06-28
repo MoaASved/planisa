@@ -46,7 +46,7 @@ export function FolderListCard({ folder, count, onClick, onEdit }: FolderListCar
         {/* Mini folder icon — same four-layer SVG as FolderGridCard, scaled to 48px */}
         <div
           className="flex-shrink-0"
-          style={{ width: '48px', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.08))' }}
+          style={{ width: '56px' }}
         >
           <div
             style={{
