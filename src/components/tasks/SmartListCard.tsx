@@ -50,10 +50,17 @@ export function SmartListCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full bg-card rounded-2xl p-4 text-left transition-all',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.03)]',
-        'hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] active:scale-[0.98]',
+        'w-full p-4 text-left transition-all active:scale-[0.98]',
+        // Light mode — glassmorphism
+        'bg-gradient-to-br from-white/[0.92] to-white/[0.82]',
+        'border border-white/45 rounded-[22px]',
+        'shadow-[0_4px_12px_rgba(0,0,0,0.08)]',
+        // Dark mode — restore original card style exactly
+        'dark:bg-card dark:[background-image:none] dark:border-0 dark:rounded-2xl',
+        'dark:shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.03)]',
+        'dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]',
       )}
+      style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="w-9 h-9 flex items-center justify-center">
