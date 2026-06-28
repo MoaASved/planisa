@@ -85,12 +85,9 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
   const createdNoteIdRef = useRef<string | null>(null);
   // Always-fresh title for use inside stable event handlers
   const titleRef = useRef(title);
+  // Document position where "/" was pressed — used to delete the slash when emoji is selected
+  const emojiSlashPosRef = useRef<number | null>(null);
   useEffect(() => { titleRef.current = title; }, [title]);
-
-  useEffect(() => {
-    console.log('NoteEditor mounted from:', debugSource);
-    return () => console.log('NoteEditor unmounted');
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const calculateEndTime = (start: string): string => {
     const [h, m] = start.split(':').map(Number);
@@ -218,20 +215,6 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
     return () => { editor.off('update', handler); };
   }, [editor, triggerAutoSave]);
 
-  // Native DOM keydown on the ProseMirror contenteditable — the only reliable
-  // way to intercept keystrokes in Tiptap v3 without an extension.
-  useEffect(() => {
-    if (!editor) return;
-    const dom = editor.view.dom as HTMLElement;
-    const handler = (e: KeyboardEvent) => {
-      console.log('native keydown:', e.key);
-      if (e.key === '/') {
-        console.log('slash detected in editor');
-      }
-    };
-    dom.addEventListener('keydown', handler);
-    return () => dom.removeEventListener('keydown', handler);
-  }, [editor]);
 
   // Trigger auto-save when metadata changes (skip on initial mount)
   const settingsMounted = useRef(false);
@@ -356,8 +339,17 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
 
   const handleEditorEmojiSelect = useCallback((emoji: string) => {
     if (!editor) return;
-    editor.commands.insertContent(emoji);
-    editor.commands.focus();
+    const slashPos = emojiSlashPosRef.current;
+    if (slashPos !== null) {
+      editor.chain()
+        .deleteRange({ from: slashPos, to: slashPos + 1 })
+        .insertContentAt(slashPos, emoji)
+        .focus()
+        .run();
+      emojiSlashPosRef.current = null;
+    } else {
+      editor.chain().insertContent(emoji).focus().run();
+    }
     setEditorPickerOpen(false);
     setEditorAnchorRect(null);
   }, [editor]);
@@ -1140,9 +1132,15 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
 
         {/* TipTap editor */}
         <div onKeyDown={(e) => {
-          console.log('wrapper keydown:', e.key);
-          if (e.key === '/') {
-            console.log('slash detected via wrapper');
+          if (e.key === '/' && editor) {
+            const from = editor.state.selection.from;
+            emojiSlashPosRef.current = from;
+            const coords = editor.view.coordsAtPos(from);
+            setEditorAnchorRect(new DOMRect(coords.left, coords.top, 0, coords.bottom - coords.top));
+            setEditorPickerOpen(true);
+          }
+          if (e.key === 'Escape' && editorPickerOpen) {
+            handleEditorPickerClose();
           }
         }}>
           <EditorContent editor={editor} className="tiptap-content" />
