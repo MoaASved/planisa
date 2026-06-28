@@ -727,7 +727,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 {!isVirtualList && (
             <button
               onClick={() => setAdding('new-section')}
-              className="px-4 py-3 bg-card rounded-2xl text-sm font-medium text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:text-foreground transition-all"
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               + Section
             </button>
