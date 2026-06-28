@@ -156,12 +156,14 @@ export function MonthView({
                   const isSelected = isSameDay(day, selectedDate);
                   const isTodayDate = isToday(day);
 
-                  // Merge all item types into one list for stacked bars
+                  // Merge all item types into one list for stacked bars.
+                  // Use dayNotes (showInCalendar-filtered) — same source as the week detail view —
+                  // not dayRegularNotes/dayStickyNotes which come from allNotes and include
+                  // notes the detail view never shows.
                   const allDayItems = [
                     ...dayEvents.map(e => getItemColor(e, 'event')),
                     ...dayTasks.filter(t => !t.completed).map(t => getItemColor(t, 'task')),
-                    ...dayRegularNotes.map(n => getNoteColor(n)),
-                    ...dayStickyNotes.map(n => getNoteColor(n)),
+                    ...dayNotes.map(n => getNoteColor(n)),
                   ];
                   const maxBars = allDayItems.length > 3 ? 2 : 3;
 
