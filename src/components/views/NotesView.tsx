@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import {
   DndContext,
   closestCenter,
@@ -121,6 +122,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
+  const [menuBtnRect, setMenuBtnRect] = useState<DOMRect | null>(null);
 
   useEffect(() => { localStorage.setItem('boards-view', layoutMode); }, [layoutMode]);
   useEffect(() => { localStorage.setItem('boards-filter', boardsFilter); }, [boardsFilter]);
@@ -437,7 +439,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         {!isGrid && (
           <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
             <button
-              onClick={(e) => { e.stopPropagation(); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+              onClick={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
               className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
               aria-label="Note options"
             >
@@ -459,7 +461,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         {/* ··· menu button — grid view only (absolutely positioned) */}
         {isGrid && (
           <button
-            onClick={(e) => { e.stopPropagation(); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+            onClick={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
             className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-label="Note options"
           >
@@ -467,13 +469,18 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           </button>
         )}
 
-        {/* Dropdown menu */}
-        {isMenuOpen && (
+        {/* Dropdown menu — rendered in a portal so it is never clipped by
+            overflow:hidden on card wrappers or buried under sibling cards. */}
+        {isMenuOpen && menuBtnRect && createPortal(
           <>
             <div className="fixed inset-0 z-[200]" onClick={() => setOpenMenuNoteId(null)} />
             <div
-              className="absolute top-10 right-2 z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
-              style={{ boxShadow: 'var(--shadow-elevated)' }}
+              className="fixed z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
+              style={{
+                top: menuBtnRect.bottom + 4,
+                right: window.innerWidth - menuBtnRect.right,
+                boxShadow: 'var(--shadow-elevated)',
+              }}
             >
               <button
                 onClick={handleDuplicate}
@@ -488,7 +495,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                 Delete
               </button>
             </div>
-          </>
+          </>,
+          document.body
         )}
       </div>
     );
