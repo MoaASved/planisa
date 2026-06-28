@@ -362,9 +362,12 @@ export function EmojiPicker({ isOpen, query, anchorRect, onSelect, onClose }: Em
 
   if (!isOpen || !anchorRect) return null;
 
-  const spaceBelow = window.innerHeight - anchorRect.bottom;
-  const top = spaceBelow > POPUP_H + 8 ? anchorRect.bottom + 6 : anchorRect.top - POPUP_H - 6;
-  const left = Math.max(8, Math.min(anchorRect.left, window.innerWidth - POPUP_W - 8));
+  const vh = window.visualViewport?.height ?? window.innerHeight;
+  const vw = window.innerWidth;
+  const spaceBelow = vh - anchorRect.bottom;
+  const rawTop = spaceBelow > POPUP_H + 8 ? anchorRect.bottom + 6 : anchorRect.top - POPUP_H - 6;
+  const top = Math.max(8, Math.min(rawTop, vh - POPUP_H - 8));
+  const left = Math.max(8, Math.min(anchorRect.left, vw - POPUP_W - 8));
 
   return createPortal(
     <div
