@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
 import { X, Plus, Calendar, Clock, Tag, Trash2, Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,10 @@ export function EditEventModal({ event, isOpen, onClose, onDuplicate }: EditEven
 
   const endTimeManuallySet = useRef(false);
   const endDateAutoAdvanced = useRef(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  const titlePicker = useEmojiPicker(titleRef, title, (v) => { setTitle(v); triggerAutoSave(); });
+  const descPicker = useEmojiPicker(descRef, description, (v) => { setDescription(v); triggerAutoSave(); });
 
   const calculateEndTime = (start: string): string => {
     const [h, m] = start.split(':').map(Number);
@@ -185,6 +190,7 @@ export function EditEventModal({ event, isOpen, onClose, onDuplicate }: EditEven
 
         <div className="px-6 py-4 space-y-4">
           <input
+            ref={titleRef}
             type="text"
             value={title}
             onChange={(e) => { setTitle(e.target.value); triggerAutoSave(); }}
@@ -344,6 +350,7 @@ export function EditEventModal({ event, isOpen, onClose, onDuplicate }: EditEven
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Description</label>
             <textarea
+              ref={descRef}
               value={description}
               onChange={(e) => { setDescription(e.target.value); triggerAutoSave(); }}
               placeholder="Add description..."
@@ -421,6 +428,8 @@ export function EditEventModal({ event, isOpen, onClose, onDuplicate }: EditEven
           </button>
         </div>
       </div>
+      <EmojiPicker {...titlePicker} />
+      <EmojiPicker {...descPicker} />
     </div>
   );
 }

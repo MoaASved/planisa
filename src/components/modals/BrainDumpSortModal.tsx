@@ -1,5 +1,6 @@
 import ReactDOM from 'react-dom';
 import { useState, useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { X, Calendar, FileText, ChevronDown } from 'lucide-react';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAppStore } from '@/store/useAppStore';
@@ -72,14 +73,22 @@ function EventFields({
 }) {
   const { eventCategories } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
+  const titlePicker = useEmojiPicker(inputRef, title, setTitle);
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 60); }, []);
 
   return (
     <>
       <div>
         <FieldLabel>Title</FieldLabel>
-        <FieldInput ref={inputRef} value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title" />
+        <input
+          ref={inputRef}
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          placeholder="Event title"
+          className="w-full px-3 py-2.5 bg-secondary rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none border-0"
+        />
       </div>
+      <EmojiPicker {...titlePicker} />
       <div>
         <FieldLabel>Date</FieldLabel>
         <FieldInput type="date" value={date} onChange={e => setDate(e.target.value)} />
@@ -137,6 +146,7 @@ function NoteFields({
 }) {
   const { folders } = useAppStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textPicker = useEmojiPicker(textareaRef, title, setTitle);
 
   useEffect(() => { setTimeout(() => textareaRef.current?.focus(), 60); }, []);
 
@@ -169,6 +179,7 @@ function NoteFields({
           ))}
         </FieldSelect>
       </div>
+      <EmojiPicker {...textPicker} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format, isToday } from 'date-fns';
 import {
   Calendar, Clock, MoreVertical, Folder, Trash2, Star,
@@ -210,6 +211,7 @@ export function TaskRow({ task, onToggle, compact = false, showOverdue = false, 
 
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const titlePicker = useEmojiPicker(titleInputRef, editedTitle, setEditedTitle);
 
   const isPriority = task.priority !== 'none';
   const isOverdue = showOverdue && task.date && !task.completed &&
@@ -388,6 +390,7 @@ export function TaskRow({ task, onToggle, compact = false, showOverdue = false, 
           </div>
         </PortalOverlay>
       )}
+      <EmojiPicker {...titlePicker} />
     </div>
   );
 }

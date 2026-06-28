@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -106,6 +107,8 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
   const [morePopoverOpen, setMorePopoverOpen] = useState(false);
   const [moreView, setMoreView] = useState<'main' | 'folder' | 'folder-create'>('main');
   const [inlineFolderName, setInlineFolderName] = useState('');
+  const inlineFolderRef = useRef<HTMLInputElement>(null);
+  const inlineFolderPicker = useEmojiPicker(inlineFolderRef, inlineFolderName, setInlineFolderName);
   const [inlineFolderColor, setInlineFolderColor] = useState<PastelColor>('peony');
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [activeHighlightColor, setActiveHighlightColor] = useState<PastelColor | null>(null);
@@ -929,6 +932,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">New Folder</p>
                   </div>
                   <input
+                    ref={inlineFolderRef}
                     type="text"
                     value={inlineFolderName}
                     onChange={(e) => setInlineFolderName(e.target.value)}
@@ -1105,7 +1109,7 @@ export function NoteEditor({ note, onClose, defaultFolder }: NoteEditorProps) {
         onClose={() => setShowVoiceRecorder(false)}
         onRecordingComplete={handleVoiceRecordingComplete}
       />
-
+      <EmojiPicker {...inlineFolderPicker} />
     </div>
   );
 }

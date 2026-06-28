@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { isToday } from 'date-fns';
 import { ArrowLeft, MoreHorizontal, Plus, ChevronDown, ChevronRight, Pin, PinOff, Pencil, Trash2, Star, Calendar as CalendarIcon, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -79,6 +80,8 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [renamingSectionId, setRenamingSectionId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  const renamePicker = useEmojiPicker(renameInputRef, renameValue, setRenameValue);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const sectionMenuRef = useRef<HTMLDivElement | null>(null);
@@ -557,6 +560,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
               {renamingSectionId === section.id ? (
                 <div className="flex items-center gap-2 px-1 pt-3 pb-1.5">
                   <input
+                    ref={renameInputRef}
                     autoFocus
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
@@ -756,6 +760,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
           onClose={() => setEditingList(false)}
         />
       )}
+      <EmojiPicker {...renamePicker} />
     </div>
   );
 }

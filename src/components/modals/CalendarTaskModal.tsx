@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { ListTodo, X, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -16,6 +17,8 @@ export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: Cale
   
   const [title, setTitle] = useState('');
   const [newSubtask, setNewSubtask] = useState('');
+  const titleRef = useRef<HTMLInputElement>(null);
+  const titlePicker = useEmojiPicker(titleRef, title, setTitle);
 
   useEffect(() => {
     if (task) {
@@ -100,6 +103,7 @@ export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: Cale
             )}
           </button>
           <input
+            ref={titleRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -187,6 +191,7 @@ export function CalendarTaskModal({ task, isOpen, onClose, onOpenInTasks }: Cale
           </button>
         </div>
       </div>
+      <EmojiPicker {...titlePicker} />
     </>
   );
 }

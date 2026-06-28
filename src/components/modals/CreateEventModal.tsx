@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { X, Plus, Calendar, Clock, Tag, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -30,6 +31,10 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
   const [checklistInput, setChecklistInput] = useState('');
   const endTimeManuallySet = useRef(false);
   const endDateAutoAdvanced = useRef(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  const titlePicker = useEmojiPicker(titleRef, title, setTitle);
+  const descPicker = useEmojiPicker(descRef, description, setDescription);
 
   // New category creation state
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -189,6 +194,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
         <div className="px-6 py-4 space-y-4">
           {/* Title */}
           <input
+            ref={titleRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -370,6 +376,7 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
           <div>
             <label className="text-sm font-medium text-muted-foreground mb-2 block">Description</label>
             <textarea
+              ref={descRef}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add description..."
@@ -441,6 +448,8 @@ export function CreateEventModal({ isOpen, onClose, initialDate, initialTime, in
           </button>
         </div>
       </div>
+      <EmojiPicker {...titlePicker} />
+      <EmojiPicker {...descPicker} />
     </div>
   );
 }

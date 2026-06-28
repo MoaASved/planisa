@@ -231,27 +231,30 @@ export function useEmojiPicker(
 
   useEffect(() => {
     const el = inputRef.current;
-    const pos = el ? (el.selectionStart ?? value.length) : value.length;
-    const before = value.slice(0, pos);
-    const slashIdx = before.lastIndexOf('/');
+    // Avoid selectionStart — React's controlled-input DOM patching can reset it
+    // to 0 before effects fire, causing lastIndexOf to search an empty string.
+    // Instead search the full value for the last "/" with no whitespace after it.
+    const slashIdx = value.lastIndexOf('/');
 
-    if (slashIdx === -1 || /[\s\n]/.test(before.slice(slashIdx + 1))) {
+    if (slashIdx === -1 || /[\s\n]/.test(value.slice(slashIdx + 1))) {
       setTriggerIndex(null);
       return;
     }
     setTriggerIndex(slashIdx);
-    setAnchorRect(el?.getBoundingClientRect() ?? null);
-  }, [value, inputRef]);
+    setAnchorRect(el ? el.getBoundingClientRect() : null);
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const query = triggerIndex !== null ? value.slice(triggerIndex + 1) : '';
 
   const onSelect = useCallback((emoji: string) => {
     if (triggerIndex === null) return;
     const el = inputRef.current;
-    const cursorPos = el ? (el.selectionStart ?? value.length) : value.length;
-    const newValue = value.slice(0, triggerIndex) + emoji + value.slice(cursorPos);
+    // Replace from "/" to end of value. The picker's search input has focus
+    // when this fires, so el.selectionStart on the original field is stale.
+    const newValue = value.slice(0, triggerIndex) + emoji;
     onChange(newValue);
     setTriggerIndex(null);
+    setAnchorRect(null);
     if (el) {
       const newPos = triggerIndex + emoji.length;
       setTimeout(() => { el.focus(); el.setSelectionRange(newPos, newPos); }, 0);

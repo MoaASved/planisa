@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import ReactDOM from 'react-dom';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { X, Calendar as CalendarIcon, Star, Plus, Trash2, ListChecks, Check, Clock, ListTodo } from 'lucide-react';
@@ -45,6 +46,9 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
   const endTimeManual = useRef(false);
+  const titlePicker = useEmojiPicker(inputRef, title, (v) => { setTitle(v); if (editing) triggerAutoSave(); });
+  const notePicker = useEmojiPicker(noteRef, note, (v) => { setNote(v); if (editing) triggerAutoSave(); });
+  const subPicker = useEmojiPicker(subInputRef, newSub, setNewSub);
 
   const addMinutes = (t: string, mins: number): string => {
     if (!t) return '';
@@ -537,6 +541,9 @@ export function AddTaskModal({ isOpen, onClose, defaultListId, editingTaskId, de
           </div>
         </div>
       </div>
+      <EmojiPicker {...titlePicker} />
+      <EmojiPicker {...notePicker} />
+      <EmojiPicker {...subPicker} />
     </>,
     document.body,
   );

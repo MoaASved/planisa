@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format, isToday } from 'date-fns';
 import {
   Calendar, Clock, Flag, Plus, X, Check,
@@ -227,6 +228,8 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const subtaskInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const titlePicker = useEmojiPicker(titleInputRef, editedTitle, setEditedTitle);
+  const subtaskPicker = useEmojiPicker(subtaskInputRef, newSubtask, setNewSubtask);
 
   // Auto-collapse when signal changes (new task created elsewhere)
   useEffect(() => {
@@ -583,6 +586,8 @@ export function SwipeableTaskCard({ task, onToggle, collapseSignal }: SwipeableT
           </div>
         </PortalOverlay>
       )}
+      <EmojiPicker {...titlePicker} />
+      <EmojiPicker {...subtaskPicker} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
 import { sv } from 'date-fns/locale';
 import { X, Calendar as CalendarIcon, Eye, EyeOff, Clock, Folder, Pin, Trash2 } from 'lucide-react';
@@ -71,6 +72,8 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
     return undefined;
   });
   const endTimeManuallySet = useRef(false);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const contentPicker = useEmojiPicker(contentRef, content, (v) => { setContent(v); if (note) triggerAutoSave(); });
 
   const calculateEndTime = (startTime: string): string => {
     const [h, m] = startTime.split(':').map(Number);
@@ -177,6 +180,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
 
         {/* Content */}
         <textarea
+          ref={contentRef}
           value={content}
           onChange={(e) => { setContent(e.target.value); if (note) triggerAutoSave(); }}
           placeholder="Write something..."
@@ -362,6 +366,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           setShowFolderPicker(false);
         }}
       />
+      <EmojiPicker {...contentPicker} />
     </>
   );
 }

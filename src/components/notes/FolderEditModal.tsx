@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { X } from 'lucide-react';
 import { Folder, PastelColor } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
@@ -15,6 +16,8 @@ export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
   const [name, setName] = useState(folder.name);
   const [color, setColor] = useState<PastelColor>(folder.color);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const namePicker = useEmojiPicker(nameRef, name, setName);
 
   const noteCount = notes.filter(n => n.folder === folder.name).length;
 
@@ -55,6 +58,7 @@ export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
 
           {/* Name input */}
           <input
+            ref={nameRef}
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -140,6 +144,7 @@ export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
           </div>
         </>
       )}
+      <EmojiPicker {...namePicker} />
     </>
   );
 }

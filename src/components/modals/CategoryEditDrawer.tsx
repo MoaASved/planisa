@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import ReactDOM from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,6 +39,7 @@ export function CategoryEditDrawer({
   hideNameInput = false,
 }: CategoryEditDrawerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const namePicker = useEmojiPicker(inputRef, itemName, onNameChange);
   const { modalTop, maxHeight } = useVisualViewport(70);
 
   useEffect(() => {
@@ -160,6 +162,7 @@ export function CategoryEditDrawer({
           </div>
         </div>
       </div>
+      <EmojiPicker {...namePicker} />
     </>,
     document.body,
   );

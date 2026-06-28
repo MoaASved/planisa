@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,8 @@ export function CalendarStickyCreateSheet({ date, time, isOpen, onClose }: Calen
   const { addNote } = useAppStore();
   const [content, setContent] = useState('');
   const [color] = useState<PastelColor>(() => COLORS[Math.floor(Math.random() * COLORS.length)]);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const contentPicker = useEmojiPicker(contentRef, content, setContent);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
@@ -119,6 +122,7 @@ export function CalendarStickyCreateSheet({ date, time, isOpen, onClose }: Calen
         {/* Content textarea — no autoFocus so keyboard doesn't open immediately */}
         <div className="flex-1 overflow-y-auto px-5 pb-8 min-h-0">
           <textarea
+            ref={contentRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write something…"
@@ -126,6 +130,7 @@ export function CalendarStickyCreateSheet({ date, time, isOpen, onClose }: Calen
           />
         </div>
       </div>
+      <EmojiPicker {...contentPicker} />
     </>
   );
 }

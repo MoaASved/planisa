@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import ReactDOM from 'react-dom';
 import { FolderPlus, Check, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,8 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderColor, setNewFolderColor] = useState<PastelColor>('peony');
+  const folderNameRef = useRef<HTMLInputElement>(null);
+  const folderNamePicker = useEmojiPicker(folderNameRef, newFolderName, setNewFolderName);
 
   const handleCreateFolder = () => {
     if (newFolderName.trim()) {
@@ -105,6 +108,7 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
                 New Folder
               </p>
               <input
+                ref={folderNameRef}
                 type="text"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
@@ -143,6 +147,7 @@ export function FolderPickerSheet({ isOpen, onClose, selectedFolder, onSelectFol
           )}
         </div>
       </div>
+      <EmojiPicker {...folderNamePicker} />
     </>,
     document.body
   );

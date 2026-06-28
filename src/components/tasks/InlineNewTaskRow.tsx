@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { AnimatedCheckbox } from './AnimatedCheckbox';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 
 interface InlineNewTaskRowProps {
   onSubmit: (title: string) => void;
@@ -9,6 +10,7 @@ interface InlineNewTaskRowProps {
 export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps) {
   const [title, setTitle] = useState('');
   const ref = useRef<HTMLInputElement>(null);
+  const titlePicker = useEmojiPicker(ref, title, setTitle);
 
   const submit = () => {
     const t = title.trim();
@@ -30,7 +32,7 @@ export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps)
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        onBlur={submit}
+        onBlur={() => { if (!titlePicker.isOpen) submit(); }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -41,6 +43,7 @@ export function InlineNewTaskRow({ onSubmit, onDismiss }: InlineNewTaskRowProps)
         }}
         className="flex-1 bg-transparent border-0 outline-none text-[15px] font-medium text-foreground"
       />
+      <EmojiPicker {...titlePicker} />
     </div>
   );
 }

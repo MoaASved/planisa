@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import ReactDOM from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,7 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
   const [name, setName] = useState('');
   const [color, setColor] = useState<PastelColor>('peony');
   const inputRef = useRef<HTMLInputElement>(null);
+  const namePicker = useEmojiPicker(inputRef, name, setName);
 
   useEffect(() => {
     if (isOpen) {
@@ -107,6 +109,7 @@ export function CreateListModal({ isOpen, onClose, editingId }: CreateListModalP
           </button>
         </div>
       </div>
+      <EmojiPicker {...namePicker} />
     </>,
     document.body,
   );

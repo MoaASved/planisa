@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
 import { X, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -19,6 +20,10 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
   const { addNote } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const titleRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const titlePicker = useEmojiPicker(titleRef, title, setTitle);
+  const contentPicker = useEmojiPicker(contentRef, content, setContent);
   const [localDate, setLocalDate] = useState<Date>(date);
   const [localTime, setLocalTime] = useState<string>(time);
   const [localEndTime, setLocalEndTime] = useState<string>(() => {
@@ -181,6 +186,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         {/* Title field — no autoFocus so keyboard doesn't open immediately */}
         <div className="px-5 pb-3 flex-shrink-0">
           <input
+            ref={titleRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -194,6 +200,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         {/* Content textarea — no autoFocus */}
         <div className="flex-1 overflow-y-auto px-5 py-4 min-h-0">
           <textarea
+            ref={contentRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write something…"
@@ -217,6 +224,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
           </button>
         </div>
       </div>
+      <EmojiPicker {...titlePicker} />
+      <EmojiPicker {...contentPicker} />
     </>
   );
 }
