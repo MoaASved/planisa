@@ -724,15 +724,7 @@ export function ListDetailView({ category, tasks, onBack, highlightTaskId }: Lis
 
         {/* Action buttons */}
         <div className="pt-4 flex items-center gap-2">
-          {adding !== 'main' && (
-            <button
-              onClick={() => setAdding('main')}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-card rounded-2xl text-sm font-medium text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)] transition-all"
-            >
-              <Plus className="w-4 h-4" /> Add task
-            </button>
-          )}
-          {!isVirtualList && (
+{!isVirtualList && (
             <button
               onClick={() => setAdding('new-section')}
               className="px-4 py-3 bg-card rounded-2xl text-sm font-medium text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:text-foreground transition-all"
