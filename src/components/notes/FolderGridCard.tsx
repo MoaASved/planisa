@@ -81,6 +81,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           <svg
             viewBox="0 0 200 121"
             className="w-full h-auto block"
+            style={{ background: 'transparent' }}
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
@@ -105,9 +106,6 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
                 <stop offset="55%" stopColor="white" stopOpacity="0" />
               </linearGradient>
             </defs>
-
-            {/* Base rect fills SVG transparent areas (corners, gaps outside paths) with the page background so no white shows through */}
-            <rect width="200" height="121" style={{ fill: 'hsl(var(--background))' }} />
 
             {/* Back flap — fades out downward so only the top peeks above the front */}
             <path d={BACK_PATH}     fill={`url(#${bgId})`}  fillOpacity="0.92" stroke="rgba(255,255,255,0.35)" strokeWidth="1" mask={`url(#${maskId})`} />
