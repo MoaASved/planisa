@@ -213,6 +213,8 @@ const DATA: EmojiEntry[] = [
      <EmojiPicker {...picker} />
 ────────────────────────────────────────────────────────────────────────────── */
 
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 export interface UseEmojiPickerResult {
   isOpen: boolean;
   query: string;
@@ -230,6 +232,7 @@ export function useEmojiPicker(
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
+    if (isMobile) return;
     const el = inputRef.current;
     // Avoid selectionStart — React's controlled-input DOM patching can reset it
     // to 0 before effects fire, causing lastIndexOf to search an empty string.

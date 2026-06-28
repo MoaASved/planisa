@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 import { format } from 'date-fns';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -1132,7 +1134,7 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
 
         {/* TipTap editor */}
         <div onKeyDown={(e) => {
-          if (e.key === '/' && editor) {
+          if (!isMobile && e.key === '/' && editor) {
             const from = editor.state.selection.from;
             emojiSlashPosRef.current = from;
             const coords = editor.view.coordsAtPos(from);
