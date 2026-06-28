@@ -68,13 +68,14 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
       {/* px-2 insets the card visually so there is breathing room between cards in the grid */}
       <div className="px-2">
       {/* box-shadow on outer wrapper so it doesn't clip the SVG */}
-      <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '8px' }}>
+      <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)', borderRadius: '8px', background: 'transparent' }}>
         <button
           onClick={onClick}
           className="w-full transition-all active:scale-95 relative block"
           style={{
             borderRadius: '8px',
             overflow: 'hidden',
+            background: 'transparent',
           }}
         >
           <svg
