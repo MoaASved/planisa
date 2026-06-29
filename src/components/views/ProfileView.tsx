@@ -26,6 +26,7 @@ import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
+import { PastelColor } from '@/types';
 import { CategoryEditDrawer } from '@/components/modals/CategoryEditDrawer';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
@@ -86,6 +87,7 @@ export function ProfileView() {
   const [avatarEmoji, setAvatarEmoji] = useState(settings.avatarEmoji || '');
   const [avatarUrl, setAvatarUrl] = useState(settings.avatarUrl || '');
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [showEmojiPickerPopup, setShowEmojiPickerPopup] = useState(false);
   const [userName, setUserName] = useState(settings.name || '');
 
   // Section-wise category management
@@ -938,14 +940,16 @@ export function ProfileView() {
 
                 {/* Avatar type toggle */}
                 <p className="text-sm font-medium text-muted-foreground mb-2">Avatar type</p>
-                <div className="flex rounded-xl overflow-hidden border border-border mb-4">
+                <div className="flex gap-2 mb-4">
                   {(['initial', 'emoji', 'image'] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => setAvatarType(t)}
                       className={cn(
-                        'flex-1 py-2 text-sm font-medium transition-colors',
-                        avatarType === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+                        'flex-1 py-2 rounded-full text-sm font-medium transition-colors',
+                        avatarType === t
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-muted-foreground',
                       )}
                     >
                       {t === 'initial' ? 'Initial' : t === 'emoji' ? 'Emoji' : 'Image'}
@@ -970,13 +974,20 @@ export function ProfileView() {
 
                 {/* Emoji picker */}
                 {avatarType === 'emoji' && (
-                  <div className="mb-4">
-                    <EmojiPicker
-                      onEmojiClick={(data: EmojiClickData) => setAvatarEmoji(data.emoji)}
-                      lazyLoadEmojis
-                      height={300}
-                      width="100%"
-                    />
+                  <div className="flex items-center gap-3 mb-4">
+                    {avatarEmoji ? (
+                      <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-2xl flex-shrink-0">
+                        {avatarEmoji}
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-secondary flex-shrink-0" />
+                    )}
+                    <button
+                      onClick={() => setShowEmojiPickerPopup(true)}
+                      className="flex-1 py-3 rounded-2xl border border-border text-sm font-medium text-foreground"
+                    >
+                      {avatarEmoji ? 'Change emoji' : 'Choose emoji'}
+                    </button>
                   </div>
                 )}
 
@@ -1007,6 +1018,25 @@ export function ProfileView() {
             </div>
           </div>
         </>,
+        document.body,
+      )}
+
+      {/* Emoji picker floating overlay */}
+      {showEmojiPickerPopup && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[200] flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowEmojiPickerPopup(false)} />
+          <div className="relative z-10 w-full max-w-sm" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+            <EmojiPicker
+              onEmojiClick={(data: EmojiClickData) => {
+                setAvatarEmoji(data.emoji);
+                setShowEmojiPickerPopup(false);
+              }}
+              lazyLoadEmojis
+              height={380}
+              width="100%"
+            />
+          </div>
+        </div>,
         document.body,
       )}
 

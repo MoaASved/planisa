@@ -472,7 +472,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 <span className="text-lg leading-none">{settings.avatarEmoji}</span>
               ) : (
                 <span className="text-primary-foreground font-semibold text-sm">
-                  {userName.charAt(0).toUpperCase()}
+                  {settings.avatarInitial || userName.charAt(0).toUpperCase()}
                 </span>
               )}
             </button>
