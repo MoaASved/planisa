@@ -242,6 +242,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [nisaStepped, setNisaStepped] = useState(false);
+  const [previewDay, setPreviewDay] = useState<number | null>(null);
 
   const nisaRef = useRef<HTMLDivElement>(null);
 
@@ -434,7 +435,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             'linear-gradient(180deg, rgba(100, 160, 255, 0.55) 0%, rgba(80, 130, 220, 0.35) 40%, transparent 100%)',  // 4 Thu
             'linear-gradient(180deg, rgba(120, 210, 150, 0.55) 0%, rgba(90, 180, 120, 0.35) 40%, transparent 100%)',  // 5 Fri
             'linear-gradient(180deg, rgba(255, 160, 80, 0.55) 0%, rgba(255, 130, 60, 0.35) 40%, transparent 100%)',   // 6 Sat
-          ][new Date().getDay()],
+          ][previewDay ?? new Date().getDay()],
           zIndex: 0,
           pointerEvents: 'none',
           animation: 'gradient-breathe 5s ease-in-out infinite',
@@ -455,11 +456,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 { label: 'Thu', bg: 'rgba(100,160,255,0.7)' },
                 { label: 'Fri', bg: 'rgba(120,210,150,0.7)' },
                 { label: 'Sat', bg: 'rgba(255,160,80,0.7)' },
-              ].map(({ label, bg }) => (
-                <div key={label} className="flex flex-col items-center gap-0.5">
-                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg }} />
+              ].map(({ label, bg }, i) => (
+                <button key={label} onClick={() => setPreviewDay(previewDay === i ? null : i)} className="flex flex-col items-center gap-0.5">
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg, outline: previewDay === i ? '2px solid black' : 'none', outlineOffset: 2 }} />
                   <span style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>{label}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
