@@ -412,6 +412,12 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   return (
     <div className="overflow-y-auto pt-safe-2 relative">
       {/* Gradient background */}
+      <style>{`
+        @keyframes gradient-breathe {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.65; transform: scale(1.06) translateY(-2%); }
+        }
+      `}</style>
       <div
         aria-hidden="true"
         style={{
@@ -421,8 +427,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           right: 0,
           height: '400px',
           background: 'linear-gradient(135deg, rgba(180, 150, 255, 0.55) 0%, rgba(255, 150, 200, 0.35) 60%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, black 8%)',
           zIndex: 0,
           pointerEvents: 'none',
+          animation: 'gradient-breathe 5s ease-in-out infinite',
         }}
       />
       {/* Header */}
