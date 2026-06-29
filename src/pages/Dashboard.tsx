@@ -426,7 +426,15 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           left: 0,
           right: 0,
           height: '650px',
-          background: 'linear-gradient(180deg, rgba(180, 150, 255, 0.55) 0%, rgba(255, 150, 200, 0.35) 40%, transparent 100%)',
+          background: [
+            'linear-gradient(180deg, rgba(180, 130, 255, 0.55) 0%, rgba(150, 100, 220, 0.35) 40%, transparent 100%)', // 0 Sun
+            'linear-gradient(180deg, rgba(200, 200, 215, 0.55) 0%, rgba(220, 215, 235, 0.35) 40%, transparent 100%)', // 1 Mon
+            'linear-gradient(180deg, rgba(255, 120, 150, 0.55) 0%, rgba(200, 80, 120, 0.35) 40%, transparent 100%)',  // 2 Tue
+            'linear-gradient(180deg, rgba(255, 220, 100, 0.55) 0%, rgba(255, 190, 60, 0.35) 40%, transparent 100%)',  // 3 Wed
+            'linear-gradient(180deg, rgba(100, 160, 255, 0.55) 0%, rgba(80, 130, 220, 0.35) 40%, transparent 100%)',  // 4 Thu
+            'linear-gradient(180deg, rgba(120, 210, 150, 0.55) 0%, rgba(90, 180, 120, 0.35) 40%, transparent 100%)',  // 5 Fri
+            'linear-gradient(180deg, rgba(255, 160, 80, 0.55) 0%, rgba(255, 130, 60, 0.35) 40%, transparent 100%)',   // 6 Sat
+          ][new Date().getDay()],
           zIndex: 0,
           pointerEvents: 'none',
           animation: 'gradient-breathe 5s ease-in-out infinite',
@@ -437,6 +445,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
+            {/* TEMP: day color preview — remove after confirming */}
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {[
+                { label: 'Sun', bg: 'rgba(180,130,255,0.7)' },
+                { label: 'Mon', bg: 'rgba(200,200,215,0.7)' },
+                { label: 'Tue', bg: 'rgba(255,120,150,0.7)' },
+                { label: 'Wed', bg: 'rgba(255,220,100,0.7)' },
+                { label: 'Thu', bg: 'rgba(100,160,255,0.7)' },
+                { label: 'Fri', bg: 'rgba(120,210,150,0.7)' },
+                { label: 'Sat', bg: 'rgba(255,160,80,0.7)' },
+              ].map(({ label, bg }) => (
+                <div key={label} className="flex flex-col items-center gap-0.5">
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg }} />
+                  <span style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>{label}</span>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             <Search className="w-6 h-6 text-muted-foreground" />
