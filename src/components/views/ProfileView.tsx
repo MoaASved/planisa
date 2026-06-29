@@ -331,6 +331,7 @@ export function ProfileView() {
     });
     updateSettings({ name: trimmedName, avatarInitial, avatarType, avatarEmoji, avatarUrl });
     setShowAvatarModal(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const openAddDrawer = (section: CategorySection) => {
