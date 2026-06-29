@@ -761,21 +761,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         onDelete={onDeleteHabit}
       />
 
-      {/* Nisa — peeks from behind the right Today card (mobile only) */}
+      {/* Nisa — peeks up from behind top edge of right Today card (mobile only) */}
       <div className="md:hidden">
       {nisaVisible && (
         <div
           ref={nisaRef}
           className="fixed"
           style={{
-            top: 'calc(env(safe-area-inset-top, 0px) + 8rem)',
-            right: '-8px',
+            top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
+            right: '16px',
             zIndex: showNisaBubble ? 50 : 9,
           }}
         >
-          {/* Speech bubble — appears to the left */}
+          {/* Speech bubble — appears above Nisa */}
           {showNisaBubble && (
-            <div className="absolute right-full top-0 mr-3 w-52">
+            <div className="absolute bottom-full right-0 mb-3 w-52">
               <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
                 <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
                 <div className="mt-2 flex items-center gap-3">
@@ -794,21 +794,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     dismiss for today
                   </button>
                 </div>
-                {/* Tail pointing right toward Nisa */}
+                {/* Tail pointing down toward Nisa */}
                 <span
-                  className="absolute top-4 -right-2 w-0 h-0"
+                  className="absolute -bottom-[7px] right-5 w-0 h-0"
                   style={{
-                    borderTop: '6px solid transparent',
-                    borderBottom: '6px solid transparent',
-                    borderLeft: '8px solid hsl(var(--border))',
+                    borderLeft: '7px solid transparent',
+                    borderRight: '7px solid transparent',
+                    borderTop: '8px solid hsl(var(--border))',
                   }}
                 />
                 <span
-                  className="absolute top-4 -right-[7px] w-0 h-0"
+                  className="absolute -bottom-[5px] right-5 w-0 h-0"
                   style={{
-                    borderTop: '6px solid transparent',
-                    borderBottom: '6px solid transparent',
-                    borderLeft: '8px solid hsl(var(--card))',
+                    borderLeft: '7px solid transparent',
+                    borderRight: '7px solid transparent',
+                    borderTop: '8px solid hsl(var(--card))',
                   }}
                 />
               </div>
