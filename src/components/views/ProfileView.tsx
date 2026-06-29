@@ -22,11 +22,10 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { pastelColors, getAccentTextClass } from '@/lib/colors';
-import { PastelColor } from '@/types';
 import { CategoryEditDrawer } from '@/components/modals/CategoryEditDrawer';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,7 +82,10 @@ export function ProfileView() {
 
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [avatarInitial, setAvatarInitial] = useState(settings.avatarInitial || 'U');
-  const [avatarColor, setAvatarColor] = useState<PastelColor>(settings.avatarColor || 'peony');
+  const [avatarType, setAvatarType] = useState<'initial' | 'emoji' | 'image'>(settings.avatarType || 'initial');
+  const [avatarEmoji, setAvatarEmoji] = useState(settings.avatarEmoji || '');
+  const [avatarUrl, setAvatarUrl] = useState(settings.avatarUrl || '');
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [userName, setUserName] = useState(settings.name || '');
 
   // Section-wise category management
@@ -289,21 +291,43 @@ export function ProfileView() {
     if (showAvatarModal) {
       setUserName(settings.name || '');
       setAvatarInitial(settings.avatarInitial || 'U');
-      setAvatarColor(settings.avatarColor || 'peony');
+      setAvatarType(settings.avatarType || 'initial');
+      setAvatarEmoji(settings.avatarEmoji || '');
+      setAvatarUrl(settings.avatarUrl || '');
     }
   }, [showAvatarModal]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleImageUpload = async (file: File) => {
+    if (!user) return;
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split('.').pop() ?? 'jpg';
+      const path = `${user.id}/avatar.${ext}`;
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
+      setAvatarUrl(`${data.publicUrl}?cb=${Date.now()}`);
+    } catch {
+      toast.error('Failed to upload image');
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const handleSaveAvatar = async () => {
     const trimmedName = userName.trim();
-    // Persist to Supabase auth user_metadata so it survives page reload
     await supabase.auth.updateUser({
       data: {
         display_name: trimmedName,
         avatar_initial: avatarInitial,
-        avatar_color: avatarColor,
+        avatar_type: avatarType,
+        avatar_emoji: avatarEmoji,
+        avatar_url: avatarUrl,
       },
     });
-    updateSettings({ name: trimmedName, avatarInitial, avatarColor });
+    updateSettings({ name: trimmedName, avatarInitial, avatarType, avatarEmoji, avatarUrl });
     setShowAvatarModal(false);
   };
 
@@ -387,11 +411,16 @@ export function ProfileView() {
         {/* User Info Card */}
         <div className="flow-card">
           <button onClick={() => setShowAvatarModal(true)} className="flex items-center gap-4 w-full text-left">
-            <div
-              className={cn('w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold', getAccentTextClass(settings.avatarColor || 'peony'))}
-              style={{ backgroundColor: `hsl(var(--pastel-${settings.avatarColor || 'peony'}))` }}
-            >
-              {settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || 'U'}
+            <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-primary flex-shrink-0">
+              {settings.avatarType === 'image' && settings.avatarUrl ? (
+                <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
+                <span className="text-2xl leading-none">{settings.avatarEmoji}</span>
+              ) : (
+                <span className="text-2xl font-bold text-primary-foreground">
+                  {settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || 'U'}
+                </span>
+              )}
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-foreground">{settings.name || 'Planisa User'}</h3>
@@ -886,11 +915,14 @@ export function ProfileView() {
               <div className="px-5 pb-5">
                 {/* Avatar preview */}
                 <div className="flex justify-center mb-5">
-                  <div
-                    className={cn('w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold', getAccentTextClass(avatarColor))}
-                    style={{ backgroundColor: `hsl(var(--pastel-${avatarColor}))` }}
-                  >
-                    {avatarInitial || '?'}
+                  <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-primary">
+                    {avatarType === 'image' && avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : avatarType === 'emoji' && avatarEmoji ? (
+                      <span className="text-4xl leading-none">{avatarEmoji}</span>
+                    ) : (
+                      <span className="text-3xl font-bold text-primary-foreground">{avatarInitial || '?'}</span>
+                    )}
                   </div>
                 </div>
 
@@ -904,35 +936,69 @@ export function ProfileView() {
                   className="flow-input mb-4 w-full"
                 />
 
-                {/* Initials */}
-                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Initials (1–2 chars)</label>
-                <input
-                  type="text"
-                  value={avatarInitial}
-                  onChange={(e) => setAvatarInitial(e.target.value.slice(0, 2).toUpperCase())}
-                  placeholder="e.g. MO"
-                  className="flow-input mb-4 w-full text-center tracking-widest"
-                  maxLength={2}
-                />
-
-                {/* Color */}
-                <p className="text-sm font-medium text-muted-foreground mb-2">Color</p>
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {pastelColors.map((c) => (
+                {/* Avatar type toggle */}
+                <p className="text-sm font-medium text-muted-foreground mb-2">Avatar type</p>
+                <div className="flex rounded-xl overflow-hidden border border-border mb-4">
+                  {(['initial', 'emoji', 'image'] as const).map((t) => (
                     <button
-                      key={c.value}
-                      onClick={() => setAvatarColor(c.value)}
+                      key={t}
+                      onClick={() => setAvatarType(t)}
                       className={cn(
-                        'w-10 h-10 rounded-xl transition-all duration-200',
-                        c.class,
-                        avatarColor === c.value
-                          ? 'ring-2 ring-offset-2 ring-primary scale-110'
-                          : 'hover:scale-105',
+                        'flex-1 py-2 text-sm font-medium transition-colors',
+                        avatarType === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
                       )}
-                      aria-label={c.label}
-                    />
+                    >
+                      {t === 'initial' ? 'Initial' : t === 'emoji' ? 'Emoji' : 'Image'}
+                    </button>
                   ))}
                 </div>
+
+                {/* Initial input */}
+                {avatarType === 'initial' && (
+                  <>
+                    <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Initials (1–2 chars)</label>
+                    <input
+                      type="text"
+                      value={avatarInitial}
+                      onChange={(e) => setAvatarInitial(e.target.value.slice(0, 2).toUpperCase())}
+                      placeholder="e.g. MO"
+                      className="flow-input mb-4 w-full text-center tracking-widest"
+                      maxLength={2}
+                    />
+                  </>
+                )}
+
+                {/* Emoji picker */}
+                {avatarType === 'emoji' && (
+                  <div className="mb-4">
+                    <EmojiPicker
+                      onEmojiClick={(data: EmojiClickData) => setAvatarEmoji(data.emoji)}
+                      lazyLoadEmojis
+                      height={300}
+                      width="100%"
+                    />
+                  </div>
+                )}
+
+                {/* Image upload */}
+                {avatarType === 'image' && (
+                  <div className="mb-4">
+                    <label
+                      className={cn(
+                        'flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-border text-sm font-medium cursor-pointer transition-opacity',
+                        avatarUploading && 'opacity-50 pointer-events-none',
+                      )}
+                    >
+                      {avatarUploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                      />
+                    </label>
+                  </div>
+                )}
 
                 <button onClick={handleSaveAvatar} className="w-full flow-button-primary">
                   Save

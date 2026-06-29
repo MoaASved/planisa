@@ -101,6 +101,9 @@ const initialSettings: UserSettings = {
   theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light',
   avatarColor: 'peony',
   avatarInitial: 'U',
+  avatarType: 'initial',
+  avatarEmoji: '',
+  avatarUrl: '',
   name: '',
 };
 

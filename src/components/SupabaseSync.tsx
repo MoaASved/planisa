@@ -25,11 +25,15 @@ export function SupabaseSync() {
 
     // Hydrate profile settings saved in Supabase auth user_metadata
     const meta = user.user_metadata ?? {};
-    if (meta.display_name !== undefined || meta.avatar_initial !== undefined || meta.avatar_color !== undefined) {
+    if (meta.display_name !== undefined || meta.avatar_initial !== undefined || meta.avatar_color !== undefined ||
+        meta.avatar_type !== undefined || meta.avatar_emoji !== undefined || meta.avatar_url !== undefined) {
       updateSettings({
         name: meta.display_name ?? '',
         avatarInitial: meta.avatar_initial ?? 'U',
         avatarColor: (meta.avatar_color as PastelColor) ?? 'peony',
+        avatarType: meta.avatar_type ?? 'initial',
+        avatarEmoji: meta.avatar_emoji ?? '',
+        avatarUrl: meta.avatar_url ?? '',
       });
     }
 

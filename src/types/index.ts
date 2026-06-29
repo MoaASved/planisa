@@ -141,5 +141,8 @@ export interface UserSettings {
   avatar?: string;
   avatarColor?: PastelColor;
   avatarInitial?: string;
+  avatarType?: 'initial' | 'emoji' | 'image';
+  avatarEmoji?: string;
+  avatarUrl?: string;
   name?: string;
 }

@@ -228,7 +228,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onTrialUpgrade,
   hasFullAccess = true,
 }) => {
-  const { tasks, events } = useAppStore();
+  const { tasks, events, settings } = useAppStore();
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
@@ -463,10 +463,18 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             <Search className="w-6 h-6 text-muted-foreground" />
             <button
               onClick={onProfileClick}
-              className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold"
+              className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-primary"
               aria-label="Open profile"
             >
-              {userName.charAt(0).toUpperCase()}
+              {settings.avatarType === 'image' && settings.avatarUrl ? (
+                <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
+                <span className="text-lg leading-none">{settings.avatarEmoji}</span>
+              ) : (
+                <span className="text-primary-foreground font-semibold text-sm">
+                  {userName.charAt(0).toUpperCase()}
+                </span>
+              )}
             </button>
           </div>
         </div>
