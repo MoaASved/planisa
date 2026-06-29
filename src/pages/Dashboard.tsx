@@ -410,9 +410,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   ].sort((a, b) => a.sortKey - b.sortKey);
 
   return (
-    <div className="overflow-y-auto pt-safe-2">
+    <div className="overflow-y-auto pt-safe-2 relative">
+      {/* Gradient background */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '400px',
+          background: 'linear-gradient(180deg, rgba(200, 180, 255, 0.4) 0%, transparent 100%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
       {/* Header */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
@@ -430,7 +444,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         </div>
       </div>
 
-      <div className="px-4 pb-32">
+      <div className="px-4 pb-32 relative z-10">
         <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
         {/* ── Today: two cards side by side ────────────────────────────── */}
         <div className="flex flex-row gap-3 md:col-span-2 order-0">
