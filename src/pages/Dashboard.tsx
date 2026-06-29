@@ -244,14 +244,15 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const [previewDay, setPreviewDay] = useState<number | null>(null);
 
   const nisaRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
 
-  // Click-outside: close bubble
+  // Click-outside: close bubble when tapping outside both Nisa and the bubble
   useEffect(() => {
     if (!showNisaBubble) return;
     const handler = (e: MouseEvent | TouchEvent) => {
-      if (nisaRef.current && !nisaRef.current.contains(e.target as Node)) {
-        onCloseNisaBubble();
-      }
+      const inNisa = nisaRef.current?.contains(e.target as Node);
+      const inBubble = bubbleRef.current?.contains(e.target as Node);
+      if (!inNisa && !inBubble) onCloseNisaBubble();
     };
     document.addEventListener('mousedown', handler);
     document.addEventListener('touchstart', handler);
@@ -764,76 +765,104 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       {/* Nisa — peeks up from behind top-right corner of left Today card (mobile only) */}
       <div className="md:hidden">
       {nisaVisible && (
-        <div
-          ref={nisaRef}
-          className="fixed"
-          style={{
-            top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
-            right: 'calc(50% + 8px)',
-            zIndex: showNisaBubble ? 50 : 9,
-            transform: showNisaBubble ? 'translateY(-32px)' : 'translateY(0)',
-            transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
-        >
-          {/* Speech bubble — appears above Nisa, slightly rotated */}
+        <>
+          {/* Speech bubble — fixed, to the LEFT of Nisa, over the date card area */}
           {showNisaBubble && (
-            <div className="absolute bottom-full left-0 mb-3 w-52" style={{ transform: 'rotate(-2deg)' }}>
-              <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
-                <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
-                <div className="mt-2 flex items-center gap-3">
+            <div
+              ref={bubbleRef}
+              className="fixed"
+              style={{
+                top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
+                left: '12px',
+                right: 'calc(50% + 76px)',
+                zIndex: 50,
+                transform: 'rotate(-2deg)',
+              }}
+            >
+              <div className="bg-card border border-border rounded-2xl px-3 py-2.5 shadow-lg relative">
+                <p className="text-xs text-foreground leading-snug">{nisaMessage}</p>
+                <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                   {nisaAction && (
                     <button
                       onClick={() => { onCloseNisaBubble(); nisaAction!(); }}
-                      className="text-xs text-primary font-medium hover:opacity-80 transition-opacity"
+                      className="text-xs text-primary font-medium"
                     >
                       {trialNisaMessage ? 'Upgrade →' : 'Sort now →'}
                     </button>
                   )}
                   <button
                     onClick={dismissNisaBubble}
-                    className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                    className="text-xs text-muted-foreground/50"
                   >
-                    dismiss for today
+                    dismiss
                   </button>
                 </div>
-                {/* Tail pointing down toward Nisa */}
+                {/* Tail pointing right toward Nisa */}
                 <span
-                  className="absolute -bottom-[7px] left-7 w-0 h-0"
+                  className="absolute top-3 -right-2 w-0 h-0"
                   style={{
-                    borderLeft: '7px solid transparent',
-                    borderRight: '7px solid transparent',
-                    borderTop: '8px solid hsl(var(--border))',
+                    borderTop: '5px solid transparent',
+                    borderBottom: '5px solid transparent',
+                    borderLeft: '7px solid hsl(var(--border))',
                   }}
                 />
                 <span
-                  className="absolute -bottom-[5px] left-7 w-0 h-0"
+                  className="absolute top-3 -right-[6px] w-0 h-0"
                   style={{
-                    borderLeft: '7px solid transparent',
-                    borderRight: '7px solid transparent',
-                    borderTop: '8px solid hsl(var(--card))',
+                    borderTop: '5px solid transparent',
+                    borderBottom: '5px solid transparent',
+                    borderLeft: '7px solid hsl(var(--card))',
                   }}
                 />
               </div>
             </div>
           )}
 
-          {/* Nisa icon — always fully visible, slight tilt */}
-          <img
-            src="/nisa.png"
-            alt="Nisa"
-            onClick={handleNisaIconClick}
+          {/* Nisa icon — visual layer, behind cards when resting */}
+          <div
+            ref={nisaRef}
+            className="fixed"
             style={{
+              top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
+              right: 'calc(50% + 8px)',
+              zIndex: showNisaBubble ? 50 : 9,
+              transform: showNisaBubble ? 'translateY(-32px)' : 'translateY(0)',
+              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            }}
+          >
+            <img
+              src="/nisa.png"
+              alt="Nisa"
+              style={{
+                width: '60px',
+                height: '60px',
+                display: 'block',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                objectFit: 'contain',
+                transform: 'rotate(-8deg)',
+              }}
+            />
+          </div>
+
+          {/* Transparent hit area — always z-51 so Nisa is always tappable */}
+          <button
+            onClick={handleNisaIconClick}
+            aria-label="Talk to Nisa"
+            className="fixed"
+            style={{
+              top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
+              right: 'calc(50% + 8px)',
               width: '60px',
-              height: '60px',
-              display: 'block',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              height: '30px',
+              zIndex: 51,
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
               cursor: 'pointer',
-              objectFit: 'contain',
-              transform: 'rotate(-8deg)',
             }}
           />
-        </div>
+        </>
       )}
       </div>
     </div>
