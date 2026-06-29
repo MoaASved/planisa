@@ -862,8 +862,12 @@ const Dashboard: React.FC = () => {
   const [isCreatingNewTask, setIsCreatingNewTask] = useState(false);
   const [defaultTaskDate, setDefaultTaskDate] = useState<Date | undefined>(undefined);
   const [showCalendarTaskCreate, setShowCalendarTaskCreate] = useState(false);
+  const [calendarStartView, setCalendarStartView] = useState<'month' | 'weekday'>('month');
 
-  const setActiveTab = (tab: string) => setActiveTabRaw(tab);
+  const setActiveTab = (tab: string) => {
+    if (tab !== 'calendar') setCalendarStartView('month');
+    setActiveTabRaw(tab);
+  };
 
   // Trial reminder state
   const [trialNisaMessage, setTrialNisaMessage] = useState<string | null>(null);
@@ -1170,7 +1174,7 @@ const Dashboard: React.FC = () => {
             dismissNisaBubble={dismissNisaBubble}
             onCloseNisaBubble={() => setShowNisaBubble(false)}
             toggleNisaBubble={() => setShowNisaBubble(v => !v)}
-            onNavigateToCalendar={() => setActiveTab('calendar')}
+            onNavigateToCalendar={() => { setCalendarStartView('weekday'); setActiveTab('calendar'); }}
             onProfileClick={() => setActiveTab('profile')}
             onSaveAndOpenNote={(note) => {
               setFocusNote(note);
@@ -1193,6 +1197,7 @@ const Dashboard: React.FC = () => {
             onDateChange={setSelectedCalendarDate}
             onNavigateToTasks={task => { setHighlightTaskId(task.id); setActiveTab('tasks'); }}
             hasFullAccess={hasFullAccess}
+            initialView={calendarStartView}
           />
         );
       case 'tasks':

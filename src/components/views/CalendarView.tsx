@@ -20,12 +20,12 @@ import { StickyNoteEditor } from '@/components/notes/StickyNoteEditor';
 type SimpleView = 'month' | 'weekday';
 type DesktopView = 'day' | 'week' | 'month' | 'year';
 
-export function CalendarViewComponent({ onDateChange, onNavigateToTasks, hasFullAccess = true }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; hasFullAccess?: boolean }) {
+export function CalendarViewComponent({ onDateChange, onNavigateToTasks, hasFullAccess = true, initialView }: { onDateChange?: (date: Date) => void; onNavigateToTasks?: (task: Task) => void; hasFullAccess?: boolean; initialView?: SimpleView }) {
   const yearViewRef = useRef<YearViewHandle>(null);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [view, setView] = useState<SimpleView>('month');
+  const [view, setView] = useState<SimpleView>(initialView ?? 'month');
   const [showYearView, setShowYearView] = useState(false);
   const [showTimeline, setShowTimeline] = useState(true);
   const [desktopListMode, setDesktopListMode] = useState(false);
