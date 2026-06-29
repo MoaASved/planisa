@@ -188,11 +188,6 @@ interface DashboardHomeProps {
   brainDumpItems: BrainDumpItem[];
   onSaveBrainDump: (text: string) => Promise<void>;
   onDeleteBrainDumpItem: (id: string) => void;
-  nisaVisible: boolean;
-  showNisaBubble: boolean;
-  dismissNisaBubble: () => void;
-  onCloseNisaBubble: () => void;
-  toggleNisaBubble: () => void;
   onNavigateToCalendar: () => void;
   onProfileClick: () => void;
   onSaveAndOpenNote: (note: Note) => void;
@@ -220,11 +215,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   brainDumpItems,
   onSaveBrainDump,
   onDeleteBrainDumpItem,
-  nisaVisible,
-  showNisaBubble,
-  dismissNisaBubble,
-  onCloseNisaBubble,
-  toggleNisaBubble,
   onNavigateToCalendar,
   onProfileClick,
   onSaveAndOpenNote,
@@ -242,9 +232,26 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
+  const [nisaHidden, setNisaHidden] = useState(false);
+  const [showNisaBubble, setShowNisaBubble] = useState(false);
 
+  // nisa-reset: wakes NISA from anywhere by firing window.dispatchEvent(new Event('nisa-reset'))
+  useEffect(() => {
+    const handler = () => {
+      localStorage.removeItem('nisa_dismissed_message');
+      setNisaHidden(false);
+      setShowNisaBubble(true);
+    };
+    window.addEventListener('nisa-reset', handler);
+    return () => window.removeEventListener('nisa-reset', handler);
+  }, []);
 
-  const handleNisaIconClick = () => toggleNisaBubble();
+  const handleNisaIconClick = () => setShowNisaBubble(v => !v);
+  const dismissNisaBubble = () => {
+    localStorage.setItem('nisa_dismissed_message', nisaMessage);
+    setNisaHidden(true);
+    setShowNisaBubble(false);
+  };
 
   // Compute Mon–Sun dates for this week
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -305,6 +312,25 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   // Persist nisa message so ProfileView can read it even after navigation
   useEffect(() => {
     localStorage.setItem('nisa_last_message', nisaMessage);
+  }, [nisaMessage]);
+
+  // Auto-popup: show bubble when message changes; stay hidden when message was dismissed.
+  // Debounced 300ms so the initial empty-state message (before async data loads) doesn't
+  // race with the real message that follows once focus/habits data arrives.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const dismissed = localStorage.getItem('nisa_dismissed_message');
+      const lastSeen = localStorage.getItem('nisa_last_seen_message');
+      if (dismissed === nisaMessage) {
+        setNisaHidden(true);
+        setShowNisaBubble(false);
+      } else if (lastSeen !== nisaMessage) {
+        localStorage.setItem('nisa_last_seen_message', nisaMessage);
+        setNisaHidden(false);
+        setShowNisaBubble(true);
+      }
+    }, 300);
+    return () => clearTimeout(t);
   }, [nisaMessage]);
 
   // Brain dump sheet + sort modal state
@@ -761,14 +787,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       {/* Nisa — peeks up from behind top-right corner of left Today card (mobile only) */}
       <div className="md:hidden">
-      {nisaVisible && (
+      {!nisaHidden && (
         <>
           {/* Dismiss overlay — single tap anywhere outside bubble/Nisa closes it */}
           {showNisaBubble && (
             <div
               className="fixed inset-0"
               style={{ zIndex: 49 }}
-              onClick={onCloseNisaBubble}
+              onClick={() => setShowNisaBubble(false)}
             />
           )}
 
@@ -789,7 +815,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                   {nisaAction && (
                     <button
-                      onClick={() => { onCloseNisaBubble(); nisaAction!(); }}
+                      onClick={() => { setShowNisaBubble(false); nisaAction!(); }}
                       className="text-xs text-primary font-medium"
                     >
                       {trialNisaMessage ? 'Upgrade →' : 'Sort now →'}
@@ -886,8 +912,6 @@ const Dashboard: React.FC = () => {
   const [activeTab, setActiveTabRaw] = useState('home');
   const [userName, setUserName] = useState('');
   const [brainDumpText, setBrainDumpText] = useState('');
-  const [showNisaBubble, setShowNisaBubble] = useState(true);
-  const [nisaDismissedToday, setNisaDismissedToday] = useState(false);
   const [onboardingVisible, setOnboardingVisible] = useState(showOnboarding);
 
   // Focus items — loaded from Supabase
@@ -1132,9 +1156,6 @@ const Dashboard: React.FC = () => {
     if (!user) return;
     const name = settings.name?.trim() || user.email?.split('@')[0] || 'User';
     setUserName(name.split(' ')[0]);
-    const iconHidden = !!localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`);
-    setNisaDismissedToday(iconHidden);
-    setShowNisaBubble(!iconHidden);
     loadFocusItems();
     loadBrainDumpItems();
     loadHabits();
@@ -1205,12 +1226,6 @@ const Dashboard: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeTab]);
 
-  const dismissNisaBubble = () => {
-    setNisaDismissedToday(true);
-    setShowNisaBubble(false);
-    localStorage.setItem(`nisa_dismissed_${new Date().toDateString()}`, 'true');
-  };
-
   const renderView = () => {
     switch (activeTab) {
       case 'home':
@@ -1228,11 +1243,6 @@ const Dashboard: React.FC = () => {
             brainDumpItems={brainDumpItems}
             onSaveBrainDump={saveBrainDump}
             onDeleteBrainDumpItem={deleteBrainDumpItem}
-            nisaVisible={!nisaDismissedToday}
-            showNisaBubble={showNisaBubble}
-            dismissNisaBubble={dismissNisaBubble}
-            onCloseNisaBubble={() => setShowNisaBubble(false)}
-            toggleNisaBubble={() => setShowNisaBubble(v => !v)}
             onNavigateToCalendar={() => { setCalendarStartView('weekday'); setActiveTab('calendar'); }}
             onProfileClick={() => setActiveTab('profile')}
             onSaveAndOpenNote={(note) => {
