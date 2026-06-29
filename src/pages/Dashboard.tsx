@@ -261,6 +261,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     taskFocusItems.every(f => tasks.find(t => t.id === f.item_id)?.completed);
   const anyTaskDone = taskFocusItems.some(f => tasks.find(t => t.id === f.item_id)?.completed);
   const habitsCompletedToday = completions.some(c => c.date === todayStr);
+  // True only when the user completed habits on a prior day this week — avoids a false
+  // "you're on a streak" message at the start of the week when no streak exists yet.
+  const hasStreakThisWeek = completions.some(c => c.date < todayStr);
 
   let nisaMessage: string;
   let nisaAction: (() => void) | null = null;
@@ -273,7 +276,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     const n = brainDumpItems.length;
     nisaMessage = `You have ${n} unsorted brain dump item${n === 1 ? '' : 's'} waiting. Want to sort them now?`;
     nisaAction = () => setShowBrainDumpSheet(true);
-  } else if (habits.length > 0 && !habitsCompletedToday) {
+  } else if (habits.length > 0 && !habitsCompletedToday && hasStreakThisWeek) {
     nisaMessage = "Don't forget your habits today — you're on a streak! 💪";
   } else if (currentHour >= 17 && taskFocusItems.length > 0 && !anyTaskDone) {
     nisaMessage = "Still time to knock out your focus items before the week is over 🌙";
