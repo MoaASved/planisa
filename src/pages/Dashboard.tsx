@@ -770,14 +770,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           style={{
             top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
             right: 'calc(50% + 8px)',
-            zIndex: showNisaBubble ? 50 : 9,
+            zIndex: 50,
             transform: showNisaBubble ? 'translateY(-32px)' : 'translateY(0)',
             transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
-          {/* Speech bubble — appears above Nisa */}
+          {/* Speech bubble — appears to the right of Nisa */}
           {showNisaBubble && (
-            <div className="absolute bottom-full right-0 mb-3 w-52">
+            <div className="absolute left-full top-0 ml-3 w-44">
               <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
                 <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
                 <div className="mt-2 flex items-center gap-3">
@@ -796,21 +796,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     dismiss for today
                   </button>
                 </div>
-                {/* Tail pointing down toward Nisa */}
+                {/* Tail pointing left toward Nisa */}
                 <span
-                  className="absolute -bottom-[7px] right-5 w-0 h-0"
+                  className="absolute top-4 -left-2 w-0 h-0"
                   style={{
-                    borderLeft: '7px solid transparent',
-                    borderRight: '7px solid transparent',
-                    borderTop: '8px solid hsl(var(--border))',
+                    borderTop: '6px solid transparent',
+                    borderBottom: '6px solid transparent',
+                    borderRight: '8px solid hsl(var(--border))',
                   }}
                 />
                 <span
-                  className="absolute -bottom-[5px] right-5 w-0 h-0"
+                  className="absolute top-4 -left-[7px] w-0 h-0"
                   style={{
-                    borderLeft: '7px solid transparent',
-                    borderRight: '7px solid transparent',
-                    borderTop: '8px solid hsl(var(--card))',
+                    borderTop: '6px solid transparent',
+                    borderBottom: '6px solid transparent',
+                    borderRight: '8px solid hsl(var(--card))',
                   }}
                 />
               </div>
