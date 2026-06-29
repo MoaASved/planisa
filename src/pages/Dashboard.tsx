@@ -434,37 +434,65 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="px-4 pb-32">
         <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
         {/* ── Today ────────────────────────────────────────────────────── */}
-        <div className="flow-widget md:col-span-2 order-0 md:order-0">
-          <button
-            onClick={onNavigateToCalendar}
-            className="w-full flex items-center justify-between mb-3"
-          >
-            <h2 className="flow-section-title">Today</h2>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-          {todayItems.length > 0 ? (
-            <div className="divide-y divide-border/30">
-              {todayItems.map(item => (
-                <div key={item.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                  <div className={cn('w-2 h-2 rounded-full flex-shrink-0', `bg-pastel-${item.color}`)} />
-                  <span className={cn(
-                    'flex-1 text-[15px] leading-snug truncate',
-                    item.completed && 'line-through text-muted-foreground/50'
-                  )}>
-                    {item.title}
-                  </span>
-                  {item.time && (
-                    <span className="text-[13px] text-muted-foreground/50 flex-shrink-0 tabular-nums">
-                      {item.time}
-                    </span>
+        <button
+          onClick={onNavigateToCalendar}
+          className="flow-widget md:col-span-2 order-0 md:order-0 w-full text-left active:scale-[0.99] transition-transform"
+        >
+          <div className="flex gap-5">
+            {/* Left: calendar date stamp */}
+            <div className="flex flex-col justify-between pr-5 border-r border-border/30 shrink-0 w-[72px]">
+              <div>
+                <p className="text-[52px] font-bold leading-none tracking-tight text-foreground">
+                  {fmtDate(today, 'd')}
+                </p>
+                <p className="text-[13px] font-semibold text-foreground/75 mt-1 leading-none">
+                  {fmtDate(today, 'EEEE')}
+                </p>
+                <p className="text-[12px] text-muted-foreground/60 mt-0.5 leading-none">
+                  {fmtDate(today, 'MMMM')}
+                </p>
+              </div>
+              <p className="text-[11px] text-muted-foreground/40 font-medium tracking-wide mt-3">
+                Wk {getWeekNumber(today)}
+              </p>
+            </div>
+
+            {/* Right: today's agenda */}
+            <div className="flex-1 min-w-0 flex flex-col">
+              <div className="flex items-center justify-between mb-2.5">
+                <h2 className="flow-section-title">Today</h2>
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+              </div>
+              {todayItems.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  {todayItems.slice(0, 4).map(item => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <div className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', `bg-pastel-${item.color}`)} />
+                      <span className={cn(
+                        'flex-1 text-[13px] leading-snug truncate',
+                        item.completed && 'line-through text-muted-foreground/40'
+                      )}>
+                        {item.title}
+                      </span>
+                      {item.time && (
+                        <span className="text-[12px] text-muted-foreground/45 flex-shrink-0 tabular-nums">
+                          {item.time}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                  {todayItems.length > 4 && (
+                    <p className="text-[12px] text-muted-foreground/40 mt-0.5">
+                      +{todayItems.length - 4} more
+                    </p>
                   )}
                 </div>
-              ))}
+              ) : (
+                <p className="text-[13px] text-muted-foreground/50 mt-0.5">Clear day ☁️</p>
+              )}
             </div>
-          ) : (
-            <p className="text-[15px] text-muted-foreground/60">You've got a clear day ☁️</p>
-          )}
-        </div>
+          </div>
+        </button>
 
         {/* ── Weekly Focus ──────────────────────────────────────────────── */}
         <div className="flow-widget order-1 md:order-1">
