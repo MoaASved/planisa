@@ -243,24 +243,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
 
-  const nisaRef = useRef<HTMLDivElement>(null);
-  const bubbleRef = useRef<HTMLDivElement>(null);
-
-  // Click-outside: close bubble when tapping outside both Nisa and the bubble
-  useEffect(() => {
-    if (!showNisaBubble) return;
-    const handler = (e: MouseEvent | TouchEvent) => {
-      const inNisa = nisaRef.current?.contains(e.target as Node);
-      const inBubble = bubbleRef.current?.contains(e.target as Node);
-      if (!inNisa && !inBubble) onCloseNisaBubble();
-    };
-    document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler);
-    return () => {
-      document.removeEventListener('mousedown', handler);
-      document.removeEventListener('touchstart', handler);
-    };
-  }, [showNisaBubble, onCloseNisaBubble]);
 
   const handleNisaIconClick = () => toggleNisaBubble();
 
@@ -766,15 +748,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="md:hidden">
       {nisaVisible && (
         <>
-          {/* Speech bubble — fixed, to the LEFT of Nisa, over the date card area */}
+          {/* Dismiss overlay — single tap anywhere outside bubble/Nisa closes it */}
           {showNisaBubble && (
             <div
-              ref={bubbleRef}
+              className="fixed inset-0"
+              style={{ zIndex: 49 }}
+              onClick={onCloseNisaBubble}
+            />
+          )}
+
+          {/* Speech bubble — fixed, to the RIGHT of Nisa */}
+          {showNisaBubble && (
+            <div
               className="fixed"
               style={{
                 top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
-                left: '12px',
-                right: 'calc(50% + 76px)',
+                left: 'calc(50% + 4px)',
+                right: '12px',
                 zIndex: 50,
                 transform: 'rotate(-2deg)',
               }}
@@ -797,21 +787,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     dismiss
                   </button>
                 </div>
-                {/* Tail pointing right toward Nisa */}
+                {/* Tail pointing left toward Nisa */}
                 <span
-                  className="absolute top-3 -right-2 w-0 h-0"
+                  className="absolute top-3 -left-2 w-0 h-0"
                   style={{
                     borderTop: '5px solid transparent',
                     borderBottom: '5px solid transparent',
-                    borderLeft: '7px solid hsl(var(--border))',
+                    borderRight: '7px solid hsl(var(--border))',
                   }}
                 />
                 <span
-                  className="absolute top-3 -right-[6px] w-0 h-0"
+                  className="absolute top-3 -left-[6px] w-0 h-0"
                   style={{
                     borderTop: '5px solid transparent',
                     borderBottom: '5px solid transparent',
-                    borderLeft: '7px solid hsl(var(--card))',
+                    borderRight: '7px solid hsl(var(--card))',
                   }}
                 />
               </div>
@@ -820,7 +810,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
           {/* Nisa icon — visual layer, behind cards when resting */}
           <div
-            ref={nisaRef}
             className="fixed"
             style={{
               top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
