@@ -425,7 +425,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           top: 0,
           left: 0,
           right: 0,
-          height: '400px',
+          height: '650px',
           background: 'linear-gradient(180deg, rgba(180, 150, 255, 0.55) 0%, rgba(255, 150, 200, 0.35) 40%, transparent 100%)',
           zIndex: 0,
           pointerEvents: 'none',
