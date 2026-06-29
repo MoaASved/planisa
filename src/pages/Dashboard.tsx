@@ -428,13 +428,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           right: 0,
           height: '650px',
           background: [
-            'linear-gradient(180deg, rgba(180, 130, 255, 0.55) 0%, rgba(150, 100, 220, 0.35) 40%, transparent 100%)', // 0 Sun
-            'linear-gradient(180deg, rgba(200, 200, 215, 0.55) 0%, rgba(220, 215, 235, 0.35) 40%, transparent 100%)', // 1 Mon
-            'linear-gradient(180deg, rgba(255, 120, 150, 0.55) 0%, rgba(200, 80, 120, 0.35) 40%, transparent 100%)',  // 2 Tue
-            'linear-gradient(180deg, rgba(255, 220, 100, 0.55) 0%, rgba(255, 190, 60, 0.35) 40%, transparent 100%)',  // 3 Wed
-            'linear-gradient(180deg, rgba(100, 160, 255, 0.55) 0%, rgba(80, 130, 220, 0.35) 40%, transparent 100%)',  // 4 Thu
-            'linear-gradient(180deg, rgba(120, 210, 150, 0.55) 0%, rgba(90, 180, 120, 0.35) 40%, transparent 100%)',  // 5 Fri
-            'linear-gradient(180deg, rgba(255, 160, 80, 0.55) 0%, rgba(255, 130, 60, 0.35) 40%, transparent 100%)',   // 6 Sat
+            'linear-gradient(180deg, rgba(190, 140, 255, 0.55) 0%, rgba(220, 120, 200, 0.35) 40%, transparent 100%)', // 0 Sun
+            'linear-gradient(180deg, rgba(210, 210, 225, 0.55) 0%, rgba(190, 185, 220, 0.35) 40%, transparent 100%)', // 1 Mon
+            'linear-gradient(180deg, rgba(255, 120, 150, 0.55) 0%, rgba(180, 80, 140, 0.35) 40%, transparent 100%)',  // 2 Tue
+            'linear-gradient(180deg, rgba(255, 220, 100, 0.55) 0%, rgba(255, 170, 60, 0.35) 40%, transparent 100%)',  // 3 Wed
+            'linear-gradient(180deg, rgba(100, 160, 255, 0.55) 0%, rgba(130, 110, 240, 0.35) 40%, transparent 100%)', // 4 Thu
+            'linear-gradient(180deg, rgba(180, 220, 140, 0.55) 0%, rgba(150, 195, 110, 0.35) 40%, transparent 100%)', // 5 Fri
+            'linear-gradient(180deg, rgba(255, 160, 80, 0.55) 0%, rgba(240, 110, 90, 0.35) 40%, transparent 100%)',   // 6 Sat
           ][previewDay ?? new Date().getDay()],
           zIndex: 0,
           pointerEvents: 'none',
@@ -449,12 +449,12 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             {/* TEMP: day color preview — remove after confirming */}
             <div className="flex gap-2 mt-2 flex-wrap">
               {[
-                { label: 'Sun', bg: 'rgba(180,130,255,0.7)' },
-                { label: 'Mon', bg: 'rgba(200,200,215,0.7)' },
+                { label: 'Sun', bg: 'rgba(190,140,255,0.7)' },
+                { label: 'Mon', bg: 'rgba(210,210,225,0.7)' },
                 { label: 'Tue', bg: 'rgba(255,120,150,0.7)' },
                 { label: 'Wed', bg: 'rgba(255,220,100,0.7)' },
                 { label: 'Thu', bg: 'rgba(100,160,255,0.7)' },
-                { label: 'Fri', bg: 'rgba(120,210,150,0.7)' },
+                { label: 'Fri', bg: 'rgba(180,220,140,0.7)' },
                 { label: 'Sat', bg: 'rgba(255,160,80,0.7)' },
               ].map(({ label, bg }, i) => (
                 <button key={label} onClick={() => setPreviewDay(previewDay === i ? null : i)} className="flex flex-col items-center gap-0.5">
