@@ -432,10 +432,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       <div className="px-4 pb-32">
         <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
-        {/* ── Today: date stamp card ───────────────────────────────────── */}
+        {/* ── Today: two cards side by side ────────────────────────────── */}
+        <div className="flex flex-row gap-3 md:col-span-2 order-0">
         <button
           onClick={onNavigateToCalendar}
-          className="flow-widget order-0 w-full text-left active:scale-[0.99] transition-transform flex flex-col justify-between"
+          className="flow-widget flex-1 text-left active:scale-[0.99] transition-transform flex flex-col justify-between"
         >
           <div>
             <p className="text-[56px] font-bold leading-none tracking-tight text-foreground">
@@ -456,7 +457,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Today: agenda card ───────────────────────────────────────── */}
         <button
           onClick={onNavigateToCalendar}
-          className="flow-widget order-0 w-full text-left active:scale-[0.99] transition-transform flex flex-col"
+          className="flow-widget flex-1 text-left active:scale-[0.99] transition-transform flex flex-col"
         >
           <div className="flex items-center justify-between mb-3">
             <h2 className="flow-section-title">Today</h2>
@@ -490,6 +491,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             <p className="text-[13px] text-muted-foreground/50">Clear day ☁️</p>
           )}
         </button>
+        </div>
 
         {/* ── Weekly Focus ──────────────────────────────────────────────── */}
         <div className="flow-widget order-1 md:order-1">
