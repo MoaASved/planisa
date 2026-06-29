@@ -409,10 +409,25 @@ export const useAppStore = create<AppState>()((set, get) => {
       });
     },
     updateFolder: (id, updates) => {
-      set((s) => ({ folders: s.folders.map((f) => (f.id === id ? { ...f, ...updates } : f)) }));
+      const oldName = get().folders.find((f) => f.id === id)?.name;
+      const newName = (updates.name !== undefined && updates.name !== oldName) ? updates.name : null;
+      set((s) => ({
+        folders: s.folders.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+        // Cascade rename to all notes that reference this folder by its old name
+        ...(newName && oldName
+          ? { notes: s.notes.map((n) => n.folder === oldName ? { ...n, folder: newName } : n) }
+          : {}),
+      }));
       queueOrRun(uid(), (userId) => {
         const row = folderToRow(updates, userId); delete row.user_id;
         (supabase.from('note_folders') as any).update(row).eq('id', id).then(swallow('updateFolder'));
+        if (newName && oldName) {
+          (supabase.from('notes') as any)
+            .update({ folder_name: newName })
+            .eq('folder_name', oldName)
+            .eq('user_id', userId)
+            .then(swallow('updateFolder:cascade'));
+        }
       });
     },
     deleteFolder: (id) => {
