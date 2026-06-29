@@ -770,14 +770,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           style={{
             top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
             right: 'calc(50% + 8px)',
-            zIndex: 50,
+            zIndex: showNisaBubble ? 50 : 9,
             transform: showNisaBubble ? 'translateY(-32px)' : 'translateY(0)',
             transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
-          {/* Speech bubble — appears to the right of Nisa */}
+          {/* Speech bubble — appears above Nisa, slightly rotated */}
           {showNisaBubble && (
-            <div className="absolute left-full top-0 ml-3 w-44">
+            <div className="absolute bottom-full left-0 mb-3 w-52" style={{ transform: 'rotate(-2deg)' }}>
               <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-lg relative">
                 <p className="text-sm text-foreground leading-snug">{nisaMessage}</p>
                 <div className="mt-2 flex items-center gap-3">
@@ -796,21 +796,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     dismiss for today
                   </button>
                 </div>
-                {/* Tail pointing left toward Nisa */}
+                {/* Tail pointing down toward Nisa */}
                 <span
-                  className="absolute top-4 -left-2 w-0 h-0"
+                  className="absolute -bottom-[7px] left-7 w-0 h-0"
                   style={{
-                    borderTop: '6px solid transparent',
-                    borderBottom: '6px solid transparent',
-                    borderRight: '8px solid hsl(var(--border))',
+                    borderLeft: '7px solid transparent',
+                    borderRight: '7px solid transparent',
+                    borderTop: '8px solid hsl(var(--border))',
                   }}
                 />
                 <span
-                  className="absolute top-4 -left-[7px] w-0 h-0"
+                  className="absolute -bottom-[5px] left-7 w-0 h-0"
                   style={{
-                    borderTop: '6px solid transparent',
-                    borderBottom: '6px solid transparent',
-                    borderRight: '8px solid hsl(var(--card))',
+                    borderLeft: '7px solid transparent',
+                    borderRight: '7px solid transparent',
+                    borderTop: '8px solid hsl(var(--card))',
                   }}
                 />
               </div>
