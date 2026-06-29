@@ -433,6 +433,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       `}</style>
       <div
         aria-hidden="true"
+        className="md:hidden"
         style={{
           position: 'absolute',
           top: 0,

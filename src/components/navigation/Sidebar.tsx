@@ -36,6 +36,17 @@ export function Sidebar({
   const { settings } = useAppStore();
   const isDark = settings.theme === 'dark';
 
+  const sidebarDayGradients = [
+    'linear-gradient(180deg, rgba(190, 140, 255, 0.25) 0%, rgba(220, 120, 200, 0.15) 60%, transparent 100%)', // Sun
+    'linear-gradient(180deg, rgba(210, 210, 225, 0.25) 0%, rgba(190, 185, 220, 0.15) 60%, transparent 100%)', // Mon
+    'linear-gradient(180deg, rgba(255, 120, 150, 0.25) 0%, rgba(180, 80, 140, 0.15) 60%, transparent 100%)',  // Tue
+    'linear-gradient(180deg, rgba(255, 220, 100, 0.25) 0%, rgba(255, 170, 60, 0.15) 60%, transparent 100%)',  // Wed
+    'linear-gradient(180deg, rgba(100, 160, 255, 0.25) 0%, rgba(130, 110, 240, 0.15) 60%, transparent 100%)', // Thu
+    'linear-gradient(180deg, rgba(180, 220, 140, 0.25) 0%, rgba(150, 195, 110, 0.15) 60%, transparent 100%)', // Fri
+    'linear-gradient(180deg, rgba(255, 160, 80, 0.25) 0%, rgba(240, 110, 90, 0.15) 60%, transparent 100%)',   // Sat
+  ];
+  const todayGradient = sidebarDayGradients[new Date().getDay()];
+
   return (
     <nav
       className={cn(
@@ -47,7 +58,7 @@ export function Sidebar({
         height: '100vh',
         background: isDark
           ? 'hsl(var(--sidebar-background))'
-          : 'linear-gradient(160deg, rgba(229, 204, 255, 0.35) 0%, rgba(255, 218, 204, 0.25) 100%)',
+          : todayGradient,
         backdropFilter: isDark ? undefined : 'blur(12px)',
         WebkitBackdropFilter: isDark ? undefined : 'blur(12px)',
         borderRight: isDark
