@@ -241,18 +241,16 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const { tasks, events } = useAppStore();
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
-  const [nisaStepped, setNisaStepped] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
 
   const nisaRef = useRef<HTMLDivElement>(null);
 
-  // Click-outside: close bubble only, step back — don't dismiss icon
+  // Click-outside: close bubble
   useEffect(() => {
     if (!showNisaBubble) return;
     const handler = (e: MouseEvent | TouchEvent) => {
       if (nisaRef.current && !nisaRef.current.contains(e.target as Node)) {
         onCloseNisaBubble();
-        setNisaStepped(true);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -263,17 +261,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     };
   }, [showNisaBubble, onCloseNisaBubble]);
 
-  const handleNisaIconClick = () => {
-    if (nisaStepped) {
-      // Step forward and open bubble
-      setNisaStepped(false);
-      if (!showNisaBubble) toggleNisaBubble();
-    } else {
-      // Toggle: if closing, step back
-      if (showNisaBubble) setNisaStepped(true);
-      toggleNisaBubble();
-    }
-  };
+  const handleNisaIconClick = () => toggleNisaBubble();
 
   // Compute Mon–Sun dates for this week
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -443,7 +431,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       />
       {/* Header */}
       <div className="px-4 pb-4 relative z-10">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
           </div>
@@ -773,10 +761,18 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         onDelete={onDeleteHabit}
       />
 
-      {/* Nisa — fixed top-right, below profile avatar (mobile only) */}
+      {/* Nisa — peeks from behind the right Today card (mobile only) */}
       <div className="md:hidden">
       {nisaVisible && (
-        <div ref={nisaRef} className="fixed z-50" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4rem)', right: '1rem' }}>
+        <div
+          ref={nisaRef}
+          className="fixed"
+          style={{
+            top: 'calc(env(safe-area-inset-top, 0px) + 8rem)',
+            right: '-8px',
+            zIndex: showNisaBubble ? 50 : 9,
+          }}
+        >
           {/* Speech bubble — appears to the left */}
           {showNisaBubble && (
             <div className="absolute right-full top-0 mr-3 w-52">
@@ -819,7 +815,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             </div>
           )}
 
-          {/* Nisa icon — steps back when bubble is closed */}
+          {/* Nisa icon — always fully visible, slight tilt */}
           <img
             src="/nisa.png"
             alt="Nisa"
@@ -832,9 +828,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               cursor: 'pointer',
               objectFit: 'contain',
-              transform: nisaStepped ? 'rotate(-12deg) scale(0.8) translateX(8px)' : 'rotate(-12deg)',
-              opacity: nisaStepped ? 0.65 : 1,
-              transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease',
+              transform: 'rotate(-8deg)',
+              transition: 'transform 0.25s ease',
             }}
           />
         </div>
