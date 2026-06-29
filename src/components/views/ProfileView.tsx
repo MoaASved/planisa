@@ -1028,7 +1028,7 @@ export function ProfileView() {
             style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.4)' }}
             onClick={() => setShowEmojiPickerPopup(false)}
           />
-          <div style={{ position: 'fixed', top: '38%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, width: '100%', maxWidth: 280 }}>
+          <div style={{ position: 'fixed', top: '38%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, width: '100%', maxWidth: 340 }}>
             <EmojiPicker
               onEmojiClick={(data: EmojiClickData) => {
                 setAvatarEmoji(data.emoji);
@@ -1036,9 +1036,10 @@ export function ProfileView() {
               }}
               lazyLoadEmojis
               autoFocusSearch={false}
-              width={280}
-              height={320}
-              size={24}
+              width={340}
+              height={400}
+              emojiSize={20}
+              emojiButtonSize={28}
             />
           </div>
         </>,
