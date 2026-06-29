@@ -519,7 +519,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Brain dump ────────────────────────────────────────────────── */}
         <div className="flow-widget md:col-span-2 order-2 md:order-3">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Brain dump</h2>
+            <h2 className="flow-section-title">Brain Dump ✨</h2>
             {brainDumpItems.length > 0 && (
               <button
                 onClick={() => setShowBrainDumpSheet(true)}
