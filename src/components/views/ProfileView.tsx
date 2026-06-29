@@ -115,6 +115,7 @@ export function ProfileView() {
   }, []);
 
   const handleNisaReset = () => {
+    localStorage.removeItem('nisa_dismissed_message');
     window.dispatchEvent(new Event('nisa-reset'));
     setNisaDismissed(false);
     setNisaResetConfirmed(true);
