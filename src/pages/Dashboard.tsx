@@ -761,7 +761,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         onDelete={onDeleteHabit}
       />
 
-      {/* Nisa — peeks up from behind top edge of right Today card (mobile only) */}
+      {/* Nisa — peeks up from behind top-left of right Today card (mobile only) */}
       <div className="md:hidden">
       {nisaVisible && (
         <div
@@ -769,8 +769,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           className="fixed"
           style={{
             top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
-            right: '16px',
+            left: 'calc(50% + 4px)',
             zIndex: showNisaBubble ? 50 : 9,
+            transform: showNisaBubble ? 'translateY(-32px)' : 'translateY(0)',
+            transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
           {/* Speech bubble — appears above Nisa */}
@@ -829,7 +831,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               cursor: 'pointer',
               objectFit: 'contain',
               transform: 'rotate(-8deg)',
-              transition: 'transform 0.25s ease',
             }}
           />
         </div>
