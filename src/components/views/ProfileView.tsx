@@ -107,11 +107,19 @@ export function ProfileView() {
   const [nisaLastMessage, setNisaLastMessage] = useState<string | null>(null);
   const [nisaDismissed, setNisaDismissed] = useState(false);
   const [showNisaMessage, setShowNisaMessage] = useState(false);
+  const [nisaResetConfirmed, setNisaResetConfirmed] = useState(false);
 
   useEffect(() => {
     setNisaLastMessage(localStorage.getItem('nisa_last_message'));
-    setNisaDismissed(!!localStorage.getItem(`nisa_dismissed_${new Date().toDateString()}`));
+    setNisaDismissed(!!localStorage.getItem('nisa_dismissed_message'));
   }, []);
+
+  const handleNisaReset = () => {
+    window.dispatchEvent(new Event('nisa-reset'));
+    setNisaDismissed(false);
+    setNisaResetConfirmed(true);
+    setTimeout(() => setNisaResetConfirmed(false), 3000);
+  };
 
   const handlePortal = async () => {
     if (!user) return;
@@ -433,6 +441,20 @@ export function ProfileView() {
           {showNisaMessage && !nisaLastMessage && (
             <div className="mt-3 pt-3 border-t border-border">
               <p className="text-sm text-muted-foreground italic">No message yet...</p>
+            </div>
+          )}
+          {nisaDismissed && (
+            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+              {nisaResetConfirmed ? (
+                <p className="text-sm text-muted-foreground">NISA will greet you on the dashboard again ✨</p>
+              ) : (
+                <button
+                  onClick={handleNisaReset}
+                  className="text-sm text-primary font-medium"
+                >
+                  Show NISA again
+                </button>
+              )}
             </div>
           )}
         </div>
