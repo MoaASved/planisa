@@ -265,10 +265,22 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   // "you're on a streak" message at the start of the week when no streak exists yet.
   const hasStreakThisWeek = completions.some(c => c.date < todayStr);
 
+  const dayColorMessages: Record<number, string> = {
+    0: "Today's color is purple. Sunday is for rest and reflection. Recharge. 💜",
+    1: "Today's color is silver. Monday is the Moon's day, a time for calm and fresh beginnings. 🤍",
+    2: "Today's color is red. Tuesday brings drive, action and momentum. Use that energy. ❤️",
+    3: "Today's color is yellow. For communication, ideas and creativity. Let your thoughts flow. 💛",
+    4: "Today's color is blue. A symbol of focus and strength. Push through. 💙",
+    5: "Today's color is green. Joy and harmony to close the week. Happy Friday! 💚",
+    6: "Today's color is orange. For adventure, freedom and no agenda. 🧡",
+  };
+
   let nisaMessage: string;
   let nisaAction: (() => void) | null = null;
 
-  if (focusItems.length === 0) {
+  if (currentHour < 12) {
+    nisaMessage = dayColorMessages[new Date().getDay()];
+  } else if (focusItems.length === 0) {
     nisaMessage = "You haven't set your focus for this week yet. What's the one thing that matters most? ✨";
   } else if (allTasksDone) {
     nisaMessage = "You've completed everything in your focus list this week. Incredible! 🎉";
