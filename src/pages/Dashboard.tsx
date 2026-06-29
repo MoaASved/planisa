@@ -21,7 +21,7 @@ import { BrainDumpSortModal, BrainDumpSortType } from '../components/modals/Brai
 import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpSheet';
 import { HabitsEditSheet, HabitRow } from '../components/modals/HabitsEditSheet';
 import { CalendarNoteCreateSheet } from '../components/modals/CalendarNoteCreateSheet';
-import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark, Lock } from 'lucide-react';
+import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark, Lock, ChevronRight } from 'lucide-react';
 import { OnboardingFlow } from '../components/onboarding/OnboardingFlow';
 import { TrialReminderModal } from '../components/modals/TrialReminderModal';
 import { cn } from '../lib/utils';
@@ -193,6 +193,7 @@ interface DashboardHomeProps {
   dismissNisaBubble: () => void;
   onCloseNisaBubble: () => void;
   toggleNisaBubble: () => void;
+  onNavigateToCalendar: () => void;
   onProfileClick: () => void;
   onSaveAndOpenNote: (note: Note) => void;
   habits: HabitRow[];
@@ -224,6 +225,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   dismissNisaBubble,
   onCloseNisaBubble,
   toggleNisaBubble,
+  onNavigateToCalendar,
   onProfileClick,
   onSaveAndOpenNote,
   habits,
@@ -236,7 +238,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onTrialUpgrade,
   hasFullAccess = true,
 }) => {
-  const { tasks } = useAppStore();
+  const { tasks, events } = useAppStore();
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [nisaStepped, setNisaStepped] = useState(false);
@@ -385,6 +387,28 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     return tasks.find(t => t.id === item.item_id)?.completed ?? false;
   };
 
+  const todayEvents = events.filter(e => dateIsToday(new Date(e.date)));
+  const todayTasks = tasks.filter(t => t.date && dateIsToday(new Date(t.date)) && !t.hidden);
+  const hhmm = (t?: string) => { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const todayItems = [
+    ...todayEvents.map(e => ({
+      id: `e-${e.id}`,
+      title: e.title,
+      time: e.isAllDay ? undefined : e.startTime,
+      color: (e.color || 'peony') as string,
+      completed: false,
+      sortKey: e.isAllDay ? -1 : (hhmm(e.startTime) ?? 10000),
+    })),
+    ...todayTasks.map(t => ({
+      id: `t-${t.id}`,
+      title: t.title,
+      time: t.time,
+      color: t.color as string,
+      completed: t.completed,
+      sortKey: hhmm(t.time) ?? 10000,
+    })),
+  ].sort((a, b) => a.sortKey - b.sortKey);
+
   return (
     <div className="overflow-y-auto pt-safe-2">
       {/* Header */}
@@ -409,6 +433,39 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
       <div className="px-4 pb-32">
         <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
+        {/* ── Today ────────────────────────────────────────────────────── */}
+        <div className="flow-widget md:col-span-2 order-0 md:order-0">
+          <button
+            onClick={onNavigateToCalendar}
+            className="w-full flex items-center justify-between mb-3"
+          >
+            <h2 className="flow-section-title">Today</h2>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+          {todayItems.length > 0 ? (
+            <div className="divide-y divide-border/30">
+              {todayItems.map(item => (
+                <div key={item.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <div className={cn('w-2 h-2 rounded-full flex-shrink-0', `bg-pastel-${item.color}`)} />
+                  <span className={cn(
+                    'flex-1 text-[15px] leading-snug truncate',
+                    item.completed && 'line-through text-muted-foreground/50'
+                  )}>
+                    {item.title}
+                  </span>
+                  {item.time && (
+                    <span className="text-[13px] text-muted-foreground/50 flex-shrink-0 tabular-nums">
+                      {item.time}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[15px] text-muted-foreground/60">You've got a clear day ☁️</p>
+          )}
+        </div>
+
         {/* ── Weekly Focus ──────────────────────────────────────────────── */}
         <div className="flow-widget order-1 md:order-1">
           <div className="flex items-center justify-between mb-4">
@@ -519,7 +576,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Brain dump ────────────────────────────────────────────────── */}
         <div className="flow-widget md:col-span-2 order-2 md:order-3">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Brain Dump ✨</h2>
+            <h2 className="flow-section-title">Brain dump</h2>
             {brainDumpItems.length > 0 && (
               <button
                 onClick={() => setShowBrainDumpSheet(true)}
@@ -1086,6 +1143,7 @@ const Dashboard: React.FC = () => {
             dismissNisaBubble={dismissNisaBubble}
             onCloseNisaBubble={() => setShowNisaBubble(false)}
             toggleNisaBubble={() => setShowNisaBubble(v => !v)}
+            onNavigateToCalendar={() => setActiveTab('calendar')}
             onProfileClick={() => setActiveTab('profile')}
             onSaveAndOpenNote={(note) => {
               setFocusNote(note);
