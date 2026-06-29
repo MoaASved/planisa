@@ -446,23 +446,6 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
-            {/* TEMP: day color preview — remove after confirming */}
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {[
-                { label: 'Sun', bg: 'rgba(190,140,255,0.7)' },
-                { label: 'Mon', bg: 'rgba(210,210,225,0.7)' },
-                { label: 'Tue', bg: 'rgba(255,120,150,0.7)' },
-                { label: 'Wed', bg: 'rgba(255,220,100,0.7)' },
-                { label: 'Thu', bg: 'rgba(100,160,255,0.7)' },
-                { label: 'Fri', bg: 'rgba(180,220,140,0.7)' },
-                { label: 'Sat', bg: 'rgba(255,160,80,0.7)' },
-              ].map(({ label, bg }, i) => (
-                <button key={label} onClick={() => setPreviewDay(previewDay === i ? null : i)} className="flex flex-col items-center gap-0.5">
-                  <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg, outline: previewDay === i ? '2px solid black' : 'none', outlineOffset: 2 }} />
-                  <span style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>{label}</span>
-                </button>
-              ))}
-            </div>
           </div>
           <div className="flex items-center space-x-4">
             <Search className="w-6 h-6 text-muted-foreground" />
@@ -497,7 +480,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             </p>
           </div>
           <p className="text-[11px] text-muted-foreground/40 font-medium tracking-wide mt-4">
-            Wk {getWeekNumber(today)}
+            W {getWeekNumber(today)}
           </p>
         </button>
 
