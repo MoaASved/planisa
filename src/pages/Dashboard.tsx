@@ -426,7 +426,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           left: 0,
           right: 0,
           height: '400px',
-          background: 'radial-gradient(ellipse at 30% 20%, rgba(180, 150, 255, 0.6) 0%, rgba(255, 150, 200, 0.4) 40%, transparent 70%)',
+          background: 'linear-gradient(180deg, rgba(180, 150, 255, 0.55) 0%, rgba(255, 150, 200, 0.35) 40%, transparent 100%)',
           zIndex: 0,
           pointerEvents: 'none',
           animation: 'gradient-breathe 5s ease-in-out infinite',
