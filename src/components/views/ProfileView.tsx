@@ -1023,25 +1023,24 @@ export function ProfileView() {
 
       {/* Emoji picker floating overlay */}
       {showEmojiPickerPopup && ReactDOM.createPortal(
-        <div
-          style={{ position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-        >
+        <>
           <div
-            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.4)' }}
             onClick={() => setShowEmojiPickerPopup(false)}
           />
-          <div style={{ position: 'relative', zIndex: 10001, width: '100%', maxWidth: 390, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div style={{ position: 'fixed', top: '45%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, width: '100%', maxWidth: 300 }}>
             <EmojiPicker
               onEmojiClick={(data: EmojiClickData) => {
                 setAvatarEmoji(data.emoji);
                 setShowEmojiPickerPopup(false);
               }}
               lazyLoadEmojis
-              height={380}
+              autoFocusSearch={false}
+              height={350}
               width="100%"
             />
           </div>
-        </div>,
+        </>,
         document.body,
       )}
 
