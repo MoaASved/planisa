@@ -46,7 +46,7 @@ export function HomeView({ onNavigate }: HomeViewProps) {
         {/* Greeting */}
         <div className="mb-8 pt-2">
           <h1 className="text-[34px] font-bold tracking-tight leading-tight">
-            {userName ? `Hello, ${userName} 👋🏽` : 'Hello there 👋🏽'}
+            {userName ? `Hi TEST, ${userName} 👋🏽` : 'Hi TEST 👋🏽'}
           </h1>
           <p className="text-[15px] text-muted-foreground/70 mt-1.5">
             {format(today, 'EEEE, MMMM d')}
