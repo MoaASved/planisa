@@ -13,6 +13,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
+  console.log("INDEX VERSION: TEST123");
   const [activeTab, setActiveTabRaw] = useState('home');
   const [showEventModal, setShowEventModal] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(false);
