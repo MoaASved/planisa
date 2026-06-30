@@ -167,39 +167,6 @@ async function syncUserById(
   await upsertSimvolyContact(domain, apiKey, email, displayName, subscription_status);
 }
 
-async function runNameBackfill(domain: string, apiKey: string): Promise<Response> {
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-  const listRes = await fetch(`${supabaseUrl}/rest/v1/users?select=id`, {
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
-  });
-  if (!listRes.ok) {
-    throw new Error(`Failed to list users: ${listRes.status}`);
-  }
-  const users: Array<{ id: string }> = await listRes.json();
-
-  const results: Array<{ id: string; status: "ok" | "error"; detail?: string }> = [];
-
-  for (const user of users) {
-    try {
-      await syncUserById(user.id, domain, apiKey);
-      results.push({ id: user.id, status: "ok" });
-    } catch (err) {
-      results.push({ id: user.id, status: "error", detail: String(err) });
-    }
-    await new Promise((resolve) => setTimeout(resolve, 300));
-  }
-
-  const okCount = results.filter((r) => r.status === "ok").length;
-  const errorCount = results.filter((r) => r.status === "error").length;
-
-  return new Response(
-    JSON.stringify({ totalUsers: users.length, synced: okCount, failed: errorCount, results }, null, 2),
-    { status: 200, headers: { "Content-Type": "application/json" } },
-  );
-}
-
 serve(async (req) => {
   try {
     const domain = Deno.env.get("SIMVOLY_DOMAIN");
@@ -207,20 +174,6 @@ serve(async (req) => {
 
     if (!domain || !apiKey) {
       throw new Error("SIMVOLY_DOMAIN eller SIMVOLY_API_KEY saknas som secret");
-    }
-
-    if (req.method === "GET") {
-      const backfillSecret = Deno.env.get("BACKFILL_SECRET");
-      const providedKey = new URL(req.url).searchParams.get("key");
-
-      if (!backfillSecret || providedKey !== backfillSecret) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      return await runNameBackfill(domain, apiKey);
     }
 
     const payload: WebhookPayload = await req.json();
