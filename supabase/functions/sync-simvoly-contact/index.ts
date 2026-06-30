@@ -109,7 +109,7 @@ async function upsertSimvolyContact(
 
   const url = `https://${domain}/api/site/contacts`;
   const res = await fetch(url, {
-    method: "POST", // creates OR updates by email, per Simvoly docs
+    method: "POST",
     headers: simvolyHeaders(apiKey),
     body: JSON.stringify(body),
   });
@@ -122,8 +122,6 @@ async function upsertSimvolyContact(
   console.log(`[simvoly-sync] upserted contact email=${email} name=${name ?? "(none)"} tags=${JSON.stringify(tags)}`);
 }
 
-// Hämtar nuvarande status från public.users och nuvarande namn från
-// auth.users-metadata, oavsett vilken tabell som triggade synken.
 async function syncUserById(
   userId: string,
   domain: string,
@@ -137,7 +135,6 @@ async function syncUserById(
     Authorization: `Bearer ${serviceKey}`,
   };
 
-  // 1. Hämta email + subscription_status från public.users
   const publicRes = await fetch(
     `${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=email,subscription_status`,
     { headers: restHeaders },
@@ -156,7 +153,6 @@ async function syncUserById(
     return;
   }
 
-  // 2. Hämta display_name från auth.users-metadata (admin API)
   let displayName: string | undefined;
   const authRes = await fetch(`${supabaseUrl}/auth/v1/admin/users/${userId}`, {
     headers: restHeaders,
@@ -171,11 +167,6 @@ async function syncUserById(
   await upsertSimvolyContact(domain, apiKey, email, displayName, subscription_status);
 }
 
-// ============================================================
-// TILLFÄLLIG ENGÅNGS-BACKFILL för att hämta in namn på de
-// användare som redan fanns innan auth.users-webhooken kopplades
-// in. Skyddad av BACKFILL_SECRET. Tas bort igen efter användning.
-// ============================================================
 async function runNameBackfill(domain: string, apiKey: string): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -218,6 +209,20 @@ serve(async (req) => {
       throw new Error("SIMVOLY_DOMAIN eller SIMVOLY_API_KEY saknas som secret");
     }
 
+    if (req.method === "GET") {
+      const backfillSecret = Deno.env.get("BACKFILL_SECRET");
+      const providedKey = new URL(req.url).searchParams.get("key");
+
+      if (!backfillSecret || providedKey !== backfillSecret) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return await runNameBackfill(domain, apiKey);
+    }
+
     const payload: WebhookPayload = await req.json();
 
     if (payload.type !== "INSERT" && payload.type !== "UPDATE") {
@@ -229,8 +234,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: true, reason: "no id" }), { status: 200 });
     }
 
-    // public.users: INSERT (ny signup) alltid relevant.
-    // public.users: UPDATE bara relevant om subscription_status faktiskt ändrades.
     if (payload.schema === "public" && payload.table === "users") {
       if (payload.type === "UPDATE") {
         const oldStatus = payload.old_record?.subscription_status;
@@ -245,7 +248,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 
-    // auth.users: bara relevant om display_name faktiskt ändrades.
     if (payload.schema === "auth" && payload.table === "users" && payload.type === "UPDATE") {
       const oldName = payload.old_record?.raw_user_meta_data?.display_name;
       const newName = payload.record?.raw_user_meta_data?.display_name;
