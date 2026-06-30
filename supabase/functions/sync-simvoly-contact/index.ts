@@ -163,7 +163,20 @@ serve(async (req) => {
       throw new Error("SIMVOLY_DOMAIN eller SIMVOLY_API_KEY saknas som secret");
     }
 
+    // GET = manuell engångs-backfill, skyddad av ett hemligt nyckel-värde
+    // i URL:en (?key=...) som måste matcha BACKFILL_SECRET. Utan rätt
+    // nyckel exponeras ingen användardata.
     if (req.method === "GET") {
+      const backfillSecret = Deno.env.get("BACKFILL_SECRET");
+      const providedKey = new URL(req.url).searchParams.get("key");
+
+      if (!backfillSecret || providedKey !== backfillSecret) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
       return await runBackfill(domain, apiKey);
     }
 
