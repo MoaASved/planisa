@@ -116,7 +116,7 @@ async function runBackfill(domain: string, apiKey: string): Promise<Response> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  const listUrl = `${supabaseUrl}/rest/v1/users?select=id,email,name,subscription_status`;
+  const listUrl = `${supabaseUrl}/rest/v1/users?select=id,email,subscription_status`;
   const res = await fetch(listUrl, {
     headers: {
       apikey: supabaseServiceKey,
@@ -129,7 +129,7 @@ async function runBackfill(domain: string, apiKey: string): Promise<Response> {
     throw new Error(`Failed to list users: ${res.status} ${body}`);
   }
 
-  const users: Array<{ id: string; email?: string; name?: string; subscription_status?: string }> =
+  const users: Array<{ id: string; email?: string; subscription_status?: string }> =
     await res.json();
 
   const results: Array<{ email: string; status: "ok" | "error"; detail?: string }> = [];
@@ -137,7 +137,7 @@ async function runBackfill(domain: string, apiKey: string): Promise<Response> {
   for (const user of users) {
     if (!user.email) continue;
     try {
-      await upsertSimvolyContact(domain, apiKey, user.email, user.name, user.subscription_status);
+      await upsertSimvolyContact(domain, apiKey, user.email, undefined, user.subscription_status);
       results.push({ email: user.email, status: "ok" });
     } catch (err) {
       results.push({ email: user.email, status: "error", detail: String(err) });
