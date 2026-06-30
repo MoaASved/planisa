@@ -31,8 +31,6 @@ interface WebhookPayload {
   };
 }
 
-// Alla taggar som funktionen själv äger och kan byta ut.
-// Allt annat på kontakten (t.ex. "väntelista") rörs aldrig.
 const PLANISA_ACCOUNT_TAG = "Planisa Account";
 
 const STATUS_TAGS: Record<string, string> = {
@@ -73,8 +71,6 @@ async function findContactByEmail(
 }
 
 function buildTagSet(existingTags: string[], newStatus: string | undefined): string[] {
-  // Ta bort alla gamla Planisa-ägda taggar (statustaggar + kontotagg),
-  // behåll allt annat orört (t.ex. "väntelista").
   const preserved = existingTags.filter(
     (t) => t !== PLANISA_ACCOUNT_TAG && !ALL_STATUS_TAG_VALUES.includes(t),
   );
@@ -103,7 +99,7 @@ async function upsertSimvolyContact(
 
   const url = `https://${domain}/api/site/contacts`;
   const res = await fetch(url, {
-    method: "POST", // creates OR updates by email, per Simvoly docs
+    method: "POST",
     headers: simvolyHeaders(apiKey),
     body: JSON.stringify(body),
   });
@@ -116,8 +112,61 @@ async function upsertSimvolyContact(
   console.log(`[simvoly-sync] upserted contact email=${email} tags=${JSON.stringify(tags)}`);
 }
 
+async function runBackfill(domain: string, apiKey: string): Promise<Response> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  const listUrl = `${supabaseUrl}/rest/v1/users?select=id,email,name,subscription_status`;
+  const res = await fetch(listUrl, {
+    headers: {
+      apikey: supabaseServiceKey,
+      Authorization: `Bearer ${supabaseServiceKey}`,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Failed to list users: ${res.status} ${body}`);
+  }
+
+  const users: Array<{ id: string; email?: string; name?: string; subscription_status?: string }> =
+    await res.json();
+
+  const results: Array<{ email: string; status: "ok" | "error"; detail?: string }> = [];
+
+  for (const user of users) {
+    if (!user.email) continue;
+    try {
+      await upsertSimvolyContact(domain, apiKey, user.email, user.name, user.subscription_status);
+      results.push({ email: user.email, status: "ok" });
+    } catch (err) {
+      results.push({ email: user.email, status: "error", detail: String(err) });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  const okCount = results.filter((r) => r.status === "ok").length;
+  const errorCount = results.filter((r) => r.status === "error").length;
+
+  return new Response(
+    JSON.stringify({ totalUsers: users.length, synced: okCount, failed: errorCount, results }, null, 2),
+    { status: 200, headers: { "Content-Type": "application/json" } },
+  );
+}
+
 serve(async (req) => {
   try {
+    const domain = Deno.env.get("SIMVOLY_DOMAIN");
+    const apiKey = Deno.env.get("SIMVOLY_API_KEY");
+
+    if (!domain || !apiKey) {
+      throw new Error("SIMVOLY_DOMAIN eller SIMVOLY_API_KEY saknas som secret");
+    }
+
+    if (req.method === "GET") {
+      return await runBackfill(domain, apiKey);
+    }
+
     const payload: WebhookPayload = await req.json();
 
     if (payload.type !== "INSERT" && payload.type !== "UPDATE") {
@@ -133,8 +182,6 @@ serve(async (req) => {
       );
     }
 
-    // På UPDATE: bara synka om subscription_status faktiskt ändrades.
-    // Slipper onödiga API-anrop till Simvoly vid andra fältuppdateringar.
     if (payload.type === "UPDATE") {
       const oldStatus = payload.old_record?.subscription_status;
       if (oldStatus === subscription_status) {
@@ -143,13 +190,6 @@ serve(async (req) => {
           { status: 200 },
         );
       }
-    }
-
-    const domain = Deno.env.get("SIMVOLY_DOMAIN");
-    const apiKey = Deno.env.get("SIMVOLY_API_KEY");
-
-    if (!domain || !apiKey) {
-      throw new Error("SIMVOLY_DOMAIN eller SIMVOLY_API_KEY saknas som secret");
     }
 
     await upsertSimvolyContact(domain, apiKey, email, name, subscription_status);
