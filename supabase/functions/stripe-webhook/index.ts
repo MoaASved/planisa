@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       }
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
-        const newStatus = sub.status === 'active' ? 'active' : 'expired';
+        const newStatus = sub.status === 'active' ? 'active' : 'downgraded';
         console.log(`[webhook] customer.subscription.updated — customer=${sub.customer} sub_status=${sub.status} → app_status=${newStatus}`);
         await updateUserStatus(sub.customer as string, newStatus);
         break;
@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
         console.log(`[webhook] customer.subscription.deleted — customer=${sub.customer}`);
-        await updateUserStatus(sub.customer as string, 'expired');
+        await updateUserStatus(sub.customer as string, 'downgraded');
         break;
       }
       default:
