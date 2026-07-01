@@ -109,8 +109,8 @@ export function Sidebar({
                 'w-full h-11 flex items-center rounded-2xl transition-all duration-200 cursor-pointer',
                 isExpanded ? 'gap-3 px-3' : 'justify-center',
                 isActive
-                  ? 'bg-[#ede8f5] dark:bg-muted text-foreground dark:text-foreground font-medium'
-                  : 'text-foreground/40 hover:text-foreground/70 dark:text-foreground/50 dark:hover:text-foreground',
+                  ? 'bg-[#ede8f5] md:bg-black/10 dark:bg-muted text-foreground md:text-[#2C2C2C] dark:text-foreground font-medium'
+                  : 'text-foreground/40 hover:text-foreground/70 md:text-[#2C2C2C]/60 md:hover:text-[#2C2C2C]/90 dark:text-foreground/50 dark:hover:text-foreground',
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
@@ -140,8 +140,8 @@ export function Sidebar({
           'w-full h-11 flex items-center rounded-2xl transition-all duration-200 cursor-pointer',
           isExpanded ? 'gap-3 px-3' : 'justify-center',
           activeTab === 'profile'
-            ? 'bg-[#ede8f5] dark:bg-muted text-foreground dark:text-foreground font-medium'
-            : 'text-foreground/40 hover:text-foreground/70 dark:text-foreground/50 dark:hover:text-foreground',
+            ? 'bg-[#ede8f5] md:bg-black/10 dark:bg-muted text-foreground md:text-[#2C2C2C] dark:text-foreground font-medium'
+            : 'text-foreground/40 hover:text-foreground/70 md:text-[#2C2C2C]/60 md:hover:text-[#2C2C2C]/90 dark:text-foreground/50 dark:hover:text-foreground',
         )}
       >
         <div
