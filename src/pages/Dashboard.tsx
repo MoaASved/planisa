@@ -486,7 +486,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       <div className="px-4 pb-32 relative z-10">
         <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
         {/* ── Today: two cards side by side ────────────────────────────── */}
-        <div className="flex flex-row gap-3 md:col-span-2 order-0">
+        <div className="flex flex-row gap-3 mx-1 md:mx-0 md:col-span-2 order-0">
         <button
           onClick={onNavigateToCalendar}
           className="flow-widget flex-1 text-left active:scale-[0.99] transition-transform flex flex-col justify-between"
