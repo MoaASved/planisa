@@ -2,8 +2,6 @@ import React from 'react';
 import { Home, Calendar, CheckSquare, FileText, Plus, User, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { getAccentTextClass } from '@/lib/colors';
-import { PastelColor } from '@/types';
 import { NisaAssistant } from './NisaAssistant';
 
 interface SidebarProps {
@@ -145,20 +143,14 @@ export function Sidebar({
         )}
       >
         <div
-          className={cn(
-            'w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 overflow-hidden',
-            settings.avatarType === 'image' && settings.avatarUrl
-              ? ''
-              : settings.avatarColor
-                ? getAccentTextClass(settings.avatarColor as PastelColor)
-                : '',
-          )}
+          className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 overflow-hidden"
           style={
             settings.avatarType === 'image' && settings.avatarUrl
               ? undefined
-              : settings.avatarColor
-                ? { backgroundColor: `hsl(var(--pastel-${settings.avatarColor}))` }
-                : undefined
+              : {
+                  backgroundColor: isDark ? '#F5F3F0' : '#1C1C1E',
+                  color: isDark ? '#1C1C1E' : '#FFFFFF',
+                }
           }
         >
           {settings.avatarType === 'image' && settings.avatarUrl ? (
