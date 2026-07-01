@@ -146,19 +146,27 @@ export function Sidebar({
       >
         <div
           className={cn(
-            'w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0',
-            settings.avatarColor
-              ? getAccentTextClass(settings.avatarColor as PastelColor)
-              : '',
+            'w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 overflow-hidden',
+            settings.avatarType === 'image' && settings.avatarUrl
+              ? ''
+              : settings.avatarColor
+                ? getAccentTextClass(settings.avatarColor as PastelColor)
+                : '',
           )}
           style={
-            settings.avatarColor
-              ? { backgroundColor: `hsl(var(--pastel-${settings.avatarColor}))` }
-              : undefined
+            settings.avatarType === 'image' && settings.avatarUrl
+              ? undefined
+              : settings.avatarColor
+                ? { backgroundColor: `hsl(var(--pastel-${settings.avatarColor}))` }
+                : undefined
           }
         >
-          {settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || (
-            <User className="w-4 h-4" />
+          {settings.avatarType === 'image' && settings.avatarUrl ? (
+            <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+          ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
+            <span className="text-sm leading-none">{settings.avatarEmoji}</span>
+          ) : (
+            settings.avatarInitial || settings.name?.trim()?.[0]?.toUpperCase() || <User className="w-4 h-4" />
           )}
         </div>
         {isExpanded && (
