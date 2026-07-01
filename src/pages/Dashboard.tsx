@@ -444,7 +444,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             'linear-gradient(180deg, rgba(190, 140, 255, 0.55) 0%, rgba(220, 120, 200, 0.35) 40%, transparent 100%)', // 0 Sun
             'linear-gradient(180deg, rgba(210, 210, 225, 0.55) 0%, rgba(190, 185, 220, 0.35) 40%, transparent 100%)', // 1 Mon
             'linear-gradient(180deg, rgba(255, 120, 150, 0.55) 0%, rgba(180, 80, 140, 0.35) 40%, transparent 100%)',  // 2 Tue
-            'linear-gradient(180deg, rgba(255, 220, 100, 0.55) 0%, rgba(255, 170, 60, 0.35) 40%, transparent 100%)',  // 3 Wed
+            settings.theme === 'dark'
+              ? 'linear-gradient(180deg, rgba(180, 120, 0, 0.25) 0%, rgba(180, 120, 0, 0.0) 40%, transparent 100%)'
+              : 'linear-gradient(180deg, rgba(255, 220, 100, 0.55) 0%, rgba(255, 170, 60, 0.35) 40%, transparent 100%)',  // 3 Wed
             'linear-gradient(180deg, rgba(100, 160, 255, 0.55) 0%, rgba(130, 110, 240, 0.35) 40%, transparent 100%)', // 4 Thu
             'linear-gradient(180deg, rgba(180, 220, 140, 0.55) 0%, rgba(150, 195, 110, 0.35) 40%, transparent 100%)', // 5 Fri
             'linear-gradient(180deg, rgba(255, 160, 80, 0.55) 0%, rgba(240, 110, 90, 0.35) 40%, transparent 100%)',   // 6 Sat
