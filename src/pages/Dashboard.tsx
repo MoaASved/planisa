@@ -489,7 +489,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         <div className="flex flex-row gap-3 mx-1 md:mx-0 md:col-span-2 order-0">
         <button
           onClick={onNavigateToCalendar}
-          className="flow-widget flex-1 text-left active:scale-[0.99] transition-transform flex flex-col justify-between"
+          className="flow-widget flex-1 min-w-0 text-left active:scale-[0.99] transition-transform flex flex-col justify-between"
         >
           <div>
             <p className="text-[56px] font-bold leading-none tracking-tight text-foreground">
@@ -510,7 +510,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Today: agenda card ───────────────────────────────────────── */}
         <button
           onClick={onNavigateToCalendar}
-          className="flow-widget flex-1 text-left active:scale-[0.99] transition-transform flex flex-col"
+          className="flow-widget flex-1 min-w-0 text-left active:scale-[0.99] transition-transform flex flex-col"
         >
           <div className="flex items-center justify-between mb-3">
             <h2 className="flow-section-title">Today</h2>
