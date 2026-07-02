@@ -46,8 +46,8 @@ export function taskToRow(task: Partial<Task>, userId: string): Row {
   if ('completedAt' in (task as object)) r.completed_at = task.completedAt ? task.completedAt.toISOString() : null;
   if (task.hidden !== undefined) r.hidden = task.hidden;
   if (task.date !== undefined) r.due_date = task.date ? new Date(task.date).toISOString() : null;
-  if (task.time !== undefined) r.time_text = task.time ?? null;
-  if (task.endTime !== undefined) r.end_time_text = task.endTime ?? null;
+  if ('time' in task) r.time_text = task.time ?? null;
+  if ('endTime' in task) r.end_time_text = task.endTime ?? null;
   if (task.category !== undefined) r.category_name = task.category ?? null;
   if (task.color !== undefined) r.color = task.color ?? null;
   if (task.note !== undefined) r.note = task.note ?? null;
