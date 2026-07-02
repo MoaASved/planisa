@@ -148,6 +148,10 @@ export function eventToRow(e: Partial<CalendarEvent>, userId: string): Row {
   if ('color' in e) r.color = e.color ?? null;
   if (e.description !== undefined) r.description = e.description ?? null;
   if (e.isAllDay !== undefined) r.all_day = e.isAllDay;
+  // When converting to all-day, explicitly clear times even if startTime/endTime
+  // weren't included in the update payload (they arrive as undefined, bypassing the
+  // guards above, which would otherwise leave stale times in the database).
+  if (e.isAllDay === true) { r.time_text = null; r.end_time_text = null; }
   if ('checklist' in e) r.checklist = e.checklist ?? [];
   return r;
 }
