@@ -191,6 +191,7 @@ interface DashboardHomeProps {
   onNavigateToCalendar: () => void;
   onNavigateToTasks: () => void;
   onNavigateToNotes: () => void;
+  onOpenNote: (note: Note) => void;
   onProfileClick: () => void;
   onSaveAndOpenNote: (note: Note) => void;
   habits: HabitRow[];
@@ -220,6 +221,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onNavigateToCalendar,
   onNavigateToTasks,
   onNavigateToNotes,
+  onOpenNote,
   onProfileClick,
   onSaveAndOpenNote,
   habits,
@@ -242,7 +244,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     tasks.filter(t => !t.hidden && (t.title.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q)))
       .slice(0, 4).forEach(t => out.push({ type: 'task', id: t.id, title: t.title }));
     notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q))
-      .slice(0, 4).forEach(n => out.push({ type: 'note', id: n.id, title: n.title || 'Untitled' }));
+      .slice(0, 4).forEach(n => {
+        const title = n.title?.trim()
+          ? n.title
+          : n.content?.trim()
+            ? n.content.replace(/\s+/g, ' ').trim().slice(0, 35)
+            : 'Empty note';
+        out.push({ type: 'note', id: n.id, title });
+      });
     folders.filter(f => f.name.toLowerCase().includes(q))
       .slice(0, 3).forEach(f => out.push({ type: 'folder', id: f.id, title: f.name }));
     events.filter(e => e.title.toLowerCase().includes(q) || (e.description ?? '').toLowerCase().includes(q))
@@ -253,9 +262,17 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const handleSearchResultClick = (type: 'task' | 'note' | 'folder' | 'event', id: string) => {
     setIsSearchOpen(false);
     setSearchQuery('');
-    if (type === 'task') { setHighlightTaskId(id); onNavigateToTasks(); }
-    else if (type === 'note' || type === 'folder') { onNavigateToNotes(); }
-    else { onNavigateToCalendar(); }
+    if (type === 'task') {
+      setHighlightTaskId(id);
+      onNavigateToTasks();
+    } else if (type === 'note') {
+      const note = notes.find(n => n.id === id);
+      if (note) onOpenNote(note);
+    } else if (type === 'folder') {
+      onNavigateToNotes();
+    } else {
+      onNavigateToCalendar();
+    }
   };
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
@@ -1337,6 +1354,14 @@ const Dashboard: React.FC = () => {
             onNavigateToCalendar={() => { setCalendarStartView('weekday'); setActiveTab('calendar'); }}
             onNavigateToTasks={() => setActiveTab('tasks')}
             onNavigateToNotes={() => setActiveTab('notes')}
+            onOpenNote={(note) => {
+              if (note.type === 'sticky') {
+                setFocusStickyNote(note);
+              } else {
+                setFocusNote(note);
+                setShowFocusNoteEditor(true);
+              }
+            }}
             onProfileClick={() => setActiveTab('profile')}
             onSaveAndOpenNote={(note) => {
               setFocusNote(note);
