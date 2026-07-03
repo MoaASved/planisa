@@ -805,17 +805,27 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         <div className="flow-widget md:col-span-2 order-2 md:order-3">
           <div className="flex items-center justify-between mb-4">
             <h2 className="flow-section-title">Brain dump</h2>
-            {brainDumpItems.length > 0 && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowBrainDumpSheet(true)}
-                className="w-6 h-6 rounded-full flex items-center justify-center bg-foreground"
-                aria-label={`${brainDumpItems.length} saved items`}
+                onClick={handleSaveForLater}
+                disabled={!brainDumpText.trim()}
+                className="flex items-center gap-1.5 text-foreground text-sm font-medium disabled:opacity-30"
               >
-                <span className="text-background text-[10px] font-bold leading-none">
-                  {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
-                </span>
+                <Bookmark className="w-4 h-4" />
+                Save for later
               </button>
-            )}
+              {brainDumpItems.length > 0 && (
+                <button
+                  onClick={() => setShowBrainDumpSheet(true)}
+                  className="w-6 h-6 rounded-full flex items-center justify-center bg-foreground"
+                  aria-label={`${brainDumpItems.length} saved items`}
+                >
+                  <span className="text-background text-[10px] font-bold leading-none">
+                    {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
           <textarea
             value={brainDumpText}
@@ -823,43 +833,33 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             placeholder="Write anything… sort later."
             className="w-full h-24 p-3 bg-secondary border-0 rounded-xl resize-none mb-4 flow-input"
           />
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-4">
-              <button
-                className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
-                onClick={() => hasFullAccess && handleBrainDumpSort('task')}
-                disabled={!hasFullAccess}
-              >
-                {hasFullAccess ? <CheckSquare className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-                <span className="flow-meta">Task</span>
-              </button>
-              <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
-                <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
-              </button>
-              <button
-                className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
-                onClick={() => hasFullAccess && handleBrainDumpSort('note')}
-                disabled={!hasFullAccess}
-              >
-                {hasFullAccess ? <FileText className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-                <span className="flow-meta">Note</span>
-              </button>
-              <button
-                className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
-                onClick={() => hasFullAccess && handleBrainDumpSort('sticky')}
-                disabled={!hasFullAccess}
-              >
-                {hasFullAccess ? <Pin className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-                <span className="flow-meta">Sticky</span>
-              </button>
-            </div>
+          <div className="flex space-x-4">
             <button
-              onClick={handleSaveForLater}
-              disabled={!brainDumpText.trim()}
-              className="flex items-center gap-1.5 text-foreground text-sm font-medium disabled:opacity-30"
+              className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
+              onClick={() => hasFullAccess && handleBrainDumpSort('task')}
+              disabled={!hasFullAccess}
             >
-              <Bookmark className="w-4 h-4" />
-              Save
+              {hasFullAccess ? <CheckSquare className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              <span className="flow-meta">Task</span>
+            </button>
+            <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
+              <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
+            </button>
+            <button
+              className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
+              onClick={() => hasFullAccess && handleBrainDumpSort('note')}
+              disabled={!hasFullAccess}
+            >
+              {hasFullAccess ? <FileText className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              <span className="flow-meta">Note</span>
+            </button>
+            <button
+              className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
+              onClick={() => hasFullAccess && handleBrainDumpSort('sticky')}
+              disabled={!hasFullAccess}
+            >
+              {hasFullAccess ? <Pin className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              <span className="flow-meta">Sticky</span>
             </button>
           </div>
         </div>
