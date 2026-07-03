@@ -434,8 +434,15 @@ export const useAppStore = create<AppState>()((set, get) => {
       });
     },
     deleteFolder: (id) => {
-      set((s) => ({ folders: s.folders.filter((f) => f.id !== id) }));
+      const folderName = get().folders.find((f) => f.id === id)?.name;
+      set((s) => ({
+        folders: s.folders.filter((f) => f.id !== id),
+        ...(folderName ? { notes: s.notes.filter((n) => n.folder !== folderName) } : {}),
+      }));
       (supabase.from('note_folders') as any).delete().eq('id', id).then(swallow('deleteFolder'));
+      if (folderName) {
+        (supabase.from('notes') as any).delete().eq('folder_name', folderName).then(swallow('deleteFolder:notes'));
+      }
     },
     reorderFolders: (orderedIds) => {
       const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
