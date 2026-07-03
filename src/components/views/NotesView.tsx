@@ -127,7 +127,7 @@ function TabsHeader({
             onPointerDown={() => { console.log('folders pointerdown', tab); setViewTab(tab); }}
             style={{ touchAction: 'manipulation' }}
             className={cn(
-              'px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
+              'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
               viewTab === tab
                 ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
