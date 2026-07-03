@@ -689,7 +689,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               )}
             </div>
           ) : (
-            <p className="text-[13px] text-muted-foreground/50">No plans</p>
+            <p className="text-[13px] text-muted-foreground/50">No plans today</p>
           )}
         </button>
         </div>
