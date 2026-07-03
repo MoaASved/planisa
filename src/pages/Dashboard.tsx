@@ -274,7 +274,9 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         const ts = n.title?.trim() ? snip(n.title) : null;
         const cs = snip(plainContent);
         const snippet: Snip | null = ts ? { ...ts, isContent: false } : cs ? { ...cs, isContent: true } : null;
-        out.push({ type: 'note', id: n.id, itemTitle: n.title?.trim() ?? '', snippet });
+        const rawTitle = n.title?.trim() ?? '';
+        const itemTitle = rawTitle && rawTitle.toLowerCase() !== 'untitled' ? rawTitle : '';
+        out.push({ type: 'note', id: n.id, itemTitle, snippet });
       });
 
     folders.filter(f => f.name.toLowerCase().includes(q))
