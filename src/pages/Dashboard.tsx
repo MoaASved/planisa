@@ -457,7 +457,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         }}
       />
       {/* Header */}
-      <div className="px-4 pb-4 relative z-10">
+      <div className="px-4 pb-4 relative z-50">
         <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
