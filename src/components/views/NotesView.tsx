@@ -721,7 +721,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             key={tab}
             onClick={() => setViewTab(tab)}
             className={cn(
-              'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
+              'px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
               viewTab === tab
                 ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
