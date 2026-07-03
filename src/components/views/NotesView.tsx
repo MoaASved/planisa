@@ -176,7 +176,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   }, [selectedFolder?.id]);
 
   // Get all notes and sticky notes
-  const allNotes = notes.filter(n => !n.hideFromAllNotes);
+  const folderNames = new Set(folders.map(f => f.name));
+  const allNotes = notes.filter(n => !n.hideFromAllNotes && (!n.folder || folderNames.has(n.folder)));
   const stickyNotes = notes.filter(n => n.type === 'sticky');
 
   // Filter notes based on search
