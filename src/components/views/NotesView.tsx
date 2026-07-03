@@ -719,7 +719,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         {(['boards', 'folders'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
-            onClick={() => setViewTab(tab)}
+            onClick={() => { console.log('folders clicked', tab); setViewTab(tab); }}
             className={cn(
               'px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
               viewTab === tab
