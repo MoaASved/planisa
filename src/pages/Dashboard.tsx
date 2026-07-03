@@ -833,7 +833,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             placeholder="Write anything… sort later."
             className="w-full h-24 p-3 bg-secondary border-0 rounded-xl resize-none mb-4 flow-input"
           />
-          <div className="flex space-x-4">
+          <div className="flex justify-center space-x-4">
             <button
               className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
               onClick={() => hasFullAccess && handleBrainDumpSort('task')}
