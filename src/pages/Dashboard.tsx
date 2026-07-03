@@ -21,7 +21,7 @@ import { BrainDumpSortModal, BrainDumpSortType } from '../components/modals/Brai
 import { BrainDumpSheet, BrainDumpItem } from '../components/modals/BrainDumpSheet';
 import { HabitsEditSheet, HabitRow } from '../components/modals/HabitsEditSheet';
 import { CalendarNoteCreateSheet } from '../components/modals/CalendarNoteCreateSheet';
-import { Search, Plus, Calendar, CheckSquare, FileText, Pin, PenLine, X, Bookmark, Lock, ChevronRight } from 'lucide-react';
+import { Search, Plus, Calendar, CheckSquare, FileText, Folder, Pin, PenLine, X, Bookmark, Lock, ChevronRight } from 'lucide-react';
 import { OnboardingFlow } from '../components/onboarding/OnboardingFlow';
 import { TrialReminderModal } from '../components/modals/TrialReminderModal';
 import { cn } from '../lib/utils';
@@ -189,6 +189,8 @@ interface DashboardHomeProps {
   onSaveBrainDump: (text: string) => Promise<void>;
   onDeleteBrainDumpItem: (id: string) => void;
   onNavigateToCalendar: () => void;
+  onNavigateToTasks: () => void;
+  onNavigateToNotes: () => void;
   onProfileClick: () => void;
   onSaveAndOpenNote: (note: Note) => void;
   habits: HabitRow[];
@@ -216,6 +218,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onSaveBrainDump,
   onDeleteBrainDumpItem,
   onNavigateToCalendar,
+  onNavigateToTasks,
+  onNavigateToNotes,
   onProfileClick,
   onSaveAndOpenNote,
   habits,
@@ -228,7 +232,31 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onTrialUpgrade,
   hasFullAccess = true,
 }) => {
-  const { tasks, events, settings, isSearchOpen, setIsSearchOpen, searchQuery, setSearchQuery } = useAppStore();
+  const { tasks, events, notes, folders, settings, isSearchOpen, setIsSearchOpen, searchQuery, setSearchQuery, setHighlightTaskId } = useAppStore();
+
+  const searchResults = (() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    type R = { type: 'task' | 'note' | 'folder' | 'event'; id: string; title: string };
+    const out: R[] = [];
+    tasks.filter(t => !t.hidden && (t.title.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q)))
+      .slice(0, 4).forEach(t => out.push({ type: 'task', id: t.id, title: t.title }));
+    notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q))
+      .slice(0, 4).forEach(n => out.push({ type: 'note', id: n.id, title: n.title || 'Untitled' }));
+    folders.filter(f => f.name.toLowerCase().includes(q))
+      .slice(0, 3).forEach(f => out.push({ type: 'folder', id: f.id, title: f.name }));
+    events.filter(e => e.title.toLowerCase().includes(q) || (e.description ?? '').toLowerCase().includes(q))
+      .slice(0, 3).forEach(e => out.push({ type: 'event', id: e.id, title: e.title }));
+    return out;
+  })();
+
+  const handleSearchResultClick = (type: 'task' | 'note' | 'folder' | 'event', id: string) => {
+    setIsSearchOpen(false);
+    setSearchQuery('');
+    if (type === 'task') { setHighlightTaskId(id); onNavigateToTasks(); }
+    else if (type === 'note' || type === 'folder') { onNavigateToNotes(); }
+    else { onNavigateToCalendar(); }
+  };
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
@@ -459,21 +487,48 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       {/* Header */}
       <div className="px-4 pb-4 relative z-50">
         {isSearchOpen ? (
-          <div className="flex items-center gap-3 h-12">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="flex-1 bg-secondary/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm outline-none"
-              autoFocus
-            />
-            <button
-              onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
-              className="text-sm font-medium text-primary whitespace-nowrap"
-            >
-              Cancel
-            </button>
+          <div className="relative">
+            <div className="flex items-center gap-3 h-12">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="flex-1 bg-secondary/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm outline-none"
+                autoFocus
+              />
+              <button
+                onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
+                className="text-sm font-medium text-primary whitespace-nowrap"
+              >
+                Cancel
+              </button>
+            </div>
+            {searchQuery.trim() && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-card rounded-2xl shadow-xl border border-border overflow-hidden z-50">
+                {searchResults.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-4 py-3 text-center">No results</p>
+                ) : (
+                  <div className="max-h-72 overflow-y-auto divide-y divide-border">
+                    {searchResults.map((r) => {
+                      const Icon = r.type === 'task' ? CheckSquare : r.type === 'folder' ? Folder : r.type === 'event' ? Calendar : FileText;
+                      const label = r.type === 'task' ? 'Task' : r.type === 'folder' ? 'Folder' : r.type === 'event' ? 'Event' : 'Note';
+                      return (
+                        <button
+                          key={`${r.type}-${r.id}`}
+                          onClick={() => handleSearchResultClick(r.type, r.id)}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 active:bg-secondary transition-colors"
+                        >
+                          <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <span className="flex-1 text-sm text-foreground truncate">{r.title}</span>
+                          <span className="text-xs text-muted-foreground/60 flex-shrink-0">{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-between mb-10">
@@ -1280,6 +1335,8 @@ const Dashboard: React.FC = () => {
             onSaveBrainDump={saveBrainDump}
             onDeleteBrainDumpItem={deleteBrainDumpItem}
             onNavigateToCalendar={() => { setCalendarStartView('weekday'); setActiveTab('calendar'); }}
+            onNavigateToTasks={() => setActiveTab('tasks')}
+            onNavigateToNotes={() => setActiveTab('notes')}
             onProfileClick={() => setActiveTab('profile')}
             onSaveAndOpenNote={(note) => {
               setFocusNote(note);
