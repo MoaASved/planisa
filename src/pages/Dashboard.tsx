@@ -228,7 +228,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onTrialUpgrade,
   hasFullAccess = true,
 }) => {
-  const { tasks, events, settings, setIsSearchOpen } = useAppStore();
+  const { tasks, events, settings, isSearchOpen, setIsSearchOpen, searchQuery, setSearchQuery } = useAppStore();
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
@@ -458,35 +458,54 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
       />
       {/* Header */}
       <div className="px-4 pb-4 relative z-50">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
-          </div>
-          <div className="flex items-center space-x-4">
+        {isSearchOpen ? (
+          <div className="flex items-center gap-3 h-12">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="flex-1 bg-secondary/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm outline-none"
+              autoFocus
+            />
             <button
-              onClick={() => { console.log('search clicked'); setIsSearchOpen(true); }}
-              className="w-9 h-9 rounded-full flex items-center justify-center"
-              aria-label="Open search"
+              onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
+              className="text-sm font-medium text-primary whitespace-nowrap"
             >
-              <Search className="w-6 h-6 text-muted-foreground" />
-            </button>
-            <button
-              onClick={onProfileClick}
-              className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-primary"
-              aria-label="Open profile"
-            >
-              {settings.avatarType === 'image' && settings.avatarUrl ? (
-                <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
-                <span className="text-lg leading-none">{settings.avatarEmoji}</span>
-              ) : (
-                <span className="text-primary-foreground font-semibold text-sm">
-                  {settings.avatarInitial || userName.charAt(0).toUpperCase()}
-                </span>
-              )}
+              Cancel
             </button>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between mb-10">
+            <div>
+              <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="w-9 h-9 rounded-full flex items-center justify-center"
+                aria-label="Open search"
+              >
+                <Search className="w-6 h-6 text-muted-foreground" />
+              </button>
+              <button
+                onClick={onProfileClick}
+                className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-primary"
+                aria-label="Open profile"
+              >
+                {settings.avatarType === 'image' && settings.avatarUrl ? (
+                  <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
+                  <span className="text-lg leading-none">{settings.avatarEmoji}</span>
+                ) : (
+                  <span className="text-primary-foreground font-semibold text-sm">
+                    {settings.avatarInitial || userName.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="px-4 pb-32 relative z-10">
