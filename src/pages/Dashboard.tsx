@@ -239,23 +239,55 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   const searchResults = (() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
-    type R = { type: 'task' | 'note' | 'folder' | 'event'; id: string; title: string };
+
+    // Extract a snippet around the first match in `text`, preserving original case.
+    const snip = (text: string, pad = 40): { pre: string; match: string; post: string } | null => {
+      if (!text) return null;
+      const idx = text.toLowerCase().indexOf(q);
+      if (idx === -1) return null;
+      const start = Math.max(0, idx - pad);
+      const end = Math.min(text.length, idx + q.length + pad);
+      return {
+        pre: (start > 0 ? '…' : '') + text.slice(start, idx),
+        match: text.slice(idx, idx + q.length),
+        post: text.slice(idx + q.length, end) + (end < text.length ? '…' : ''),
+      };
+    };
+
+    type Snip = { pre: string; match: string; post: string; isContent: boolean };
+    type R = { type: 'task' | 'note' | 'folder' | 'event'; id: string; itemTitle: string; snippet: Snip | null };
     const out: R[] = [];
+
     tasks.filter(t => !t.hidden && (t.title.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q)))
-      .slice(0, 4).forEach(t => out.push({ type: 'task', id: t.id, title: t.title }));
+      .slice(0, 4).forEach(t => {
+        const ts = snip(t.title);
+        const ns = t.note ? snip(t.note) : null;
+        const snippet: Snip | null = ts ? { ...ts, isContent: false } : ns ? { ...ns, isContent: true } : null;
+        out.push({ type: 'task', id: t.id, itemTitle: t.title, snippet });
+      });
+
     notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q))
       .slice(0, 4).forEach(n => {
-        const title = n.title?.trim()
-          ? n.title
-          : n.content?.trim()
-            ? n.content.replace(/\s+/g, ' ').trim().slice(0, 35)
-            : 'Empty note';
-        out.push({ type: 'note', id: n.id, title });
+        const ts = n.title?.trim() ? snip(n.title) : null;
+        const cs = snip(n.content ?? '');
+        const snippet: Snip | null = ts ? { ...ts, isContent: false } : cs ? { ...cs, isContent: true } : null;
+        out.push({ type: 'note', id: n.id, itemTitle: n.title?.trim() ?? '', snippet });
       });
+
     folders.filter(f => f.name.toLowerCase().includes(q))
-      .slice(0, 3).forEach(f => out.push({ type: 'folder', id: f.id, title: f.name }));
+      .slice(0, 3).forEach(f => {
+        const s = snip(f.name);
+        out.push({ type: 'folder', id: f.id, itemTitle: f.name, snippet: s ? { ...s, isContent: false } : null });
+      });
+
     events.filter(e => e.title.toLowerCase().includes(q) || (e.description ?? '').toLowerCase().includes(q))
-      .slice(0, 3).forEach(e => out.push({ type: 'event', id: e.id, title: e.title }));
+      .slice(0, 3).forEach(e => {
+        const ts = snip(e.title);
+        const ds = e.description ? snip(e.description) : null;
+        const snippet: Snip | null = ts ? { ...ts, isContent: false } : ds ? { ...ds, isContent: true } : null;
+        out.push({ type: 'event', id: e.id, itemTitle: e.title, snippet });
+      });
+
     return out;
   })();
 
@@ -530,6 +562,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                     {searchResults.map((r) => {
                       const Icon = r.type === 'task' ? CheckSquare : r.type === 'folder' ? Folder : r.type === 'event' ? Calendar : FileText;
                       const label = r.type === 'task' ? 'Task' : r.type === 'folder' ? 'Folder' : r.type === 'event' ? 'Event' : 'Note';
+                      const { snippet, itemTitle } = r;
                       return (
                         <button
                           key={`${r.type}-${r.id}`}
@@ -537,8 +570,21 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 active:bg-secondary transition-colors"
                         >
                           <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="flex-1 text-sm text-foreground truncate">{r.title}</span>
-                          <span className="text-xs text-muted-foreground/60 flex-shrink-0">{label}</span>
+                          <span className="flex-1 text-sm min-w-0 truncate">
+                            {snippet ? (
+                              <>
+                                {snippet.isContent && itemTitle && (
+                                  <span className="text-muted-foreground">{itemTitle} · </span>
+                                )}
+                                <span className="text-foreground/60">{snippet.pre}</span>
+                                <span className="text-foreground font-semibold">{snippet.match}</span>
+                                <span className="text-foreground/60">{snippet.post}</span>
+                              </>
+                            ) : (
+                              <span className="text-foreground">{itemTitle || 'Empty note'}</span>
+                            )}
+                          </span>
+                          <span className="text-xs text-muted-foreground/60 flex-shrink-0 ml-1">{label}</span>
                         </button>
                       );
                     })}
