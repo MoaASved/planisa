@@ -260,10 +260,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     type R = { type: 'task' | 'note' | 'folder' | 'event'; id: string; itemTitle: string; snippet: Snip | null };
     const out: R[] = [];
 
-    tasks.filter(t => !t.hidden && (t.title.toLowerCase().includes(q) || (t.note ?? '').toLowerCase().includes(q)))
+    tasks.filter(t => !t.hidden && (t.title.toLowerCase().includes(q) || stripHtml(t.note ?? '').toLowerCase().includes(q)))
       .slice(0, 4).forEach(t => {
         const ts = snip(t.title);
-        const ns = t.note ? snip(t.note) : null;
+        const ns = t.note ? snip(stripHtml(t.note)) : null;
         const snippet: Snip | null = ts ? { ...ts, isContent: false } : ns ? { ...ns, isContent: true } : null;
         out.push({ type: 'task', id: t.id, itemTitle: t.title, snippet });
       });
@@ -285,10 +285,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         out.push({ type: 'folder', id: f.id, itemTitle: f.name, snippet: s ? { ...s, isContent: false } : null });
       });
 
-    events.filter(e => e.title.toLowerCase().includes(q) || (e.description ?? '').toLowerCase().includes(q))
+    events.filter(e => e.title.toLowerCase().includes(q) || stripHtml(e.description ?? '').toLowerCase().includes(q))
       .slice(0, 3).forEach(e => {
         const ts = snip(e.title);
-        const ds = e.description ? snip(e.description) : null;
+        const ds = e.description ? snip(stripHtml(e.description)) : null;
         const snippet: Snip | null = ts ? { ...ts, isContent: false } : ds ? { ...ds, isContent: true } : null;
         out.push({ type: 'event', id: e.id, itemTitle: e.title, snippet });
       });
