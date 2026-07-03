@@ -442,10 +442,19 @@ export const useAppStore = create<AppState>()((set, get) => {
         folders: s.folders.filter((f) => f.id !== id),
         ...(folderName ? { notes: s.notes.filter((n) => n.folder !== folderName) } : {}),
       }));
-      (supabase.from('note_folders') as any).delete().eq('id', id).then(swallow('deleteFolder'));
-      if (folderName) {
-        (supabase.from('notes') as any).delete().eq('folder_name', folderName).then(swallow('deleteFolder:notes'));
-      }
+      // Delete notes first, then folder — sequenced so FK cascade doesn't interfere.
+      (async () => {
+        if (folderName) {
+          const notesRes = await (supabase.from('notes') as any).delete().eq('folder_name', folderName);
+          if (notesRes.error) {
+            console.error('[supabase:deleteFolder:notes]', notesRes.error.message ?? notesRes.error, notesRes.error);
+          }
+        }
+        const folderRes = await (supabase.from('note_folders') as any).delete().eq('id', id);
+        if (folderRes.error) {
+          console.error('[supabase:deleteFolder:folder]', folderRes.error.message ?? folderRes.error, folderRes.error);
+        }
+      })();
     },
     reorderFolders: (orderedIds) => {
       const indexMap = new Map(orderedIds.map((id, i) => [id, i]));
