@@ -464,7 +464,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           </div>
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => setIsSearchOpen(true)}
+              onClick={() => { console.log('search clicked'); setIsSearchOpen(true); }}
               className="w-9 h-9 rounded-full flex items-center justify-center"
               aria-label="Open search"
             >
@@ -547,7 +547,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               )}
             </div>
           ) : (
-            <p className="text-[13px] text-muted-foreground/50">Clear day ☁️</p>
+            <p className="text-[13px] text-muted-foreground/50">No plans</p>
           )}
         </button>
         </div>
