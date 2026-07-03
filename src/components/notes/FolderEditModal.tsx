@@ -12,12 +12,14 @@ interface FolderEditModalProps {
 }
 
 export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
-  const { updateFolder, deleteFolder } = useAppStore();
+  const { updateFolder, deleteFolder, notes } = useAppStore();
   const [name, setName] = useState(folder.name);
   const [color, setColor] = useState<PastelColor>(folder.color);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const namePicker = useEmojiPicker(nameRef, name, setName);
+
+  const noteCount = notes.filter(n => n.folder === folder.name).length;
 
   const handleSave = () => {
     if (name.trim()) {
@@ -122,7 +124,11 @@ export function FolderEditModal({ folder, onClose }: FolderEditModalProps) {
                 Delete {folder.name}?
               </h4>
               <p className="text-sm text-muted-foreground mb-5" style={{ lineHeight: 1.4 }}>
-                All notes and sticky notes in this folder will also be permanently deleted.
+                {noteCount === 1
+                  ? '1 note in this folder will also be permanently deleted.'
+                  : noteCount > 1
+                  ? `${noteCount} notes in this folder will also be permanently deleted.`
+                  : 'This folder is empty.'}
               </p>
               <div className="flex gap-3">
                 <button
