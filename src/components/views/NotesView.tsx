@@ -120,7 +120,7 @@ function TabsHeader({
   return (
     <div className="flex items-center justify-between mb-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center">
       {/* Tabs — centered on desktop */}
-      <div className="inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5 md:col-start-2">
+      <div className="relative z-20 inline-flex bg-secondary/50 rounded-2xl p-1 gap-0.5 md:col-start-2">
         {(['boards', 'folders'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
