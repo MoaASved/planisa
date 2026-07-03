@@ -240,6 +240,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
 
+    const stripHtml = (html: string) => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
     // Extract a snippet around the first match in `text`, preserving original case.
     const snip = (text: string, pad = 40): { pre: string; match: string; post: string } | null => {
       if (!text) return null;
@@ -266,10 +268,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         out.push({ type: 'task', id: t.id, itemTitle: t.title, snippet });
       });
 
-    notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q))
+    notes.filter(n => n.title.toLowerCase().includes(q) || stripHtml(n.content).toLowerCase().includes(q))
       .slice(0, 4).forEach(n => {
+        const plainContent = stripHtml(n.content ?? '');
         const ts = n.title?.trim() ? snip(n.title) : null;
-        const cs = snip(n.content ?? '');
+        const cs = snip(plainContent);
         const snippet: Snip | null = ts ? { ...ts, isContent: false } : cs ? { ...cs, isContent: true } : null;
         out.push({ type: 'note', id: n.id, itemTitle: n.title?.trim() ?? '', snippet });
       });
@@ -573,7 +576,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                           <span className="flex-1 text-sm min-w-0 truncate">
                             {snippet ? (
                               <>
-                                {snippet.isContent && itemTitle && (
+                                {snippet.isContent && itemTitle?.trim() && (
                                   <span className="text-muted-foreground">{itemTitle} · </span>
                                 )}
                                 <span className="text-foreground/60">{snippet.pre}</span>
