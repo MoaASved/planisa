@@ -714,7 +714,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               <p className="text-muted-foreground text-sm">Loading…</p>
             )}
             {!loadingFocus && focusItems.length === 0 && (
-              <p className="text-muted-foreground text-sm">No focus this week</p>
+              <p className="text-muted-foreground text-sm">Nothing in focus yet. What matters most this week?</p>
             )}
             {!loadingFocus && focusItems.map(item => (
               <FocusCard
