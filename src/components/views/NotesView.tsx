@@ -770,7 +770,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                             : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                         )}
                       >
-                        {f === 'all' ? 'All' : f === 'notes-only' ? 'Notes only' : 'Sticky only'}
+                        {f === 'all' ? 'All' : f === 'notes-only' ? 'Notes only' : 'Stickies only'}
                       </button>
                     ))}
                   </div>
