@@ -605,7 +605,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setIsSearchOpen(true)}
+                onClick={() => { setIsSearchOpen(true); setShowNisaBubble(false); }}
                 className="w-9 h-9 rounded-full flex items-center justify-center"
                 aria-label="Open search"
               >
@@ -957,11 +957,11 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             />
           )}
 
-          {/* Speech bubble — fixed, to the RIGHT of Nisa */}
+          {/* Speech bubble — absolute, to the RIGHT of Nisa */}
           {showNisaBubble && (
             <div
-              className="fixed"
               style={{
+                position: 'absolute',
                 top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
                 left: 'calc(50% + 4px)',
                 right: '12px',
@@ -1010,8 +1010,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 
           {/* Nisa icon — visual layer, behind cards when resting */}
           <div
-            className="fixed"
             style={{
+              position: 'absolute',
               top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
               right: 'calc(50% + 8px)',
               zIndex: showNisaBubble ? 50 : 9,
@@ -1038,8 +1038,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           <button
             onClick={handleNisaIconClick}
             aria-label="Talk to Nisa"
-            className="fixed"
             style={{
+              position: 'absolute',
               top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
               right: 'calc(50% + 8px)',
               width: '60px',
