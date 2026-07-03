@@ -228,7 +228,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   onTrialUpgrade,
   hasFullAccess = true,
 }) => {
-  const { tasks, events, settings } = useAppStore();
+  const { tasks, events, settings, setIsSearchOpen } = useAppStore();
 
   const [showHabitEdit, setShowHabitEdit] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
@@ -463,7 +463,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
             <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
           </div>
           <div className="flex items-center space-x-4">
-            <Search className="w-6 h-6 text-muted-foreground" />
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              aria-label="Open search"
+            >
+              <Search className="w-6 h-6 text-muted-foreground" />
+            </button>
             <button
               onClick={onProfileClick}
               className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-primary"

@@ -1,5 +1,4 @@
 import { Search, User } from 'lucide-react';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { getAccentTextClass } from '@/lib/colors';
@@ -17,8 +16,7 @@ export function TopBar({
   activeTab, 
   onProfileClick,
 }: TopBarProps) {
-  const { searchQuery, setSearchQuery, settings } = useAppStore();
-  const [showSearch, setShowSearch] = useState(false);
+  const { searchQuery, setSearchQuery, isSearchOpen, setIsSearchOpen, settings } = useAppStore();
 
   const showSearchAndProfile = tabsWithSearch.includes(activeTab);
 
@@ -30,7 +28,7 @@ export function TopBar({
   return (
     <header className="fixed top-0 left-0 right-0 z-40 pt-safe">
       <div className="px-4 h-12 flex items-center justify-end">
-        {showSearch ? (
+        {isSearchOpen ? (
           <div className="flex-1 flex items-center gap-3 h-12">
             <input
               type="text"
@@ -42,7 +40,7 @@ export function TopBar({
             />
             <button
               onClick={() => {
-                setShowSearch(false);
+                setIsSearchOpen(false);
                 setSearchQuery('');
               }}
               className="text-sm font-medium text-primary"
@@ -53,7 +51,7 @@ export function TopBar({
         ) : (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowSearch(true)}
+              onClick={() => setIsSearchOpen(true)}
               className="w-9 h-9 rounded-full bg-secondary/60 backdrop-blur-sm flex items-center justify-center hover:bg-secondary transition-colors"
             >
               <Search className="w-[18px] h-[18px] text-foreground/70" />

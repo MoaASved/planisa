@@ -80,6 +80,8 @@ interface AppState {
   updateSettings: (settings: Partial<UserSettings>) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  isSearchOpen: boolean;
+  setIsSearchOpen: (open: boolean) => void;
   highlightTaskId: string | null;
   setHighlightTaskId: (id: string | null) => void;
 
@@ -172,6 +174,7 @@ export const useAppStore = create<AppState>()((set, get) => {
     widgets: initialWidgets,
     settings: initialSettings,
     searchQuery: '',
+    isSearchOpen: false,
     highlightTaskId: null,
     _userId: null,
     _channels: [],
@@ -588,6 +591,7 @@ export const useAppStore = create<AppState>()((set, get) => {
       set((s) => ({ settings: { ...s.settings, ...newSettings } }));
     },
     setSearchQuery: (query) => set({ searchQuery: query }),
+    setIsSearchOpen: (open) => set({ isSearchOpen: open }),
     setHighlightTaskId: (id) => set({ highlightTaskId: id }),
 
     // ─────────────────────────── SYNC LIFECYCLE ───────────────────────────
