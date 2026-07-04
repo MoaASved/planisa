@@ -38,7 +38,7 @@ export const getBadgeClass = (color: PastelColor): string => {
   return `flow-badge-${color}`;
 };
 
-const darkBgColors = new Set<PastelColor>(['radicchio', 'peony', 'amethyst', 'cocoa', 'graphite']);
+const darkBgColors = new Set<PastelColor>(['radicchio', 'peony', 'amethyst', 'cocoa', 'graphite', 'lagune', 'mango']);
 
 // Returns text-color class for content rendered on top of a pastel surface.
 // Dark backgrounds (L < ~50%) get white text; light ones get the dark neutral.
@@ -127,7 +127,7 @@ export const getAvatarTextClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
     fern: 'text-pastel-fern',
     pistachio: 'text-pastel-pistachio-accent',
-    lagune: 'text-pastel-lagune',
+    lagune: 'text-white',
     sky: 'text-pastel-sky-accent',
     honey: 'text-pastel-honey-accent',
     peach: 'text-pastel-peach',
@@ -138,7 +138,7 @@ export const getAvatarTextClass = (color: PastelColor): string => {
     stone: 'text-pastel-stone',
     none: 'text-pastel-none-accent',
     radicchio: 'text-white',
-    mango: 'text-pastel-mango-accent',
+    mango: 'text-white',
     amethyst: 'text-white',
     cocoa: 'text-white',
     birch: 'text-pastel-birch-accent',
@@ -210,7 +210,7 @@ export const getAccentTextClass = (color: PastelColor): string => {
   const map: Record<PastelColor, string> = {
     fern: 'text-pastel-fern-accent',
     pistachio: 'text-pastel-pistachio-accent',
-    lagune: 'text-pastel-lagune-accent',
+    lagune: 'text-white',
     sky: 'text-pastel-sky-accent',
     honey: 'text-pastel-honey-accent',
     peach: 'text-pastel-peach-accent',
@@ -221,7 +221,7 @@ export const getAccentTextClass = (color: PastelColor): string => {
     stone: 'text-pastel-stone-accent',
     none: 'text-pastel-none-accent',
     radicchio: 'text-white',
-    mango: 'text-pastel-mango-accent',
+    mango: 'text-white',
     amethyst: 'text-white',
     cocoa: 'text-white',
     birch: 'text-pastel-birch-accent',
@@ -269,7 +269,7 @@ export const getColorGradient = (color: PastelColor): string => {
 };
 
 // Colors dark enough that white text is more readable than a dark tint.
-const lightTextColors = new Set<PastelColor>(['radicchio', 'amethyst', 'cocoa', 'graphite', 'peony', 'lagune', 'plum']);
+const lightTextColors = new Set<PastelColor>(['radicchio', 'amethyst', 'cocoa', 'graphite', 'peony', 'lagune', 'plum', 'mango']);
 
 // Text color for rendering on top of a pastel card/event background.
 // Dark-enough colors get white; others get a dark hue-tinted tone at ~L28-35%.

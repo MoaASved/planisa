@@ -836,13 +836,22 @@ input[type="time"]::-webkit-inner-spin-button {
   color: hsl(var(--foreground));
 }
 
-/* White text on dark highlight backgrounds */
+/* White text on dark highlight backgrounds — editor and note card preview */
 .tiptap-editor mark[style*="--pastel-radicchio"],
 .tiptap-editor mark[style*="--pastel-peony"],
 .tiptap-editor mark[style*="--pastel-amethyst"],
 .tiptap-editor mark[style*="--pastel-cocoa"],
-.tiptap-editor mark[style*="--pastel-graphite"] {
-  color: white;
+.tiptap-editor mark[style*="--pastel-graphite"],
+.tiptap-editor mark[style*="--pastel-lagune"],
+.tiptap-editor mark[style*="--pastel-mango"],
+.note-card-preview mark[style*="--pastel-radicchio"],
+.note-card-preview mark[style*="--pastel-peony"],
+.note-card-preview mark[style*="--pastel-amethyst"],
+.note-card-preview mark[style*="--pastel-cocoa"],
+.note-card-preview mark[style*="--pastel-graphite"],
+.note-card-preview mark[style*="--pastel-lagune"],
+.note-card-preview mark[style*="--pastel-mango"] {
+  color: white !important;
 }
 
 .tiptap-editor a {

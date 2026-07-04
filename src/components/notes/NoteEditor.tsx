@@ -60,6 +60,19 @@ import { useUndoableDelete } from '@/hooks/useUndoableDelete';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { pastelColors, getColorVar } from '@/lib/colors';
+
+const DARK_HIGHLIGHT_COLORS = new Set([
+  'radicchio', 'peony', 'amethyst', 'cocoa', 'graphite', 'lagune', 'mango',
+]);
+
+const CustomHighlight = Highlight.extend({
+  renderHTML({ HTMLAttributes }) {
+    const bg: string = HTMLAttributes.style || '';
+    const isDark = DARK_HIGHLIGHT_COLORS.size > 0 &&
+      [...DARK_HIGHLIGHT_COLORS].some(c => bg.includes(`--pastel-${c}`));
+    return ['mark', { ...HTMLAttributes, style: isDark ? `${bg}; color: white` : bg }, 0];
+  },
+});
 import { supabase } from '@/integrations/supabase/client';
 import { VoiceRecordingModal } from './VoiceRecordingModal';
 import { VoiceNoteExtension, insertVoiceNote } from './VoiceNoteExtension';
@@ -148,7 +161,7 @@ function NoteEditorBase({ note, onClose, defaultFolder, debugSource }: NoteEdito
 
   const extensions = useMemo(() => [
     StarterKit.configure({ heading: { levels: [1, 2] }, link: false }),
-    Highlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
+    CustomHighlight.configure({ multicolor: true, HTMLAttributes: { class: 'highlight' } }),
     Link.configure({ openOnClick: true, autolink: true, HTMLAttributes: { class: 'note-link' } }),
     TaskList,
     NoFocusTaskItem.configure({ nested: true }),
