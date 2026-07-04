@@ -3,8 +3,8 @@ import { PastelColor } from '@/types';
 export const pastelColors: { value: PastelColor; label: string; class: string }[] = [
   { value: 'radicchio', label: 'Radicchio', class: 'bg-pastel-radicchio' },
   { value: 'peony', label: 'Peony', class: 'bg-pastel-peony' },
-  { value: 'flamingo', label: 'Flamingo', class: 'bg-pastel-flamingo' },
   { value: 'rose', label: 'Rose', class: 'bg-pastel-rose' },
+  { value: 'flamingo', label: 'Flamingo', class: 'bg-pastel-flamingo' },
   { value: 'mango', label: 'Mango', class: 'bg-pastel-mango' },
   { value: 'honey', label: 'Honey', class: 'bg-pastel-honey' },
   { value: 'peach', label: 'Peach', class: 'bg-pastel-peach' },
