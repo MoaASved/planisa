@@ -177,18 +177,18 @@ input[type="time"]::-webkit-inner-spin-button {
     --sidebar-border: 30 8% 18%;
     --sidebar-ring: 0 0% 95%;
 
-    /* Pastel palette - dark mode: lighter/softer, more saturated than light mode */
-    --pastel-fern: 86 42% 58%;
-    --pastel-pistachio: 108 32% 72%;
-    --pastel-lagune: 195 42% 62%;
-    --pastel-sky: 215 48% 70%;
-    --pastel-peach: 22 60% 72%;
-    --pastel-honey: 44 65% 72%;
-    --pastel-peony: 270 40% 65%;
-    --pastel-rose: 345 52% 68%;
-    --pastel-plum: 250 35% 75%;
-    --pastel-flamingo: 328 45% 76%;
-    --pastel-stone: 34 20% 62%;
+    /* Pastel palette - dark mode */
+    --pastel-fern: 90 35% 68%;
+    --pastel-pistachio: 210 45% 68%;
+    --pastel-lagune: 88 40% 58%;
+    --pastel-sky: 280 32% 70%;
+    --pastel-peach: 44 60% 72%;
+    --pastel-honey: 38 70% 68%;
+    --pastel-peony: 338 55% 62%;
+    --pastel-rose: 340 45% 72%;
+    --pastel-plum: 230 40% 68%;
+    --pastel-flamingo: 8 65% 72%;
+    --pastel-stone: 34 22% 68%;
     --pastel-none: 34 12% 20%;
 
     --pastel-fern-accent: 86 45% 38%;
@@ -204,13 +204,12 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-stone-accent: 34 22% 40%;
     --pastel-none-accent: 34 12% 35%;
 
-    /* New colors — placeholder dark mode values (lighter than light mode; adjust later) */
-    --pastel-radicchio: 344 50% 62%;
-    --pastel-mango: 37 80% 68%;
-    --pastel-amethyst: 261 35% 66%;
-    --pastel-cocoa: 16 28% 52%;
-    --pastel-birch: 15 18% 78%;
-    --pastel-graphite: 0 0% 55%;
+    --pastel-radicchio: 345 60% 55%;
+    --pastel-mango: 37 85% 62%;
+    --pastel-amethyst: 265 40% 62%;
+    --pastel-cocoa: 16 32% 55%;
+    --pastel-birch: 15 18% 70%;
+    --pastel-graphite: 0 0% 58%;
     --pastel-radicchio-accent: 344 50% 45%;
     --pastel-mango-accent: 37 75% 50%;
     --pastel-amethyst-accent: 261 35% 50%;
