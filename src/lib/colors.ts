@@ -12,6 +12,12 @@ export const pastelColors: { value: PastelColor; label: string; class: string }[
   { value: 'rose', label: 'Rose', class: 'bg-pastel-rose' },
   { value: 'flamingo', label: 'Flamingo', class: 'bg-pastel-flamingo' },
   { value: 'stone', label: 'Stone', class: 'bg-pastel-stone' },
+  { value: 'radicchio', label: 'Radicchio', class: 'bg-pastel-radicchio' },
+  { value: 'mango', label: 'Mango', class: 'bg-pastel-mango' },
+  { value: 'amethyst', label: 'Amethyst', class: 'bg-pastel-amethyst' },
+  { value: 'cocoa', label: 'Cocoa', class: 'bg-pastel-cocoa' },
+  { value: 'birch', label: 'Birch', class: 'bg-pastel-birch' },
+  { value: 'graphite', label: 'Graphite', class: 'bg-pastel-graphite' },
 ];
 // 'none' is intentionally excluded from pastelColors — it appears as a separate swatch in event color pickers
 
@@ -56,6 +62,12 @@ export const getColorCardClass = (color: PastelColor): string => {
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
     none: 'bg-pastel-none border border-[hsl(27_6%_65%)]',
+    radicchio: 'bg-pastel-radicchio',
+    mango: 'bg-pastel-mango',
+    amethyst: 'bg-pastel-amethyst',
+    cocoa: 'bg-pastel-cocoa',
+    birch: 'bg-pastel-birch',
+    graphite: 'bg-pastel-graphite',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -75,6 +87,12 @@ export const getColorDotClass = (color: PastelColor): string => {
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
     none: 'bg-pastel-none',
+    radicchio: 'bg-pastel-radicchio',
+    mango: 'bg-pastel-mango',
+    amethyst: 'bg-pastel-amethyst',
+    cocoa: 'bg-pastel-cocoa',
+    birch: 'bg-pastel-birch',
+    graphite: 'bg-pastel-graphite',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -94,6 +112,12 @@ export const getAvatarBgClass = (color: PastelColor): string => {
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
     none: 'bg-pastel-none',
+    radicchio: 'bg-pastel-radicchio',
+    mango: 'bg-pastel-mango',
+    amethyst: 'bg-pastel-amethyst',
+    cocoa: 'bg-pastel-cocoa',
+    birch: 'bg-pastel-birch',
+    graphite: 'bg-pastel-graphite',
   };
   return colorMap[color] || 'bg-secondary';
 };
@@ -113,6 +137,12 @@ export const getAvatarTextClass = (color: PastelColor): string => {
     flamingo: 'text-pastel-flamingo',
     stone: 'text-pastel-stone',
     none: 'text-pastel-none-accent',
+    radicchio: 'text-pastel-radicchio',
+    mango: 'text-pastel-mango',
+    amethyst: 'text-pastel-amethyst',
+    cocoa: 'text-pastel-cocoa',
+    birch: 'text-pastel-birch',
+    graphite: 'text-pastel-graphite',
   };
   return colorMap[color] || 'text-muted-foreground';
 };
@@ -132,6 +162,12 @@ export const getColorStripeClass = (color: PastelColor): string => {
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
     none: 'bg-pastel-none',
+    radicchio: 'bg-pastel-radicchio',
+    mango: 'bg-pastel-mango',
+    amethyst: 'bg-pastel-amethyst',
+    cocoa: 'bg-pastel-cocoa',
+    birch: 'bg-pastel-birch',
+    graphite: 'bg-pastel-graphite',
   };
   return colorMap[color] || 'bg-pastel-peony';
 };
@@ -160,6 +196,12 @@ export const getAccentDotClass = (color: PastelColor): string => {
     flamingo: 'bg-pastel-flamingo-accent',
     stone: 'bg-pastel-stone-accent',
     none: 'bg-pastel-none-accent',
+    radicchio: 'bg-pastel-radicchio-accent',
+    mango: 'bg-pastel-mango-accent',
+    amethyst: 'bg-pastel-amethyst-accent',
+    cocoa: 'bg-pastel-cocoa-accent',
+    birch: 'bg-pastel-birch-accent',
+    graphite: 'bg-pastel-graphite-accent',
   };
   return map[color] || 'bg-pastel-peony-accent';
 };
@@ -178,6 +220,12 @@ export const getAccentTextClass = (color: PastelColor): string => {
     flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone-accent',
     none: 'text-pastel-none-accent',
+    radicchio: 'text-pastel-radicchio-accent',
+    mango: 'text-pastel-mango-accent',
+    amethyst: 'text-pastel-amethyst-accent',
+    cocoa: 'text-pastel-cocoa-accent',
+    birch: 'text-pastel-birch-accent',
+    graphite: 'text-pastel-graphite-accent',
   };
   return map[color] || 'text-pastel-peony-accent';
 };
@@ -196,6 +244,12 @@ export const getAccentBorderClass = (color: PastelColor): string => {
     flamingo: 'border-pastel-flamingo-accent',
     stone: 'border-pastel-stone-accent',
     none: 'border-pastel-none-accent',
+    radicchio: 'border-pastel-radicchio-accent',
+    mango: 'border-pastel-mango-accent',
+    amethyst: 'border-pastel-amethyst-accent',
+    cocoa: 'border-pastel-cocoa-accent',
+    birch: 'border-pastel-birch-accent',
+    graphite: 'border-pastel-graphite-accent',
   };
   return map[color] || 'border-pastel-peony-accent';
 };
@@ -230,6 +284,12 @@ export const getDeepTextColor = (color: PastelColor): string => {
     flamingo:  'hsl(342, 58%, 36%)',
     stone:     'hsl(34,  28%, 35%)',
     none:      'hsl(27,  8%, 28%)',
+    radicchio: 'hsl(344, 62%, 22%)',
+    mango:     'hsl(37,  88%, 28%)',
+    amethyst:  'hsl(261, 35%, 30%)',
+    cocoa:     'hsl(16,  28%, 20%)',
+    birch:     'hsl(15,  18%, 35%)',
+    graphite:  'hsl(0,   0%,  20%)',
   };
   return map[color] || 'hsl(0, 0%, 20%)';
 };

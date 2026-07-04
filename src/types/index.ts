@@ -10,7 +10,13 @@ export type PastelColor =
   | 'rose'
   | 'flamingo'
   | 'stone'
-  | 'none';
+  | 'none'
+  | 'radicchio'
+  | 'mango'
+  | 'amethyst'
+  | 'cocoa'
+  | 'birch'
+  | 'graphite';
 
 export type Priority = 'none' | 'low' | 'medium' | 'high';
 

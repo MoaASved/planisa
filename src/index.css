@@ -68,19 +68,25 @@ input[type="time"]::-webkit-inner-spin-button {
 
     --radius: 1rem;
 
-    /* Pastel palette - LIGHT (soft surfaces) — 12-color unified palette */
+    /* Pastel palette - LIGHT (soft surfaces) — 18-color unified palette */
     --pastel-fern: 86 44% 83%;        /* Fern #d7e7c2 */
-    --pastel-pistachio: 98 28% 79%;   /* Pistachio #c5d8ba */
-    --pastel-lagune: 205 100% 94%;    /* Lagune #e0f2ff */
-    --pastel-sky: 232 100% 90%;       /* Sky #cdd4ff */
-    --pastel-peach: 36 100% 83%;      /* Peach #ffdba7 */
-    --pastel-honey: 45 100% 87%;      /* Honey #ffefbe */
-    --pastel-peony: 275 100% 91%;     /* Peony #ebcfff */
-    --pastel-rose: 340 100% 95%;      /* Rose #ffe4ed */
-    --pastel-plum: 256 87% 94%;       /* Plum #e9e2fd */
-    --pastel-flamingo: 342 73% 87%;   /* Flamingo #f6c5d4 */
+    --pastel-pistachio: 210 58% 78%;  /* Pistachio #A8C8E8 */
+    --pastel-lagune: 87 35% 54%;      /* Lagune #8DB360 */
+    --pastel-sky: 278 34% 75%;        /* Sky #C4A8D4 */
+    --pastel-peach: 45 100% 87%;      /* Peach #ffefbe */
+    --pastel-honey: 34 91% 75%;       /* Honey #F9C784 */
+    --pastel-peony: 339 69% 61%;      /* Peony #E05585 */
+    --pastel-rose: 343 61% 77%;       /* Rose #E8A0B4 */
+    --pastel-plum: 231 44% 74%;       /* Plum #9FA8DA */
+    --pastel-flamingo: 9 80% 78%;     /* Flamingo #F4A89A */
     --pastel-stone: 34 33% 85%;       /* Stone #e6dbcd */
-    --pastel-none: 34 25% 97%;        /* None (off-white) ~#faf8f6 */
+    --pastel-none: 32 27% 97%;        /* None (off-white) #faf8f6 */
+    --pastel-radicchio: 344 63% 44%;  /* Radicchio #B5294E */
+    --pastel-mango: 37 91% 55%;       /* Mango #F5A623 */
+    --pastel-amethyst: 261 31% 53%;   /* Amethyst #7B61AB */
+    --pastel-cocoa: 16 26% 38%;       /* Cocoa #795548 */
+    --pastel-birch: 15 15% 69%;       /* Birch #BCAAA4 */
+    --pastel-graphite: 0 0% 38%;      /* Graphite #616161 */
 
     /* Universal text/icon color on top of pastel surfaces */
     --on-pastel: 40 6% 17%;          /* #2C2C2A */
@@ -98,6 +104,12 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-flamingo-accent: 342 55% 42%;
     --pastel-stone-accent: 34 28% 45%;
     --pastel-none-accent: 27 8% 28%;   /* None border/text — dark warm gray */
+    --pastel-radicchio-accent: 344 60% 28%;
+    --pastel-mango-accent: 37 88% 35%;
+    --pastel-amethyst-accent: 261 35% 32%;
+    --pastel-cocoa-accent: 16 28% 22%;
+    --pastel-birch-accent: 15 20% 42%;
+    --pastel-graphite-accent: 0 0% 22%;
 
     /* Smart list icon accents — palette-native hues, tuned for standalone icon contrast */
     --smart-today: 96 36% 42%;      /* Fern-inspired green, hue between Fern(84) and Pistachio(113) */
@@ -191,6 +203,20 @@ input[type="time"]::-webkit-inner-spin-button {
     --pastel-flamingo-accent: 342 52% 48%;
     --pastel-stone-accent: 34 22% 40%;
     --pastel-none-accent: 34 12% 35%;
+
+    /* New colors — placeholder dark mode values (lighter than light mode; adjust later) */
+    --pastel-radicchio: 344 50% 62%;
+    --pastel-mango: 37 80% 68%;
+    --pastel-amethyst: 261 35% 66%;
+    --pastel-cocoa: 16 28% 52%;
+    --pastel-birch: 15 18% 78%;
+    --pastel-graphite: 0 0% 55%;
+    --pastel-radicchio-accent: 344 50% 45%;
+    --pastel-mango-accent: 37 75% 50%;
+    --pastel-amethyst-accent: 261 35% 50%;
+    --pastel-cocoa-accent: 16 28% 38%;
+    --pastel-birch-accent: 15 18% 60%;
+    --pastel-graphite-accent: 0 0% 40%;
 
     /* Smart list icon accents — lighter for dark bg contrast */
     --smart-today: 96 42% 58%;

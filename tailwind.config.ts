@@ -75,6 +75,12 @@ export default {
           flamingo: { DEFAULT: "hsl(var(--pastel-flamingo))", accent: "hsl(var(--pastel-flamingo-accent))" },
           stone: { DEFAULT: "hsl(var(--pastel-stone))", accent: "hsl(var(--pastel-stone-accent))" },
           none: { DEFAULT: "hsl(var(--pastel-none))", accent: "hsl(var(--pastel-none-accent))" },
+          radicchio: { DEFAULT: "hsl(var(--pastel-radicchio))", accent: "hsl(var(--pastel-radicchio-accent))" },
+          mango: { DEFAULT: "hsl(var(--pastel-mango))", accent: "hsl(var(--pastel-mango-accent))" },
+          amethyst: { DEFAULT: "hsl(var(--pastel-amethyst))", accent: "hsl(var(--pastel-amethyst-accent))" },
+          cocoa: { DEFAULT: "hsl(var(--pastel-cocoa))", accent: "hsl(var(--pastel-cocoa-accent))" },
+          birch: { DEFAULT: "hsl(var(--pastel-birch))", accent: "hsl(var(--pastel-birch-accent))" },
+          graphite: { DEFAULT: "hsl(var(--pastel-graphite))", accent: "hsl(var(--pastel-graphite-accent))" },
         },
       },
       borderRadius: {
