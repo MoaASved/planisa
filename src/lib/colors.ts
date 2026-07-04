@@ -277,22 +277,22 @@ export const getDeepTextColor = (color: PastelColor): string => {
   if (lightTextColors.has(color)) return '#ffffff';
   const map: Record<PastelColor, string> = {
     fern:      'hsl(86,  38%, 28%)',
-    pistachio: 'hsl(210, 55%, 25%)',
+    pistachio: 'hsl(210, 65%, 22%)',
     lagune:    'hsl(205, 55%, 28%)',
-    sky:       'hsl(278, 35%, 28%)',
-    honey:     'hsl(45,  70%, 28%)',
+    sky:       'hsl(278, 45%, 24%)',
+    honey:     'hsl(38,  85%, 22%)',
     peach:     'hsl(36,  65%, 30%)',
     plum:      'hsl(256, 50%, 30%)',
     peony:     'hsl(275, 45%, 30%)',
     rose:      'hsl(340, 60%, 32%)',
-    flamingo:  'hsl(342, 58%, 36%)',
+    flamingo:  'hsl(9,   72%, 28%)',
     stone:     'hsl(34,  28%, 35%)',
     none:      'hsl(27,  8%, 28%)',
     radicchio: 'hsl(344, 62%, 22%)',
-    mango:     'hsl(30,  92%, 18%)',
+    mango:     'hsl(28,  88%, 20%)',
     amethyst:  'hsl(261, 35%, 30%)',
     cocoa:     'hsl(16,  28%, 20%)',
-    birch:     'hsl(15,  18%, 35%)',
+    birch:     'hsl(15,  28%, 28%)',
     graphite:  'hsl(0,   0%,  20%)',
   };
   return map[color] || 'hsl(0, 0%, 20%)';
