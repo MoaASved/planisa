@@ -268,9 +268,13 @@ export const getColorGradient = (color: PastelColor): string => {
   return `linear-gradient(to bottom, ${lighter} 0%, ${base} 100%)`;
 };
 
-// Dark hue-tinted text color for use on pastel card backgrounds.
-// Same hue as the pastel but at ~L30-35% so it reads clearly without being flat black.
+// Colors dark enough that white text is more readable than a dark tint.
+const lightTextColors = new Set<PastelColor>(['radicchio', 'amethyst', 'cocoa', 'graphite', 'peony', 'lagune', 'plum']);
+
+// Text color for rendering on top of a pastel card/event background.
+// Dark-enough colors get white; others get a dark hue-tinted tone at ~L28-35%.
 export const getDeepTextColor = (color: PastelColor): string => {
+  if (lightTextColors.has(color)) return '#ffffff';
   const map: Record<PastelColor, string> = {
     fern:      'hsl(86,  38%, 28%)',
     pistachio: 'hsl(98,  35%, 28%)',
