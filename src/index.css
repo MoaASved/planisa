@@ -836,6 +836,15 @@ input[type="time"]::-webkit-inner-spin-button {
   color: hsl(var(--foreground));
 }
 
+/* White text on dark highlight backgrounds */
+.tiptap-editor mark[style*="--pastel-radicchio"],
+.tiptap-editor mark[style*="--pastel-peony"],
+.tiptap-editor mark[style*="--pastel-amethyst"],
+.tiptap-editor mark[style*="--pastel-cocoa"],
+.tiptap-editor mark[style*="--pastel-graphite"] {
+  color: white;
+}
+
 .tiptap-editor a {
   @apply underline cursor-pointer;
   color: hsl(var(--primary));

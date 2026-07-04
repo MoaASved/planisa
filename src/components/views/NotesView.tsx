@@ -36,7 +36,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
 import { Note, PastelColor, Folder } from '@/types';
-import { pastelColors } from '@/lib/colors';
+import { pastelColors, getStickyTextClass } from '@/lib/colors';
 import { NoteEditor } from '@/components/notes/NoteEditor';
 import { NoteContentPreview } from '@/components/notes/NoteContentPreview';
 import { StickyNoteCard } from '@/components/notes/StickyNoteCard';
@@ -525,7 +525,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               </div>
               <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
                 {note.folder ? (
-                  <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
+                  <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', getStickyTextClass(folderData?.color))}>
                     {note.folder}
                   </span>
                 ) : <span />}
@@ -573,7 +573,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               <MoreHorizontal className="w-4 h-4 text-foreground/60" />
             </button>
             {note.folder && (
-              <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', 'text-[#2C2C2A]')}>
+              <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', getStickyTextClass(folderData?.color))}>
                 {note.folder}
               </span>
             )}
