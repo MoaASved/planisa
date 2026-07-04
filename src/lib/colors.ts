@@ -38,12 +38,12 @@ export const getBadgeClass = (color: PastelColor): string => {
   return `flow-badge-${color}`;
 };
 
-/**
- * Returns the appropriate Tailwind text-color class for content rendered on top
- * of a pastel sticky-note background. All pastel surfaces are light enough that
- * the dark neutral #2C2C2A gives better contrast than theme-foreground.
- */
-export const getStickyTextClass = (_color?: PastelColor): string => {
+const darkBgColors = new Set<PastelColor>(['radicchio', 'peony', 'amethyst', 'cocoa', 'graphite']);
+
+// Returns text-color class for content rendered on top of a pastel surface.
+// Dark backgrounds (L < ~50%) get white text; light ones get the dark neutral.
+export const getStickyTextClass = (color?: PastelColor): string => {
+  if (color && darkBgColors.has(color)) return 'text-white';
   return 'text-[#2C2C2A]';
 };
 
@@ -126,23 +126,23 @@ export const getAvatarBgClass = (color: PastelColor): string => {
 export const getAvatarTextClass = (color: PastelColor): string => {
   const colorMap: Record<PastelColor, string> = {
     fern: 'text-pastel-fern',
-    pistachio: 'text-pastel-pistachio',
+    pistachio: 'text-pastel-pistachio-accent',
     lagune: 'text-pastel-lagune',
-    sky: 'text-pastel-sky',
-    honey: 'text-pastel-honey',
+    sky: 'text-pastel-sky-accent',
+    honey: 'text-pastel-honey-accent',
     peach: 'text-pastel-peach',
     plum: 'text-pastel-plum',
-    peony: 'text-pastel-peony',
+    peony: 'text-white',
     rose: 'text-pastel-rose',
-    flamingo: 'text-pastel-flamingo',
+    flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone',
     none: 'text-pastel-none-accent',
-    radicchio: 'text-pastel-radicchio',
-    mango: 'text-pastel-mango',
-    amethyst: 'text-pastel-amethyst',
-    cocoa: 'text-pastel-cocoa',
-    birch: 'text-pastel-birch',
-    graphite: 'text-pastel-graphite',
+    radicchio: 'text-white',
+    mango: 'text-pastel-mango-accent',
+    amethyst: 'text-white',
+    cocoa: 'text-white',
+    birch: 'text-pastel-birch-accent',
+    graphite: 'text-white',
   };
   return colorMap[color] || 'text-muted-foreground';
 };
@@ -215,17 +215,17 @@ export const getAccentTextClass = (color: PastelColor): string => {
     honey: 'text-pastel-honey-accent',
     peach: 'text-pastel-peach-accent',
     plum: 'text-pastel-plum-accent',
-    peony: 'text-pastel-peony-accent',
+    peony: 'text-white',
     rose: 'text-pastel-rose-accent',
     flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone-accent',
     none: 'text-pastel-none-accent',
-    radicchio: 'text-pastel-radicchio-accent',
+    radicchio: 'text-white',
     mango: 'text-pastel-mango-accent',
-    amethyst: 'text-pastel-amethyst-accent',
-    cocoa: 'text-pastel-cocoa-accent',
+    amethyst: 'text-white',
+    cocoa: 'text-white',
     birch: 'text-pastel-birch-accent',
-    graphite: 'text-pastel-graphite-accent',
+    graphite: 'text-white',
   };
   return map[color] || 'text-pastel-peony-accent';
 };
