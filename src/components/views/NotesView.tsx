@@ -63,7 +63,7 @@ function SortableFolderCard({ folder, onClick, onEdit, isGrid, noteCount }: { fo
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('md:touch-none', isGrid && 'md:max-w-[200px] md:w-full')}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="md:touch-none">
       {isGrid
         ? <FolderGridCard folder={folder} onClick={onClick} onEdit={onEdit} />
         : <FolderListCard folder={folder} count={noteCount} onClick={onClick} onEdit={onEdit} />}
@@ -845,7 +845,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   if (viewTab === 'folders') {
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
-        <div className="px-6 pb-4">
+        <div className="px-4 pb-4">
           <TabsHeader
             viewTab={viewTab}
             setViewTab={setViewTab}
