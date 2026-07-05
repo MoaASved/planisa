@@ -53,10 +53,11 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
 
   return (
     <button
-      onClick={onClick}
+      onPointerDown={onClick}
       style={{
         transform: `rotate(${rotation.toFixed(2)}deg)`,
         boxShadow: '2px 3px 8px rgba(0,0,0,0.08)',
+        touchAction: 'manipulation',
       }}
       className={cn(
         'sticky-note-card text-left group transition-all duration-200 w-full rounded-2xl p-4 relative overflow-hidden',
