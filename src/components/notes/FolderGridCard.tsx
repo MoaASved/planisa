@@ -25,7 +25,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
           style={{ background: gradient }}
         >
           <div
-            className={`p-4 flex flex-col justify-end ${compact ? 'h-[100px]' : 'h-[140px] md:h-44'}`}
+            className="p-4 flex flex-col justify-end h-[140px] md:h-44"
           >
             <div className="flex items-end justify-between gap-2">
               <div className="flex-1 min-w-0 pr-1">
