@@ -38,6 +38,12 @@ const getStickyBgClass = (color?: PastelColor): string => {
     flamingo: 'bg-pastel-flamingo',
     stone: 'bg-pastel-stone',
     none: 'bg-pastel-none',
+    radicchio: 'bg-pastel-radicchio',
+    mango: 'bg-pastel-mango',
+    amethyst: 'bg-pastel-amethyst',
+    cocoa: 'bg-pastel-cocoa',
+    birch: 'bg-pastel-birch',
+    graphite: 'bg-pastel-graphite',
   };
   return colorMap[color] || 'bg-pastel-sky';
 };
@@ -49,7 +55,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
   const [content, setContent] = useState(note?.content?.replace(/<[^>]*>/g, '') || initialContent || '');
   const [color, setColor] = useState<PastelColor>(() => {
     if (note?.color) return note.color;
-    const colors: PastelColor[] = ['fern', 'pistachio', 'lagune', 'sky', 'peach', 'honey', 'peony', 'rose', 'plum', 'flamingo', 'stone'];
+    const colors: PastelColor[] = ['fern', 'pistachio', 'lagune', 'sky', 'peach', 'honey', 'peony', 'rose', 'plum', 'flamingo', 'stone', 'radicchio', 'mango', 'amethyst', 'cocoa', 'birch', 'graphite'];
     return colors[Math.floor(Math.random() * colors.length)];
   });
   const [folder, setFolder] = useState(note?.folder || defaultFolder || '');
