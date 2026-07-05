@@ -959,6 +959,11 @@ input[type="time"]::-webkit-inner-spin-button {
   pointer-events: none;
 }
 
+/* All children of sticky note cards are non-interactive so taps always reach the button */
+.sticky-note-card > * {
+  pointer-events: none;
+}
+
 .note-card-preview > * + * {
   margin-top: 2px;
 }

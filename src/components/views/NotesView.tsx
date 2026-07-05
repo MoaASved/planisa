@@ -497,9 +497,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         )}
       >
         <button
-          onClick={(e) => { e.stopPropagation(); handleOpenNote(note); }}
           className={cn(
-            'text-left transition-all duration-200 active:scale-[0.98]',
+            'text-left transition-all duration-200 pointer-events-none',
             isGrid
               ? cn('w-full rounded-2xl p-4', cardBgClass, 'h-[140px] md:h-44 overflow-hidden', 'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)]')
               : 'flex-1 p-4 min-w-0'
