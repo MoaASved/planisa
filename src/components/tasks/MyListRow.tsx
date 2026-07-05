@@ -1,6 +1,7 @@
 import { ChevronRight, Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskCategory } from '@/types';
+import { getColorDotClass } from '@/lib/colors';
 
 interface MyListRowProps {
   category: TaskCategory;
@@ -18,7 +19,7 @@ export function MyListRow({ category, count, onClick }: MyListRowProps) {
         'active:scale-[0.99] transition-all',
       )}
     >
-      <span className={cn('w-3 h-3 rounded-full flex-shrink-0', `bg-pastel-${category.color}`)} />
+      <span className={cn('w-3 h-3 rounded-full flex-shrink-0', getColorDotClass(category.color))} />
       <span className="flex-1 text-left flow-card-title truncate">
         {category.name}
       </span>
