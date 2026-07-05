@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { format } from 'date-fns';
 import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,6 +39,7 @@ const getStickyBgClass = (color?: PastelColor): string => {
 
 
 export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardProps) {
+  const tapStart = useRef<{ x: number; y: number; t: number } | null>(null);
   const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
 
   // Deterministic subtle rotation between -1deg and +1deg based on note id.
@@ -53,7 +55,13 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
 
   return (
     <button
-      onPointerDown={onClick}
+      onPointerDown={(e) => { tapStart.current = { x: e.clientX, y: e.clientY, t: Date.now() }; }}
+      onPointerUp={(e) => {
+        const s = tapStart.current;
+        tapStart.current = null;
+        if (!s) return;
+        if (Math.abs(e.clientX - s.x) < 10 && Math.abs(e.clientY - s.y) < 10 && Date.now() - s.t < 200) onClick();
+      }}
       style={{
         transform: `rotate(${rotation.toFixed(2)}deg)`,
         boxShadow: '2px 3px 8px rgba(0,0,0,0.08)',

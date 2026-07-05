@@ -244,6 +244,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const [showSearch, setShowSearch] = useState(false);
   const [localSearchQuery, setLocalSearchQuery] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const noteTapRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
   
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
@@ -487,7 +488,13 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
     return (
       <div
-        onPointerDown={() => handleOpenNote(note)}
+        onPointerDown={(e) => { noteTapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }; }}
+        onPointerUp={(e) => {
+          const s = noteTapRef.current;
+          noteTapRef.current = null;
+          if (!s) return;
+          if (Math.abs(e.clientX - s.x) < 10 && Math.abs(e.clientY - s.y) < 10 && Date.now() - s.t < 200) handleOpenNote(note);
+        }}
         className={cn(
           "relative group cursor-pointer",
           isMenuOpen && "z-[1000]",
