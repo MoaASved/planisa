@@ -19,7 +19,7 @@ export function FolderGridCard({ folder, onClick, onEdit, compact = false }: Fol
   const tapStart = useRef<{ x: number; y: number; t: number } | null>(null);
 
   return (
-    <div className="group px-1">
+    <div className="group">
       <div className="relative">
         <button
           onPointerDown={(e) => { tapStart.current = { x: e.clientX, y: e.clientY, t: Date.now() }; }}

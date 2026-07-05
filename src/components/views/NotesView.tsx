@@ -127,7 +127,7 @@ function TabsHeader({
             onPointerDown={() => setViewTab(tab)}
             style={{ touchAction: 'manipulation' }}
             className={cn(
-              'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
+              'w-[72px] py-2 text-center rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
               viewTab === tab
                 ? 'bg-card shadow-sm text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
