@@ -38,12 +38,18 @@ export const getBadgeClass = (color: PastelColor): string => {
   return `flow-badge-${color}`;
 };
 
-const darkBgColors = new Set<PastelColor>(['radicchio', 'peony', 'amethyst', 'cocoa', 'graphite', 'lagune', 'mango']);
+// Single source of truth for the white-vs-dark text decision.
+// These 6 colors are dark enough that white text is more readable than a dark tint.
+const DARK_BG_COLORS = new Set<PastelColor>(['radicchio', 'peony', 'amethyst', 'cocoa', 'graphite', 'lagune']);
+
+export const isDarkColor = (color?: PastelColor): boolean => {
+  return !!color && DARK_BG_COLORS.has(color);
+};
 
 // Returns text-color class for content rendered on top of a pastel surface.
-// Dark backgrounds (L < ~50%) get white text; light ones get the dark neutral.
+// Dark backgrounds get white text; all others get the dark neutral.
 export const getStickyTextClass = (color?: PastelColor): string => {
-  if (color && darkBgColors.has(color)) return 'text-white';
+  if (isDarkColor(color)) return 'text-white';
   return 'text-[#2C2C2A]';
 };
 
@@ -124,27 +130,28 @@ export const getAvatarBgClass = (color: PastelColor): string => {
 
 // Static color mapping for avatar text colors - Tailwind JIT compatible
 export const getAvatarTextClass = (color: PastelColor): string => {
-  const colorMap: Record<PastelColor, string> = {
+  if (isDarkColor(color)) return 'text-white';
+  const map: Record<PastelColor, string> = {
     fern: 'text-pastel-fern',
     pistachio: 'text-pastel-pistachio-accent',
-    lagune: 'text-white',
+    lagune: 'text-pastel-lagune-accent',
     sky: 'text-pastel-sky-accent',
     honey: 'text-pastel-honey-accent',
     peach: 'text-pastel-peach',
     plum: 'text-pastel-plum',
-    peony: 'text-white',
+    peony: 'text-pastel-peony-accent',
     rose: 'text-pastel-rose',
     flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone',
     none: 'text-pastel-none-accent',
-    radicchio: 'text-white',
-    mango: 'text-white',
-    amethyst: 'text-white',
-    cocoa: 'text-white',
+    radicchio: 'text-pastel-radicchio-accent',
+    mango: 'text-pastel-mango-accent',
+    amethyst: 'text-pastel-amethyst-accent',
+    cocoa: 'text-pastel-cocoa-accent',
     birch: 'text-pastel-birch-accent',
-    graphite: 'text-white',
+    graphite: 'text-pastel-graphite-accent',
   };
-  return colorMap[color] || 'text-muted-foreground';
+  return map[color] || 'text-muted-foreground';
 };
 
 // Static color mapping for stripe indicators - Tailwind JIT compatible
@@ -207,25 +214,26 @@ export const getAccentDotClass = (color: PastelColor): string => {
 };
 
 export const getAccentTextClass = (color: PastelColor): string => {
+  if (isDarkColor(color)) return 'text-white';
   const map: Record<PastelColor, string> = {
     fern: 'text-pastel-fern-accent',
     pistachio: 'text-pastel-pistachio-accent',
-    lagune: 'text-white',
+    lagune: 'text-pastel-lagune-accent',
     sky: 'text-pastel-sky-accent',
     honey: 'text-pastel-honey-accent',
     peach: 'text-pastel-peach-accent',
     plum: 'text-pastel-plum-accent',
-    peony: 'text-white',
+    peony: 'text-pastel-peony-accent',
     rose: 'text-pastel-rose-accent',
     flamingo: 'text-pastel-flamingo-accent',
     stone: 'text-pastel-stone-accent',
     none: 'text-pastel-none-accent',
-    radicchio: 'text-white',
-    mango: 'text-white',
-    amethyst: 'text-white',
-    cocoa: 'text-white',
+    radicchio: 'text-pastel-radicchio-accent',
+    mango: 'text-pastel-mango-accent',
+    amethyst: 'text-pastel-amethyst-accent',
+    cocoa: 'text-pastel-cocoa-accent',
     birch: 'text-pastel-birch-accent',
-    graphite: 'text-white',
+    graphite: 'text-pastel-graphite-accent',
   };
   return map[color] || 'text-pastel-peony-accent';
 };
@@ -268,13 +276,10 @@ export const getColorGradient = (color: PastelColor): string => {
   return `linear-gradient(to bottom, ${lighter} 0%, ${base} 100%)`;
 };
 
-// Colors dark enough that white text is more readable than a dark tint.
-const lightTextColors = new Set<PastelColor>(['radicchio', 'amethyst', 'cocoa', 'graphite', 'peony', 'lagune', 'plum', 'mango']);
-
 // Text color for rendering on top of a pastel card/event background.
 // Dark-enough colors get white; others get a dark hue-tinted tone at ~L28-35%.
 export const getDeepTextColor = (color: PastelColor): string => {
-  if (lightTextColors.has(color)) return '#ffffff';
+  if (isDarkColor(color)) return '#ffffff';
   const map: Record<PastelColor, string> = {
     fern:      'hsl(86,  38%, 28%)',
     pistachio: 'hsl(210, 65%, 22%)',
