@@ -487,7 +487,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
     return (
       <div
-        onClick={() => handleOpenNote(note)}
+        onPointerDown={() => handleOpenNote(note)}
         className={cn(
           "relative group cursor-pointer",
           isMenuOpen && "z-[1000]",
@@ -495,6 +495,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
           // (··· / folder / date) can live outside the <button> as a sibling.
           !isGrid && cn(cardBgClass, "rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition-all duration-200 flex items-stretch")
         )}
+        style={{ touchAction: 'manipulation' }}
       >
         <button
           className={cn(
@@ -568,7 +569,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         {!isGrid && (
           <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
             <button
-              onClick={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+              onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
               className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
               aria-label="Note options"
             >
@@ -590,7 +591,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         {/* ··· menu button — grid view only (absolutely positioned) */}
         {isGrid && (
           <button
-            onClick={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+            onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
             className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-label="Note options"
           >
