@@ -99,7 +99,7 @@ export function StickyNoteCard({ note, onClick, isGrid = true }: StickyNoteCardP
           'flex-shrink-0 flex items-center gap-2 flex-wrap',
           isGrid ? 'mt-auto pt-3' : 'mt-2'
         )}>
-          <span className="text-xs text-[#2C2C2A]/70">
+          <span className={cn('text-xs opacity-70', getStickyTextClass(note.color))}>
             {format(new Date(note.updatedAt), 'MMM d')}
           </span>
         </div>

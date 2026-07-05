@@ -192,7 +192,9 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
           placeholder="Write something..."
           className={cn(
             'w-full bg-transparent border-none outline-none resize-none text-lg',
-            'placeholder:text-[#2C2C2A]/40 text-[#2C2C2A]/90',
+            getStickyTextClass(color) === 'text-white'
+              ? 'placeholder:text-white/40 text-white/90'
+              : 'placeholder:text-[#2C2C2A]/40 text-[#2C2C2A]/90',
             'min-h-[150px] max-h-[300px] md:flex-1 md:min-h-[200px] md:max-h-none md:overflow-y-auto'
           )}
           
