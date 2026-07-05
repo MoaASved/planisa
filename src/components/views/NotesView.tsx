@@ -124,7 +124,7 @@ function TabsHeader({
         {(['boards', 'folders'] as ViewTab[]).map((tab) => (
           <button
             key={tab}
-            onPointerDown={() => { console.log('folders pointerdown', tab); setViewTab(tab); }}
+            onPointerDown={() => setViewTab(tab)}
             style={{ touchAction: 'manipulation' }}
             className={cn(
               'px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 active:scale-95',
@@ -138,68 +138,61 @@ function TabsHeader({
         ))}
       </div>
 
-      {/* Right controls */}
+      {/* Right controls — always same structure so header never reflows */}
       <div className="flex items-center gap-2 md:col-start-3 md:justify-self-end">
-        {viewTab === 'boards' && (
-          <>
-            {/* Filter */}
-            <div className="relative">
-              <button
-                onClick={() => setShowFilterMenu(v => !v)}
-                className={cn(
-                  'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
-                  showFilterMenu || boardsFilter !== 'all'
-                    ? 'text-foreground bg-secondary'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                {boardsFilter !== 'all' && (
-                  <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary pointer-events-none" />
-                )}
-              </button>
-              {showFilterMenu && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
-                  <div
-                    className="absolute right-0 top-full mt-1 z-20 bg-card rounded-xl border border-border/50 p-1 min-w-[140px]"
-                    style={{ boxShadow: 'var(--shadow-elevated)' }}
-                  >
-                    {(['all', 'notes-only', 'sticky-only'] as const).map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => { setBoardsFilter(f); setShowFilterMenu(false); }}
-                        className={cn(
-                          'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
-                          boardsFilter === f
-                            ? 'bg-secondary text-foreground font-medium'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                        )}
-                      >
-                        {f === 'all' ? 'All' : f === 'notes-only' ? 'Notes only' : 'Stickies only'}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-            {/* View toggle */}
-            <button
-              onClick={() => setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
-            </button>
-          </>
-        )}
-        {viewTab === 'folders' && (
+        {/* Filter — boards only; invisible on folders to preserve space */}
+        <div className={cn("relative", viewTab === 'folders' && 'invisible pointer-events-none')}>
           <button
-            onClick={() => setFoldersLayoutMode(foldersLayoutMode === 'list' ? 'grid' : 'list')}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setShowFilterMenu(v => !v)}
+            className={cn(
+              'w-8 h-8 rounded-lg flex items-center justify-center transition-colors',
+              showFilterMenu || boardsFilter !== 'all'
+                ? 'text-foreground bg-secondary'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
           >
-            {foldersLayoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />}
+            <SlidersHorizontal className="w-4 h-4" />
+            {boardsFilter !== 'all' && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary pointer-events-none" />
+            )}
           </button>
-        )}
+          {showFilterMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowFilterMenu(false)} />
+              <div
+                className="absolute right-0 top-full mt-1 z-20 bg-card rounded-xl border border-border/50 p-1 min-w-[140px]"
+                style={{ boxShadow: 'var(--shadow-elevated)' }}
+              >
+                {(['all', 'notes-only', 'sticky-only'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => { setBoardsFilter(f); setShowFilterMenu(false); }}
+                    className={cn(
+                      'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+                      boardsFilter === f
+                        ? 'bg-secondary text-foreground font-medium'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    )}
+                  >
+                    {f === 'all' ? 'All' : f === 'notes-only' ? 'Notes only' : 'Stickies only'}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+        {/* View toggle — adapts to active tab */}
+        <button
+          onClick={() => viewTab === 'boards'
+            ? setLayoutMode(layoutMode === 'list' ? 'grid' : 'list')
+            : setFoldersLayoutMode(foldersLayoutMode === 'list' ? 'grid' : 'list')}
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {viewTab === 'boards'
+            ? (layoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />)
+            : (foldersLayoutMode === 'list' ? <LayoutGrid className="w-4 h-4" /> : <LayoutList className="w-4 h-4" />)
+          }
+        </button>
         {/* Search */}
         <button
           onClick={() => setShowSearch(!showSearch)}
@@ -887,9 +880,8 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             >
               <div
                 className={foldersLayoutMode === 'grid'
-                  ? 'grid grid-cols-2 md:grid-cols-4 md:justify-items-center gap-4 md:gap-10 p-4'
+                  ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'
                   : 'space-y-2'}
-                style={foldersLayoutMode === 'grid' ? { margin: '-16px' } : undefined}
               >
                 {rootFolders.map((folder) => (
                   <SortableFolderCard
