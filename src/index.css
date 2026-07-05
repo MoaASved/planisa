@@ -956,6 +956,7 @@ input[type="time"]::-webkit-inner-spin-button {
   font-size: 13px;
   line-height: 1.45;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .note-card-preview > * + * {

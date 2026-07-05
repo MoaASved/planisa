@@ -486,15 +486,18 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     };
 
     return (
-      <div className={cn(
-        "relative group",
-        isMenuOpen && "z-[1000]",
-        // List view: promote card styles to the wrapper so the right column
-        // (··· / folder / date) can live outside the <button> as a sibling.
-        !isGrid && cn(cardBgClass, "rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition-all duration-200 flex items-stretch")
-      )}>
+      <div
+        onClick={() => handleOpenNote(note)}
+        className={cn(
+          "relative group cursor-pointer",
+          isMenuOpen && "z-[1000]",
+          // List view: promote card styles to the wrapper so the right column
+          // (··· / folder / date) can live outside the <button> as a sibling.
+          !isGrid && cn(cardBgClass, "rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition-all duration-200 flex items-stretch")
+        )}
+      >
         <button
-          onClick={() => handleOpenNote(note)}
+          onClick={(e) => { e.stopPropagation(); handleOpenNote(note); }}
           className={cn(
             'text-left transition-all duration-200 active:scale-[0.98]',
             isGrid
