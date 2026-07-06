@@ -603,7 +603,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             overflow:hidden on card wrappers or buried under sibling cards. */}
         {isMenuOpen && menuBtnRect && createPortal(
           <>
-            <div className="fixed inset-0 z-[200]" onClick={() => setOpenMenuNoteId(null)} />
+            <div className="fixed inset-0 z-[200]" onPointerDown={() => setOpenMenuNoteId(null)} />
             <div
               className="fixed z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
               style={{
@@ -613,12 +613,14 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
               }}
             >
               <button
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={handleDuplicate}
                 className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary/60 transition-colors"
               >
                 Duplicate
               </button>
               <button
+                onPointerDown={(e) => e.stopPropagation()}
                 onClick={handleDelete}
                 className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-secondary/60 transition-colors"
               >
