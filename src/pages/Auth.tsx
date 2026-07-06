@@ -16,6 +16,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -26,6 +27,7 @@ export default function Auth() {
 
   const switchMode = (m: 'login' | 'signup') => {
     setMode(m);
+    setAuthError(null);
     setSearchParams(m === 'signup' ? { mode: 'signup' } : {});
   };
 
@@ -47,6 +49,7 @@ export default function Auth() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     setSubmitting(true);
     try {
       if (mode === 'signup') {
@@ -62,7 +65,11 @@ export default function Auth() {
         if (error) throw error;
       }
     } catch (err: any) {
-      toast.error(err.message ?? 'Something went wrong');
+      if (mode === 'login') {
+        setAuthError('Incorrect email or password. Please try again.');
+      } else {
+        toast.error(err.message ?? 'Something went wrong');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -150,7 +157,7 @@ export default function Auth() {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
                 placeholder="Email"
                 autoComplete="email"
                 className="w-full px-4 py-3.5 rounded-2xl bg-secondary border-0 text-foreground placeholder:text-muted-foreground/40 text-[15px] outline-none focus:ring-2 focus:ring-foreground/10 transition-shadow"
@@ -161,7 +168,7 @@ export default function Auth() {
                   required
                   minLength={6}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
                   placeholder="Password"
                   autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                   className="w-full px-4 py-3.5 pr-11 rounded-2xl bg-secondary border-0 text-foreground placeholder:text-muted-foreground/40 text-[15px] outline-none focus:ring-2 focus:ring-foreground/10 transition-shadow"
@@ -187,6 +194,10 @@ export default function Auth() {
                     Forgot password?
                   </button>
                 </div>
+              )}
+
+              {authError && (
+                <p className="text-sm text-red-500 text-center -mt-1">{authError}</p>
               )}
 
               <button
