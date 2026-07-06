@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { EmojiPicker, useEmojiPicker } from '@/components/ui/EmojiPicker';
 import { format } from 'date-fns';
-import { X, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Clock, Folder } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Note } from '@/types';
+import { Note, PastelColor } from '@/types';
+import { pastelColors, getColorDotClass } from '@/lib/colors';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { FolderPickerSheet } from '@/components/notes/FolderPickerSheet';
 
 interface CalendarNoteCreateSheetProps {
   date: Date;
@@ -20,6 +23,9 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
   const { addNote } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [color, setColor] = useState<PastelColor>('none');
+  const [folder, setFolder] = useState('');
+  const [showFolderPicker, setShowFolderPicker] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const titlePicker = useEmojiPicker(titleRef, title, setTitle);
@@ -37,6 +43,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
     if (!isOpen) return;
     setTitle(initialTitle ?? '');
     setContent('');
+    setColor('none');
+    setFolder('');
     setLocalDate(date);
     setLocalTime(time);
     if (time) {
@@ -60,6 +68,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         content: buildContent(),
         type: 'note' as const,
         tags: [],
+        color,
+        folder: folder || undefined,
         date: localDate,
         time: localTime || undefined,
         endTime: localEndTime || undefined,
@@ -76,6 +86,8 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
       content: buildContent(),
       type: 'note' as const,
       tags: [],
+      color,
+      folder: folder || undefined,
       date: localDate,
       time: localTime,
       endTime: localEndTime,
@@ -208,22 +220,73 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
           />
         </div>
 
-        {/* Footer buttons: Open in Notes, Save */}
-        <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 flex gap-3">
-          <button
-            onClick={handleOpenInNotes}
-            className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
-          >
-            Open in Notes
-          </button>
-          <button
-            onClick={saveAndClose}
-            className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-all"
-          >
-            Save
-          </button>
+        {/* Footer */}
+        <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 space-y-3">
+          {/* Color + folder row */}
+          <div className="flex items-center gap-2">
+            {/* Color picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center transition-all active:scale-95">
+                  <div className={cn('w-5 h-5 rounded-full', getColorDotClass(color))} />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 z-[9999]" align="start">
+                <div className="flex flex-wrap gap-2 max-w-[200px]">
+                  {pastelColors.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => setColor(c.value)}
+                      className={cn(
+                        'w-8 h-8 rounded-full transition-all',
+                        c.class,
+                        color === c.value && 'ring-2 ring-offset-2 ring-foreground/50'
+                      )}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Folder picker */}
+            <button
+              onClick={() => setShowFolderPicker(true)}
+              className="h-8 px-3 rounded-full bg-secondary flex items-center gap-1 text-sm text-foreground transition-all active:scale-95"
+            >
+              <Folder className="w-4 h-4 text-muted-foreground" />
+              <span className={folder ? 'text-foreground' : 'text-muted-foreground'}>
+                {folder || 'Folder'}
+              </span>
+            </button>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleOpenInNotes}
+              className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
+            >
+              Open in Notes
+            </button>
+            <button
+              onClick={saveAndClose}
+              className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-all"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
+
+      <FolderPickerSheet
+        isOpen={showFolderPicker}
+        onClose={() => setShowFolderPicker(false)}
+        selectedFolder={folder}
+        onSelectFolder={(f) => {
+          setFolder(f || '');
+          setShowFolderPicker(false);
+        }}
+      />
       <EmojiPicker {...titlePicker} />
       <EmojiPicker
         {...contentPicker}
