@@ -78,6 +78,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
     return undefined;
   });
   const endTimeManuallySet = useRef(false);
+  const manualColorSet = useRef(!!(note?.color));
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const contentPicker = useEmojiPicker(contentRef, content, (v) => { setContent(v); if (note) triggerAutoSave(); });
 
@@ -216,7 +217,7 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
                   {pastelColors.map((c) => (
                     <button
                       key={c.value}
-                      onClick={() => setColor(c.value)}
+                      onClick={() => { manualColorSet.current = true; setColor(c.value); }}
                       className={cn(
                         'w-8 h-8 rounded-full transition-all',
                         c.class,
@@ -370,7 +371,12 @@ export function StickyNoteEditor({ note, onClose, initialDate, initialTime, init
         onClose={() => setShowFolderPicker(false)}
         selectedFolder={folder}
         onSelectFolder={(f) => {
-          setFolder(f || '');
+          const name = f || '';
+          setFolder(name);
+          if (!manualColorSet.current && name) {
+            const folderData = folders.find(fl => fl.name === name);
+            if (folderData?.color) setColor(folderData.color);
+          }
           setShowFolderPicker(false);
         }}
       />
