@@ -20,12 +20,13 @@ interface CalendarNoteCreateSheetProps {
 }
 
 export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInNotes, initialTitle }: CalendarNoteCreateSheetProps) {
-  const { addNote } = useAppStore();
+  const { addNote, folders } = useAppStore();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [color, setColor] = useState<PastelColor>('none');
   const [folder, setFolder] = useState('');
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const manualColorSet = useRef(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const titlePicker = useEmojiPicker(titleRef, title, setTitle);
@@ -45,6 +46,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
     setContent('');
     setColor('none');
     setFolder('');
+    manualColorSet.current = false;
     setLocalDate(date);
     setLocalTime(time);
     if (time) {
@@ -236,7 +238,7 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
                   {pastelColors.map((c) => (
                     <button
                       key={c.value}
-                      onClick={() => setColor(c.value)}
+                      onClick={() => { manualColorSet.current = true; setColor(c.value); }}
                       className={cn(
                         'w-8 h-8 rounded-full transition-all',
                         c.class,
@@ -283,7 +285,12 @@ export function CalendarNoteCreateSheet({ date, time, isOpen, onClose, onOpenInN
         onClose={() => setShowFolderPicker(false)}
         selectedFolder={folder}
         onSelectFolder={(f) => {
-          setFolder(f || '');
+          const name = f || '';
+          setFolder(name);
+          if (!manualColorSet.current && name) {
+            const folderData = folders.find(fl => fl.name === name);
+            if (folderData?.color) setColor(folderData.color);
+          }
           setShowFolderPicker(false);
         }}
       />

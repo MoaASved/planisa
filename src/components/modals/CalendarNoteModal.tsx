@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
-import { X, Trash2, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { X, Trash2, Calendar as CalendarIcon, Clock, Folder } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
-import { Note } from '@/types';
+import { Note, PastelColor } from '@/types';
+import { pastelColors, getColorDotClass } from '@/lib/colors';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { FolderPickerSheet } from '@/components/notes/FolderPickerSheet';
 
 interface CalendarNoteModalProps {
   note: Note | null;
@@ -14,8 +17,12 @@ interface CalendarNoteModalProps {
 }
 
 export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: CalendarNoteModalProps) {
-  const { updateNote, deleteNote } = useAppStore();
+  const { updateNote, deleteNote, folders } = useAppStore();
   const [title, setTitle] = useState('');
+  const [color, setColor] = useState<PastelColor>('none');
+  const [folder, setFolder] = useState('');
+  const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const manualColorSet = useRef(false);
   const [localDate, setLocalDate] = useState<Date | undefined>(undefined);
   const [localTime, setLocalTime] = useState<string | undefined>(undefined);
   const [localEndTime, setLocalEndTime] = useState<string | undefined>(undefined);
@@ -23,6 +30,9 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   useEffect(() => {
     if (note) {
       setTitle(note.title === 'Untitled' ? '' : (note.title || ''));
+      setColor(note.color ?? 'none');
+      setFolder(note.folder ?? '');
+      manualColorSet.current = !!note.color && note.color !== 'none';
       setLocalDate(note.date ? new Date(note.date) : undefined);
       setLocalTime(note.time);
       if (note.endTime) {
@@ -39,8 +49,17 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
 
   if (!isOpen || !note) return null;
 
+  const buildUpdate = () => ({
+    title: title.trim(),
+    color,
+    folder: folder || undefined,
+    date: localDate,
+    time: localTime,
+    endTime: localEndTime,
+  });
+
   const handleSave = () => {
-    updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
+    updateNote(note.id, buildUpdate());
     onClose();
   };
 
@@ -50,8 +69,18 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
   };
 
   const handleOpen = () => {
-    updateNote(note.id, { title: title.trim(), date: localDate, time: localTime, endTime: localEndTime });
+    updateNote(note.id, buildUpdate());
     onOpenFullEditor(note);
+  };
+
+  const handleFolderSelect = (f: string | undefined) => {
+    const name = f || '';
+    setFolder(name);
+    if (!manualColorSet.current && name) {
+      const folderData = folders.find(fl => fl.name === name);
+      if (folderData?.color) setColor(folderData.color);
+    }
+    setShowFolderPicker(false);
   };
 
   return (
@@ -175,28 +204,76 @@ export function CalendarNoteModal({ note, isOpen, onClose, onOpenFullEditor }: C
           )}
         </div>
 
-        {/* Footer buttons: Delete, Open in Notes, Save */}
-        <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 flex gap-3">
-          <button
-            onClick={handleDelete}
-            className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </button>
-          <button
-            onClick={handleOpen}
-            className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
-          >
-            Open in Notes
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-all"
-          >
-            Save
-          </button>
+        {/* Footer */}
+        <div className="px-5 pt-3 pb-6 border-t border-border/30 flex-shrink-0 space-y-3">
+          {/* Color + folder row */}
+          <div className="flex items-center gap-2">
+            {/* Color picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center transition-all active:scale-95">
+                  <div className={cn('w-5 h-5 rounded-full', getColorDotClass(color))} />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3 z-[9999]" align="start">
+                <div className="flex flex-wrap gap-2 max-w-[200px]">
+                  {pastelColors.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => { manualColorSet.current = true; setColor(c.value); }}
+                      className={cn(
+                        'w-8 h-8 rounded-full transition-all',
+                        c.class,
+                        color === c.value && 'ring-2 ring-offset-2 ring-foreground/50'
+                      )}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Folder picker */}
+            <button
+              onClick={() => setShowFolderPicker(true)}
+              className="h-8 px-3 rounded-full bg-secondary flex items-center gap-1 text-sm transition-all active:scale-95"
+            >
+              <Folder className="w-4 h-4 text-muted-foreground" />
+              <span className={folder ? 'text-foreground' : 'text-muted-foreground'}>
+                {folder || 'Folder'}
+              </span>
+            </button>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleDelete}
+              className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center active:scale-95 transition-all flex-shrink-0"
+            >
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </button>
+            <button
+              onClick={handleOpen}
+              className="flex-1 py-3 rounded-2xl bg-secondary text-foreground text-sm font-semibold active:scale-[0.98] transition-all"
+            >
+              Open in Notes
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.98] transition-all"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
+
+      <FolderPickerSheet
+        isOpen={showFolderPicker}
+        onClose={() => setShowFolderPicker(false)}
+        selectedFolder={folder}
+        onSelectFolder={handleFolderSelect}
+      />
     </>
   );
 }
