@@ -666,7 +666,7 @@ export function CalendarItemList({
           : <FileText className={cn(compact ? 'w-3 h-3' : 'w-4 h-4', 'flex-shrink-0 mt-0.5')} style={{ opacity: 0.7 }} />
         }
         <div className="flex-1 min-w-0">
-          <span className={cn('font-medium block truncate', compact ? 'text-xs' : 'text-sm')}>{getNoteDisplayTitle(note as Note)}</span>
+          <span className={cn('font-medium block', compact ? 'text-xs' : 'text-sm', isSticky ? 'whitespace-pre-wrap' : 'truncate')}>{getNoteDisplayTitle(note as Note)}</span>
           {noteShowTime && time && (
             <span className="text-xs" style={{ opacity: 0.7 }}>
               {time}{endTime && ` - ${endTime}`}
