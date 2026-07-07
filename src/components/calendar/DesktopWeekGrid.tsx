@@ -523,11 +523,11 @@ export function DesktopWeekGrid({
                             <div
                               onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
                               className={cn('relative overflow-hidden cursor-pointer active:scale-[0.97] transition-transform', getColorCardClass(color))}
-                              style={{ borderRadius: 7, boxShadow: '2px 3px 10px rgba(0,0,0,0.13)', padding: '6px 8px 16px', height: 84 }}
+                              style={{ borderRadius: 7, boxShadow: '2px 3px 10px rgba(0,0,0,0.13)', padding: '6px 8px 16px' }}
                             >
                               <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                               <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />
-                              <p className="text-[10px] font-medium text-[#2C2C2A] line-clamp-3 leading-[1.35]">{label || '—'}</p>
+                              <p className="text-[10px] font-medium text-[#2C2C2A] leading-[1.35]">{label || '—'}</p>
                               {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] text-[#2C2C2A]/50 truncate block">{time}{endTime && ` – ${endTime}`}</span>}
                             </div>
                           </div>

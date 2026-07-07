@@ -876,14 +876,12 @@ export function CalendarItemList({
                               borderRadius: 8,
                               boxShadow: '3px 4px 12px rgba(0,0,0,0.15)',
                               padding: '8px 10px 22px',
-                              height: 110,
                             }}
                           >
                             {/* Folded corner */}
                             <div className="absolute top-0 right-0 w-5 h-5 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                             <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
-                            {/* Title — up to 3 lines */}
-                            <p className="text-xs font-medium line-clamp-3 leading-[1.35]" style={{ color: stickyDeepText }}>
+                            <p className="text-xs font-medium leading-[1.35]" style={{ color: stickyDeepText }}>
                               {getNoteDisplayTitle(note) || '—'}
                             </p>
                             {/* Time — pinned to bottom */}
