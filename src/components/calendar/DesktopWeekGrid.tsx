@@ -523,7 +523,7 @@ export function DesktopWeekGrid({
                             <div
                               onClick={(e) => { e.stopPropagation(); onItemClick(item, type); }}
                               className={cn('relative overflow-hidden cursor-pointer active:scale-[0.97] transition-transform', getColorCardClass(color))}
-                              style={{ borderRadius: 7, boxShadow: '2px 3px 10px rgba(0,0,0,0.13)', padding: '6px 8px 16px' }}
+                              style={{ borderRadius: 7, boxShadow: '2px 3px 10px rgba(0,0,0,0.13)', padding: '6px 8px 16px', height: 84 }}
                             >
                               <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                               <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />

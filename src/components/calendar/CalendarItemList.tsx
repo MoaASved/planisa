@@ -876,6 +876,7 @@ export function CalendarItemList({
                               borderRadius: 8,
                               boxShadow: '3px 4px 12px rgba(0,0,0,0.15)',
                               padding: '8px 10px 22px',
+                              height: 110,
                             }}
                           >
                             {/* Folded corner */}
