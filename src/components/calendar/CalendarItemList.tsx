@@ -26,7 +26,7 @@ const getNoteDisplayTitle = (note: Note): string => {
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  return text.split('\n').map(l => l.trim()).find(l => l.length > 0) || '';
+  return text.split('\n').map(l => l.trim()).filter(l => l.length > 0).join('\n') || '';
 };
 
 // Helper function: add minutes to a time string
@@ -882,7 +882,7 @@ export function CalendarItemList({
                             {/* Folded corner */}
                             <div className="absolute top-0 right-0 w-5 h-5 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                             <div className="absolute top-0 right-0 w-0 h-0 border-l-[10px] border-l-transparent border-t-[10px] border-t-black/5 pointer-events-none" />
-                            <p className="text-xs font-medium leading-[1.35]" style={{ color: stickyDeepText }}>
+                            <p className="text-xs font-medium leading-[1.35] whitespace-pre-wrap" style={{ color: stickyDeepText }}>
                               {getNoteDisplayTitle(note) || '—'}
                             </p>
                             {/* Time — pinned to bottom */}

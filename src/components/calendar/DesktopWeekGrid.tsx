@@ -504,6 +504,18 @@ export function DesktopWeekGrid({
                       const mag = 2 + (Math.abs(hash >> 4) % 200) / 100;
                       const rotation = dirSign * mag;
                       const stickyColInfo = cols.get(item.id) || { col: 0, totalCols: 1 };
+                      const stickyText = (() => {
+                        if (note.content) {
+                          const t = note.content
+                            .replace(/<\/p>/gi, '\n').replace(/<\/h[1-6]>/gi, '\n')
+                            .replace(/<\/li>/gi, '\n').replace(/<br\s*\/?>/gi, '\n')
+                            .replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ')
+                            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                          const lines = t.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+                          if (lines.length) return lines.join('\n');
+                        }
+                        return label || '—';
+                      })();
                       return (
                         <div
                           key={item.id}
@@ -527,7 +539,7 @@ export function DesktopWeekGrid({
                             >
                               <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                               <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />
-                              <p className="text-[10px] font-medium text-[#2C2C2A] leading-[1.35]">{label || '—'}</p>
+                              <p className="text-[10px] font-medium text-[#2C2C2A] leading-[1.35] whitespace-pre-wrap">{stickyText}</p>
                               {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] text-[#2C2C2A]/50 truncate block">{time}{endTime && ` – ${endTime}`}</span>}
                             </div>
                           </div>
