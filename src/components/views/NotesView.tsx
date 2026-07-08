@@ -108,6 +108,15 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
   const isSticky = note.type === 'sticky';
   const isMenuOpen = openMenuNoteId === note.id;
   const menuOpenedAtRef = useRef<number>(0);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const btn = menuBtnRef.current;
+    if (!btn) return;
+    const handler = (e: PointerEvent) => e.stopPropagation();
+    btn.addEventListener('pointerdown', handler, { capture: true });
+    return () => btn.removeEventListener('pointerdown', handler, { capture: true });
+  }, []);
 
   // Only sticky notes get color
   const cardBgClass = isSticky && note.color
@@ -232,6 +241,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
       {!isGrid && (
         <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
           <button
+            ref={menuBtnRef}
             onPointerDown={(e) => { e.stopPropagation(); if (isMenuOpen) { setOpenMenuNoteId(null); } else { setMenuBtnRect(e.currentTarget.getBoundingClientRect()); menuOpenedAtRef.current = Date.now(); setOpenMenuNoteId(note.id); } }}
             className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-label="Note options"
@@ -254,6 +264,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
       {/* ··· menu button — grid view only (absolutely positioned) */}
       {isGrid && (
         <button
+          ref={menuBtnRef}
           onPointerDown={(e) => { e.stopPropagation(); if (isMenuOpen) { setOpenMenuNoteId(null); } else { setMenuBtnRect(e.currentTarget.getBoundingClientRect()); menuOpenedAtRef.current = Date.now(); setOpenMenuNoteId(note.id); } }}
           className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
           aria-label="Note options"
@@ -816,20 +827,21 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                 : item.note.type === 'sticky'
                   ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
-                  : <NoteCard
-                      key={item.id}
-                      note={item.note}
-                      isGrid={folderInsideLayoutMode === 'grid'}
-                      folders={folders}
-                      openMenuNoteId={openMenuNoteId}
-                      menuBtnRect={menuBtnRect}
-                      setOpenMenuNoteId={setOpenMenuNoteId}
-                      setMenuBtnRect={setMenuBtnRect}
-                      noteTapRef={noteTapRef}
-                      addNote={addNote}
-                      deleteNote={deleteNote}
-                      handleOpenNote={handleOpenNote}
-                    />
+                  : <div key={item.id}>
+                      <NoteCard
+                        note={item.note}
+                        isGrid={folderInsideLayoutMode === 'grid'}
+                        folders={folders}
+                        openMenuNoteId={openMenuNoteId}
+                        menuBtnRect={menuBtnRect}
+                        setOpenMenuNoteId={setOpenMenuNoteId}
+                        setMenuBtnRect={setMenuBtnRect}
+                        noteTapRef={noteTapRef}
+                        addNote={addNote}
+                        deleteNote={deleteNote}
+                        handleOpenNote={handleOpenNote}
+                      />
+                    </div>
             ))}
           </div>
         )}
