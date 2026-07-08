@@ -231,7 +231,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
       {!isGrid && (
         <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
           <button
-            onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+            onPointerDown={(e) => { console.log('NOTE IN FOLDER - ⋯ button pointerdown'); e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); console.log('NOTE IN FOLDER - setOpenMenuNoteId:', isMenuOpen ? null : note.id); }}
             className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-label="Note options"
           >
@@ -253,7 +253,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
       {/* ··· menu button — grid view only (absolutely positioned) */}
       {isGrid && (
         <button
-          onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+          onPointerDown={(e) => { console.log('NOTE IN FOLDER - ⋯ button pointerdown'); e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); console.log('NOTE IN FOLDER - setOpenMenuNoteId:', isMenuOpen ? null : note.id); }}
           className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
           aria-label="Note options"
         >
@@ -263,7 +263,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
 
       {/* Dropdown menu — rendered in a portal so it is never clipped by
           overflow:hidden on card wrappers or buried under sibling cards. */}
-      {isMenuOpen && menuBtnRect && createPortal(
+      {isMenuOpen && menuBtnRect && (() => { console.log('NOTE IN FOLDER - rendering portal, isMenuOpen:', isMenuOpen); return createPortal(
         <>
           <div className="fixed inset-0 z-[200]" onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setOpenMenuNoteId(null); }} />
           <div
@@ -291,7 +291,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
           </div>
         </>,
         document.body
-      )}
+      ); })()}
     </div>
   );
 }
