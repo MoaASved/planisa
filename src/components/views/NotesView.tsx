@@ -231,7 +231,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
       {!isGrid && (
         <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
           <button
-            onPointerDown={(e) => { console.log('NOTE IN FOLDER - ⋯ button pointerdown'); e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); console.log('NOTE IN FOLDER - setOpenMenuNoteId:', isMenuOpen ? null : note.id); }}
+            onPointerDown={(e) => { console.log('NOTE IN FOLDER - ⋯ button pointerdown'); e.stopPropagation(); if (isMenuOpen) { setOpenMenuNoteId(null); console.log('NOTE IN FOLDER - setOpenMenuNoteId: null'); } else { setMenuBtnRect(e.currentTarget.getBoundingClientRect()); const id = note.id; setTimeout(() => setOpenMenuNoteId(id), 0); console.log('NOTE IN FOLDER - setOpenMenuNoteId (deferred):', id); } }}
             className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-label="Note options"
           >
@@ -253,7 +253,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
       {/* ··· menu button — grid view only (absolutely positioned) */}
       {isGrid && (
         <button
-          onPointerDown={(e) => { console.log('NOTE IN FOLDER - ⋯ button pointerdown'); e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); console.log('NOTE IN FOLDER - setOpenMenuNoteId:', isMenuOpen ? null : note.id); }}
+          onPointerDown={(e) => { console.log('NOTE IN FOLDER - ⋯ button pointerdown'); e.stopPropagation(); if (isMenuOpen) { setOpenMenuNoteId(null); console.log('NOTE IN FOLDER - setOpenMenuNoteId: null'); } else { setMenuBtnRect(e.currentTarget.getBoundingClientRect()); const id = note.id; setTimeout(() => setOpenMenuNoteId(id), 0); console.log('NOTE IN FOLDER - setOpenMenuNoteId (deferred):', id); } }}
           className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
           aria-label="Note options"
         >
