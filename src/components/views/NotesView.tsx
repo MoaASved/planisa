@@ -603,7 +603,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             overflow:hidden on card wrappers or buried under sibling cards. */}
         {isMenuOpen && menuBtnRect && createPortal(
           <>
-            <div className="fixed inset-0 z-[200]" onPointerDown={() => setOpenMenuNoteId(null)} />
+            <div className="fixed inset-0 z-[200]" onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setOpenMenuNoteId(null); }} />
             <div
               className="fixed z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
               style={{
