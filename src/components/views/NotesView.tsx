@@ -86,6 +86,216 @@ function SortableNoteItem({ id, children, className }: { id: string; children: R
   );
 }
 
+// ── Note card — defined at module level so its identity is stable across
+//    NotesView re-renders, preventing React from unmounting/remounting the
+//    card (and its portal menu) every time parent state changes. ──────────────
+interface NoteCardProps {
+  note: Note;
+  isGrid: boolean;
+  folders: Folder[];
+  openMenuNoteId: string | null;
+  menuBtnRect: DOMRect | null;
+  setOpenMenuNoteId: (id: string | null) => void;
+  setMenuBtnRect: (rect: DOMRect | null) => void;
+  noteTapRef: { current: { x: number; y: number; t: number } | null };
+  addNote: (data: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  deleteNote: (id: string) => void;
+  handleOpenNote: (note: Note) => void;
+}
+
+function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenMenuNoteId, setMenuBtnRect, noteTapRef, addNote, deleteNote, handleOpenNote }: NoteCardProps) {
+  const folderData = folders.find(f => f.name === note.folder);
+  const isSticky = note.type === 'sticky';
+  const isMenuOpen = openMenuNoteId === note.id;
+
+  // Only sticky notes get color
+  const cardBgClass = isSticky && note.color
+    ? `bg-[hsl(var(--pastel-${note.color}))]`
+    : 'bg-card border border-black/[0.04]';
+
+  const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
+  const fadeColor = isSticky && note.color
+    ? `hsl(var(--pastel-${note.color}))`
+    : 'hsl(var(--card))';
+
+  const handleDuplicate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenMenuNoteId(null);
+    addNote({
+      title: note.title,
+      content: note.content,
+      type: note.type,
+      tags: [...note.tags],
+      folder: note.folder,
+      color: note.color,
+      isPinned: false,
+      showInCalendar: note.showInCalendar,
+      hideFromAllNotes: note.hideFromAllNotes,
+      hideDate: note.hideDate,
+    });
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpenMenuNoteId(null);
+    deleteNote(note.id);
+  };
+
+  return (
+    <div
+      onPointerDown={(e) => { noteTapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }; }}
+      onPointerUp={(e) => {
+        const s = noteTapRef.current;
+        noteTapRef.current = null;
+        if (!s) return;
+        if (Math.abs(e.clientX - s.x) < 10 && Math.abs(e.clientY - s.y) < 10 && Date.now() - s.t < 200) handleOpenNote(note);
+      }}
+      className={cn(
+        "relative group cursor-pointer",
+        isMenuOpen && "z-[1000]",
+        // List view: promote card styles to the wrapper so the right column
+        // (··· / folder / date) can live outside the <button> as a sibling.
+        !isGrid && cn(cardBgClass, "rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition-all duration-200 flex items-stretch")
+      )}
+      style={{ touchAction: 'manipulation' }}
+    >
+      <button
+        className={cn(
+          'text-left transition-all duration-200 pointer-events-none',
+          isGrid
+            ? cn('w-full rounded-2xl p-4', cardBgClass, 'h-[140px] md:h-44 overflow-hidden', 'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)]')
+            : 'flex-1 p-4 min-w-0'
+        )}
+      >
+        {isGrid ? (
+          /* Grid layout: content top, folder+date bottom row — unchanged */
+          <div className="flex flex-col h-full">
+            <div className="flex-1 min-w-0 min-h-0 overflow-hidden relative">
+              <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0 overflow-hidden pr-5">
+                  {hasContent ? (
+                    <NoteContentPreview content={note.content} />
+                  ) : (
+                    <p className="flow-card-title">{note.title || 'Empty note'}</p>
+                  )}
+                </div>
+                {note.isPinned && (
+                  <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
+                )}
+              </div>
+              <div
+                className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
+                style={{ background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
+              />
+            </div>
+            <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
+              {note.folder ? (
+                <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', getStickyTextClass(folderData?.color))}>
+                  {note.folder}
+                </span>
+              ) : <span />}
+              {!note.hideDate && (
+                <span className="flow-meta-sm">
+                  {format(new Date(note.date || note.updatedAt), 'MMM d')}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* List layout: left content only — right column lives outside this button */
+          <div className="flex items-start">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start gap-1.5">
+                {note.isPinned && (
+                  <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1 min-w-0 max-h-[3.5rem] overflow-hidden relative">
+                  {hasContent ? (
+                    <NoteContentPreview content={note.content} />
+                  ) : (
+                    <p className="flow-card-title truncate">{note.title || 'Empty note'}</p>
+                  )}
+                  <div
+                    className="absolute left-0 right-0 bottom-0 pointer-events-none"
+                    style={{ top: '1.5rem', background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </button>
+
+      {/* Right column — list view only. Sibling of the card button so we can
+          stack ··· above the label and date without nesting <button> in <button>. */}
+      {!isGrid && (
+        <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
+          <button
+            onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+            aria-label="Note options"
+          >
+            <MoreHorizontal className="w-4 h-4 text-foreground/60" />
+          </button>
+          {note.folder && (
+            <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', getStickyTextClass(folderData?.color))}>
+              {note.folder}
+            </span>
+          )}
+          {!note.hideDate && (
+            <span className="flow-meta-sm">
+              {format(new Date(note.date || note.updatedAt), 'MMM d')}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* ··· menu button — grid view only (absolutely positioned) */}
+      {isGrid && (
+        <button
+          onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
+          className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          aria-label="Note options"
+        >
+          <MoreHorizontal className="w-4 h-4 text-foreground/60" />
+        </button>
+      )}
+
+      {/* Dropdown menu — rendered in a portal so it is never clipped by
+          overflow:hidden on card wrappers or buried under sibling cards. */}
+      {isMenuOpen && menuBtnRect && createPortal(
+        <>
+          <div className="fixed inset-0 z-[200]" onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setOpenMenuNoteId(null); }} />
+          <div
+            className="fixed z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
+            style={{
+              top: menuBtnRect.bottom + 4,
+              right: window.innerWidth - menuBtnRect.right,
+              boxShadow: 'var(--shadow-elevated)',
+            }}
+          >
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={handleDuplicate}
+              className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary/60 transition-colors"
+            >
+              Duplicate
+            </button>
+            <button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={handleDelete}
+              className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-secondary/60 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </>,
+        document.body
+      )}
+    </div>
+  );
+}
+
 type LayoutMode = 'list' | 'grid';
 
 interface TabsHeaderProps {
@@ -239,7 +449,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const noteTapRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const [shouldScrollToTop, setShouldScrollToTop] = useState(false);
-  
+
   const [editModalFolder, setEditModalFolder] = useState<Folder | null>(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
@@ -440,200 +650,6 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
     setIsCreatingStickyNote(true);
   };
 
-  // Note card component - NO color for regular notes
-  const NoteCard = ({ note, isGrid }: { note: Note; isGrid: boolean }) => {
-    const folderData = folders.find(f => f.name === note.folder);
-    const isSticky = note.type === 'sticky';
-    const isMenuOpen = openMenuNoteId === note.id;
-
-    // Only sticky notes get color
-    const cardBgClass = isSticky && note.color
-      ? `bg-[hsl(var(--pastel-${note.color}))]`
-      : 'bg-card border border-black/[0.04]';
-
-    const hasContent = note.content && note.content.replace(/<[^>]*>/g, '').trim().length > 0;
-    const fadeColor = isSticky && note.color
-      ? `hsl(var(--pastel-${note.color}))`
-      : 'hsl(var(--card))';
-
-    const handleDuplicate = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setOpenMenuNoteId(null);
-      addNote({
-        title: note.title,
-        content: note.content,
-        type: note.type,
-        tags: [...note.tags],
-        folder: note.folder,
-        color: note.color,
-        isPinned: false,
-        showInCalendar: note.showInCalendar,
-        hideFromAllNotes: note.hideFromAllNotes,
-        hideDate: note.hideDate,
-      });
-    };
-
-    const handleDelete = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setOpenMenuNoteId(null);
-      deleteNote(note.id);
-    };
-
-    return (
-      <div
-        onPointerDown={(e) => { noteTapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }; }}
-        onPointerUp={(e) => {
-          const s = noteTapRef.current;
-          noteTapRef.current = null;
-          if (!s) return;
-          if (Math.abs(e.clientX - s.x) < 10 && Math.abs(e.clientY - s.y) < 10 && Date.now() - s.t < 200) handleOpenNote(note);
-        }}
-        className={cn(
-          "relative group cursor-pointer",
-          isMenuOpen && "z-[1000]",
-          // List view: promote card styles to the wrapper so the right column
-          // (··· / folder / date) can live outside the <button> as a sibling.
-          !isGrid && cn(cardBgClass, "rounded-2xl shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition-all duration-200 flex items-stretch")
-        )}
-        style={{ touchAction: 'manipulation' }}
-      >
-        <button
-          className={cn(
-            'text-left transition-all duration-200 pointer-events-none',
-            isGrid
-              ? cn('w-full rounded-2xl p-4', cardBgClass, 'h-[140px] md:h-44 overflow-hidden', 'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)]')
-              : 'flex-1 p-4 min-w-0'
-          )}
-        >
-          {isGrid ? (
-            /* Grid layout: content top, folder+date bottom row — unchanged */
-            <div className="flex flex-col h-full">
-              <div className="flex-1 min-w-0 min-h-0 overflow-hidden relative">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 min-w-0 overflow-hidden pr-5">
-                    {hasContent ? (
-                      <NoteContentPreview content={note.content} />
-                    ) : (
-                      <p className="flow-card-title">{note.title || 'Empty note'}</p>
-                    )}
-                  </div>
-                  {note.isPinned && (
-                    <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
-                  )}
-                </div>
-                <div
-                  className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none"
-                  style={{ background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
-                />
-              </div>
-              <div className="flex-shrink-0 flex items-center justify-between gap-2 mt-auto md:mt-0 pt-3">
-                {note.folder ? (
-                  <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', getStickyTextClass(folderData?.color))}>
-                    {note.folder}
-                  </span>
-                ) : <span />}
-                {!note.hideDate && (
-                  <span className="flow-meta-sm">
-                    {format(new Date(note.date || note.updatedAt), 'MMM d')}
-                  </span>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* List layout: left content only — right column lives outside this button */
-            <div className="flex items-start">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start gap-1.5">
-                  {note.isPinned && (
-                    <Pin className="w-4 h-4 text-[#6B6B6B] flex-shrink-0 mt-0.5" />
-                  )}
-                  <div className="flex-1 min-w-0 max-h-[3.5rem] overflow-hidden relative">
-                    {hasContent ? (
-                      <NoteContentPreview content={note.content} />
-                    ) : (
-                      <p className="flow-card-title truncate">{note.title || 'Empty note'}</p>
-                    )}
-                    <div
-                      className="absolute left-0 right-0 bottom-0 pointer-events-none"
-                      style={{ top: '1.5rem', background: `linear-gradient(to bottom, transparent, ${fadeColor})` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </button>
-
-        {/* Right column — list view only. Sibling of the card button so we can
-            stack ··· above the label and date without nesting <button> in <button>. */}
-        {!isGrid && (
-          <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
-            <button
-              onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
-              className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
-              aria-label="Note options"
-            >
-              <MoreHorizontal className="w-4 h-4 text-foreground/60" />
-            </button>
-            {note.folder && (
-              <span className={cn('flow-badge', folderData ? `bg-pastel-${folderData.color}` : 'bg-pastel-flamingo', getStickyTextClass(folderData?.color))}>
-                {note.folder}
-              </span>
-            )}
-            {!note.hideDate && (
-              <span className="flow-meta-sm">
-                {format(new Date(note.date || note.updatedAt), 'MMM d')}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* ··· menu button — grid view only (absolutely positioned) */}
-        {isGrid && (
-          <button
-            onPointerDown={(e) => { e.stopPropagation(); if (!isMenuOpen) setMenuBtnRect(e.currentTarget.getBoundingClientRect()); setOpenMenuNoteId(isMenuOpen ? null : note.id); }}
-            className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
-            aria-label="Note options"
-          >
-            <MoreHorizontal className="w-4 h-4 text-foreground/60" />
-          </button>
-        )}
-
-        {/* Dropdown menu — rendered in a portal so it is never clipped by
-            overflow:hidden on card wrappers or buried under sibling cards. */}
-        {isMenuOpen && menuBtnRect && createPortal(
-          <>
-            <div className="fixed inset-0 z-[200]" onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); setOpenMenuNoteId(null); }} />
-            <div
-              className="fixed z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
-              style={{
-                top: menuBtnRect.bottom + 4,
-                right: window.innerWidth - menuBtnRect.right,
-                boxShadow: 'var(--shadow-elevated)',
-              }}
-            >
-              <button
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={handleDuplicate}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary/60 transition-colors"
-              >
-                Duplicate
-              </button>
-              <button
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={handleDelete}
-                className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-secondary/60 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </>,
-          document.body
-        )}
-      </div>
-    );
-  };
-
   // Show editors
   if (selectedNote || (isCreatingNew && !externalIsCreatingStickyNote)) {
     return <NoteEditor note={selectedNote?.id ? selectedNote : undefined} onClose={handleCloseEditor} defaultFolder={selectedFolder?.name} debugSource="NotesView" />;
@@ -772,7 +788,19 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                         : <FolderListCard folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                       : item.note.type === 'sticky'
                         ? <StickyNoteCard note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
-                        : <NoteCard note={item.note} isGrid={folderInsideLayoutMode === 'grid'} />}
+                        : <NoteCard
+                            note={item.note}
+                            isGrid={folderInsideLayoutMode === 'grid'}
+                            folders={folders}
+                            openMenuNoteId={openMenuNoteId}
+                            menuBtnRect={menuBtnRect}
+                            setOpenMenuNoteId={setOpenMenuNoteId}
+                            setMenuBtnRect={setMenuBtnRect}
+                            noteTapRef={noteTapRef}
+                            addNote={addNote}
+                            deleteNote={deleteNote}
+                            handleOpenNote={handleOpenNote}
+                          />}
                   </SortableNoteItem>
                 ))}
               </div>
@@ -787,7 +815,20 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
                   : <FolderListCard key={item.id} folder={item.folder} count={notes.filter(n => n.folder === item.folder.name).length} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} />
                 : item.note.type === 'sticky'
                   ? <StickyNoteCard key={item.id} note={item.note} onClick={() => handleOpenNote(item.note)} isGrid={folderInsideLayoutMode === 'grid'} />
-                  : <NoteCard key={item.id} note={item.note} isGrid={folderInsideLayoutMode === 'grid'} />
+                  : <NoteCard
+                      key={item.id}
+                      note={item.note}
+                      isGrid={folderInsideLayoutMode === 'grid'}
+                      folders={folders}
+                      openMenuNoteId={openMenuNoteId}
+                      menuBtnRect={menuBtnRect}
+                      setOpenMenuNoteId={setOpenMenuNoteId}
+                      setMenuBtnRect={setMenuBtnRect}
+                      noteTapRef={noteTapRef}
+                      addNote={addNote}
+                      deleteNote={deleteNote}
+                      handleOpenNote={handleOpenNote}
+                    />
             ))}
           </div>
         )}
@@ -920,10 +961,10 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
         {showFolderModal && (
           <>
-            <div 
+            <div
               className="fixed inset-0 z-[1100] animate-fade-in"
               style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-              onClick={() => setShowFolderModal(false)} 
+              onClick={() => setShowFolderModal(false)}
             />
             <div className="fixed z-[9999]" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'calc(100% - 48px)', maxWidth: 400 }}>
               <div className="bg-card rounded-[20px] p-6 animate-scale-in" style={{ boxShadow: 'var(--shadow-elevated)' }}>
@@ -993,7 +1034,19 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             <div key={note.id} className="stagger-item" style={{ animationDelay: `${index * 40}ms` }}>
               {note.type === 'sticky'
                 ? <StickyNoteCard note={note} onClick={() => handleOpenNote(note)} isGrid={layoutMode === 'grid'} />
-                : <NoteCard note={note} isGrid={layoutMode === 'grid'} />
+                : <NoteCard
+                    note={note}
+                    isGrid={layoutMode === 'grid'}
+                    folders={folders}
+                    openMenuNoteId={openMenuNoteId}
+                    menuBtnRect={menuBtnRect}
+                    setOpenMenuNoteId={setOpenMenuNoteId}
+                    setMenuBtnRect={setMenuBtnRect}
+                    noteTapRef={noteTapRef}
+                    addNote={addNote}
+                    deleteNote={deleteNote}
+                    handleOpenNote={handleOpenNote}
+                  />
               }
             </div>
           ))}
@@ -1008,7 +1061,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
         )}
       </div>
 
-      
+
     </div>
   );
 }
