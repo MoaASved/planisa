@@ -71,8 +71,8 @@ function SortableFolderCard({ folder, onClick, onEdit, isGrid, noteCount }: { fo
   );
 }
 // ── Sortable note/sticky item (used inside folder custom-order drag-and-drop) ──
-function SortableNoteItem({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+function SortableNoteItem({ id, children, className, openMenuNoteId }: { id: string; children: React.ReactNode; className?: string; openMenuNoteId: string | null }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: openMenuNoteId !== null });
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -80,17 +80,7 @@ function SortableNoteItem({ id, children, className }: { id: string; children: R
     opacity: isDragging ? 0.92 : undefined,
   };
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      onPointerDown={(e) => {
-        if ((e.target as HTMLElement).closest('[data-menu-btn]')) return;
-        listeners?.onPointerDown?.(e);
-      }}
-      className={cn('md:touch-none', className)}
-    >
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('md:touch-none', className)}>
       {children}
     </div>
   );
@@ -794,7 +784,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
             >
               <div className={cn('px-4 py-2', folderInsideLayoutMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6' : 'space-y-2')}>
                 {sortedFolderItems.map(item => (
-                  <SortableNoteItem key={item.id} id={item.id}>
+                  <SortableNoteItem key={item.id} id={item.id} openMenuNoteId={openMenuNoteId}>
                     {item.kind === 'subfolder'
                       ? folderInsideLayoutMode === 'grid'
                         ? <FolderGridCard folder={item.folder} onClick={() => { setParentFolder(selectedFolder); setSelectedFolder(item.folder); }} onEdit={() => setEditModalFolder(item.folder)} compact />
