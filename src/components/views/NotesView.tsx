@@ -79,8 +79,23 @@ function SortableNoteItem({ id, children, className, openMenuNoteId }: { id: str
     zIndex: isDragging ? 50 : undefined,
     opacity: isDragging ? 0.92 : undefined,
   };
+  // dnd-kit combines activators from every configured sensor (Pointer *and*
+  // Touch) into `listeners`, e.g. both onPointerDown and onTouchStart. Guard
+  // all of them so a tap on the "···" menu button never reaches the drag
+  // sensors — a real touchstart isn't stopped by stopPropagation() on a
+  // separate pointerdown handler in the menu button itself.
+  const guardedListeners = Object.fromEntries(
+    Object.entries(listeners ?? {}).map(([eventName, handler]) => [
+      eventName,
+      (e: React.SyntheticEvent) => {
+        if ((e.target as HTMLElement).closest('[data-menu-btn]')) return;
+        (handler as (e: React.SyntheticEvent) => void)?.(e);
+      },
+    ])
+  );
+
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={cn('md:touch-none', className)}>
+    <div ref={setNodeRef} style={style} {...attributes} {...guardedListeners} className={cn('md:touch-none', className)}>
       {children}
     </div>
   );
