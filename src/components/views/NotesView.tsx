@@ -340,6 +340,21 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
         <>
           <div className="fixed inset-0 z-[200]" onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); if (Date.now() - menuOpenedAtRef.current < 150) return; setOpenMenuNoteId(null); }} />
           <div
+            ref={(el) => {
+              if (!el || !DEBUG_NOTES) return;
+              // Measure on the next frame so layout has actually settled.
+              requestAnimationFrame(() => {
+                const r = el.getBoundingClientRect();
+                const cs = getComputedStyle(el);
+                const topEl = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+                pushDebug(
+                  `popup rect=${Math.round(r.left)},${Math.round(r.top)},${Math.round(r.width)}x${Math.round(r.height)} ` +
+                  `bg=${cs.backgroundColor} op=${cs.opacity} vis=${cs.visibility} z=${cs.zIndex} ` +
+                  `elementAtCenter=${topEl === el ? 'SELF' : `${topEl?.tagName}.${(topEl?.className || '').toString().slice(0, 20)}`} ` +
+                  `winSize=${window.innerWidth}x${window.innerHeight}`
+                );
+              });
+            }}
             className="fixed z-[201] bg-card rounded-xl border border-border/50 p-1 min-w-[130px]"
             style={{
               top: menuBtnRect.bottom + 4,
