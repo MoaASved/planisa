@@ -47,6 +47,58 @@ import { FolderEditModal } from '@/components/notes/FolderEditModal';
 import { useHaptics } from '@/hooks/useHaptics';
 
 
+// ── TEMPORARY DIAGNOSTIC — remove once the Folders "···" menu bug is
+//    confirmed fixed on real hardware. Active only with ?debug=notes in the
+//    URL; renders an on-screen event log so we can see, on the actual
+//    device, whether taps reach the menu button at all. ──────────────────
+const DEBUG_NOTES = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('debug') === 'notes';
+const debugLog: string[] = [];
+let debugListeners: Array<() => void> = [];
+function pushDebug(msg: string) {
+  if (!DEBUG_NOTES) return;
+  const line = `${new Date().toISOString().slice(11, 23)} ${msg}`;
+  debugLog.push(line);
+  if (debugLog.length > 14) debugLog.shift();
+  debugListeners.forEach((l) => l());
+}
+function DebugOverlay() {
+  const [, force] = useState(0);
+  useEffect(() => {
+    const l = () => force((x) => x + 1);
+    debugListeners.push(l);
+    return () => { debugListeners = debugListeners.filter((x) => x !== l); };
+  }, []);
+  useEffect(() => {
+    if (!DEBUG_NOTES) return;
+    const describe = (t: EventTarget | null) => {
+      const el = t as HTMLElement;
+      if (!el || !el.tagName) return String(t);
+      const menuBtn = el.closest?.('[data-menu-btn]') ? '[data-menu-btn]' : '';
+      return `${el.tagName}${menuBtn}.${(el.className || '').toString().slice(0, 24)}`;
+    };
+    const types = ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'click'];
+    const capture = (type: string) => (e: Event) => pushDebug(`${type} -> ${describe(e.target)}`);
+    const handlers = types.map((t) => [t, capture(t)] as const);
+    handlers.forEach(([t, h]) => window.addEventListener(t, h, true));
+    return () => handlers.forEach(([t, h]) => window.removeEventListener(t, h, true));
+  }, []);
+  if (!DEBUG_NOTES) return null;
+  return (
+    <div
+      style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999999,
+        background: 'rgba(0,0,0,0.88)', color: '#5CFF5C', fontSize: 10,
+        fontFamily: 'monospace', padding: '4px 6px', maxHeight: '32vh',
+        overflowY: 'auto', pointerEvents: 'none', lineHeight: 1.4,
+      }}
+    >
+      <div style={{ color: '#fff', fontWeight: 'bold' }}>DEBUG (?debug=notes)</div>
+      {debugLog.map((l, i) => <div key={i}>{l}</div>)}
+    </div>
+  );
+}
+// ── end temporary diagnostic ───────────────────────────────────────────
+
 type ViewTab = 'folders' | 'boards';
 type FolderSortMode = 'custom' | 'edited' | 'alpha' | 'starred';
 type FolderItem = { kind: 'subfolder'; id: string; folder: Folder } | { kind: 'note'; id: string; note: Note };
@@ -123,6 +175,9 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
   const isSticky = note.type === 'sticky';
   const isMenuOpen = openMenuNoteId === note.id;
   const menuOpenedAtRef = useRef<number>(0);
+  useEffect(() => {
+    if (DEBUG_NOTES && isMenuOpen) pushDebug(`isMenuOpen=true note=${note.id} menuBtnRect=${menuBtnRect ? 'set' : 'NULL'} portalRenders=${isMenuOpen && !!menuBtnRect}`);
+  }, [isMenuOpen, menuBtnRect, note.id]);
 
   // Only sticky notes get color
   const cardBgClass = isSticky && note.color
@@ -248,7 +303,7 @@ function NoteCard({ note, isGrid, folders, openMenuNoteId, menuBtnRect, setOpenM
         <div className="flex flex-col items-end flex-shrink-0 pt-2 pr-2 pb-3 pl-2 gap-1.5">
           <button
             data-menu-btn
-            onPointerDown={(e) => { e.stopPropagation(); if (isMenuOpen) { setOpenMenuNoteId(null); } else { setMenuBtnRect(e.currentTarget.getBoundingClientRect()); menuOpenedAtRef.current = Date.now(); setOpenMenuNoteId(note.id); } }}
+            onPointerDown={(e) => { pushDebug(`menuBtn onPointerDown note=${note.id}`); e.stopPropagation(); if (isMenuOpen) { setOpenMenuNoteId(null); } else { setMenuBtnRect(e.currentTarget.getBoundingClientRect()); menuOpenedAtRef.current = Date.now(); setOpenMenuNoteId(note.id); pushDebug(`menuBtn opened note=${note.id}`); } }}
             className="w-7 h-7 rounded-lg flex items-center justify-center md:bg-black/5 md:hover:bg-black/10 dark:md:bg-white/10 dark:md:hover:bg-white/20 transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
             aria-label="Note options"
           >
@@ -734,6 +789,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
 
     return (
       <div className="min-h-screen pb-24 pt-safe-2">
+        <DebugOverlay />
         {/* Header */}
         {isInSubfolder ? (
           <div className="flex items-center justify-between px-4 pb-3">
@@ -1020,6 +1076,7 @@ export function NotesView({ onEditingChange, isCreatingNew, isCreatingStickyNote
   // Boards view (default) - all notes and sticky notes
   return (
     <div className="pb-24 pt-safe-2">
+      <DebugOverlay />
       <div className="px-4 pb-4">
         <TabsHeader
           viewTab={viewTab}
