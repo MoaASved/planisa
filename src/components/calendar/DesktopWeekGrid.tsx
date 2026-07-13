@@ -539,8 +539,8 @@ export function DesktopWeekGrid({
                             >
                               <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                               <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />
-                              <p className="text-[10px] font-medium text-[#2C2C2A] leading-[1.35] whitespace-pre-wrap">{stickyText}</p>
-                              {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] text-[#2C2C2A]/50 truncate block">{time}{endTime && ` – ${endTime}`}</span>}
+                              <p className="text-[10px] font-medium leading-[1.35] whitespace-pre-wrap" style={{ color: getDeepTextColor(color) }}>{stickyText}</p>
+                              {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] truncate block" style={{ color: getDeepTextColor(color), opacity: 0.5 }}>{time}{endTime && ` – ${endTime}`}</span>}
                             </div>
                           </div>
                         </div>
