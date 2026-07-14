@@ -600,6 +600,11 @@ export function DesktopWeekGrid({
                                 </span>
                               ) : null;
                             })()}
+                            {isTask && (item as Task).subtasks.length > 0 && (
+                              <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
+                                {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
+                              </span>
+                            )}
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
@@ -623,11 +628,22 @@ export function DesktopWeekGrid({
                                   const tl = displayLabel !== undefined
                                     ? displayLabel
                                     : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
-                                  return tl ? (
-                                    <p className="text-[10px] mt-0.5 leading-none" style={{ color: blockTextColor, opacity: 0.55 }}>
-                                      {tl}
-                                    </p>
-                                  ) : null;
+                                  const hasSubtasks = isTask && (item as Task).subtasks.length > 0;
+                                  if (!tl && !hasSubtasks) return null;
+                                  return (
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                      {tl && (
+                                        <p className="text-[10px] leading-none truncate" style={{ color: blockTextColor, opacity: 0.55 }}>
+                                          {tl}
+                                        </p>
+                                      )}
+                                      {hasSubtasks && (
+                                        <span className="text-[10px] leading-none tabular-nums flex-shrink-0" style={{ color: blockTextColor, opacity: 0.55 }}>
+                                          {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
                                 })()}
                               </div>
                             </div>

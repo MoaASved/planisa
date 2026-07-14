@@ -185,10 +185,19 @@ export function DesktopListView({
                         )}>
                           {label || ' '}
                         </span>
-                        {endTime && (
-                          <span className="text-xs flex-shrink-0 ml-auto pl-2" style={{ opacity: 0.5 }}>
-                            {time}–{endTime}
-                          </span>
+                        {(endTime || (isTask && (item as Task).subtasks.length > 0)) && (
+                          <div className="flex items-center gap-1.5 flex-shrink-0 ml-auto pl-2">
+                            {endTime && (
+                              <span className="text-xs" style={{ opacity: 0.5 }}>
+                                {time}–{endTime}
+                              </span>
+                            )}
+                            {isTask && (item as Task).subtasks.length > 0 && (
+                              <span className="text-xs tabular-nums" style={{ opacity: 0.5 }}>
+                                {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     </button>

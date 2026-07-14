@@ -554,24 +554,50 @@ export function CalendarItemList({
             {task.completed && <Check className={cn(compact ? 'w-2.5 h-2.5' : 'w-3 h-3', 'text-primary-foreground')} />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
-              <span className={cn(
-                'font-medium truncate',
-                compact ? 'text-xs' : 'text-sm',
-                task.completed && 'line-through'
-              )}>
-                {task.title}
-              </span>
-              {time && (
-                <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
-                  {time}{endTime && ` - ${endTime}`}
+            {fillHeight ? (
+              // Fixed-height timeline block: keep everything on one row so the
+              // subtask counter never adds height and overflows the card.
+              <div className="flex items-center gap-1.5">
+                <span className={cn(
+                  'font-medium truncate flex-1 min-w-0',
+                  compact ? 'text-xs' : 'text-sm',
+                  task.completed && 'line-through'
+                )}>
+                  {task.title}
                 </span>
-              )}
-            </div>
-            {!centerContent && task.subtasks.length > 0 && (
-              <span className={cn('flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
-                {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
-              </span>
+                {time && (
+                  <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
+                    {time}{endTime && ` - ${endTime}`}
+                  </span>
+                )}
+                {task.subtasks.length > 0 && (
+                  <span className={cn('flex-shrink-0 tabular-nums', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
+                    {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
+                  <span className={cn(
+                    'font-medium truncate',
+                    compact ? 'text-xs' : 'text-sm',
+                    task.completed && 'line-through'
+                  )}>
+                    {task.title}
+                  </span>
+                  {time && (
+                    <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
+                      {time}{endTime && ` - ${endTime}`}
+                    </span>
+                  )}
+                </div>
+                {!centerContent && task.subtasks.length > 0 && (
+                  <span className={cn('flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
+                    {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>
