@@ -555,27 +555,30 @@ export function CalendarItemList({
           </div>
           <div className="flex-1 min-w-0">
             {fillHeight ? (
-              // Fixed-height timeline block: keep everything on one row so the
-              // subtask counter never adds height and overflows the card.
-              <div className="flex items-center gap-1.5">
-                <span className={cn(
-                  'font-medium truncate flex-1 min-w-0',
-                  compact ? 'text-xs' : 'text-sm',
-                  task.completed && 'line-through'
-                )}>
-                  {task.title}
-                </span>
-                {time && (
-                  <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
-                    {time}{endTime && ` - ${endTime}`}
+              // Fixed-height timeline block: title+time share one row (time on the
+              // right) so they never add height; the subtask counter sits directly
+              // under the title on its own line.
+              <>
+                <div className="flex items-center gap-1.5">
+                  <span className={cn(
+                    'font-medium truncate flex-1 min-w-0',
+                    compact ? 'text-xs' : 'text-sm',
+                    task.completed && 'line-through'
+                  )}>
+                    {task.title}
                   </span>
-                )}
+                  {time && (
+                    <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
+                      {time}{endTime && ` - ${endTime}`}
+                    </span>
+                  )}
+                </div>
                 {task.subtasks.length > 0 && (
-                  <span className={cn('flex-shrink-0 tabular-nums', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
+                  <span className={cn('block tabular-nums', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
                     {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
                   </span>
                 )}
-              </div>
+              </>
             ) : (
               <>
                 <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
@@ -623,7 +626,7 @@ export function CalendarItemList({
             isDragging && 'opacity-50 scale-95'
           )}
         >
-          <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
+          <div className={cn('flex gap-1', (fillHeight || centerContent) ? 'flex-row items-center justify-between' : 'flex-col')}>
             <span className={cn('font-semibold truncate', compact ? 'text-xs' : 'text-sm')}>
               {event.title}
             </span>

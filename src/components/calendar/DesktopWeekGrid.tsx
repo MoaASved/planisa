@@ -578,33 +578,37 @@ export function DesktopWeekGrid({
                         }}
                       >
                         {short ? (
-                          <div className="flex items-center gap-0.5 px-1 h-full min-w-0">
+                          <div className="flex items-start gap-0.5 px-1 h-full min-w-0">
                             {isTask ? (
                               <div
                                 onClick={e => { e.stopPropagation(); onTaskToggle(e, item.id); }}
-                                className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
+                                className={cn('w-2.5 h-2.5 rounded-full border flex-shrink-0 mt-0.5 flex items-center justify-center', completed ? 'bg-primary border-primary' : 'border-current opacity-40')}
                               >
                                 {completed && <Check className="w-1.5 h-1.5 text-white" />}
                               </div>
                             ) : TypeIcon && (
-                              <TypeIcon className="w-2 h-2 flex-shrink-0 opacity-50" style={{ color: blockTextColor }} />
+                              <TypeIcon className="w-2 h-2 flex-shrink-0 mt-0.5 opacity-50" style={{ color: blockTextColor }} />
                             )}
-                            <span className={cn('text-[10px] font-medium truncate flex-1', completed && 'line-through')} style={{ color: blockTextColor }}>{label}</span>
-                            {(() => {
-                              const tl = displayLabel !== undefined
-                                ? displayLabel
-                                : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
-                              return tl ? (
-                                <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
-                                  {tl}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-0.5 min-w-0">
+                                <span className={cn('text-[10px] font-medium truncate flex-1', completed && 'line-through')} style={{ color: blockTextColor }}>{label}</span>
+                                {(() => {
+                                  const tl = displayLabel !== undefined
+                                    ? displayLabel
+                                    : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
+                                  return tl ? (
+                                    <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
+                                      {tl}
+                                    </span>
+                                  ) : null;
+                                })()}
+                              </div>
+                              {isTask && (item as Task).subtasks.length > 0 && (
+                                <span className="text-[9px] tabular-nums block" style={{ color: blockTextColor, opacity: 0.6 }}>
+                                  {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
                                 </span>
-                              ) : null;
-                            })()}
-                            {isTask && (item as Task).subtasks.length > 0 && (
-                              <span className="text-[9px] flex-shrink-0 ml-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.6 }}>
-                                {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
-                              </span>
-                            )}
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <div className="px-1.5 py-1 h-full">
@@ -619,32 +623,28 @@ export function DesktopWeekGrid({
                               ) : TypeIcon && (
                                 <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 mt-0.5 opacity-55" style={{ color: blockTextColor }} />
                               )}
-                              <div className="min-w-0">
-                                <p
-                                  className={cn('text-[11px] font-semibold leading-tight', completed && 'line-through', height < 48 ? 'truncate' : 'line-clamp-2')}
-                                  style={{ color: blockTextColor }}
-                                >{label}</p>
-                                {height >= 46 && (() => {
-                                  const tl = displayLabel !== undefined
-                                    ? displayLabel
-                                    : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
-                                  const hasSubtasks = isTask && (item as Task).subtasks.length > 0;
-                                  if (!tl && !hasSubtasks) return null;
-                                  return (
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                      {tl && (
-                                        <p className="text-[10px] leading-none truncate" style={{ color: blockTextColor, opacity: 0.55 }}>
-                                          {tl}
-                                        </p>
-                                      )}
-                                      {hasSubtasks && (
-                                        <span className="text-[10px] leading-none tabular-nums flex-shrink-0" style={{ color: blockTextColor, opacity: 0.55 }}>
-                                          {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
-                                        </span>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start gap-1.5">
+                                  <p
+                                    className={cn('text-[11px] font-semibold leading-tight flex-1 min-w-0', completed && 'line-through', height < 48 ? 'truncate' : 'line-clamp-2')}
+                                    style={{ color: blockTextColor }}
+                                  >{label}</p>
+                                  {(() => {
+                                    const tl = displayLabel !== undefined
+                                      ? displayLabel
+                                      : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
+                                    return tl ? (
+                                      <span className="text-[10px] leading-tight flex-shrink-0 tabular-nums" style={{ color: blockTextColor, opacity: 0.55 }}>
+                                        {tl}
+                                      </span>
+                                    ) : null;
+                                  })()}
+                                </div>
+                                {height >= 46 && isTask && (item as Task).subtasks.length > 0 && (
+                                  <p className="text-[10px] leading-none mt-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.55 }}>
+                                    {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
