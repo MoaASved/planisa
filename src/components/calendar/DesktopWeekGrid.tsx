@@ -126,6 +126,81 @@ function SlotContextMenu({
   );
 }
 
+// ── Regular (non-short) event/task block body ────────────────────────────────
+// Width-responsive layout: as the card narrows (more overlapping events in a
+// day shrink each column), the time display degrades before the subtask
+// counter does — the counter always stays visible.
+//   wide   → time sits on its own row below the title; counter sits beside the title
+//   medium → time moves inline beside the title/counter row
+//   narrow → time is dropped entirely; only the counter remains
+const TIME_BELOW_MIN_WIDTH = 92;
+const TIME_INLINE_MIN_WIDTH = 60;
+
+function useElementWidth<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (w !== undefined) setWidth(w);
+    });
+    ro.observe(el);
+    setWidth(el.getBoundingClientRect().width);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, width] as const;
+}
+
+function RegularBlockBody({
+  label,
+  timeLabel,
+  hasSubtasks,
+  subtaskText,
+  completed,
+  textColor,
+  clampTitle,
+}: {
+  label: string;
+  timeLabel: string;
+  hasSubtasks: boolean;
+  subtaskText: string;
+  completed: boolean;
+  textColor: string;
+  clampTitle: boolean;
+}) {
+  const [ref, width] = useElementWidth<HTMLDivElement>();
+  const showTimeBelow = !!timeLabel && width >= TIME_BELOW_MIN_WIDTH;
+  const showTimeInline = !!timeLabel && !showTimeBelow && width >= TIME_INLINE_MIN_WIDTH;
+
+  return (
+    <div ref={ref} className="min-w-0 flex-1">
+      <div className="flex items-start gap-1.5 min-w-0">
+        <p
+          className={cn('text-[11px] font-semibold leading-tight flex-1 min-w-0', completed && 'line-through', clampTitle ? 'line-clamp-2' : 'truncate')}
+          style={{ color: textColor }}
+        >{label}</p>
+        {hasSubtasks && (
+          <span className="text-[10px] leading-tight flex-shrink-0 tabular-nums" style={{ color: textColor, opacity: 0.55 }}>
+            {subtaskText}
+          </span>
+        )}
+        {showTimeInline && (
+          <span className="text-[10px] leading-tight flex-shrink-0 tabular-nums" style={{ color: textColor, opacity: 0.55 }}>
+            {timeLabel}
+          </span>
+        )}
+      </div>
+      {showTimeBelow && (
+        <p className="text-[10px] leading-none mt-0.5 truncate tabular-nums" style={{ color: textColor, opacity: 0.55 }}>
+          {timeLabel}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 interface DesktopWeekGridProps {
@@ -623,29 +698,15 @@ export function DesktopWeekGrid({
                               ) : TypeIcon && (
                                 <TypeIcon className="w-2.5 h-2.5 flex-shrink-0 mt-0.5 opacity-55" style={{ color: blockTextColor }} />
                               )}
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-start gap-1.5">
-                                  <p
-                                    className={cn('text-[11px] font-semibold leading-tight flex-1 min-w-0', completed && 'line-through', height < 48 ? 'truncate' : 'line-clamp-2')}
-                                    style={{ color: blockTextColor }}
-                                  >{label}</p>
-                                  {(() => {
-                                    const tl = displayLabel !== undefined
-                                      ? displayLabel
-                                      : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '');
-                                    return tl ? (
-                                      <span className="text-[10px] leading-tight flex-shrink-0 tabular-nums" style={{ color: blockTextColor, opacity: 0.55 }}>
-                                        {tl}
-                                      </span>
-                                    ) : null;
-                                  })()}
-                                </div>
-                                {height >= 46 && isTask && (item as Task).subtasks.length > 0 && (
-                                  <p className="text-[10px] leading-none mt-0.5 tabular-nums" style={{ color: blockTextColor, opacity: 0.55 }}>
-                                    {(item as Task).subtasks.filter(s => s.completed).length}/{(item as Task).subtasks.length}
-                                  </p>
-                                )}
-                              </div>
+                              <RegularBlockBody
+                                label={label}
+                                timeLabel={displayLabel !== undefined ? displayLabel : (time ? `${time}${endTime ? ` – ${endTime}` : ''}` : '')}
+                                hasSubtasks={isTask && (item as Task).subtasks.length > 0}
+                                subtaskText={isTask ? `${(item as Task).subtasks.filter(s => s.completed).length}/${(item as Task).subtasks.length}` : ''}
+                                completed={completed}
+                                textColor={blockTextColor}
+                                clampTitle={height >= 48}
+                              />
                             </div>
                           </div>
                         )}
