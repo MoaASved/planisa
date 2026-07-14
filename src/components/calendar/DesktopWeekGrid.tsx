@@ -615,13 +615,21 @@ export function DesktopWeekGrid({
                               <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                               <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />
                               <p className="text-[10px] font-medium leading-[1.35] whitespace-pre-wrap" style={{ color: getDeepTextColor(color) }}>{stickyText}</p>
-                              {/* Fade-out so overflowing text doesn't collide with the time label — starts
-                                  well above the label and reaches full solid color before the bottom. */}
+                              {/* Fade-out so overflowing text doesn't collide with the time label — text
+                                  finishes fading out well above the label, with a fully solid buffer below. */}
                               <div
                                 className="absolute left-0 right-0 bottom-0 pointer-events-none"
-                                style={{ height: 36, zIndex: 1, background: `linear-gradient(to bottom, transparent 0%, ${getColorVar(color)} 70%)` }}
+                                style={{ height: 46, zIndex: 1, background: `linear-gradient(to bottom, transparent 0%, ${getColorVar(color)} 45%, ${getColorVar(color)} 100%)` }}
                               />
-                              {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] truncate block" style={{ color: getDeepTextColor(color), opacity: 0.5, zIndex: 2 }}>{time}{endTime && ` – ${endTime}`}</span>}
+                              {/* Time label sits on its own fully opaque pill — guaranteed readable
+                                  regardless of the fade above, since it doesn't rely on gradient math. */}
+                              {time && (
+                                <div className="absolute bottom-1 left-1.5 right-1.5 z-[2] rounded px-1 py-0.5" style={{ background: getColorVar(color) }}>
+                                  <span className="text-[9px] truncate block" style={{ color: `color-mix(in srgb, ${getDeepTextColor(color)} 55%, transparent)` }}>
+                                    {time}{endTime && ` – ${endTime}`}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
