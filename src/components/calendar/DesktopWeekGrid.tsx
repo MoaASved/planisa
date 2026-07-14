@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { format, isToday, isSameDay, getWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Task, CalendarEvent, Note, PastelColor } from '@/types';
-import { getColorCardClass, getDeepTextColor } from '@/lib/colors';
+import { getColorCardClass, getDeepTextColor, getColorVar } from '@/lib/colors';
 import { Check, CalendarPlus, CheckSquare, FileText, StickyNote, Pin } from 'lucide-react';
 
 const HOUR_HEIGHT = 56;
@@ -615,6 +615,11 @@ export function DesktopWeekGrid({
                               <div className="absolute top-0 right-0 w-4 h-4 bg-gradient-to-br from-white/30 to-transparent rounded-bl-lg pointer-events-none" />
                               <div className="absolute top-0 right-0 w-0 h-0 border-l-[8px] border-l-transparent border-t-[8px] border-t-black/5 pointer-events-none" />
                               <p className="text-[10px] font-medium leading-[1.35] whitespace-pre-wrap" style={{ color: getDeepTextColor(color) }}>{stickyText}</p>
+                              {/* Fade-out so overflowing text doesn't collide with the time label */}
+                              <div
+                                className="absolute left-0 right-0 bottom-0 pointer-events-none"
+                                style={{ height: 20, background: `linear-gradient(to bottom, transparent, ${getColorVar(color)})` }}
+                              />
                               {time && <span className="absolute bottom-1.5 left-2 right-2 text-[9px] truncate block" style={{ color: getDeepTextColor(color), opacity: 0.5 }}>{time}{endTime && ` – ${endTime}`}</span>}
                             </div>
                           </div>
