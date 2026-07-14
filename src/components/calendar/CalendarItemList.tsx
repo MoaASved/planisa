@@ -581,23 +581,28 @@ export function CalendarItemList({
               </>
             ) : (
               <>
-                <div className={cn('flex gap-1', centerContent ? 'flex-row items-center justify-between' : 'flex-col')}>
+                <div className={cn('flex items-center gap-1.5', centerContent ? 'flex-row justify-between' : 'flex-row justify-between')}>
                   <span className={cn(
-                    'font-medium truncate',
+                    'font-medium truncate flex-1 min-w-0',
                     compact ? 'text-xs' : 'text-sm',
                     task.completed && 'line-through'
                   )}>
                     {task.title}
                   </span>
-                  {time && (
+                  {centerContent && time && (
                     <span className="text-xs font-light whitespace-nowrap flex-shrink-0" style={{ opacity: 0.6 }}>
                       {time}{endTime && ` - ${endTime}`}
                     </span>
                   )}
+                  {!centerContent && task.subtasks.length > 0 && (
+                    <span className={cn('flex-shrink-0 tabular-nums', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
+                      {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                    </span>
+                  )}
                 </div>
-                {!centerContent && task.subtasks.length > 0 && (
-                  <span className={cn('flex-shrink-0', compact ? 'text-[10px]' : 'text-xs')} style={{ opacity: 0.6 }}>
-                    {task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}
+                {!centerContent && time && (
+                  <span className="text-xs font-light whitespace-nowrap" style={{ opacity: 0.6 }}>
+                    {time}{endTime && ` - ${endTime}`}
                   </span>
                 )}
               </>
