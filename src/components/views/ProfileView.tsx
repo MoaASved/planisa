@@ -645,7 +645,12 @@ export function ProfileView() {
                     onClick={() => handleLanguageChange(lang)}
                     className="flex items-center justify-between"
                   >
-                    {lang === 'en' ? 'English' : 'Svenska'}
+                    <span className="flex items-center gap-1.5">
+                      {lang === 'en' ? 'English' : 'Svenska'}
+                      {lang === 'sv' && (
+                        <span className="text-xs text-muted-foreground">(Coming soon)</span>
+                      )}
+                    </span>
                     {settings.language === lang && <Check className="w-4 h-4 text-primary" />}
                   </DropdownMenuItem>
                 ))}
