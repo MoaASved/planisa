@@ -22,6 +22,7 @@ import {
   Eye,
   EyeOff,
   Globe,
+  Check,
 } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
@@ -32,6 +33,12 @@ import { CategoryEditDrawer } from '@/components/modals/CategoryEditDrawer';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type CategorySection = 'calendar' | 'tasks' | 'notes';
 
@@ -616,33 +623,34 @@ export function ProfileView() {
             </button>
 
             {/* Language */}
-            <div className="w-full flex items-center justify-between p-3 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="text-left">
-                  <p className="font-medium text-foreground">Language</p>
-                  <p className="text-sm text-muted-foreground">{settings.language === 'sv' ? 'Svenska' : 'English'}</p>
-                </div>
-              </div>
-              <div className="flex gap-1 bg-muted rounded-full p-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                      <Globe className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-foreground">Language</p>
+                      <p className="text-sm text-muted-foreground">{settings.language === 'sv' ? 'Svenska' : 'English'}</p>
+                    </div>
+                  </div>
+                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover min-w-[160px]">
                 {(['en', 'sv'] as const).map((lang) => (
-                  <button
+                  <DropdownMenuItem
                     key={lang}
                     onClick={() => handleLanguageChange(lang)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-                      settings.language === lang
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground',
-                    )}
+                    className="flex items-center justify-between"
                   >
                     {lang === 'en' ? 'English' : 'Svenska'}
-                  </button>
+                    {settings.language === lang && <Check className="w-4 h-4 text-primary" />}
+                  </DropdownMenuItem>
                 ))}
-              </div>
-            </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
