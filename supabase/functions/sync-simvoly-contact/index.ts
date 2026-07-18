@@ -3,15 +3,16 @@
 // Syftet: Håller Simvoly-CRM:et i synk med Planisas användare.
 // - Ny signup (public.users INSERT) -> skapar kontakt i Simvoly
 // - Statusändring (public.users UPDATE, subscription_status ändras) -> uppdaterar statustagg
+// - Språkändring (public.users UPDATE, language_preference ändras) -> uppdaterar lang-tagg
 // - Namn satt/ändrat (auth.users UPDATE, display_name ändras i user_metadata) -> uppdaterar namnet
 //
 // Funktionen hämtar alltid FÄRSKASTE data direkt från källan (public.users
-// för status, auth.users-metadata för namn) oavsett vilken av de tre
+// för status/språk, auth.users-metadata för namn) oavsett vilken av
 // händelserna som triggade den. Det gör den robust även om något event
 // missas - nästa synk hämtar ändå korrekt nuvarande state.
 //
 // Bevarar alltid kontaktens befintliga taggar (t.ex. "väntelista") - tar
-// bara bort gamla Planisa-statustaggar och lägger till den nya.
+// bara bort gamla Planisa-status-/lang-taggar och lägger till de nya.
 //
 // TRIGGAS AV: Tre Database Webhooks i Supabase (Database > Webhooks):
 //   1. INSERT på public.users
@@ -33,10 +34,12 @@ interface WebhookPayload {
     id: string;
     email?: string;
     subscription_status?: string;
+    language_preference?: string;
     raw_user_meta_data?: { display_name?: string };
   };
   old_record?: {
     subscription_status?: string;
+    language_preference?: string;
     raw_user_meta_data?: { display_name?: string };
   };
 }
@@ -53,6 +56,13 @@ const STATUS_TAGS: Record<string, string> = {
 };
 
 const ALL_STATUS_TAG_VALUES = Object.values(STATUS_TAGS);
+
+const LANGUAGE_TAGS: Record<string, string> = {
+  en: "lang:en",
+  sv: "lang:sv",
+};
+
+const ALL_LANGUAGE_TAG_VALUES = Object.values(LANGUAGE_TAGS);
 
 function simvolyHeaders(apiKey: string) {
   return {
@@ -80,17 +90,26 @@ async function findContactByEmail(
   return { id: data.id, tags: data.tags ?? [] };
 }
 
-function buildTagSet(existingTags: string[], newStatus: string | undefined): string[] {
+function buildTagSet(
+  existingTags: string[],
+  newStatus: string | undefined,
+  newLanguage: string | undefined,
+): string[] {
   const preserved = existingTags.filter(
-    (t) => t !== PLANISA_ACCOUNT_TAG && !ALL_STATUS_TAG_VALUES.includes(t),
+    (t) =>
+      t !== PLANISA_ACCOUNT_TAG &&
+      !ALL_STATUS_TAG_VALUES.includes(t) &&
+      !ALL_LANGUAGE_TAG_VALUES.includes(t),
   );
 
   const statusTag = newStatus ? STATUS_TAGS[newStatus] : undefined;
+  const languageTag = newLanguage ? LANGUAGE_TAGS[newLanguage] : undefined;
 
   return [
     ...preserved,
     PLANISA_ACCOUNT_TAG,
     ...(statusTag ? [statusTag] : []),
+    ...(languageTag ? [languageTag] : []),
   ];
 }
 
@@ -100,9 +119,10 @@ async function upsertSimvolyContact(
   email: string,
   name: string | undefined,
   status: string | undefined,
+  language: string | undefined,
 ): Promise<void> {
   const existing = await findContactByEmail(domain, apiKey, email);
-  const tags = buildTagSet(existing?.tags ?? [], status);
+  const tags = buildTagSet(existing?.tags ?? [], status, language);
 
   const body: Record<string, unknown> = { email, tags };
   if (name) body.name = name;
@@ -136,7 +156,7 @@ async function syncUserById(
   };
 
   const publicRes = await fetch(
-    `${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=email,subscription_status`,
+    `${supabaseUrl}/rest/v1/users?id=eq.${userId}&select=email,subscription_status,language_preference`,
     { headers: restHeaders },
   );
   if (!publicRes.ok) {
@@ -147,7 +167,7 @@ async function syncUserById(
     console.log(`[simvoly-sync] no public.users row for id=${userId}, skipping`);
     return;
   }
-  const { email, subscription_status } = publicRows[0];
+  const { email, subscription_status, language_preference } = publicRows[0];
   if (!email) {
     console.log(`[simvoly-sync] no email for id=${userId}, skipping`);
     return;
@@ -164,7 +184,7 @@ async function syncUserById(
     console.log(`[simvoly-sync] could not fetch auth user for id=${userId} (status ${authRes.status})`);
   }
 
-  await upsertSimvolyContact(domain, apiKey, email, displayName, subscription_status);
+  await upsertSimvolyContact(domain, apiKey, email, displayName, subscription_status, language_preference);
 }
 
 serve(async (req) => {
@@ -189,10 +209,13 @@ serve(async (req) => {
 
     if (payload.schema === "public" && payload.table === "users") {
       if (payload.type === "UPDATE") {
-        const oldStatus = payload.old_record?.subscription_status;
-        if (oldStatus === payload.record.subscription_status) {
+        const statusUnchanged =
+          payload.old_record?.subscription_status === payload.record.subscription_status;
+        const languageUnchanged =
+          payload.old_record?.language_preference === payload.record.language_preference;
+        if (statusUnchanged && languageUnchanged) {
           return new Response(
-            JSON.stringify({ skipped: true, reason: "status unchanged" }),
+            JSON.stringify({ skipped: true, reason: "status and language unchanged" }),
             { status: 200 },
           );
         }

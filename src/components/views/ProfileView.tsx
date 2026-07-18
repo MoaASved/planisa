@@ -21,6 +21,7 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  Globe,
 } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
@@ -286,6 +287,11 @@ export function ProfileView() {
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
     updateSettings({ theme: newTheme });
     document.documentElement.classList.toggle('dark');
+  };
+
+  const handleLanguageChange = (language: 'en' | 'sv') => {
+    if (language === settings.language) return;
+    updateSettings({ language });
   };
 
   // Sync modal fields from store whenever the modal opens
@@ -608,6 +614,35 @@ export function ProfileView() {
                 <div className={cn('w-5 h-5 rounded-full transition-all duration-300', settings.theme === 'dark' ? 'ml-6 bg-primary' : 'ml-1 bg-muted-foreground/40')} />
               </div>
             </button>
+
+            {/* Language */}
+            <div className="w-full flex items-center justify-between p-3 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Language</p>
+                  <p className="text-sm text-muted-foreground">{settings.language === 'sv' ? 'Svenska' : 'English'}</p>
+                </div>
+              </div>
+              <div className="flex gap-1 bg-muted rounded-full p-1">
+                {(['en', 'sv'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => handleLanguageChange(lang)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
+                      settings.language === lang
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground',
+                    )}
+                  >
+                    {lang === 'en' ? 'English' : 'Svenska'}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

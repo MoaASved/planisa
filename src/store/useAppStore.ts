@@ -99,7 +99,7 @@ const initialWidgets: Widget[] = [
   { id: '3', type: 'highlighted-note', size: 'small', position: 2 },
 ];
 const initialSettings: UserSettings = {
-  language: 'en',
+  language: (localStorage.getItem('language') as 'en' | 'sv') ?? 'en',
   theme: (localStorage.getItem('theme') as 'light' | 'dark') ?? 'light',
   avatarColor: 'peony',
   avatarInitial: 'U',
@@ -597,6 +597,15 @@ export const useAppStore = create<AppState>()((set, get) => {
     updateWidgets: (widgets) => set({ widgets }),
     updateSettings: (newSettings) => {
       if (newSettings.theme) localStorage.setItem('theme', newSettings.theme);
+      if (newSettings.language) {
+        localStorage.setItem('language', newSettings.language);
+        queueOrRun(uid(), (userId) => {
+          (supabase.from('users') as any)
+            .update({ language_preference: newSettings.language })
+            .eq('id', userId)
+            .then(swallow('updateSettings.language'));
+        });
+      }
       set((s) => ({ settings: { ...s.settings, ...newSettings } }));
     },
     setSearchQuery: (query) => set({ searchQuery: query }),

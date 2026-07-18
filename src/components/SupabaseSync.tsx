@@ -9,11 +9,21 @@ import { PastelColor } from '@/types';
  * Also hydrates profile settings (display name, avatar) from auth user_metadata.
  */
 export function SupabaseSync() {
-  const { user, loading } = useAuth();
+  const { user, loading, userRecord } = useAuth();
   const loadAll = useAppStore((s) => s.loadAll);
   const subscribeAll = useAppStore((s) => s.subscribeAll);
   const reset = useAppStore((s) => s.reset);
   const updateSettings = useAppStore((s) => s.updateSettings);
+
+  // Hydrate language preference from the saved profile once it's fetched, so the
+  // Settings toggle reflects the server value. Uses setState directly (not
+  // updateSettings) to avoid writing the just-fetched value back to Supabase.
+  useEffect(() => {
+    if (userRecord?.language_preference) {
+      localStorage.setItem('language', userRecord.language_preference);
+      useAppStore.setState((s) => ({ settings: { ...s.settings, language: userRecord.language_preference } }));
+    }
+  }, [userRecord?.language_preference]);
 
   useEffect(() => {
     if (loading) return;
