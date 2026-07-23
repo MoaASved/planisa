@@ -2,8 +2,8 @@
 //
 // Syftet: Håller Simvoly-CRM:et i synk med Planisas användare.
 // - Ny signup (public.users INSERT) -> skapar kontakt i Simvoly
-// - Statusändring (public.users UPDATE, subscription_status ändras) -> uppdaterar statustagg
-// - Språkändring (public.users UPDATE, language_preference ändras) -> uppdaterar lang-tagg
+// - Statusändring (public.users UPDATE, subscription_status ändras) -> uppdaterar status-property
+// - Språkändring (public.users UPDATE, language_preference ändras) -> uppdaterar language-property
 // - Namn satt/ändrat (auth.users UPDATE, display_name ändras i user_metadata) -> uppdaterar namnet
 //
 // Funktionen hämtar alltid FÄRSKASTE data direkt från källan (public.users
@@ -11,8 +11,20 @@
 // händelserna som triggade den. Det gör den robust även om något event
 // missas - nästa synk hämtar ändå korrekt nuvarande state.
 //
-// Bevarar alltid kontaktens befintliga taggar (t.ex. "väntelista") - tar
-// bara bort gamla Planisa-status-/lang-taggar och lägger till de nya.
+// Status och språk lagras i Simvolys "properties" (custom fields "status" och
+// "language" i Simvoly-dashboarden), INTE som taggar. Anledningen: Simvolys
+// POST/PUT-kontaktendpoints SLÅR IHOP (merge) tags-arrayen istället för att
+// ersätta den - en tagg som togs bort lokalt kom alltså aldrig bort på riktigt,
+// den bara låg kvar bredvid den nya. "properties" (keyed by name) ERSÄTTER
+// däremot värdet för en given property-name, bekräftat empiriskt mot Simvolys
+// API. Gamla "Status: X"- och "lang:x"-taggar tas fortfarande bort från
+// preserved (så de slutar dyka upp igen om de redan saknas) men nya sådana
+// taggar läggs aldrig till längre - Simvoly kan inte ta bort en tagg som
+// redan finns på en kontakt (POST/PUT slår bara ihop/merge:ar tags-arrayen),
+// så befintliga dubbletter kräver manuell borttagning i Simvoly-dashboarden.
+//
+// Bevarar alltid kontaktens befintliga taggar (t.ex. "väntelista") och övriga
+// properties utöver status/language.
 //
 // TRIGGAS AV: Tre Database Webhooks i Supabase (Database > Webhooks):
 //   1. INSERT på public.users
@@ -64,6 +76,14 @@ const LANGUAGE_TAGS: Record<string, string> = {
 
 const ALL_LANGUAGE_TAG_VALUES = Object.values(LANGUAGE_TAGS);
 
+// Custom fields skapade i Simvoly-dashboarden (Website Settings > Contacts).
+// Värdena skickas rakt av (t.ex. "trialing", "sv") - ingen omvandling till
+// en läsbar etikett som de gamla taggarna hade.
+const STATUS_PROPERTY_NAME = "status";
+const LANGUAGE_PROPERTY_NAME = "language";
+
+type ContactProperty = { name: string; value: string };
+
 function simvolyHeaders(apiKey: string) {
   return {
     Authorization: `Bearer ${apiKey}`,
@@ -76,7 +96,7 @@ async function findContactByEmail(
   domain: string,
   apiKey: string,
   email: string,
-): Promise<{ id: number; tags: string[] } | null> {
+): Promise<{ id: number; tags: string[]; properties: ContactProperty[] } | null> {
   const url = `https://${domain}/api/site/contacts/search-by-email?email=${encodeURIComponent(email)}`;
   const res = await fetch(url, { headers: simvolyHeaders(apiKey) });
 
@@ -87,14 +107,14 @@ async function findContactByEmail(
   }
 
   const data = await res.json();
-  return { id: data.id, tags: data.tags ?? [] };
+  return { id: data.id, tags: data.tags ?? [], properties: data.properties ?? [] };
 }
 
-function buildTagSet(
-  existingTags: string[],
-  newStatus: string | undefined,
-  newLanguage: string | undefined,
-): string[] {
+// Tar bara bort gamla Planisa-ägda taggar (kontotagg + de utgångna
+// status-/lang-taggarna). Lägger ALDRIG till nya status-/lang-taggar -
+// de källorna är nu properties (se buildPropertySet), eftersom Simvoly
+// slår ihop (merge) tags-arrayen istället för att ersätta den.
+function buildTagSet(existingTags: string[]): string[] {
   const preserved = existingTags.filter(
     (t) =>
       t !== PLANISA_ACCOUNT_TAG &&
@@ -102,14 +122,25 @@ function buildTagSet(
       !ALL_LANGUAGE_TAG_VALUES.includes(t),
   );
 
-  const statusTag = newStatus ? STATUS_TAGS[newStatus] : undefined;
-  const languageTag = newLanguage ? LANGUAGE_TAGS[newLanguage] : undefined;
+  return [...preserved, PLANISA_ACCOUNT_TAG];
+}
+
+// Till skillnad från tags ERSÄTTER Simvoly värdet för en given property-name
+// vid upsert (bekräftat med diagnostiktest), så det här är den korrekta
+// platsen att sätta status/språk. Bevarar alla andra properties orörda.
+function buildPropertySet(
+  existingProperties: ContactProperty[],
+  newStatus: string | undefined,
+  newLanguage: string | undefined,
+): ContactProperty[] {
+  const preserved = existingProperties.filter(
+    (p) => p.name !== STATUS_PROPERTY_NAME && p.name !== LANGUAGE_PROPERTY_NAME,
+  );
 
   return [
     ...preserved,
-    PLANISA_ACCOUNT_TAG,
-    ...(statusTag ? [statusTag] : []),
-    ...(languageTag ? [languageTag] : []),
+    ...(newStatus ? [{ name: STATUS_PROPERTY_NAME, value: newStatus }] : []),
+    ...(newLanguage ? [{ name: LANGUAGE_PROPERTY_NAME, value: newLanguage }] : []),
   ];
 }
 
@@ -122,9 +153,10 @@ async function upsertSimvolyContact(
   language: string | undefined,
 ): Promise<void> {
   const existing = await findContactByEmail(domain, apiKey, email);
-  const tags = buildTagSet(existing?.tags ?? [], status, language);
+  const tags = buildTagSet(existing?.tags ?? []);
+  const properties = buildPropertySet(existing?.properties ?? [], status, language);
 
-  const body: Record<string, unknown> = { email, tags };
+  const body: Record<string, unknown> = { email, tags, properties };
   if (name) body.name = name;
 
   const url = `https://${domain}/api/site/contacts`;
@@ -139,7 +171,9 @@ async function upsertSimvolyContact(
     throw new Error(`Simvoly upsert contact failed: ${res.status} ${errBody}`);
   }
 
-  console.log(`[simvoly-sync] upserted contact email=${email} name=${name ?? "(none)"} tags=${JSON.stringify(tags)}`);
+  console.log(
+    `[simvoly-sync] upserted contact email=${email} name=${name ?? "(none)"} tags=${JSON.stringify(tags)} properties=${JSON.stringify(properties)}`,
+  );
 }
 
 async function syncUserById(
