@@ -203,6 +203,7 @@ interface DashboardHomeProps {
   trialNisaMessage?: string | null;
   onTrialUpgrade?: (() => void) | null;
   hasFullAccess?: boolean;
+  svAnnouncementMessage?: string | null;
 }
 
 const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -233,6 +234,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   trialNisaMessage,
   onTrialUpgrade,
   hasFullAccess = true,
+  svAnnouncementMessage,
 }) => {
   const { tasks, events, notes, folders, settings, isSearchOpen, setIsSearchOpen, searchQuery, setSearchQuery, setHighlightTaskId } = useAppStore();
 
@@ -372,7 +374,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
     nisaMessage = `You're all set for today, ${userName}. Let's make it count! 🌟`;
   }
 
-  // Override with trial reminder when set (takes priority over all other messages)
+  // Override with the one-time Swedish language announcement when set
+  if (svAnnouncementMessage) {
+    nisaMessage = svAnnouncementMessage;
+  }
+
+  // Override with trial reminder when set (takes priority over all other messages,
+  // including the Swedish announcement above)
   if (trialNisaMessage) {
     nisaMessage = trialNisaMessage;
     nisaAction = onTrialUpgrade ?? null;
@@ -1091,6 +1099,7 @@ const Dashboard: React.FC = () => {
   // Trial reminder state
   const [trialNisaMessage, setTrialNisaMessage] = useState<string | null>(null);
   const [showTrialModal, setShowTrialModal] = useState(false);
+  const [svAnnouncementMessage, setSvAnnouncementMessage] = useState<string | null>(null);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   // ── Load focus items for this week ─────────────────────────────────────────
@@ -1347,6 +1356,17 @@ const Dashboard: React.FC = () => {
     }
   }, [userRecord, user]);
 
+  // ── One-time Swedish language announcement ─────────────────────────────────
+  // Browser reports Swedish and this device hasn't seen the announcement yet.
+  useEffect(() => {
+    const FLAG_KEY = 'has_seen_sv_language_announcement';
+    if (localStorage.getItem(FLAG_KEY)) return;
+    if (navigator.language?.toLowerCase().startsWith('sv')) {
+      localStorage.setItem(FLAG_KEY, '1');
+      setSvAnnouncementMessage('🇸🇪 Svensk? Byt till Svenska i Inställningar - Planisa på svenska är på gång!');
+    }
+  }, []);
+
   // ── Stripe return: ?upgrade=success ────────────────────────────────────────
   useEffect(() => {
     if (searchParams.get('upgrade') !== 'success') return;
@@ -1404,6 +1424,7 @@ const Dashboard: React.FC = () => {
             trialNisaMessage={trialNisaMessage}
             onTrialUpgrade={() => setActiveTab('profile')}
             hasFullAccess={hasFullAccess}
+            svAnnouncementMessage={svAnnouncementMessage}
           />
         );
       case 'calendar':
