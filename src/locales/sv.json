@@ -3,7 +3,13 @@
     "noEmailRegistered": "Ingen e-post registrerad",
     "opening": "Öppnar…",
     "updating": "Uppdaterar…",
-    "save": "Spara"
+    "save": "Spara",
+    "task": "Uppgift",
+    "event": "Händelse",
+    "note": "Anteckning",
+    "folder": "Mapp",
+    "sticky": "Lapp",
+    "couldNotSave": "Kunde inte spara: {{message}}"
   },
   "profile": {
     "defaultUserName": "Planisa-användare",
@@ -15,7 +21,72 @@
     "label": "Nisa",
     "noMessageYet": "Inget meddelande än...",
     "willGreetAgain": "NISA hälsar dig igen på hemskärmen ✨",
-    "showAgain": "Visa NISA igen"
+    "showAgain": "Visa NISA igen",
+    "upgradeAction": "Uppgradera →",
+    "sortNowAction": "Sortera nu →",
+    "dismiss": "stäng",
+    "talkToNisaAria": "Prata med Nisa",
+    "messages": {
+      "noFocusSet": "Du har inte satt ditt fokus för veckan än. Vad är det viktigaste just nu? ✨",
+      "allDone": "Du har klarat allt i din fokuslista denna vecka. Fantastiskt! 🎉",
+      "brainDumpWaiting_one": "Du har {{count}} osorterat tankedump-objekt som väntar. Vill du sortera det nu?",
+      "brainDumpWaiting_other": "Du har {{count}} osorterade tankedump-objekt som väntar. Vill du sortera dem nu?",
+      "habitsStreak": "Glöm inte dina vanor idag — du är på en svit! 💪",
+      "eveningFocusReminder": "Fortfarande tid att beta av dina fokuspunkter innan veckan är slut 🌙",
+      "allSetToday": "Du är redo för idag, {{name}}. Nu kör vi! 🌟",
+      "svAnnouncement": "🇸🇪 Svensk? Byt till Svenska i Inställningar - Planisa på svenska är på gång!"
+    }
+  },
+  "dashboardHeader": {
+    "greeting": "Hej, {{name}} 👋🏽",
+    "openSearchAria": "Öppna sök",
+    "openProfileAria": "Öppna profil",
+    "defaultUserName": "Användare"
+  },
+  "search": {
+    "placeholder": "Sök...",
+    "cancel": "Avbryt",
+    "noResults": "Inga resultat",
+    "emptyNote": "Tom anteckning"
+  },
+  "todayCard": {
+    "title": "Idag",
+    "noPlans": "Inga planer idag",
+    "moreCount": "+{{count}} till",
+    "week": "v. {{number}}"
+  },
+  "weeklyFocus": {
+    "title": "Veckans fokus",
+    "addFocus": "lägg till fokus",
+    "loading": "Laddar…",
+    "empty": "Inget i fokus än. Vad är viktigast denna vecka?",
+    "removeAria": "Ta bort fokuspunkt"
+  },
+  "habits": {
+    "title": "Vanor",
+    "edit": "Redigera",
+    "empty": "Inga vanor än",
+    "addHabit": "Lägg till vana",
+    "dayLabels": ["M", "T", "O", "T", "F", "L", "S"]
+  },
+  "brainDump": {
+    "title": "Brain dump",
+    "saveForLater": "Spara till senare",
+    "savedItemsAria": "{{count}} sparade objekt",
+    "placeholder": "Skriv vad som helst… sortera senare."
+  },
+  "upgradePrompt": {
+    "title": "Din provperiod har tagit slut",
+    "description": "Prenumerera på Planisa för att låsa upp Uppgifter, Anteckningar och alla funktioner.",
+    "viewPlans": "Visa planer"
+  },
+  "trialReminders": {
+    "fallbackName": "du",
+    "day1": "Hej {{name}}! Kul att ha dig här. Ta en titt runt och utforska, det finns massor att upptäcka. Uppgifter, anteckningar, klisterlappar och din kalender väntar på dig!",
+    "day2": "Glöm inte att lägga till Planisa på hemskärmen för den bästa upplevelsen. Det tar bara en sekund!",
+    "endingSoon_one": "Din provperiod slutar om {{count}} dag. Uppgradera för att behålla full åtkomst till Uppgifter och Anteckningar.",
+    "endingSoon_other": "Din provperiod slutar om {{count}} dagar. Uppgradera för att behålla full åtkomst till Uppgifter och Anteckningar.",
+    "welcomeToast": "Allt klart! Välkommen till Planisa Pro."
   },
   "plan": {
     "sectionTitle": "Plan",
