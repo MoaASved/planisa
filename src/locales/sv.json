@@ -50,13 +50,13 @@
   },
   "categories": {
     "sectionTitle": "Kategorier & mappar",
-    "calendarCategories": "Kalenderkategorier",
+    "calendarCategories": "Kategorier (kalender)",
     "categoriesCount": "{{count}} kategorier",
     "addNewCategory": "Lägg till ny kategori",
-    "tasksLists": "Uppgiftslistor",
+    "tasksLists": "Listor (uppgifter)",
     "listsCount": "{{count}} listor",
     "addNewList": "Lägg till ny lista",
-    "notesFolders": "Anteckningsmappar",
+    "notesFolders": "Mappar (anteckningar)",
     "foldersCount": "{{count}} mappar",
     "addNewFolder": "Lägg till ny mapp"
   },
@@ -78,7 +78,7 @@
   "support": {
     "sectionTitle": "Support",
     "helpFaq": "Hjälp & FAQ",
-    "feedbackRoadmap": "Feedback & färdplan"
+    "feedbackRoadmap": "Feedback & roadmap"
   },
   "legal": {
     "sectionTitle": "Juridiskt",
