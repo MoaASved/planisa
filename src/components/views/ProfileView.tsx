@@ -25,6 +25,7 @@ import {
   Check,
 } from 'lucide-react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/useAppStore';
@@ -67,6 +68,7 @@ export function ProfileView() {
     deleteFolder,
   } = useAppStore();
   const { signOut, user, userRecord, hasFullAccess } = useAuth();
+  const { t, i18n } = useTranslation();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null); // holds priceId while loading
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
@@ -152,7 +154,7 @@ export function ProfileView() {
       }
     } catch (err) {
       win?.close();
-      toast.error('Could not open billing portal. Please try again.');
+      toast.error(t('plan.portalError'));
     } finally {
       setPortalLoading(false);
     }
@@ -170,7 +172,7 @@ export function ProfileView() {
         password: emailCurrentPassword,
       });
       if (signInError) {
-        setEmailMsg({ type: 'error', text: 'Incorrect password.' });
+        setEmailMsg({ type: 'error', text: t('emailModal.incorrectPassword') });
         return;
       }
       // Update email in Supabase Auth (sends confirmation to new address)
@@ -183,7 +185,7 @@ export function ProfileView() {
       await supabase.functions.invoke('update-stripe-customer-email', {
         body: { userId: user.id, email: newEmail },
       });
-      setEmailMsg({ type: 'success', text: 'Check your new inbox for a confirmation link.' });
+      setEmailMsg({ type: 'success', text: t('emailModal.successMessage') });
       setNewEmail('');
       setEmailCurrentPassword('');
     } catch (err) {
@@ -197,11 +199,11 @@ export function ProfileView() {
     e.preventDefault();
     if (!user?.email) return;
     if (newPassword !== confirmPassword) {
-      setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
+      setPasswordMsg({ type: 'error', text: t('passwordModal.mismatchError') });
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordMsg({ type: 'error', text: 'Password must be at least 6 characters.' });
+      setPasswordMsg({ type: 'error', text: t('passwordModal.tooShortError') });
       return;
     }
     setPasswordLoading(true);
@@ -213,7 +215,7 @@ export function ProfileView() {
         password: currentPassword,
       });
       if (signInError) {
-        setPasswordMsg({ type: 'error', text: 'Incorrect current password.' });
+        setPasswordMsg({ type: 'error', text: t('passwordModal.incorrectCurrentPassword') });
         return;
       }
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
@@ -221,7 +223,7 @@ export function ProfileView() {
         setPasswordMsg({ type: 'error', text: updateError.message });
         return;
       }
-      setPasswordMsg({ type: 'success', text: 'Password updated successfully.' });
+      setPasswordMsg({ type: 'success', text: t('passwordModal.successMessage') });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -277,7 +279,7 @@ export function ProfileView() {
       } else {
         win?.close();
         console.error('[checkout] unexpected response shape', data);
-        throw new Error('No checkout URL returned — check Edge Function logs');
+        throw new Error(t('plan.checkoutUrlMissingError'));
       }
     } catch (err) {
       const msg = (err as Error).message;
@@ -299,6 +301,7 @@ export function ProfileView() {
   const handleLanguageChange = (language: 'en' | 'sv') => {
     if (language === settings.language) return;
     updateSettings({ language });
+    i18n.changeLanguage(language);
   };
 
   // Sync modal fields from store whenever the modal opens
@@ -325,7 +328,7 @@ export function ProfileView() {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
       setAvatarUrl(`${data.publicUrl}?cb=${Date.now()}`);
     } catch {
-      toast.error('Failed to upload image');
+      toast.error(t('editProfileModal.uploadError'));
     } finally {
       setAvatarUploading(false);
     }
@@ -429,7 +432,7 @@ export function ProfileView() {
           <button onClick={() => setShowAvatarModal(true)} className="flex items-center gap-4 w-full text-left">
             <div className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center bg-primary flex-shrink-0">
               {settings.avatarType === 'image' && settings.avatarUrl ? (
-                <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={settings.avatarUrl} alt={t('profile.avatarAlt')} className="w-full h-full object-cover" />
               ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
                 <span className="text-2xl leading-none">{settings.avatarEmoji}</span>
               ) : (
@@ -439,9 +442,9 @@ export function ProfileView() {
               )}
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-foreground">{settings.name || 'Planisa User'}</h3>
-              <p className="text-sm text-muted-foreground">{user?.email ?? 'No email registered'}</p>
-              <span className="text-xs text-muted-foreground">Tap to edit profile</span>
+              <h3 className="font-semibold text-foreground">{settings.name || t('profile.defaultUserName')}</h3>
+              <p className="text-sm text-muted-foreground">{user?.email ?? t('common.noEmailRegistered')}</p>
+              <span className="text-xs text-muted-foreground">{t('profile.tapToEditProfile')}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -456,7 +459,7 @@ export function ProfileView() {
             >
               <img
                 src="/nisa.png"
-                alt="Nisa"
+                alt={t('profile.nisaAlt')}
                 style={{
                   width: 64,
                   height: 64,
@@ -468,7 +471,7 @@ export function ProfileView() {
               />
             </button>
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-foreground/40">Nisa</p>
+              <p className="text-sm text-foreground/40">{t('nisa.label')}</p>
             </div>
             <button
               onClick={() => setShowNisaMessage(v => !v)}
@@ -486,19 +489,19 @@ export function ProfileView() {
           )}
           {showNisaMessage && !nisaLastMessage && (
             <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-sm text-muted-foreground italic">No message yet...</p>
+              <p className="text-sm text-muted-foreground italic">{t('nisa.noMessageYet')}</p>
             </div>
           )}
           {nisaDismissed && (
             <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
               {nisaResetConfirmed ? (
-                <p className="text-sm text-muted-foreground">NISA will greet you on the dashboard again ✨</p>
+                <p className="text-sm text-muted-foreground">{t('nisa.willGreetAgain')}</p>
               ) : (
                 <button
                   onClick={handleNisaReset}
                   className="text-sm text-primary font-medium"
                 >
-                  Show NISA again
+                  {t('nisa.showAgain')}
                 </button>
               )}
             </div>
@@ -507,7 +510,7 @@ export function ProfileView() {
 
         {/* Plan */}
         <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Plan</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">{t('plan.sectionTitle')}</h3>
           {hasFullAccess && (userRecord?.subscription_status === 'active' || userRecord?.subscription_status === 'lifetime') ? (
             <div className="flow-card-flat p-4 space-y-3">
               <div className="flex items-center gap-3">
@@ -516,10 +519,10 @@ export function ProfileView() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">
-                    {userRecord.subscription_status === 'lifetime' ? 'Lifetime Access' : 'Planisa Pro'}
+                    {userRecord.subscription_status === 'lifetime' ? t('plan.lifetimeAccess') : t('plan.pro')}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {userRecord.subscription_status === 'lifetime' ? 'You have lifetime access.' : 'Active subscription — full access enabled.'}
+                    {userRecord.subscription_status === 'lifetime' ? t('plan.lifetimeDescription') : t('plan.activeDescription')}
                   </p>
                 </div>
               </div>
@@ -529,7 +532,7 @@ export function ProfileView() {
                   disabled={portalLoading}
                   className="w-full py-3 rounded-2xl border border-border text-foreground text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
                 >
-                  {portalLoading ? 'Opening…' : 'Manage subscription'}
+                  {portalLoading ? t('common.opening') : t('plan.manageSubscription')}
                 </button>
               )}
             </div>
@@ -540,8 +543,8 @@ export function ProfileView() {
                   <CreditCard className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Upgrade to Pro</p>
-                  <p className="text-sm text-muted-foreground">Unlock Tasks, Notes, and everything else.</p>
+                  <p className="font-medium text-foreground">{t('plan.upgradeTitle')}</p>
+                  <p className="text-sm text-muted-foreground">{t('plan.upgradeDescription')}</p>
                 </div>
               </div>
               <button
@@ -549,18 +552,18 @@ export function ProfileView() {
                 disabled={!!checkoutLoading}
                 className="w-full py-3 rounded-2xl bg-foreground text-background text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
               >
-                {checkoutLoading === 'monthly' ? 'Opening…' : 'Monthly — €6.99/month'}
+                {checkoutLoading === 'monthly' ? t('common.opening') : t('plan.monthly')}
               </button>
               <button
                 onClick={() => handleCheckout('yearly')}
                 disabled={!!checkoutLoading}
                 className="w-full py-3 rounded-2xl border border-border text-foreground text-[15px] font-semibold active:scale-[0.98] transition-transform disabled:opacity-60"
               >
-                {checkoutLoading === 'yearly' ? 'Opening…' : 'Yearly — €69.99/year'}
+                {checkoutLoading === 'yearly' ? t('common.opening') : t('plan.yearly')}
               </button>
               {checkoutError && (
                 <p className="text-xs text-destructive leading-snug px-1 pt-1">
-                  Error: {checkoutError}
+                  {t('plan.errorPrefix', { message: checkoutError })}
                 </p>
               )}
             </div>
@@ -569,7 +572,7 @@ export function ProfileView() {
 
         {/* Account Settings */}
         <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Account</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">{t('account.sectionTitle')}</h3>
           <div className="flow-card-flat space-y-1 p-2">
             <button onClick={() => { setShowEmailModal(true); setEmailMsg(null); }} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors">
               <div className="flex items-center gap-3">
@@ -577,8 +580,8 @@ export function ProfileView() {
                   <Mail className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Email</p>
-                  <p className="text-sm text-muted-foreground">{user?.email ?? 'No email registered'}</p>
+                  <p className="font-medium text-foreground">{t('account.email')}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email ?? t('common.noEmailRegistered')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -590,8 +593,8 @@ export function ProfileView() {
                   <Lock className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Change Password</p>
-                  <p className="text-sm text-muted-foreground">Update your password</p>
+                  <p className="font-medium text-foreground">{t('account.changePassword')}</p>
+                  <p className="text-sm text-muted-foreground">{t('account.updateYourPassword')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -601,10 +604,10 @@ export function ProfileView() {
 
         {/* Preferences */}
         <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Preferences</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">{t('preferences.sectionTitle')}</h3>
           <div className="flow-card-flat space-y-1 p-2">
             {/* Theme */}
-            <button 
+            <button
               onClick={toggleDarkMode}
               className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-secondary transition-colors"
             >
@@ -613,8 +616,8 @@ export function ProfileView() {
                   {settings.theme === 'dark' ? <Moon className="w-5 h-5 text-muted-foreground" /> : <Sun className="w-5 h-5 text-muted-foreground" />}
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Theme</p>
-                  <p className="text-sm text-muted-foreground">{settings.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</p>
+                  <p className="font-medium text-foreground">{t('preferences.theme')}</p>
+                  <p className="text-sm text-muted-foreground">{settings.theme === 'dark' ? t('preferences.darkMode') : t('preferences.lightMode')}</p>
                 </div>
               </div>
               <div className={cn('w-12 h-7 rounded-full transition-all duration-300 flex items-center border', settings.theme === 'dark' ? 'bg-primary/20 border-primary/40' : 'bg-muted border-border')}>
@@ -631,8 +634,8 @@ export function ProfileView() {
                       <Globe className="w-5 h-5 text-muted-foreground" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-foreground">Language</p>
-                      <p className="text-sm text-muted-foreground">{settings.language === 'sv' ? 'Svenska' : 'English'}</p>
+                      <p className="font-medium text-foreground">{t('preferences.language')}</p>
+                      <p className="text-sm text-muted-foreground">{settings.language === 'sv' ? t('preferences.svenska') : t('preferences.english')}</p>
                     </div>
                   </div>
                   <ChevronDown className="w-5 h-5 text-muted-foreground" />
@@ -646,9 +649,9 @@ export function ProfileView() {
                     className="flex items-center justify-between"
                   >
                     <span className="flex items-center gap-1.5">
-                      {lang === 'en' ? 'English' : 'Svenska'}
+                      {lang === 'en' ? t('preferences.english') : t('preferences.svenska')}
                       {lang === 'sv' && (
-                        <span className="text-xs text-muted-foreground">(Coming soon)</span>
+                        <span className="text-xs text-muted-foreground">{t('preferences.comingSoon')}</span>
                       )}
                     </span>
                     {settings.language === lang && <Check className="w-4 h-4 text-primary" />}
@@ -661,7 +664,7 @@ export function ProfileView() {
 
         {/* Categories & Folders - Section Wise */}
         <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Categories & Folders</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">{t('categories.sectionTitle')}</h3>
           <div className="space-y-2">
             {/* Calendar Categories */}
             <div className="flow-card-flat p-2">
@@ -674,8 +677,8 @@ export function ProfileView() {
                     <Calendar className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-foreground">Calendar Categories</p>
-                    <p className="text-sm text-muted-foreground">{eventCategories.length} categories</p>
+                    <p className="font-medium text-foreground">{t('categories.calendarCategories')}</p>
+                    <p className="text-sm text-muted-foreground">{t('categories.categoriesCount', { count: eventCategories.length })}</p>
                   </div>
                 </div>
                 {expandedSection === 'calendar' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
@@ -709,7 +712,7 @@ export function ProfileView() {
                     onClick={() => openAddDrawer('calendar')}
                     className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    Add New Category
+                    {t('categories.addNewCategory')}
                   </button>
                 </div>
               )}
@@ -726,8 +729,8 @@ export function ProfileView() {
                     <CheckSquare className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-foreground">Tasks Lists</p>
-                    <p className="text-sm text-muted-foreground">{taskCategories.length} lists</p>
+                    <p className="font-medium text-foreground">{t('categories.tasksLists')}</p>
+                    <p className="text-sm text-muted-foreground">{t('categories.listsCount', { count: taskCategories.length })}</p>
                   </div>
                 </div>
                 {expandedSection === 'tasks' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
@@ -765,7 +768,7 @@ export function ProfileView() {
                     onClick={() => openAddDrawer('tasks')}
                     className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    Add New List
+                    {t('categories.addNewList')}
                   </button>
                 </div>
               )}
@@ -782,8 +785,8 @@ export function ProfileView() {
                     <Folder className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <div className="text-left">
-                    <p className="font-medium text-foreground">Notes Folders</p>
-                    <p className="text-sm text-muted-foreground">{folders.length} folders</p>
+                    <p className="font-medium text-foreground">{t('categories.notesFolders')}</p>
+                    <p className="text-sm text-muted-foreground">{t('categories.foldersCount', { count: folders.length })}</p>
                   </div>
                 </div>
                 {expandedSection === 'notes' ? <ChevronDown className="w-5 h-5 text-muted-foreground" /> : <ChevronRight className="w-5 h-5 text-muted-foreground" />}
@@ -817,7 +820,7 @@ export function ProfileView() {
                     onClick={() => openAddDrawer('notes')}
                     className="w-full text-center py-2 rounded-xl text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                   >
-                    Add New Folder
+                    {t('categories.addNewFolder')}
                   </button>
                 </div>
               )}
@@ -828,7 +831,7 @@ export function ProfileView() {
 
         {/* Support */}
         <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Support</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">{t('support.sectionTitle')}</h3>
           <div className="flow-card-flat space-y-1 p-2">
             <button
               onClick={() => window.open('https://planisa.app/help', '_blank')}
@@ -839,7 +842,7 @@ export function ProfileView() {
                   <HelpCircle className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Help & FAQ</p>
+                  <p className="font-medium text-foreground">{t('support.helpFaq')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -854,7 +857,7 @@ export function ProfileView() {
                   <MessageSquareDot className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Feedback & Roadmap</p>
+                  <p className="font-medium text-foreground">{t('support.feedbackRoadmap')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -864,7 +867,7 @@ export function ProfileView() {
 
         {/* Legal */}
         <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">Legal</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">{t('legal.sectionTitle')}</h3>
           <div className="flow-card-flat space-y-1 p-2">
             <button
               onClick={() => window.open('https://planisa.app/privacy-policy', '_blank')}
@@ -875,7 +878,7 @@ export function ProfileView() {
                   <Shield className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Privacy Policy</p>
+                  <p className="font-medium text-foreground">{t('legal.privacyPolicy')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -890,7 +893,7 @@ export function ProfileView() {
                   <FileText className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-foreground">Terms of Service</p>
+                  <p className="font-medium text-foreground">{t('legal.termsOfService')}</p>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -904,10 +907,10 @@ export function ProfileView() {
           className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-destructive/10 text-destructive font-medium"
         >
           <LogOut className="w-5 h-5" />
-          Sign Out
+          {t('signOut')}
         </button>
 
-        <p className="text-center text-sm text-muted-foreground">Planisa v1.0.0</p>
+        <p className="text-center text-sm text-muted-foreground">{t('appVersion')}</p>
       </div>
 
       {/* Edit Profile Modal */}
@@ -943,7 +946,7 @@ export function ProfileView() {
             >
               {/* Sticky header */}
               <div className="sticky top-0 bg-card rounded-t-3xl flex items-center justify-between px-5 pt-5 pb-3 z-10">
-                <h2 className="text-lg font-semibold text-foreground">Edit Profile</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t('editProfileModal.title')}</h2>
                 <button
                   onClick={() => setShowAvatarModal(false)}
                   className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
@@ -957,7 +960,7 @@ export function ProfileView() {
                 <div className="flex justify-center mb-5">
                   <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center bg-primary">
                     {avatarType === 'image' && avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      <img src={avatarUrl} alt={t('profile.avatarAlt')} className="w-full h-full object-cover" />
                     ) : avatarType === 'emoji' && avatarEmoji ? (
                       <span className="text-4xl leading-none">{avatarEmoji}</span>
                     ) : (
@@ -967,30 +970,30 @@ export function ProfileView() {
                 </div>
 
                 {/* Name */}
-                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Name</label>
+                <label className="text-sm font-medium text-muted-foreground mb-1.5 block">{t('editProfileModal.nameLabel')}</label>
                 <input
                   type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t('editProfileModal.namePlaceholder')}
                   className="flow-input mb-4 w-full"
                 />
 
                 {/* Avatar type toggle */}
-                <p className="text-sm font-medium text-muted-foreground mb-2">Avatar type</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">{t('editProfileModal.avatarTypeLabel')}</p>
                 <div className="flex gap-2 mb-4">
-                  {(['initial', 'emoji', 'image'] as const).map((t) => (
+                  {(['initial', 'emoji', 'image'] as const).map((opt) => (
                     <button
-                      key={t}
-                      onClick={() => setAvatarType(t)}
+                      key={opt}
+                      onClick={() => setAvatarType(opt)}
                       className={cn(
                         'flex-1 py-2 rounded-full text-sm font-medium transition-colors',
-                        avatarType === t
+                        avatarType === opt
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary text-muted-foreground',
                       )}
                     >
-                      {t === 'initial' ? 'Initial' : t === 'emoji' ? 'Emoji' : 'Image'}
+                      {opt === 'initial' ? t('editProfileModal.initial') : opt === 'emoji' ? t('editProfileModal.emoji') : t('editProfileModal.image')}
                     </button>
                   ))}
                 </div>
@@ -998,12 +1001,12 @@ export function ProfileView() {
                 {/* Initial input */}
                 {avatarType === 'initial' && (
                   <>
-                    <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Initials (1–2 chars)</label>
+                    <label className="text-sm font-medium text-muted-foreground mb-1.5 block">{t('editProfileModal.initialsLabel')}</label>
                     <input
                       type="text"
                       value={avatarInitial}
                       onChange={(e) => setAvatarInitial(e.target.value.slice(0, 2).toUpperCase())}
-                      placeholder="e.g. MO"
+                      placeholder={t('editProfileModal.initialsPlaceholder')}
                       className="flow-input mb-4 w-full text-center tracking-widest"
                       maxLength={2}
                     />
@@ -1024,7 +1027,7 @@ export function ProfileView() {
                       onClick={() => setShowEmojiPickerPopup(true)}
                       className="flex-1 py-3 rounded-2xl border border-border text-sm font-medium text-foreground"
                     >
-                      {avatarEmoji ? 'Change emoji' : 'Choose emoji'}
+                      {avatarEmoji ? t('editProfileModal.changeEmoji') : t('editProfileModal.chooseEmoji')}
                     </button>
                   </div>
                 )}
@@ -1038,7 +1041,7 @@ export function ProfileView() {
                         avatarUploading && 'opacity-50 pointer-events-none',
                       )}
                     >
-                      {avatarUploading ? 'Uploading…' : avatarUrl ? 'Change photo' : 'Upload photo'}
+                      {avatarUploading ? t('editProfileModal.uploading') : avatarUrl ? t('editProfileModal.changePhoto') : t('editProfileModal.uploadPhoto')}
                       <input
                         type="file"
                         accept="image/*"
@@ -1050,7 +1053,7 @@ export function ProfileView() {
                 )}
 
                 <button onClick={handleSaveAvatar} className="w-full flow-button-primary">
-                  Save
+                  {t('common.save')}
                 </button>
               </div>
             </div>
@@ -1088,29 +1091,29 @@ export function ProfileView() {
       <CategoryEditDrawer
         isOpen={showAddDrawer}
         onClose={() => setShowAddDrawer(false)}
-        title={`New ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'tasks' ? 'List' : 'Category'}`}
+        title={addDrawerSection === 'notes' ? t('categoryDrawer.newFolder') : addDrawerSection === 'tasks' ? t('categoryDrawer.newList') : t('categoryDrawer.newCategory')}
         itemName={newItemName}
         itemColor={newItemColor}
         onNameChange={setNewItemName}
         onColorChange={setNewItemColor}
         onSave={handleAddItem}
-        placeholder={addDrawerSection === 'notes' ? 'Folder name' : addDrawerSection === 'tasks' ? 'List name' : 'Category name'}
-        saveLabel={`Create ${addDrawerSection === 'notes' ? 'Folder' : addDrawerSection === 'tasks' ? 'List' : 'Category'}`}
+        placeholder={addDrawerSection === 'notes' ? t('categoryDrawer.folderNamePlaceholder') : addDrawerSection === 'tasks' ? t('categoryDrawer.listNamePlaceholder') : t('categoryDrawer.categoryNamePlaceholder')}
+        saveLabel={addDrawerSection === 'notes' ? t('categoryDrawer.createFolder') : addDrawerSection === 'tasks' ? t('categoryDrawer.createList') : t('categoryDrawer.createCategory')}
       />
 
       {/* Edit Category/Folder Drawer */}
       <CategoryEditDrawer
         isOpen={showEditDrawer}
         onClose={() => setShowEditDrawer(false)}
-        title={`Edit ${editItemSection === 'notes' ? 'Folder' : editItemSection === 'tasks' ? 'List' : 'Category'}`}
+        title={editItemSection === 'notes' ? t('categoryDrawer.editFolder') : editItemSection === 'tasks' ? t('categoryDrawer.editList') : t('categoryDrawer.editCategory')}
         itemName={editItemName}
         itemColor={editItemColor}
         onNameChange={setEditItemName}
         onColorChange={setEditItemColor}
         onSave={handleUpdateItem}
         onDelete={() => editItemId && handleDeleteItem(editItemSection, editItemId)}
-        placeholder={editItemSection === 'notes' ? 'Folder name' : editItemSection === 'tasks' ? 'List name' : 'Category name'}
-        saveLabel="Save Changes"
+        placeholder={editItemSection === 'notes' ? t('categoryDrawer.folderNamePlaceholder') : editItemSection === 'tasks' ? t('categoryDrawer.listNamePlaceholder') : t('categoryDrawer.categoryNamePlaceholder')}
+        saveLabel={t('categoryDrawer.saveChanges')}
         showDelete={!editItemIsDefault}
         hideNameInput={editItemIsDefault}
       />
@@ -1125,32 +1128,32 @@ export function ProfileView() {
           <div style={{ position: 'fixed', top: modalTop, left: 0, right: 0, zIndex: 9999, padding: '0 20px' }}>
             <div className="bg-card rounded-3xl shadow-2xl animate-scale-in" style={{ maxHeight, overflowY: 'auto' }}>
               <div className="sticky top-0 bg-card rounded-t-3xl flex items-center justify-between px-5 pt-5 pb-3 z-10">
-                <h2 className="text-lg font-semibold text-foreground">Change Email</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t('emailModal.title')}</h2>
                 <button onClick={() => setShowEmailModal(false)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
               <form onSubmit={handleEmailChange} className="px-5 pb-6 space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-1.5 block">New email address</label>
+                  <label className="text-sm font-medium text-muted-foreground mb-1.5 block">{t('emailModal.newEmailLabel')}</label>
                   <input
                     type="email"
                     value={newEmail}
                     onChange={e => setNewEmail(e.target.value)}
-                    placeholder="new@email.com"
+                    placeholder={t('emailModal.newEmailPlaceholder')}
                     className="flow-input w-full"
                     required
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Current password</label>
+                  <label className="text-sm font-medium text-muted-foreground mb-1.5 block">{t('emailModal.currentPasswordLabel')}</label>
                   <div className="relative">
                     <input
                       type={showCurrentPw ? 'text' : 'password'}
                       value={emailCurrentPassword}
                       onChange={e => setEmailCurrentPassword(e.target.value)}
-                      placeholder="Enter your password"
+                      placeholder={t('emailModal.currentPasswordPlaceholder')}
                       className="flow-input w-full pr-10"
                       required
                     />
@@ -1173,7 +1176,7 @@ export function ProfileView() {
                   disabled={emailLoading || !newEmail || !emailCurrentPassword}
                   className="w-full flow-button-primary disabled:opacity-50"
                 >
-                  {emailLoading ? 'Updating…' : 'Update Email'}
+                  {emailLoading ? t('common.updating') : t('emailModal.updateButton')}
                 </button>
               </form>
             </div>
@@ -1192,28 +1195,28 @@ export function ProfileView() {
           <div style={{ position: 'fixed', top: modalTop, left: 0, right: 0, zIndex: 9999, padding: '0 20px' }}>
             <div className="bg-card rounded-3xl shadow-2xl animate-scale-in" style={{ maxHeight, overflowY: 'auto' }}>
               <div className="sticky top-0 bg-card rounded-t-3xl flex items-center justify-between px-5 pt-5 pb-3 z-10">
-                <h2 className="text-lg font-semibold text-foreground">Change Password</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t('passwordModal.title')}</h2>
                 <button onClick={() => setShowPasswordModal(false)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                   <X className="w-4 h-4 text-muted-foreground" />
                 </button>
               </div>
               <form onSubmit={handlePasswordChange} className="px-5 pb-6 space-y-4">
                 {[
-                  { label: 'Current password', value: currentPassword, onChange: setCurrentPassword, show: showCurrentPw, toggle: () => setShowCurrentPw(v => !v) },
-                  { label: 'New password', value: newPassword, onChange: setNewPassword, show: showNewPw, toggle: () => setShowNewPw(v => !v) },
-                  { label: 'Confirm new password', value: confirmPassword, onChange: setConfirmPassword, show: showConfirmPw, toggle: () => setShowConfirmPw(v => !v) },
-                ].map(({ label, value, onChange, show, toggle }) => (
-                  <div key={label}>
+                  { id: 'current', label: t('passwordModal.currentPasswordLabel'), value: currentPassword, onChange: setCurrentPassword, show: showCurrentPw, toggle: () => setShowCurrentPw(v => !v) },
+                  { id: 'new', label: t('passwordModal.newPasswordLabel'), value: newPassword, onChange: setNewPassword, show: showNewPw, toggle: () => setShowNewPw(v => !v) },
+                  { id: 'confirm', label: t('passwordModal.confirmPasswordLabel'), value: confirmPassword, onChange: setConfirmPassword, show: showConfirmPw, toggle: () => setShowConfirmPw(v => !v) },
+                ].map(({ id, label, value, onChange, show, toggle }) => (
+                  <div key={id}>
                     <label className="text-sm font-medium text-muted-foreground mb-1.5 block">{label}</label>
                     <div className="relative">
                       <input
                         type={show ? 'text' : 'password'}
                         value={value}
                         onChange={e => onChange(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder={t('passwordModal.placeholder')}
                         className="flow-input w-full pr-10"
                         required
-                        autoFocus={label === 'Current password'}
+                        autoFocus={id === 'current'}
                       />
                       <button
                         type="button"
@@ -1235,7 +1238,7 @@ export function ProfileView() {
                   disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
                   className="w-full flow-button-primary disabled:opacity-50"
                 >
-                  {passwordLoading ? 'Updating…' : 'Update Password'}
+                  {passwordLoading ? t('common.updating') : t('passwordModal.updateButton')}
                 </button>
               </form>
             </div>

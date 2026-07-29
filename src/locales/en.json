@@ -1,0 +1,129 @@
+{
+  "common": {
+    "noEmailRegistered": "No email registered",
+    "opening": "Opening…",
+    "updating": "Updating…",
+    "save": "Save"
+  },
+  "profile": {
+    "defaultUserName": "Planisa User",
+    "tapToEditProfile": "Tap to edit profile",
+    "avatarAlt": "Avatar",
+    "nisaAlt": "Nisa"
+  },
+  "nisa": {
+    "label": "Nisa",
+    "noMessageYet": "No message yet...",
+    "willGreetAgain": "NISA will greet you on the dashboard again ✨",
+    "showAgain": "Show NISA again"
+  },
+  "plan": {
+    "sectionTitle": "Plan",
+    "lifetimeAccess": "Lifetime Access",
+    "pro": "Planisa Pro",
+    "lifetimeDescription": "You have lifetime access.",
+    "activeDescription": "Active subscription — full access enabled.",
+    "manageSubscription": "Manage subscription",
+    "upgradeTitle": "Upgrade to Pro",
+    "upgradeDescription": "Unlock Tasks, Notes, and everything else.",
+    "monthly": "Monthly — €6.99/month",
+    "yearly": "Yearly — €69.99/year",
+    "errorPrefix": "Error: {{message}}",
+    "checkoutUrlMissingError": "No checkout URL returned — check Edge Function logs",
+    "portalError": "Could not open billing portal. Please try again."
+  },
+  "account": {
+    "sectionTitle": "Account",
+    "email": "Email",
+    "changePassword": "Change Password",
+    "updateYourPassword": "Update your password"
+  },
+  "preferences": {
+    "sectionTitle": "Preferences",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "language": "Language",
+    "english": "English",
+    "svenska": "Svenska",
+    "comingSoon": "(Coming soon)"
+  },
+  "categories": {
+    "sectionTitle": "Categories & Folders",
+    "calendarCategories": "Calendar Categories",
+    "categoriesCount": "{{count}} categories",
+    "addNewCategory": "Add New Category",
+    "tasksLists": "Tasks Lists",
+    "listsCount": "{{count}} lists",
+    "addNewList": "Add New List",
+    "notesFolders": "Notes Folders",
+    "foldersCount": "{{count}} folders",
+    "addNewFolder": "Add New Folder"
+  },
+  "categoryDrawer": {
+    "newFolder": "New Folder",
+    "newList": "New List",
+    "newCategory": "New Category",
+    "editFolder": "Edit Folder",
+    "editList": "Edit List",
+    "editCategory": "Edit Category",
+    "folderNamePlaceholder": "Folder name",
+    "listNamePlaceholder": "List name",
+    "categoryNamePlaceholder": "Category name",
+    "createFolder": "Create Folder",
+    "createList": "Create List",
+    "createCategory": "Create Category",
+    "saveChanges": "Save Changes"
+  },
+  "support": {
+    "sectionTitle": "Support",
+    "helpFaq": "Help & FAQ",
+    "feedbackRoadmap": "Feedback & Roadmap"
+  },
+  "legal": {
+    "sectionTitle": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "signOut": "Sign Out",
+  "appVersion": "Planisa v1.0.0",
+  "editProfileModal": {
+    "title": "Edit Profile",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your name",
+    "avatarTypeLabel": "Avatar type",
+    "initial": "Initial",
+    "emoji": "Emoji",
+    "image": "Image",
+    "initialsLabel": "Initials (1–2 chars)",
+    "initialsPlaceholder": "e.g. MO",
+    "changeEmoji": "Change emoji",
+    "chooseEmoji": "Choose emoji",
+    "uploading": "Uploading…",
+    "changePhoto": "Change photo",
+    "uploadPhoto": "Upload photo",
+    "uploadError": "Failed to upload image"
+  },
+  "emailModal": {
+    "title": "Change Email",
+    "newEmailLabel": "New email address",
+    "newEmailPlaceholder": "new@email.com",
+    "currentPasswordLabel": "Current password",
+    "currentPasswordPlaceholder": "Enter your password",
+    "updateButton": "Update Email",
+    "incorrectPassword": "Incorrect password.",
+    "successMessage": "Check your new inbox for a confirmation link."
+  },
+  "passwordModal": {
+    "title": "Change Password",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm new password",
+    "placeholder": "••••••••",
+    "updateButton": "Update Password",
+    "mismatchError": "New passwords do not match.",
+    "tooShortError": "Password must be at least 6 characters.",
+    "incorrectCurrentPassword": "Incorrect current password.",
+    "successMessage": "Password updated successfully."
+  }
+}

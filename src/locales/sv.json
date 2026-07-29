@@ -1,0 +1,129 @@
+{
+  "common": {
+    "noEmailRegistered": "Ingen e-post registrerad",
+    "opening": "Öppnar…",
+    "updating": "Uppdaterar…",
+    "save": "Spara"
+  },
+  "profile": {
+    "defaultUserName": "Planisa-användare",
+    "tapToEditProfile": "Tryck för att redigera profil",
+    "avatarAlt": "Avatar",
+    "nisaAlt": "Nisa"
+  },
+  "nisa": {
+    "label": "Nisa",
+    "noMessageYet": "Inget meddelande än...",
+    "willGreetAgain": "NISA hälsar dig igen på hemskärmen ✨",
+    "showAgain": "Visa NISA igen"
+  },
+  "plan": {
+    "sectionTitle": "Plan",
+    "lifetimeAccess": "Livstidsåtkomst",
+    "pro": "Planisa Pro",
+    "lifetimeDescription": "Du har livstidsåtkomst.",
+    "activeDescription": "Aktiv prenumeration — full åtkomst aktiverad.",
+    "manageSubscription": "Hantera prenumeration",
+    "upgradeTitle": "Uppgradera till Pro",
+    "upgradeDescription": "Lås upp Uppgifter, Anteckningar och allt annat.",
+    "monthly": "Månadsvis — 6,99 €/månad",
+    "yearly": "Årsvis — 69,99 €/år",
+    "errorPrefix": "Fel: {{message}}",
+    "checkoutUrlMissingError": "Ingen kassalänk returnerades — kontrollera Edge Function-loggarna",
+    "portalError": "Det gick inte att öppna faktureringsportalen. Försök igen."
+  },
+  "account": {
+    "sectionTitle": "Konto",
+    "email": "E-post",
+    "changePassword": "Byt lösenord",
+    "updateYourPassword": "Uppdatera ditt lösenord"
+  },
+  "preferences": {
+    "sectionTitle": "Inställningar",
+    "theme": "Tema",
+    "darkMode": "Mörkt läge",
+    "lightMode": "Ljust läge",
+    "language": "Språk",
+    "english": "English",
+    "svenska": "Svenska",
+    "comingSoon": "(Kommer snart)"
+  },
+  "categories": {
+    "sectionTitle": "Kategorier & mappar",
+    "calendarCategories": "Kategorier (kalender)",
+    "categoriesCount": "{{count}} kategorier",
+    "addNewCategory": "Lägg till ny kategori",
+    "tasksLists": "Listor (uppgifter)",
+    "listsCount": "{{count}} listor",
+    "addNewList": "Lägg till ny lista",
+    "notesFolders": "Mappar (anteckningar)",
+    "foldersCount": "{{count}} mappar",
+    "addNewFolder": "Lägg till ny mapp"
+  },
+  "categoryDrawer": {
+    "newFolder": "Ny mapp",
+    "newList": "Ny lista",
+    "newCategory": "Ny kategori",
+    "editFolder": "Redigera mapp",
+    "editList": "Redigera lista",
+    "editCategory": "Redigera kategori",
+    "folderNamePlaceholder": "Mappnamn",
+    "listNamePlaceholder": "Listnamn",
+    "categoryNamePlaceholder": "Kategorinamn",
+    "createFolder": "Skapa mapp",
+    "createList": "Skapa lista",
+    "createCategory": "Skapa kategori",
+    "saveChanges": "Spara ändringar"
+  },
+  "support": {
+    "sectionTitle": "Support",
+    "helpFaq": "Hjälp & FAQ",
+    "feedbackRoadmap": "Feedback & roadmap"
+  },
+  "legal": {
+    "sectionTitle": "Juridiskt",
+    "privacyPolicy": "Integritetspolicy",
+    "termsOfService": "Användarvillkor"
+  },
+  "signOut": "Logga ut",
+  "appVersion": "Planisa v1.0.0",
+  "editProfileModal": {
+    "title": "Redigera profil",
+    "nameLabel": "Namn",
+    "namePlaceholder": "Ditt namn",
+    "avatarTypeLabel": "Avatartyp",
+    "initial": "Initial",
+    "emoji": "Emoji",
+    "image": "Bild",
+    "initialsLabel": "Initialer (1–2 tecken)",
+    "initialsPlaceholder": "t.ex. MO",
+    "changeEmoji": "Byt emoji",
+    "chooseEmoji": "Välj emoji",
+    "uploading": "Laddar upp…",
+    "changePhoto": "Byt foto",
+    "uploadPhoto": "Ladda upp foto",
+    "uploadError": "Det gick inte att ladda upp bilden"
+  },
+  "emailModal": {
+    "title": "Byt e-post",
+    "newEmailLabel": "Ny e-postadress",
+    "newEmailPlaceholder": "ny@epost.se",
+    "currentPasswordLabel": "Nuvarande lösenord",
+    "currentPasswordPlaceholder": "Ange ditt lösenord",
+    "updateButton": "Uppdatera e-post",
+    "incorrectPassword": "Felaktigt lösenord.",
+    "successMessage": "Kontrollera din nya inkorg för en bekräftelselänk."
+  },
+  "passwordModal": {
+    "title": "Byt lösenord",
+    "currentPasswordLabel": "Nuvarande lösenord",
+    "newPasswordLabel": "Nytt lösenord",
+    "confirmPasswordLabel": "Bekräfta nytt lösenord",
+    "placeholder": "••••••••",
+    "updateButton": "Uppdatera lösenord",
+    "mismatchError": "De nya lösenorden matchar inte.",
+    "tooShortError": "Lösenordet måste vara minst 6 tecken.",
+    "incorrectCurrentPassword": "Felaktigt nuvarande lösenord.",
+    "successMessage": "Lösenordet har uppdaterats."
+  }
+}

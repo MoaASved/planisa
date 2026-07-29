@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAppStore } from '@/store/useAppStore';
 import { PastelColor } from '@/types';
+import i18n from '@/lib/i18n';
 
 /**
  * Loads all user data from Supabase on login and subscribes to realtime
@@ -22,6 +23,7 @@ export function SupabaseSync() {
     if (userRecord?.language_preference) {
       localStorage.setItem('language', userRecord.language_preference);
       useAppStore.setState((s) => ({ settings: { ...s.settings, language: userRecord.language_preference } }));
+      i18n.changeLanguage(userRecord.language_preference);
     }
   }, [userRecord?.language_preference]);
 
