@@ -1,4 +1,5 @@
 import { CheckSquare, CalendarPlus, FileText, StickyNote } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface QuickCreateMenuProps {
@@ -14,10 +15,10 @@ interface QuickCreateMenuProps {
 }
 
 const allActions = [
-  { id: 'event',  label: 'Event',  icon: CalendarPlus, requiresAccess: false },
-  { id: 'task',   label: 'Task',   icon: CheckSquare,  requiresAccess: true  },
-  { id: 'note',   label: 'Note',   icon: FileText,     requiresAccess: true  },
-  { id: 'sticky', label: 'Sticky', icon: StickyNote,   requiresAccess: true  },
+  { id: 'event',  labelKey: 'common.event' as const,  icon: CalendarPlus, requiresAccess: false },
+  { id: 'task',   labelKey: 'common.task' as const,   icon: CheckSquare,  requiresAccess: true  },
+  { id: 'note',   labelKey: 'common.note' as const,   icon: FileText,     requiresAccess: true  },
+  { id: 'sticky', labelKey: 'common.sticky' as const, icon: StickyNote,   requiresAccess: true  },
 ] as const;
 
 export function QuickCreateMenu({
@@ -30,6 +31,7 @@ export function QuickCreateMenu({
   hasFullAccess = true,
   anchorRect,
 }: QuickCreateMenuProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   const MENU_WIDTH = 200;
@@ -103,7 +105,7 @@ export function QuickCreateMenu({
               >
                 <Icon className="w-5 h-5 text-white/70 dark:text-foreground/70" />
                 <span className="text-sm font-medium text-white dark:text-foreground">
-                  {action.label}
+                  {t(action.labelKey)}
                 </span>
               </button>
             );

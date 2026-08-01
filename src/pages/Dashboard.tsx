@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { TabNavigation } from '../components/navigation/TabNavigation';
@@ -28,6 +29,7 @@ import { cn } from '../lib/utils';
 import { toast } from 'sonner';
 import { CalendarEvent, Note } from '../types';
 import { startOfWeek, addDays, format as fmtDate, isToday as dateIsToday } from 'date-fns';
+import { getDateFnsLocale } from '../lib/dateLocale';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +76,7 @@ interface FocusCardProps {
 }
 
 function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
+  const { t } = useTranslation();
   const [offset, setOffset] = useState(0);
   const startX = useRef(0);
   const isDragging = useRef(false);
@@ -141,7 +144,7 @@ function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
       <button
         onClick={e => { e.stopPropagation(); onRemove(); }}
         className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0 active:scale-95"
-        aria-label="Remove focus item"
+        aria-label={t('weeklyFocus.removeAria')}
       >
         <X className="w-3 h-3 text-muted-foreground" />
       </button>
@@ -152,22 +155,23 @@ function FocusCard({ item, isCompleted, onRemove, onTap }: FocusCardProps) {
 // ─── UpgradePrompt component ──────────────────────────────────────────────────
 
 function UpgradePrompt({ onGoToProfile }: { onGoToProfile: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center h-full px-8 pt-24 pb-32 gap-5 text-center">
       <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center">
         <Lock className="w-7 h-7 text-muted-foreground" />
       </div>
       <div className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold text-foreground">Your trial has ended</h2>
+        <h2 className="text-xl font-semibold text-foreground">{t('upgradePrompt.title')}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Subscribe to Planisa to unlock Tasks, Notes, and all features.
+          {t('upgradePrompt.description')}
         </p>
       </div>
       <button
         onClick={onGoToProfile}
         className="mt-2 px-6 py-3.5 rounded-2xl bg-foreground text-background text-[15px] font-semibold active:scale-[0.98] transition-transform"
       >
-        View plans
+        {t('upgradePrompt.viewPlans')}
       </button>
     </div>
   );
@@ -236,6 +240,8 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   hasFullAccess = true,
   svAnnouncementMessage,
 }) => {
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateFnsLocale(i18n.language);
   const { tasks, events, notes, folders, settings, isSearchOpen, setIsSearchOpen, searchQuery, setSearchQuery, setHighlightTaskId } = useAppStore();
 
   const searchResults = (() => {
@@ -359,19 +365,18 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
   let nisaAction: (() => void) | null = null;
 
   if (focusItems.length === 0) {
-    nisaMessage = "You haven't set your focus for this week yet. What's the one thing that matters most? ✨";
+    nisaMessage = t('nisa.messages.noFocusSet');
   } else if (allTasksDone) {
-    nisaMessage = "You've completed everything in your focus list this week. Incredible! 🎉";
+    nisaMessage = t('nisa.messages.allDone');
   } else if (brainDumpItems.length > 0) {
-    const n = brainDumpItems.length;
-    nisaMessage = `You have ${n} unsorted brain dump item${n === 1 ? '' : 's'} waiting. Want to sort them now?`;
+    nisaMessage = t('nisa.messages.brainDumpWaiting', { count: brainDumpItems.length });
     nisaAction = () => setShowBrainDumpSheet(true);
   } else if (habits.length > 0 && !habitsCompletedToday && hasStreakThisWeek) {
-    nisaMessage = "Don't forget your habits today — you're on a streak! 💪";
+    nisaMessage = t('nisa.messages.habitsStreak');
   } else if (currentHour >= 17 && taskFocusItems.length > 0 && !anyTaskDone) {
-    nisaMessage = "Still time to knock out your focus items before the week is over 🌙";
+    nisaMessage = t('nisa.messages.eveningFocusReminder');
   } else {
-    nisaMessage = `You're all set for today, ${userName}. Let's make it count! 🌟`;
+    nisaMessage = t('nisa.messages.allSetToday', { name: userName });
   }
 
   // Override with the one-time Swedish language announcement when set
@@ -532,7 +537,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
+                placeholder={t('search.placeholder')}
                 className="flex-1 bg-secondary/80 backdrop-blur-sm rounded-full px-4 py-2 text-sm outline-none"
                 autoFocus
               />
@@ -540,18 +545,18 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
                 className="text-sm font-medium text-primary whitespace-nowrap"
               >
-                Cancel
+                {t('search.cancel')}
               </button>
             </div>
             {searchQuery.trim() && (
               <div className="absolute left-0 right-0 top-full mt-2 bg-card rounded-2xl shadow-xl border border-border overflow-hidden z-50">
                 {searchResults.length === 0 ? (
-                  <p className="text-sm text-muted-foreground px-4 py-3 text-center">No results</p>
+                  <p className="text-sm text-muted-foreground px-4 py-3 text-center">{t('search.noResults')}</p>
                 ) : (
                   <div className="max-h-72 overflow-y-auto divide-y divide-border">
                     {searchResults.map((r) => {
                       const Icon = r.type === 'task' ? CheckSquare : r.type === 'folder' ? Folder : r.type === 'event' ? Calendar : FileText;
-                      const label = r.type === 'task' ? 'Task' : r.type === 'folder' ? 'Folder' : r.type === 'event' ? 'Event' : 'Note';
+                      const label = r.type === 'task' ? t('common.task') : r.type === 'folder' ? t('common.folder') : r.type === 'event' ? t('common.event') : t('common.note');
                       const { snippet, itemTitle } = r;
                       return (
                         <button
@@ -571,7 +576,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                                 <span className="text-foreground/60">{snippet.post}</span>
                               </>
                             ) : (
-                              <span className="text-foreground">{itemTitle || 'Empty note'}</span>
+                              <span className="text-foreground">{itemTitle || t('search.emptyNote')}</span>
                             )}
                           </span>
                           <span className="text-xs text-muted-foreground/60 flex-shrink-0 ml-1">{label}</span>
@@ -586,23 +591,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         ) : (
           <div className="flex items-center justify-between mb-10">
             <div>
-              <h1 className="flow-page-title">Hi, {userName} 👋🏽</h1>
+              <h1 className="flow-page-title">{t('dashboardHeader.greeting', { name: userName })}</h1>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => { setIsSearchOpen(true); setShowNisaBubble(false); }}
                 className="w-9 h-9 rounded-full flex items-center justify-center"
-                aria-label="Open search"
+                aria-label={t('dashboardHeader.openSearchAria')}
               >
                 <Search className="w-6 h-6 text-muted-foreground" />
               </button>
               <button
                 onClick={onProfileClick}
                 className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-primary"
-                aria-label="Open profile"
+                aria-label={t('dashboardHeader.openProfileAria')}
               >
                 {settings.avatarType === 'image' && settings.avatarUrl ? (
-                  <img src={settings.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={settings.avatarUrl} alt={t('profile.avatarAlt')} className="w-full h-full object-cover" />
                 ) : settings.avatarType === 'emoji' && settings.avatarEmoji ? (
                   <span className="text-lg leading-none">{settings.avatarEmoji}</span>
                 ) : (
@@ -629,14 +634,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               {fmtDate(today, 'd')}
             </p>
             <p className="text-[15px] font-semibold text-foreground/80 mt-2 leading-none">
-              {fmtDate(today, 'EEEE')}
+              {fmtDate(today, 'EEEE', { locale: dateLocale })}
             </p>
             <p className="text-[13px] text-muted-foreground/60 mt-1 leading-none">
-              {fmtDate(today, 'MMMM')}
+              {fmtDate(today, 'MMMM', { locale: dateLocale })}
             </p>
           </div>
           <p className="text-[11px] text-muted-foreground/40 font-medium tracking-wide mt-4">
-            W {getWeekNumber(today)}
+            {t('todayCard.week', { number: getWeekNumber(today) })}
           </p>
         </button>
 
@@ -646,7 +651,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           className="flow-widget flex-1 min-w-0 text-left active:scale-[0.99] transition-transform flex flex-col"
         >
           <div className="flex items-center justify-between mb-3">
-            <h2 className="flow-section-title">Today</h2>
+            <h2 className="flow-section-title">{t('todayCard.title')}</h2>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </div>
           {todayItems.length > 0 ? (
@@ -669,12 +674,12 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               ))}
               {todayItems.length > 4 && (
                 <p className="text-[12px] text-muted-foreground/40 mt-0.5">
-                  +{todayItems.length - 4} more
+                  {t('todayCard.moreCount', { count: todayItems.length - 4 })}
                 </p>
               )}
             </div>
           ) : (
-            <p className="text-[13px] text-muted-foreground/50">No plans today</p>
+            <p className="text-[13px] text-muted-foreground/50">{t('todayCard.noPlans')}</p>
           )}
         </button>
         </div>
@@ -682,24 +687,24 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Weekly Focus ──────────────────────────────────────────────── */}
         <div className="flow-widget order-1 md:order-1">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Weekly Focus</h2>
+            <h2 className="flow-section-title">{t('weeklyFocus.title')}</h2>
             {focusItems.length < 3 && (
               <button
                 onClick={onAddFocus}
                 className="text-foreground/60 text-sm flex items-center space-x-1"
               >
                 <Plus className="w-4 h-4" />
-                <span>add focus</span>
+                <span>{t('weeklyFocus.addFocus')}</span>
               </button>
             )}
           </div>
 
           <div className="space-y-2.5 overflow-hidden">
             {loadingFocus && (
-              <p className="text-muted-foreground text-sm">Loading…</p>
+              <p className="text-muted-foreground text-sm">{t('weeklyFocus.loading')}</p>
             )}
             {!loadingFocus && focusItems.length === 0 && (
-              <p className="text-muted-foreground text-sm">Nothing in focus yet. What matters most this week?</p>
+              <p className="text-muted-foreground text-sm">{t('weeklyFocus.empty')}</p>
             )}
             {!loadingFocus && focusItems.map(item => (
               <FocusCard
@@ -716,23 +721,23 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Habits ───────────────────────────────────────────────────── */}
         <div className="flow-widget order-3 md:order-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Habits</h2>
+            <h2 className="flow-section-title">{t('habits.title')}</h2>
             <button
               onClick={() => setShowHabitEdit(true)}
               className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
             >
-              Edit
+              {t('habits.edit')}
             </button>
           </div>
           {habits.length === 0 ? (
             <div className="flex flex-col items-center py-4 gap-3">
-              <p className="text-sm text-muted-foreground">No habits yet</p>
+              <p className="text-sm text-muted-foreground">{t('habits.empty')}</p>
               <button
                 onClick={() => setShowHabitEdit(true)}
                 className="flex items-center gap-1.5 text-sm text-primary font-medium"
               >
                 <Plus className="w-4 h-4" />
-                Add habit
+                {t('habits.addHabit')}
               </button>
             </div>
           ) : (
@@ -742,7 +747,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 <div className="flex-1" />
                 <div className="flex gap-1.5">
                   {weekDates.map((date, i) => {
-                    const dayLabel = ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i];
+                    const dayLabel = (t('habits.dayLabels', { returnObjects: true }) as string[])[i];
                     const isToday = dateIsToday(addDays(weekStart, i));
                     return (
                       <div key={date} className={cn('w-6 text-center text-[10px] font-medium', isToday ? 'text-primary' : 'text-muted-foreground/50')}>
@@ -789,7 +794,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
         {/* ── Brain dump ────────────────────────────────────────────────── */}
         <div className="flow-widget md:col-span-2 order-2 md:order-3">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="flow-section-title">Brain dump</h2>
+            <h2 className="flow-section-title">{t('brainDump.title')}</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSaveForLater}
@@ -797,13 +802,13 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                 className="flex items-center gap-1.5 text-foreground text-sm font-medium disabled:opacity-30"
               >
                 <Bookmark className="w-4 h-4" />
-                Save for later
+                {t('brainDump.saveForLater')}
               </button>
               {brainDumpItems.length > 0 && (
                 <button
                   onClick={() => setShowBrainDumpSheet(true)}
                   className="w-6 h-6 rounded-full flex items-center justify-center bg-foreground"
-                  aria-label={`${brainDumpItems.length} saved items`}
+                  aria-label={t('brainDump.savedItemsAria', { count: brainDumpItems.length })}
                 >
                   <span className="text-background text-[10px] font-bold leading-none">
                     {brainDumpItems.length > 9 ? '9+' : brainDumpItems.length}
@@ -815,7 +820,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           <textarea
             value={brainDumpText}
             onChange={e => setBrainDumpText(e.target.value)}
-            placeholder="Write anything… sort later."
+            placeholder={t('brainDump.placeholder')}
             className="w-full h-24 p-3 bg-secondary border-0 rounded-xl resize-none mb-4 flow-input"
           />
           <div className="flex justify-center space-x-4">
@@ -825,10 +830,10 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               disabled={!hasFullAccess}
             >
               {hasFullAccess ? <CheckSquare className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-              <span className="flow-meta">Task</span>
+              <span className="flow-meta">{t('common.task')}</span>
             </button>
             <button className="flex items-center space-x-2 text-muted-foreground" onClick={() => handleBrainDumpSort('event')}>
-              <Calendar className="w-5 h-5" /><span className="flow-meta">Event</span>
+              <Calendar className="w-5 h-5" /><span className="flow-meta">{t('common.event')}</span>
             </button>
             <button
               className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
@@ -836,7 +841,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               disabled={!hasFullAccess}
             >
               {hasFullAccess ? <FileText className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-              <span className="flow-meta">Note</span>
+              <span className="flow-meta">{t('common.note')}</span>
             </button>
             <button
               className={cn("flex items-center space-x-2", hasFullAccess ? "text-muted-foreground" : "text-muted-foreground/30")}
@@ -844,7 +849,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
               disabled={!hasFullAccess}
             >
               {hasFullAccess ? <Pin className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-              <span className="flow-meta">Sticky</span>
+              <span className="flow-meta">{t('common.sticky')}</span>
             </button>
           </div>
         </div>
@@ -962,14 +967,14 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
                       onClick={() => { setShowNisaBubble(false); nisaAction!(); }}
                       className="text-xs text-primary font-medium"
                     >
-                      {trialNisaMessage ? 'Upgrade →' : 'Sort now →'}
+                      {trialNisaMessage ? t('nisa.upgradeAction') : t('nisa.sortNowAction')}
                     </button>
                   )}
                   <button
                     onClick={dismissNisaBubble}
                     className="text-xs text-muted-foreground/50"
                   >
-                    dismiss
+                    {t('nisa.dismiss')}
                   </button>
                 </div>
                 {/* Tail pointing left toward Nisa */}
@@ -1006,7 +1011,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           >
             <img
               src="/nisa.png"
-              alt="Nisa"
+              alt={t('nisa.label')}
               style={{
                 width: '60px',
                 height: '60px',
@@ -1022,7 +1027,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
           {/* Transparent hit area — always z-51 so Nisa is always tappable */}
           <button
             onClick={handleNisaIconClick}
-            aria-label="Talk to Nisa"
+            aria-label={t('nisa.talkToNisaAria')}
             style={{
               position: 'absolute',
               top: 'calc(env(safe-area-inset-top, 0px) + 3.875rem)',
@@ -1046,6 +1051,7 @@ const DashboardHome: React.FC<DashboardHomeProps> = ({
 // ─── Dashboard (root) ─────────────────────────────────────────────────────────
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const { user, hasFullAccess, userRecord, refreshUserRecord } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const { settings, setHighlightTaskId, events, notes } = useAppStore();
@@ -1161,7 +1167,7 @@ const Dashboard: React.FC = () => {
     console.log('[Focus] insert result — data:', data, 'error:', error);
     if (error) {
       console.error('[Focus] insert error details:', error);
-      toast.error(`Could not save: ${error.message}`);
+      toast.error(t('common.couldNotSave', { message: error.message }));
       return;
     }
 
@@ -1199,7 +1205,7 @@ const Dashboard: React.FC = () => {
       .insert({ user_id: user.id, content: text.trim() })
       .select()
       .single();
-    if (error) { toast.error(`Could not save: ${error.message}`); return; }
+    if (error) { toast.error(t('common.couldNotSave', { message: error.message })); return; }
     if (data) setBrainDumpItems(prev => [data as BrainDumpItem, ...prev]);
   };
 
@@ -1299,7 +1305,7 @@ const Dashboard: React.FC = () => {
   // ── Init ───────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) return;
-    const name = settings.name?.trim() || user.email?.split('@')[0] || 'User';
+    const name = settings.name?.trim() || user.email?.split('@')[0] || t('dashboardHeader.defaultUserName');
     setUserName(name.split(' ')[0]);
     loadFocusItems();
     loadBrainDumpItems();
@@ -1323,11 +1329,9 @@ const Dashboard: React.FC = () => {
       const key = `trial_d1_seen_${user.id}`;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1');
-        const firstName = ((user.user_metadata?.display_name as string | undefined) || user.email || 'there')
+        const firstName = ((user.user_metadata?.display_name as string | undefined) || user.email || t('trialReminders.fallbackName'))
           .split(' ')[0].split('@')[0];
-        setTrialNisaMessage(
-          `Hey ${firstName}! Great to have you here. Take a look around and explore, there's lots to discover. Tasks, notes, sticky notes and your calendar are all waiting for you!`
-        );
+        setTrialNisaMessage(t('trialReminders.day1', { name: firstName }));
       }
     }
 
@@ -1335,7 +1339,7 @@ const Dashboard: React.FC = () => {
       const key = `trial_d2_seen_${user.id}`;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1');
-        setTrialNisaMessage("Don't forget to add Planisa to your home screen for the full experience. It only takes a second!");
+        setTrialNisaMessage(t('trialReminders.day2'));
       }
     }
 
@@ -1343,7 +1347,7 @@ const Dashboard: React.FC = () => {
       const key = `trial_d10_seen_${user.id}`;
       if (!localStorage.getItem(key)) {
         localStorage.setItem(key, '1');
-        setTrialNisaMessage(`Your trial ends in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. Upgrade to keep full access to Tasks and Notes.`);
+        setTrialNisaMessage(t('trialReminders.endingSoon', { count: daysRemaining }));
       }
     }
 
@@ -1354,7 +1358,7 @@ const Dashboard: React.FC = () => {
         setShowTrialModal(true);
       }
     }
-  }, [userRecord, user]);
+  }, [userRecord, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── One-time Swedish language announcement ─────────────────────────────────
   // Browser reports Swedish and this device hasn't seen the announcement yet.
@@ -1363,9 +1367,12 @@ const Dashboard: React.FC = () => {
     if (localStorage.getItem(FLAG_KEY)) return;
     if (navigator.language?.toLowerCase().startsWith('sv')) {
       localStorage.setItem(FLAG_KEY, '1');
-      setSvAnnouncementMessage('🇸🇪 Svensk? Byt till Svenska i Inställningar - Planisa på svenska är på gång!');
+      // Deliberately identical text in en.json/sv.json (nisa.messages.svAnnouncement) - this
+      // message must always render in Swedish, regardless of the app's current active language,
+      // since its purpose is to catch Swedish-browser users before they've switched settings.
+      setSvAnnouncementMessage(t('nisa.messages.svAnnouncement'));
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Stripe return: ?upgrade=success ────────────────────────────────────────
   useEffect(() => {
@@ -1373,7 +1380,7 @@ const Dashboard: React.FC = () => {
     setSearchParams({}, { replace: true });
     setActiveTab('profile');
     refreshUserRecord().then(() => {
-      toast.success("You're all set! Welcome to Planisa Pro.");
+      toast.success(t('trialReminders.welcomeToast'));
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

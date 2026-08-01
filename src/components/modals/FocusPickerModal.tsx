@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import { X, Check, Calendar, CheckSquare, FileText, Pin, Search, PenLine, Plus, Lock } from 'lucide-react';
-import { format, parseISO, isToday, startOfWeek, addDays } from 'date-fns';
+import { format, parseISO, isToday, startOfWeek, addDays, type Locale } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useVisualViewport } from '@/hooks/useVisualViewport';
+import { getDateFnsLocale } from '@/lib/dateLocale';
 
 export type FocusItemType = 'task' | 'event' | 'note' | 'sticky' | 'custom';
 
@@ -31,15 +33,21 @@ interface FocusPickerModalProps {
   hasFullAccess?: boolean;
 }
 
-const TAB_LABELS: { key: FocusItemType; label: string; icon: React.ElementType; requiresAccess: boolean }[] = [
-  { key: 'task',   label: 'Tasks',    icon: CheckSquare, requiresAccess: true  },
-  { key: 'event',  label: 'Events',   icon: Calendar,    requiresAccess: false },
-  { key: 'note',   label: 'Notes',    icon: FileText,    requiresAccess: true  },
-  { key: 'sticky', label: 'Stickies', icon: Pin,         requiresAccess: true  },
-  { key: 'custom', label: 'Custom',   icon: PenLine,     requiresAccess: false },
+const TAB_LABELS: { key: FocusItemType; labelKey: 'focusPickerModal.tabs.tasks' | 'focusPickerModal.tabs.events' | 'focusPickerModal.tabs.notes' | 'focusPickerModal.tabs.stickies' | 'focusPickerModal.tabs.custom'; icon: React.ElementType; requiresAccess: boolean }[] = [
+  { key: 'task',   labelKey: 'focusPickerModal.tabs.tasks',    icon: CheckSquare, requiresAccess: true  },
+  { key: 'event',  labelKey: 'focusPickerModal.tabs.events',   icon: Calendar,    requiresAccess: false },
+  { key: 'note',   labelKey: 'focusPickerModal.tabs.notes',    icon: FileText,    requiresAccess: true  },
+  { key: 'sticky', labelKey: 'focusPickerModal.tabs.stickies', icon: Pin,         requiresAccess: true  },
+  { key: 'custom', labelKey: 'focusPickerModal.tabs.custom',   icon: PenLine,     requiresAccess: false },
 ];
 
 const PRIORITY_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2, none: 3 };
+
+const PRIORITY_LABEL_KEY: Record<string, 'focusPickerModal.priority.high' | 'focusPickerModal.priority.medium' | 'focusPickerModal.priority.low'> = {
+  high: 'focusPickerModal.priority.high',
+  medium: 'focusPickerModal.priority.medium',
+  low: 'focusPickerModal.priority.low',
+};
 
 function stripHtml(html: string): string {
   return html
@@ -48,14 +56,14 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function fmtDate(dateStr: string | null | undefined): string {
+function fmtDate(dateStr: string | null | undefined, locale: Locale): string {
   if (!dateStr) return '';
-  try { return format(parseISO(dateStr), 'MMM d'); } catch { return ''; }
+  try { return format(parseISO(dateStr), 'MMM d', { locale }); } catch { return ''; }
 }
 
-function fmtUpdated(ts: string | null | undefined): string {
+function fmtUpdated(ts: string | null | undefined, locale: Locale): string {
   if (!ts) return '';
-  try { return format(parseISO(ts), 'MMM d'); } catch { return ''; }
+  try { return format(parseISO(ts), 'MMM d', { locale }); } catch { return ''; }
 }
 
 // Returns YYYY-MM-DD strings for Monday and Sunday of the current ISO week
@@ -66,15 +74,18 @@ function getWeekBounds(): { monday: string; sunday: string; mondayDate: Date; su
   return { monday: fmt(mondayDate), sunday: fmt(sundayDate), mondayDate, sundayDate };
 }
 
-function getDayLabel(dateStr: string): string {
+function getDayLabel(dateStr: string, locale: Locale, t: (key: string, options?: Record<string, unknown>) => string): string {
   try {
     const date = parseISO(dateStr);
-    if (isToday(date)) return `${format(date, 'EEEE')} — Today`;
-    return format(date, 'EEEE');
+    const weekday = format(date, 'EEEE', { locale });
+    if (isToday(date)) return t('focusPickerModal.todayLabel', { weekday });
+    return weekday;
   } catch { return dateStr; }
 }
 
 export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConfirm, hasFullAccess = true }: FocusPickerModalProps) {
+  const { t, i18n } = useTranslation();
+  const locale = getDateFnsLocale(i18n.language);
   const { modalTop, maxHeight } = useVisualViewport(70);
   const [activeTab, setActiveTab] = useState<FocusItemType>('task');
   const [items, setItems] = useState<FocusCandidate[]>([]);
@@ -88,7 +99,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
   const remaining = cap - selected.length;
 
   const { monday, sunday, mondayDate, sundayDate } = getWeekBounds();
-  const weekRangeLabel = `${format(mondayDate, 'd MMM')} – ${format(sundayDate, 'd MMM yyyy')}`;
+  const weekRangeLabel = `${format(mondayDate, 'd MMM', { locale })} – ${format(sundayDate, 'd MMM yyyy', { locale })}`;
 
   useEffect(() => {
     const defaultTab: FocusItemType = hasFullAccess ? 'task' : 'event';
@@ -134,16 +145,16 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
 
         const mapped = sorted.map(r => {
           const parts: string[] = [];
-          if (r.priority && r.priority !== 'none') parts.push(r.priority.charAt(0).toUpperCase() + r.priority.slice(1) + ' priority');
+          if (r.priority && r.priority !== 'none' && PRIORITY_LABEL_KEY[r.priority]) parts.push(t(PRIORITY_LABEL_KEY[r.priority]));
           if (r.due_date) {
-            const label = isToday(parseISO(r.due_date)) ? 'Due today' : `Due ${fmtDate(r.due_date)}`;
+            const label = isToday(parseISO(r.due_date)) ? t('focusPickerModal.dueToday') : t('focusPickerModal.dueOn', { date: fmtDate(r.due_date, locale) });
             parts.push(label);
           }
           if (r.category_name) parts.push(r.category_name);
           return {
             candidate: {
               id: r.id, item_id: r.id, item_type: 'task' as FocusItemType,
-              title: r.title || 'Untitled',
+              title: r.title || t('common.untitled'),
               subtitle: parts.join(' · '),
             },
             due_date: r.due_date as string | null,
@@ -157,7 +168,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
         for (const { candidate, due_date } of mapped) {
           if (due_date && due_date >= monday && due_date <= sunday) {
             if (!byDay.has(due_date)) {
-              byDay.set(due_date, { label: getDayLabel(due_date), dateStr: due_date, items: [] });
+              byDay.set(due_date, { label: getDayLabel(due_date, locale, t), dateStr: due_date, items: [] });
             }
             byDay.get(due_date)!.items.push(candidate);
           } else {
@@ -167,7 +178,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
 
         const weekGroups = Array.from(byDay.values()).sort((a, b) => a.dateStr.localeCompare(b.dateStr));
         if (otherItems.length > 0) {
-          weekGroups.push({ label: 'Other tasks', dateStr: '', items: otherItems });
+          weekGroups.push({ label: t('focusPickerModal.otherTasks'), dateStr: '', items: otherItems });
         }
 
         setItemGroups(weekGroups);
@@ -191,11 +202,11 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           const dateStr = r.event_date;
           if (!dateStr) continue;
           if (!byDay.has(dateStr)) {
-            byDay.set(dateStr, { label: getDayLabel(dateStr), dateStr, items: [] });
+            byDay.set(dateStr, { label: getDayLabel(dateStr, locale, t), dateStr, items: [] });
           }
           const candidate: FocusCandidate = {
             id: r.id, item_id: r.id, item_type: 'event' as FocusItemType,
-            title: r.title || 'Untitled',
+            title: r.title || t('common.untitled'),
             subtitle: r.time_text ?? '',
           };
           byDay.get(dateStr)!.items.push(candidate);
@@ -226,11 +237,11 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
         setItems(sorted.map(r => {
           const plain = r.content ? stripHtml(r.content) : '';
           const firstLine = plain.split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0) ?? '';
-          const titleDisplay = r.title && r.title !== 'Untitled' ? r.title : firstLine.slice(0, 60) || 'Untitled';
+          const titleDisplay = r.title && r.title !== 'Untitled' ? r.title : firstLine.slice(0, 60) || t('common.untitled');
           const preview = titleDisplay === firstLine ? '' : firstLine.slice(0, 60);
-          const date = fmtUpdated(r.updated_at);
+          const date = fmtUpdated(r.updated_at, locale);
           const parts: string[] = [];
-          if (r.pinned) parts.push('Pinned');
+          if (r.pinned) parts.push(t('focusPickerModal.pinned'));
           if (preview) parts.push(preview);
           if (date) parts.push(date);
           return { id: r.id, item_id: r.id, item_type: 'note' as FocusItemType, title: titleDisplay, subtitle: parts.join(' · ') };
@@ -255,8 +266,8 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
         setItems(sorted.map(r => {
           const plain = r.content ? stripHtml(r.content) : '';
           const firstLine = plain.split('\n').map((l: string) => l.trim()).find((l: string) => l.length > 0) ?? '';
-          const titleDisplay = firstLine.slice(0, 60) || r.title || 'Untitled sticky';
-          const date = fmtUpdated(r.updated_at);
+          const titleDisplay = firstLine.slice(0, 60) || r.title || t('focusPickerModal.untitledSticky');
+          const date = fmtUpdated(r.updated_at, locale);
           return { id: r.id, item_id: r.id, item_type: 'sticky' as FocusItemType, title: titleDisplay, subtitle: date };
         }));
       }
@@ -360,9 +371,9 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-5 pb-3 flex-shrink-0">
             <div>
-              <h2 className="flow-modal-title">Weekly Focus</h2>
+              <h2 className="flow-modal-title">{t('weeklyFocus.title')}</h2>
               <p className="flow-meta mt-0.5">
-                {remaining > 0 ? `${remaining} slot${remaining !== 1 ? 's' : ''} remaining` : 'Selection full'}
+                {remaining > 0 ? t('focusPickerModal.slotsRemaining', { count: remaining }) : t('focusPickerModal.selectionFull')}
                 <span className="ml-2 opacity-50">{weekRangeLabel}</span>
               </p>
             </div>
@@ -373,7 +384,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
 
           {/* Tabs */}
           <div className="flex gap-1 px-5 pb-3 flex-shrink-0">
-            {TAB_LABELS.map(({ key, label, icon: Icon, requiresAccess }) => {
+            {TAB_LABELS.map(({ key, labelKey, icon: Icon, requiresAccess }) => {
               const locked = requiresAccess && !hasFullAccess;
               return (
                 <button
@@ -390,7 +401,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
                   )}
                 >
                   {locked ? <Lock className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
-                  {label}
+                  {t(labelKey)}
                 </button>
               );
             })}
@@ -405,7 +416,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search…"
+                  placeholder={t('search.placeholder')}
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
                 />
                 {searchQuery && (
@@ -420,14 +431,14 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           {/* Custom tab body */}
           {activeTab === 'custom' && (
             <div className="flex-1 px-5 pb-3 overflow-y-auto">
-              <p className="text-sm text-muted-foreground mb-4">Add a free-text focus item not linked to any task, event, or note.</p>
+              <p className="text-sm text-muted-foreground mb-4">{t('focusPickerModal.customHelp')}</p>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={customText}
                   onChange={e => setCustomText(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleAddCustom()}
-                  placeholder="e.g. Call the doctor"
+                  placeholder={t('focusPickerModal.customPlaceholder')}
                   className="flex-1 px-3 py-2.5 rounded-xl bg-secondary text-sm text-foreground placeholder:text-muted-foreground outline-none"
                 />
                 <button
@@ -436,12 +447,12 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
                   className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 flex items-center gap-1.5"
                 >
                   <Plus className="w-4 h-4" />
-                  Add
+                  {t('common.add')}
                 </button>
               </div>
               {selected.filter(s => s.item_type === 'custom').length > 0 && (
                 <div className="mt-4 space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Added</p>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t('focusPickerModal.addedSectionLabel')}</p>
                   {selected.filter(s => s.item_type === 'custom').map(item => (
                     <div key={item.id} className="flex items-center gap-3 px-3.5 py-3 rounded-2xl bg-primary/10 border border-primary/30">
                       <Check className="w-4 h-4 text-primary flex-shrink-0" />
@@ -459,10 +470,10 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
           {/* List — only shown on non-custom tabs */}
           {activeTab !== 'custom' && (
             <div className="overflow-y-auto flex-1 px-5 pb-3">
-              {loading && <div className="py-8 text-center text-sm text-muted-foreground">Loading…</div>}
+              {loading && <div className="py-8 text-center text-sm text-muted-foreground">{t('weeklyFocus.loading')}</div>}
               {!loading && items.length === 0 && (
                 <div className="py-8 text-center text-sm text-muted-foreground">
-                  {activeTab === 'event' ? 'No events this week' : searchQuery ? 'No results' : 'No items found'}
+                  {activeTab === 'event' ? t('focusPickerModal.noEventsThisWeek') : searchQuery ? t('search.noResults') : t('focusPickerModal.noItemsFound')}
                 </div>
               )}
               {!loading && items.length > 0 && (
@@ -495,7 +506,7 @@ export function FocusPickerModal({ isOpen, userId, currentCount, onClose, onConf
               disabled={selected.length === 0}
               className="w-full py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40 transition-opacity"
             >
-              Add {selected.length > 0 ? `${selected.length} item${selected.length > 1 ? 's' : ''}` : 'items'}
+              {selected.length > 0 ? t('focusPickerModal.addButtonCount', { count: selected.length }) : t('focusPickerModal.addButtonEmpty')}
             </button>
           </div>
         </div>

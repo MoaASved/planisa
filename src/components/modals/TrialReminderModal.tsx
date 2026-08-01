@@ -1,4 +1,5 @@
 import ReactDOM from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 interface TrialReminderModalProps {
   isOpen: boolean;
@@ -7,6 +8,7 @@ interface TrialReminderModalProps {
 }
 
 export function TrialReminderModal({ isOpen, onUpgrade, onDismiss }: TrialReminderModalProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
@@ -47,7 +49,7 @@ export function TrialReminderModal({ isOpen, onUpgrade, onDismiss }: TrialRemind
         <div className="w-full max-w-sm bg-card rounded-3xl shadow-2xl animate-scale-in p-7 flex flex-col items-center gap-5 text-center">
           <img
             src="/nisa.png"
-            alt="NISA"
+            alt={t('nisa.label')}
             style={{
               width: 80,
               height: 80,
@@ -60,10 +62,10 @@ export function TrialReminderModal({ isOpen, onUpgrade, onDismiss }: TrialRemind
 
           <div className="flex flex-col gap-2.5">
             <h2 className="text-xl font-semibold text-foreground leading-snug">
-              Only 1 day left of your trial.
+              {t('trialReminderModal.headline')}
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Your data is safe. Upgrade to keep access to Tasks and Notes, or continue with Calendar and Profile for free.
+              {t('trialReminderModal.description')}
             </p>
           </div>
 
@@ -72,13 +74,13 @@ export function TrialReminderModal({ isOpen, onUpgrade, onDismiss }: TrialRemind
               onClick={onUpgrade}
               className="w-full py-3.5 rounded-2xl bg-foreground text-background text-[15px] font-semibold active:scale-[0.98] transition-transform"
             >
-              Upgrade now
+              {t('trialReminderModal.upgradeNow')}
             </button>
             <button
               onClick={onDismiss}
               className="text-sm text-muted-foreground/70 py-1 hover:text-muted-foreground transition-colors"
             >
-              Maybe later
+              {t('trialReminderModal.maybeLater')}
             </button>
           </div>
         </div>

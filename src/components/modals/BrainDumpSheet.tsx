@@ -1,8 +1,10 @@
 import ReactDOM from 'react-dom';
 import { useRef, useState } from 'react';
 import { X, CheckSquare, Calendar, FileText, Pin, Lock } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, type Locale } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { getDateFnsLocale } from '@/lib/dateLocale';
 import { BrainDumpSortType } from './BrainDumpSortModal';
 
 export interface BrainDumpItem {
@@ -20,15 +22,15 @@ interface BrainDumpSheetProps {
   hasFullAccess?: boolean;
 }
 
-const SORT_BUTTONS: { type: BrainDumpSortType; icon: React.ElementType; label: string; requiresAccess: boolean }[] = [
-  { type: 'task',   icon: CheckSquare, label: 'Task',   requiresAccess: true  },
-  { type: 'event',  icon: Calendar,    label: 'Event',  requiresAccess: false },
-  { type: 'note',   icon: FileText,    label: 'Note',   requiresAccess: true  },
-  { type: 'sticky', icon: Pin,         label: 'Sticky', requiresAccess: true  },
+const SORT_BUTTONS: { type: BrainDumpSortType; icon: React.ElementType; labelKey: 'common.task' | 'common.event' | 'common.note' | 'common.sticky'; requiresAccess: boolean }[] = [
+  { type: 'task',   icon: CheckSquare, labelKey: 'common.task',   requiresAccess: true  },
+  { type: 'event',  icon: Calendar,    labelKey: 'common.event',  requiresAccess: false },
+  { type: 'note',   icon: FileText,    labelKey: 'common.note',   requiresAccess: true  },
+  { type: 'sticky', icon: Pin,         labelKey: 'common.sticky', requiresAccess: true  },
 ];
 
-function fmtDate(ts: string) {
-  try { return format(parseISO(ts), 'MMM d, HH:mm'); } catch { return ''; }
+function fmtDate(ts: string, locale: Locale) {
+  try { return format(parseISO(ts), 'MMM d, HH:mm', { locale }); } catch { return ''; }
 }
 
 // ─── Swipeable item row ────────────────────────────────────────────────────────
@@ -44,6 +46,8 @@ function SwipeableItem({
   onDelete: () => void;
   hasFullAccess?: boolean;
 }) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = getDateFnsLocale(i18n.language);
   const [offset, setOffset] = useState(0);
   const startX = useRef(0);
   const dragging = useRef(false);
@@ -83,15 +87,15 @@ function SwipeableItem({
         <button
           onClick={onDelete}
           className="w-6 h-6 rounded-full bg-muted-foreground/10 flex items-center justify-center flex-shrink-0 mt-0.5"
-          aria-label="Delete"
+          aria-label={t('brainDumpSheet.deleteAria')}
         >
           <X className="w-3 h-3 text-muted-foreground" />
         </button>
       </div>
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{fmtDate(item.created_at)}</span>
+        <span className="text-xs text-muted-foreground">{fmtDate(item.created_at, dateLocale)}</span>
         <div className="flex gap-1.5">
-          {SORT_BUTTONS.map(({ type, icon: Icon, label, requiresAccess }) => {
+          {SORT_BUTTONS.map(({ type, icon: Icon, labelKey, requiresAccess }) => {
             const locked = requiresAccess && !hasFullAccess;
             return (
               <button
@@ -106,7 +110,7 @@ function SwipeableItem({
                 )}
               >
                 {locked ? <Lock className="w-3 h-3" /> : <Icon className="w-3 h-3" />}
-                {label}
+                {t(labelKey)}
               </button>
             );
           })}
@@ -119,6 +123,7 @@ function SwipeableItem({
 // ─── Sheet ─────────────────────────────────────────────────────────────────────
 
 export function BrainDumpSheet({ isOpen, items, onClose, onSort, onDelete, hasFullAccess = true }: BrainDumpSheetProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return ReactDOM.createPortal(
@@ -139,8 +144,8 @@ export function BrainDumpSheet({ isOpen, items, onClose, onSort, onDelete, hasFu
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 flex-shrink-0">
           <div>
-            <h2 className="flow-modal-title">Saved for later</h2>
-            <p className="flow-meta mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+            <h2 className="flow-modal-title">{t('brainDumpSheet.title')}</h2>
+            <p className="flow-meta mt-0.5">{t('brainDumpSheet.itemCount', { count: items.length })}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
             <X className="w-4 h-4 text-foreground/70" />
@@ -150,7 +155,7 @@ export function BrainDumpSheet({ isOpen, items, onClose, onSort, onDelete, hasFu
         {/* List */}
         <div className="overflow-y-auto flex-1 px-5 pb-8 space-y-2">
           {items.length === 0 && (
-            <p className="py-8 text-center text-sm text-muted-foreground">Nothing saved yet</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t('brainDumpSheet.empty')}</p>
           )}
           {items.map(item => (
             <SwipeableItem

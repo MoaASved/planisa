@@ -3,7 +3,16 @@
     "noEmailRegistered": "No email registered",
     "opening": "Opening…",
     "updating": "Updating…",
-    "save": "Save"
+    "save": "Save",
+    "task": "Task",
+    "event": "Event",
+    "note": "Note",
+    "folder": "Folder",
+    "sticky": "Sticky",
+    "couldNotSave": "Could not save: {{message}}",
+    "untitled": "Untitled",
+    "add": "Add",
+    "done": "Done"
   },
   "profile": {
     "defaultUserName": "Planisa User",
@@ -15,7 +24,135 @@
     "label": "Nisa",
     "noMessageYet": "No message yet...",
     "willGreetAgain": "NISA will greet you on the dashboard again ✨",
-    "showAgain": "Show NISA again"
+    "showAgain": "Show NISA again",
+    "upgradeAction": "Upgrade →",
+    "sortNowAction": "Sort now →",
+    "dismiss": "dismiss",
+    "talkToNisaAria": "Talk to Nisa",
+    "messages": {
+      "noFocusSet": "You haven't set your focus for this week yet. What's the one thing that matters most? ✨",
+      "allDone": "You've completed everything in your focus list this week. Incredible! 🎉",
+      "brainDumpWaiting_one": "You have {{count}} unsorted brain dump item waiting. Want to sort them now?",
+      "brainDumpWaiting_other": "You have {{count}} unsorted brain dump items waiting. Want to sort them now?",
+      "habitsStreak": "Don't forget your habits today — you're on a streak! 💪",
+      "eveningFocusReminder": "Still time to knock out your focus items before the week is over 🌙",
+      "allSetToday": "You're all set for today, {{name}}. Let's make it count! 🌟",
+      "svAnnouncement": "🇸🇪 Svensk? Byt till Svenska i Inställningar - Planisa på svenska är på gång!"
+    }
+  },
+  "dashboardHeader": {
+    "greeting": "Hi, {{name}} 👋🏽",
+    "openSearchAria": "Open search",
+    "openProfileAria": "Open profile",
+    "defaultUserName": "User"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "cancel": "Cancel",
+    "noResults": "No results",
+    "emptyNote": "Empty note"
+  },
+  "todayCard": {
+    "title": "Today",
+    "noPlans": "No plans today",
+    "moreCount": "+{{count}} more",
+    "week": "W {{number}}"
+  },
+  "trialReminderModal": {
+    "headline": "Only 1 day left of your trial.",
+    "description": "Your data is safe. Upgrade to keep access to Tasks and Notes, or continue with Calendar and Profile for free.",
+    "upgradeNow": "Upgrade now",
+    "maybeLater": "Maybe later"
+  },
+  "brainDumpSheet": {
+    "title": "Saved for later",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "empty": "Nothing saved yet",
+    "deleteAria": "Delete"
+  },
+  "brainDumpSortModal": {
+    "titleLabel": "Title",
+    "eventTitlePlaceholder": "Event title",
+    "dateLabel": "Date",
+    "startTimeLabel": "Start time",
+    "endTimeLabel": "End time",
+    "categoryLabel": "Category (optional)",
+    "noCategory": "None",
+    "textLabel": "Text",
+    "noteTextPlaceholder": "Note text",
+    "folderLabel": "Folder (optional)",
+    "noFolder": "No folder",
+    "newItemTitle": "New {{label}}",
+    "saveAndOpen": "Save & open",
+    "addDetails": "+ add details",
+    "saveItem": "Save {{label}}",
+    "createdToast": "{{label}} created"
+  },
+  "focusPickerModal": {
+    "tabs": {
+      "tasks": "Tasks",
+      "events": "Events",
+      "notes": "Notes",
+      "stickies": "Stickies",
+      "custom": "Custom"
+    },
+    "untitledSticky": "Untitled sticky",
+    "priority": {
+      "high": "High priority",
+      "medium": "Medium priority",
+      "low": "Low priority"
+    },
+    "dueToday": "Due today",
+    "dueOn": "Due {{date}}",
+    "otherTasks": "Other tasks",
+    "pinned": "Pinned",
+    "todayLabel": "{{weekday}} — Today",
+    "slotsRemaining_one": "{{count}} slot remaining",
+    "slotsRemaining_other": "{{count}} slots remaining",
+    "selectionFull": "Selection full",
+    "customHelp": "Add a free-text focus item not linked to any task, event, or note.",
+    "customPlaceholder": "e.g. Call the doctor",
+    "addedSectionLabel": "Added",
+    "noEventsThisWeek": "No events this week",
+    "noItemsFound": "No items found",
+    "addButtonEmpty": "Add items",
+    "addButtonCount_one": "Add {{count}} item",
+    "addButtonCount_other": "Add {{count}} items"
+  },
+  "weeklyFocus": {
+    "title": "Weekly Focus",
+    "addFocus": "add focus",
+    "loading": "Loading…",
+    "empty": "Nothing in focus yet. What matters most this week?",
+    "removeAria": "Remove focus item"
+  },
+  "habits": {
+    "title": "Habits",
+    "edit": "Edit",
+    "empty": "No habits yet",
+    "addHabit": "Add habit",
+    "namePlaceholder": "Habit name",
+    "dayLabels": ["M", "T", "W", "T", "F", "S", "S"]
+  },
+  "brainDump": {
+    "title": "Brain dump",
+    "saveForLater": "Save for later",
+    "savedItemsAria": "{{count}} saved items",
+    "placeholder": "Write anything… sort later."
+  },
+  "upgradePrompt": {
+    "title": "Your trial has ended",
+    "description": "Subscribe to Planisa to unlock Tasks, Notes, and all features.",
+    "viewPlans": "View plans"
+  },
+  "trialReminders": {
+    "fallbackName": "there",
+    "day1": "Hey {{name}}! Great to have you here. Take a look around and explore, there's lots to discover. Tasks, notes, sticky notes and your calendar are all waiting for you!",
+    "day2": "Don't forget to add Planisa to your home screen for the full experience. It only takes a second!",
+    "endingSoon_one": "Your trial ends in {{count}} day. Upgrade to keep full access to Tasks and Notes.",
+    "endingSoon_other": "Your trial ends in {{count}} days. Upgrade to keep full access to Tasks and Notes.",
+    "welcomeToast": "You're all set! Welcome to Planisa Pro."
   },
   "plan": {
     "sectionTitle": "Plan",

@@ -1,5 +1,6 @@
 import ReactDOM from 'react-dom';
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Plus } from 'lucide-react';
 
 export interface HabitRow {
@@ -18,6 +19,7 @@ interface HabitsEditSheetProps {
 }
 
 export function HabitsEditSheet({ isOpen, habits, onClose, onAdd, onUpdate, onDelete }: HabitsEditSheetProps) {
+  const { t } = useTranslation();
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newName, setNewName] = useState('');
   const newInputRef = useRef<HTMLInputElement>(null);
@@ -55,12 +57,12 @@ export function HabitsEditSheet({ isOpen, habits, onClose, onAdd, onUpdate, onDe
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 flex-shrink-0">
-          <h2 className="flow-modal-title">Habits</h2>
+          <h2 className="flow-modal-title">{t('habits.title')}</h2>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
           >
-            Done
+            {t('common.done')}
           </button>
         </div>
 
@@ -97,7 +99,7 @@ export function HabitsEditSheet({ isOpen, habits, onClose, onAdd, onUpdate, onDe
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') commitNew(); if (e.key === 'Escape') { setIsAddingNew(false); setNewName(''); } }}
                 onBlur={commitNew}
-                placeholder="Habit name"
+                placeholder={t('habits.namePlaceholder')}
                 className="flex-1 bg-transparent text-sm text-foreground outline-none border-0 placeholder:text-muted-foreground/50 min-w-0"
               />
             </div>
@@ -110,7 +112,7 @@ export function HabitsEditSheet({ isOpen, habits, onClose, onAdd, onUpdate, onDe
               className="flex items-center gap-2 text-sm text-primary px-1 py-2 active:opacity-70 transition-opacity"
             >
               <Plus className="w-4 h-4" />
-              Add habit
+              {t('habits.addHabit')}
             </button>
           )}
         </div>

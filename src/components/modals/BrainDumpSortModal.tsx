@@ -7,14 +7,15 @@ import { useAppStore } from '@/store/useAppStore';
 import { Note } from '@/types';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/lib/colors';
 
 export type BrainDumpSortType = 'task' | 'event' | 'note' | 'sticky';
 
-const TYPE_META: Record<'event' | 'note', { label: string; icon: React.ElementType }> = {
-  event: { label: 'Event', icon: Calendar },
-  note:  { label: 'Note',  icon: FileText },
+const TYPE_META: Record<'event' | 'note', { labelKey: 'common.event' | 'common.note'; icon: React.ElementType }> = {
+  event: { labelKey: 'common.event', icon: Calendar },
+  note:  { labelKey: 'common.note',  icon: FileText },
 };
 
 interface BrainDumpSortModalProps {
@@ -71,6 +72,7 @@ function EventFields({
   endTime: string; setEndTime: (v: string) => void;
   categoryId: string; setCategoryId: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   const { eventCategories } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const titlePicker = useEmojiPicker(inputRef, title, setTitle);
@@ -79,33 +81,33 @@ function EventFields({
   return (
     <>
       <div>
-        <FieldLabel>Title</FieldLabel>
+        <FieldLabel>{t('brainDumpSortModal.titleLabel')}</FieldLabel>
         <input
           ref={inputRef}
           value={title}
           onChange={e => setTitle(e.target.value)}
-          placeholder="Event title"
+          placeholder={t('brainDumpSortModal.eventTitlePlaceholder')}
           className="w-full px-3 py-2.5 bg-secondary rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none border-0"
         />
       </div>
       <EmojiPicker {...titlePicker} />
       <div>
-        <FieldLabel>Date</FieldLabel>
+        <FieldLabel>{t('brainDumpSortModal.dateLabel')}</FieldLabel>
         <FieldInput type="date" value={date} onChange={e => setDate(e.target.value)} />
       </div>
       <div className="flex gap-3">
         <div className="flex-1">
-          <FieldLabel>Start time</FieldLabel>
+          <FieldLabel>{t('brainDumpSortModal.startTimeLabel')}</FieldLabel>
           <FieldInput type="time" value={time} onChange={e => setTime(e.target.value)} />
         </div>
         <div className="flex-1">
-          <FieldLabel>End time</FieldLabel>
+          <FieldLabel>{t('brainDumpSortModal.endTimeLabel')}</FieldLabel>
           <FieldInput type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
         </div>
       </div>
       {eventCategories.length > 0 && (
         <div>
-          <FieldLabel>Category (optional)</FieldLabel>
+          <FieldLabel>{t('brainDumpSortModal.categoryLabel')}</FieldLabel>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -115,7 +117,7 @@ function EventFields({
                 categoryId === '' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
               )}
             >
-              None
+              {t('brainDumpSortModal.noCategory')}
             </button>
             {eventCategories.map(c => (
               <button
@@ -144,6 +146,7 @@ function NoteFields({
   title: string; setTitle: (v: string) => void;
   folder: string; setFolder: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   const { folders } = useAppStore();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const textPicker = useEmojiPicker(textareaRef, title, setTitle);
@@ -160,20 +163,20 @@ function NoteFields({
   return (
     <>
       <div>
-        <FieldLabel>Text</FieldLabel>
+        <FieldLabel>{t('brainDumpSortModal.textLabel')}</FieldLabel>
         <textarea
           ref={textareaRef}
           value={title}
           onChange={e => setTitle(e.target.value)}
-          placeholder="Note text"
+          placeholder={t('brainDumpSortModal.noteTextPlaceholder')}
           rows={3}
           className="w-full px-3 py-2.5 bg-secondary rounded-xl text-sm text-foreground placeholder:text-muted-foreground outline-none border-0 resize-none overflow-hidden"
         />
       </div>
       <div>
-        <FieldLabel>Folder (optional)</FieldLabel>
+        <FieldLabel>{t('brainDumpSortModal.folderLabel')}</FieldLabel>
         <FieldSelect value={folder} onChange={e => setFolder(e.target.value)}>
-          <option value="">No folder</option>
+          <option value="">{t('brainDumpSortModal.noFolder')}</option>
           {folders.map(f => (
             <option key={f.id} value={f.name}>{f.name}</option>
           ))}
@@ -187,6 +190,7 @@ function NoteFields({
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOpenFullEditor, onSaveAndOpenNote }: BrainDumpSortModalProps) {
+  const { t } = useTranslation();
   const { modalTop, maxHeight } = useVisualViewport(70);
   const { addEvent, addNote, eventCategories } = useAppStore();
 
@@ -208,14 +212,14 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
   }, [isOpen, text]);
 
   const handleCreate = () => {
-    const t = title.trim();
-    if (!t) return;
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
 
     switch (type) {
       case 'event': {
         const cat = (categoryId ? eventCategories.find(c => c.id === categoryId) : null) ?? eventCategories[0];
         addEvent({
-          title: t,
+          title: trimmedTitle,
           date: date ? new Date(date + 'T12:00:00') : new Date(),
           category: cat?.name || 'Personal',
           color: cat?.color || 'peony',
@@ -226,9 +230,9 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
         break;
       }
       case 'note': {
-        const htmlContent = t.split('\n').map(l => `<p>${l || '<br>'}</p>`).join('');
+        const htmlContent = trimmedTitle.split('\n').map(l => `<p>${l || '<br>'}</p>`).join('');
         addNote({
-          title: t,
+          title: trimmedTitle,
           content: htmlContent,
           type: 'note',
           tags: [],
@@ -239,7 +243,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
       }
     }
 
-    toast.success(`${TYPE_META[type].label} created`);
+    toast.success(t('brainDumpSortModal.createdToast', { label: t(TYPE_META[type].labelKey) }));
     onSorted();
     onClose();
   };
@@ -250,11 +254,11 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
   };
 
   const handleSaveAndOpenNote = () => {
-    const t = title.trim();
-    if (!t) return;
-    const htmlContent = t.split('\n').map(l => `<p>${l || '<br>'}</p>`).join('');
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+    const htmlContent = trimmedTitle.split('\n').map(l => `<p>${l || '<br>'}</p>`).join('');
     addNote({
-      title: t,
+      title: trimmedTitle,
       content: htmlContent,
       type: 'note',
       tags: [],
@@ -262,7 +266,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
       folder: folder || undefined,
     });
     const created = useAppStore.getState().notes.at(-1);
-    toast.success('Note created');
+    toast.success(t('brainDumpSortModal.createdToast', { label: t('common.note') }));
     onSorted();
     onClose();
     if (created && onSaveAndOpenNote) onSaveAndOpenNote(created);
@@ -270,7 +274,8 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
 
   if (!isOpen) return null;
 
-  const { label, icon: Icon } = TYPE_META[type];
+  const { labelKey, icon: Icon } = TYPE_META[type];
+  const label = t(labelKey);
 
   return ReactDOM.createPortal(
     <>
@@ -287,7 +292,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
               <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Icon className="w-4 h-4 text-primary" />
               </div>
-              <h2 className="flow-modal-title">New {label}</h2>
+              <h2 className="flow-modal-title">{t('brainDumpSortModal.newItemTitle', { label })}</h2>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
               <X className="w-4 h-4 text-foreground/70" />
@@ -317,7 +322,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
                   disabled={!title.trim()}
                   className="px-5 py-2.5 rounded-2xl bg-secondary text-foreground text-sm font-semibold disabled:opacity-40"
                 >
-                  Save & open
+                  {t('brainDumpSortModal.saveAndOpen')}
                 </button>
               )}
               {type === 'event' && (
@@ -325,7 +330,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
                   onClick={handleOpenFull}
                   className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors mr-auto"
                 >
-                  + add details
+                  {t('brainDumpSortModal.addDetails')}
                 </button>
               )}
               <button
@@ -333,7 +338,7 @@ export function BrainDumpSortModal({ isOpen, text, type, onClose, onSorted, onOp
                 disabled={!title.trim()}
                 className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
               >
-                Save {label}
+                {t('brainDumpSortModal.saveItem', { label })}
               </button>
             </div>
           </div>
